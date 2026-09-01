@@ -33,6 +33,7 @@ describe("research branches", () => {
     expect(app.claimRelation(local.id)).toBe("LOCAL")
     app.switchBranch("MAIN")
     expect(app.listClaims().map((item) => item.id)).not.toContain(local.id)
+    expect(() => app.claimRelation(local.id)).toThrow(`Claim ${local.id} is not visible on branch B-000.`)
     expect(app.listClaims().map((item) => item.id)).toContain(parentClaim.id)
     app.pauseBranch("B-001")
     expect(app.getBranch("B-001").status).toBe("PAUSED")

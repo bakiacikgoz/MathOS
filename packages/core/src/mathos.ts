@@ -1,5 +1,5 @@
 import { basename, join, resolve } from "node:path"
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs"
+import { existsSync, writeFileSync } from "node:fs"
 import {
   type Blocker,
   type Claim,
@@ -31,13 +31,9 @@ import {
   MAIN_BRANCH_ID,
   MAIN_BRANCH_NAME,
   MAIN_BRANCH_SLUG,
-  nextBranchId,
-  slugifyBranchName,
-  gitRefForBranch,
   type ResearchBranch,
   type BranchDetail,
   type MergePreview,
-  type MergePreviewItem,
   type ArtifactRelation,
   DEFAULT_RESEARCH_BUDGET,
   emptyResearchUsage,
@@ -90,6 +86,7 @@ import { VerificationService } from "./services/verification-service.ts"
 import { ExperimentService } from "./services/experiment-service.ts"
 import { LiteratureService } from "./services/literature-service.ts"
 import { ResearchEngine } from "./services/research-engine.ts"
+import { BranchService } from "./services/branch-service.ts"
 import { TeamResearchCoordinator, type TeamResearchOverview, type TeamResearchStores } from "./services/team-research-coordinator.ts"
 import {
   buildResearchGraph,
@@ -219,6 +216,7 @@ export class MathOS {
   private experimentService!: ExperimentService
   private literatureService!: LiteratureService
   private researchEngine!: ResearchEngine
+  private branchService!: BranchService
   private teamResearchCoordinator!: TeamResearchCoordinator
   private constructor(
     readonly root: string,
@@ -380,6 +378,18 @@ export class MathOS {
       provider: instance.literatureProvider,
       allocateId: (prefix) => instance.allocateId(prefix),
       recordEvent: (action, event) => instance.record(action, event),
+    })
+    instance.branchService = new BranchService({
+      root: workspaceRoot,
+      workspaces: instance.workspaces,
+      branches: instance.branches,
+      claims: instance.claims,
+      visibility: instance.visibility,
+      proofs: instance.proofs,
+      blockers: instance.blockers,
+      runs: new ResearchRunRepository(client.db),
+      vcs: instance.vcs,
+      recordEvent: (action, event = {}) => instance.record(action, event),
     })
     instance.teamResearchCoordinator = new TeamResearchCoordinator(instance as unknown as import("./services/team-research-coordinator.ts").TeamResearchCoordinatorDependencies)
     instance.researchEngine = new ResearchEngine({
@@ -815,15 +825,9 @@ export class MathOS {
     return blocker
   }
 
-  currentBranch() {
-    return this.requireCurrentBranch()
-  }
+  currentBranch(): ResearchBranch { return this.branchService.current() }
 
-  private requireCurrentBranch() {
-    const branch = this.branches.current(this.requireWorkspace().id) ?? this.branches.get(MAIN_BRANCH_ID)
-    if (!branch) throw new Error("Current branch is missing")
-    return branch
-  }
+  private requireCurrentBranch(): ResearchBranch { return this.branchService.current() }
 
   private leanContext() {
     const run = this.currentAccounting()
@@ -832,216 +836,29 @@ export class MathOS {
     return { workspaceRoot: this.formalProjectRoot ?? fsRoot, tmpDir: join(fsRoot, ".mathos", "tmp"), signal: this.researchEngine?.currentAbortSignal() }
   }
 
-  listBranches() {
-    return this.branches.list(this.requireWorkspace().id)
-  }
+  listBranches(): ResearchBranch[] { return this.branchService.list() }
 
-  getBranch(idOrName: string): ResearchBranch {
-    const workspace = this.requireWorkspace()
-    const key = idOrName.trim()
-    const found = this.branches.get(key.toUpperCase()) ?? this.branches.getByName(workspace.id, key) ?? this.branches.getByName(workspace.id, key.toUpperCase())
-    if (!found) throw new Error(`Branch ${idOrName} was not found.`)
-    return found
-  }
+  getBranch(idOrName: string): ResearchBranch { return this.branchService.get(idOrName) }
 
-  branchDetail(idOrName = this.requireCurrentBranch().id): BranchDetail {
-    const branch = this.getBranch(idOrName)
-    const counts = this.visibility.counts(branch.id)
-    const parent = branch.parentBranchId ? this.branches.get(branch.parentBranchId) : null
-    const proofs = this.listClaims().filter((claim) => this.visibility.relation(branch.id, claim.id) === "LOCAL").reduce((sum, claim) => sum + this.proofs.listForClaim(claim.id).length, 0)
-    return {
-      branch,
-      parent,
-      localClaims: counts.local,
-      inheritedClaims: counts.inherited,
-      proofAttempts: proofs,
-      blockers: this.blockers.openCriticalCount(this.requireWorkspace().id),
-    }
-  }
+  branchDetail(idOrName?: string): BranchDetail { return this.branchService.detail(idOrName) }
 
-  async setupResearchVersioning() {
-    const status = await this.vcs.initialize(this.root)
-    this.record("branch_versioning_initialized", { metadata: { root: status.root } })
-    return status
-  }
+  async setupResearchVersioning() { return this.branchService.setup() }
 
-  async createBranch(name: string, purpose?: string): Promise<ResearchBranch> {
-    const workspace = this.requireWorkspace()
-    const parent = this.requireCurrentBranch()
-    const timestamp = nowIso()
-    const slug = slugifyBranchName(name)
-    const id = parent.id === MAIN_BRANCH_ID && this.branches.ids(workspace.id).length === 1
-      ? nextBranchId(this.branches.ids(workspace.id))
-      : nextBranchId(this.branches.ids(workspace.id))
-    const gitRef = gitRefForBranch(id, slug)
-    const worktreePath = `${this.root}/.mathos/worktrees/${id}`
-    const branch: ResearchBranch = {
-      id,
-      workspaceId: workspace.id,
-      name: name.trim() || slug,
-      slug,
-      parentBranchId: parent.id,
-      purpose: purpose?.trim() || name.trim(),
-      status: "ACTIVE",
-      isCurrent: false,
-      staleBase: false,
-      createdFromEventId: null,
-      gitRef: null,
-      worktreePath: null,
-      setupState: "READY",
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    }
-    this.branches.insert(branch)
-    this.visibility.copyInherited(parent.id, id, timestamp)
-    const vcs = await this.vcs.detect(this.root)
-    if (vcs.initialized) {
-      try {
-        await this.vcs.createBranch(this.root, gitRef)
-        await this.vcs.createWorktree(this.root, gitRef, worktreePath)
-        mkdirSync(join(worktreePath, "formal"), { recursive: true })
-        mkdirSync(join(worktreePath, "research"), { recursive: true })
-        mkdirSync(join(worktreePath, "experiments"), { recursive: true })
-        this.branches.updateWorktree(id, gitRef, worktreePath, "READY", timestamp)
-        branch.gitRef = gitRef
-        branch.worktreePath = worktreePath
-      } catch (error) {
-        await this.vcs.removeWorktree(this.root, worktreePath, gitRef).catch(() => undefined)
-        this.branches.delete(id)
-        throw error
-      }
-    }
-    this.record("branch_created", { target: id, metadata: { parent: parent.id, name: branch.name, slug, purpose: branch.purpose, gitRef: branch.gitRef } })
-    return this.getBranch(id)
-  }
+  async createBranch(name: string, purpose?: string): Promise<ResearchBranch> { return this.branchService.create(name, purpose) }
 
-  switchBranch(idOrName: string): ResearchBranch {
-    const workspace = this.requireWorkspace()
-    const branch = this.getBranch(idOrName)
-    if (branch.status === "ABANDONED") throw new Error(`Branch ${branch.id} is abandoned.`)
-    const timestamp = nowIso()
-    this.branches.setCurrent(workspace.id, branch.id, timestamp)
-    this.record("branch_switched", { target: branch.id, metadata: { name: branch.name } })
-    return this.getBranch(branch.id)
-  }
+  switchBranch(idOrName: string): ResearchBranch { return this.branchService.switch(idOrName) }
 
-  pauseBranch(idOrName: string): ResearchBranch {
-    const branch = this.getBranch(idOrName)
-    this.branches.updateStatus(branch.id, "PAUSED", nowIso())
-    this.record("branch_paused", { target: branch.id })
-    return this.getBranch(branch.id)
-  }
+  pauseBranch(idOrName: string): ResearchBranch { return this.branchService.pause(idOrName) }
 
-  resumeBranch(idOrName: string): ResearchBranch {
-    const branch = this.getBranch(idOrName)
-    this.branches.updateStatus(branch.id, "ACTIVE", nowIso())
-    this.record("branch_reactivated", { target: branch.id })
-    return this.switchBranch(branch.id)
-  }
+  resumeBranch(idOrName: string): ResearchBranch { return this.branchService.resume(idOrName) }
 
-  abandonBranch(idOrName: string): ResearchBranch {
-    const branch = this.getBranch(idOrName)
-    if (branch.id === MAIN_BRANCH_ID) throw new Error("MAIN cannot be abandoned.")
-    const live = this.researchStores().runs.liveOnBranch(this.requireWorkspace().id, branch.id)
-    if (live) throw new Error(`ACTIVE_RESEARCH_RUN_EXISTS:${live.id}`)
-    if (branch.isCurrent) this.switchBranch(MAIN_BRANCH_ID)
-    this.branches.updateStatus(branch.id, "ABANDONED", nowIso())
-    this.record("branch_abandoned", { target: branch.id })
-    return this.getBranch(branch.id)
-  }
+  abandonBranch(idOrName: string): ResearchBranch { return this.branchService.abandon(idOrName) }
 
-  claimRelation(claimId: string): ArtifactRelation {
-    const relation = this.visibility.relation(this.requireCurrentBranch().id, this.getClaim(claimId).id)
-    return relation === "MERGED" || relation === "INHERITED" || relation === "LOCAL" ? relation : "LOCAL"
-  }
+  claimRelation(claimId: string): ArtifactRelation { return this.branchService.claimRelation(claimId) }
 
-  previewMerge(sourceId: string, targetId = MAIN_BRANCH_ID): MergePreview {
-    const source = this.getBranch(sourceId)
-    const target = this.getBranch(targetId)
-    const sourceClaims = this.visibility.list(source.id)
-    const targetClaims = new Set(this.visibility.list(target.id).map((item) => item.claimId))
-    const items: MergePreviewItem[] = []
-    for (const row of sourceClaims.filter((item) => item.relation === "LOCAL")) {
-      const claim = this.claims.get(row.claimId)
-      if (!claim) continue
-      if (!targetClaims.has(claim.id)) {
-        const verified = claim.status === "KERNEL_VERIFIED"
-        items.push({
-          kind: verified ? "verified_proof" : "claim",
-          id: claim.id,
-          change: "ADDITIVE",
-          summary: claim.title,
-          safe: true,
-          reverifyRequired: verified && source.parentBranchId !== target.id ? true : verified,
-        })
-      }
-    }
-    if (source.worktreePath) {
-      const compare = (rel: string) => {
-        const child = join(source.worktreePath!, rel)
-        const parent = join(this.root, rel)
-        if (!existsSync(child)) return
-        if (!existsSync(parent)) {
-          items.push({ kind: rel.startsWith("formal") ? "formal_file" : "research_note", id: rel, change: "ADDITIVE", summary: rel, safe: true })
-          return
-        }
-        if (readFileSync(parent, "utf8") !== readFileSync(child, "utf8")) {
-          items.push({ kind: rel.startsWith("formal") ? "formal_file" : "research_note", id: rel, change: "CONFLICT", summary: rel, safe: false })
-        }
-      }
-      const walk = (rel: string) => {
-        const dir = join(source.worktreePath!, rel)
-        if (!existsSync(dir) || !statSync(dir).isDirectory()) return
-        for (const entry of readdirSync(dir)) {
-          if (entry.startsWith(".")) continue
-          const next = join(rel, entry)
-          if (statSync(join(source.worktreePath!, next)).isDirectory()) walk(next)
-          else compare(next)
-        }
-      }
-      walk("formal")
-      walk("research")
-    }
-    const conflicts = items.filter((item) => item.change === "CONFLICT").length
-    const additiveClaims = items.filter((item) => item.kind === "claim" && item.change === "ADDITIVE").length
-    const verifiedProofs = items.filter((item) => item.kind === "verified_proof").length
-    const formalChanges = items.filter((item) => item.kind === "formal_file").length
-    return {
-      sourceId: source.id,
-      targetId: target.id,
-      items,
-      additiveClaims,
-      verifiedProofs,
-      formalChanges,
-      conflicts,
-      safeToAutoMerge: conflicts === 0,
-    }
-  }
+  previewMerge(sourceId: string, targetId = MAIN_BRANCH_ID): MergePreview { return this.branchService.previewMerge(sourceId, targetId) }
 
-  mergeBranch(sourceId: string, options: { applySafe?: boolean } = {}): MergePreview {
-    const preview = this.previewMerge(sourceId)
-    this.record("branch_merge_started", { target: sourceId, metadata: { conflicts: preview.conflicts } })
-    if (!options.applySafe) return preview
-    const running = this.researchStores().runs.runningOnBranch(this.requireWorkspace().id, this.getBranch(sourceId).id)
-    if (running) throw new Error(`ACTIVE_RESEARCH_RUN_EXISTS:${running.id}`)
-    if (preview.conflicts > 0) {
-      this.record("branch_merge_conflict", { target: sourceId, metadata: { conflicts: preview.conflicts } })
-      throw new Error("Merge has conflicts and cannot auto-apply.")
-    }
-    const timestamp = nowIso()
-    const target = this.getBranch(preview.targetId)
-    for (const item of preview.items.filter((row) => row.safe && (row.kind === "claim" || row.kind === "verified_proof"))) {
-      const claim = this.claims.get(item.id)
-      if (!claim) continue
-      this.visibility.insert(target.id, claim.id, "MERGED", timestamp)
-      if (item.reverifyRequired && claim.status === "KERNEL_VERIFIED") {
-        this.claims.updateStatus(claim.id, "STALE", timestamp)
-      }
-    }
-    this.branches.updateStatus(sourceId, "MERGED", timestamp)
-    this.record("branch_merge_completed", { target: sourceId, metadata: { additive: preview.additiveClaims } })
-    return preview
-  }
+  mergeBranch(sourceId: string, options: { applySafe?: boolean } = {}): MergePreview { return this.branchService.merge(sourceId, options) }
 
   async formalize(claimId: string): Promise<FormalizationSession> {
     return this.formalizationService.formalize(claimId)
