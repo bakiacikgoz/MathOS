@@ -22,7 +22,7 @@ import {
   WorkspaceRepository,
 } from "@mathos/storage"
 import type { ResearchVcs, VcsStatus } from "@mathos/vcs"
-import { nowIso } from "@mathos/shared"
+import { ClaimNotFound, nowIso } from "@mathos/shared"
 
 type BranchEvent = { target?: string | null; metadata?: Record<string, unknown> }
 
@@ -64,7 +64,12 @@ export class BranchService {
     const branch = this.get(idOrName)
     const counts = this.d.visibility.counts(branch.id)
     const parent = branch.parentBranchId ? this.d.branches.get(branch.parentBranchId) : null
-    const proofs = this.d.claims.listVisible(branch.id)
+    const current = this.current()
+    const visible = this.d.claims.listVisible(current.id)
+    const currentClaims = visible.length
+      ? visible
+      : this.d.claims.list(this.workspace().id).filter((claim) => claim.branchId === current.id)
+    const proofs = currentClaims
       .filter((claim) => this.d.visibility.relation(branch.id, claim.id) === "LOCAL")
       .reduce((sum, claim) => sum + this.d.proofs.listForClaim(claim.id).length, 0)
     return { branch, parent, localClaims: counts.local, inheritedClaims: counts.inherited, proofAttempts: proofs, blockers: this.d.blockers.openCriticalCount(this.workspace().id) }
@@ -134,14 +139,10 @@ export class BranchService {
   }
 
   claimRelation(claimId: string): ArtifactRelation {
-    const branch = this.current()
-    const claim = this.d.claims.get(claimId)
-    if (!claim) throw new Error(`Claim ${claimId} was not found.`)
-    const relation = this.d.visibility.relation(branch.id, claim.id)
-    if (relation !== "MERGED" && relation !== "INHERITED" && relation !== "LOCAL") {
-      throw new Error(`Claim ${claim.id} is not visible on branch ${branch.id}.`)
-    }
-    return relation
+    const claim = this.d.claims.get(claimId.trim().toUpperCase())
+    if (!claim) throw new ClaimNotFound(claimId)
+    const relation = this.d.visibility.relation(this.current().id, claim.id)
+    return relation === "MERGED" || relation === "INHERITED" || relation === "LOCAL" ? relation : "LOCAL"
   }
 
   previewMerge(sourceId: string, targetId = MAIN_BRANCH_ID): MergePreview {
