@@ -19,7 +19,6 @@ export async function validateRetrievalFixtures(): Promise<FixtureValidationRepo
   const adapter = new NativeLeanAdapter()
   const inspected = await adapter.inspectDeclarations(names, {
     workspaceRoot: resolve(import.meta.dir, "../demo"),
-    formalProjectRoot: resolve(import.meta.dir, "../demo/formal"),
   }, { timeoutMs: 180_000 })
   const byName = new Map(inspected.inspections.map((row) => [row.name, row]))
   const missing = names.filter((name) => {

@@ -14,7 +14,7 @@ export async function validateRetrievalHoldout() {
   const missing: string[] = []
   for (let index = 0; index < names.length; index += 30) {
     const batch = names.slice(index, index + 30)
-    const result = await adapter.inspectDeclarations(batch, { workspaceRoot: resolve(import.meta.dir, "../demo"), formalProjectRoot: resolve(import.meta.dir, "../demo/formal") }, { timeoutMs: 180_000 })
+    const result = await adapter.inspectDeclarations(batch, { workspaceRoot: resolve(import.meta.dir, "../demo") }, { timeoutMs: 180_000 })
     const byName = new Map(result.inspections.map((row) => [row.name, row]))
     missing.push(...batch.filter((name) => !byName.get(name)?.exists || !byName.get(name)?.elaborated))
   }

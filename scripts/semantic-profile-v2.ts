@@ -32,10 +32,11 @@ export function assertV2SetAllowed(set: string) {
 export async function runSemanticV2(set: "development" | "validation") {
   assertV2SetAllowed(set)
   const fixtures = set === "development"
-    ? MATHLIB_FIXTURES.map((fixture) => ({ id: fixture.id, goal: fixture.goal, expected: fixture.expected, domain: fixture.domain }))
+    ? MATHLIB_FIXTURES.map((fixture) => ({ id: fixture.id, goal: fixture.goal, expected: fixture.expected, domain: fixture.expected[0]?.split(".")[0] ?? "Root" }))
     : RETRIEVAL_VALIDATION_FIXTURES.map((fixture) => ({ id: fixture.id, goal: fixture.goal, expected: fixture.expectedAnyOf, domain: fixture.domain }))
   const stored = readIndex(DEMO)
   if (!stored) throw new Error("index missing")
+  if (!stored.channels) throw new Error("channel index missing")
   const cache = readInspectionCache(DEMO, stored.manifest.leanVersion, stored.manifest.mathlibRevision)
   const selector = new StratifiedInspectSelector("SOFT_CONSENSUS_REDUNDANCY")
   const results: Record<string, any> = {}
@@ -55,7 +56,7 @@ export async function runSemanticV2(set: "development" | "validation") {
       const goal = profileGoal(mode === "V2_CANDIDATE" ? fixture.goal : effectiveGoal)
       const selection = selector.select(top, goal, 30)
       const inspected = selection.selected.map((row) => row.candidate)
-      const inspections = inspected.map((candidate) => cache.file.entries[candidate.declaration.name]?.inspection).filter(Boolean)
+      const inspections = inspected.flatMap((candidate) => { const inspection = cache.file.entries[candidate.declaration.name]?.inspection; return inspection ? [inspection] : [] })
       const adjusted = enrichForLean(inspected, inspections, goal, new Set(inspections.map((row) => row.name)))
       const final = fuseCandidateRanks(inspected, adjusted, { method: "SCORE_FUSION", stage1Weight: 0.45, leanWeight: 0.55 }).candidates.slice(0, 20)
       rows.push({ id: fixture.id, domain: fixture.domain, expected: fixture.expected, union: goldFound(enrichedUnion.map((row) => row.declaration.name), fixture.expected), top200: goldFound(top.map((row) => row.declaration.name), fixture.expected), inspect30: goldFound(inspected.map((row) => row.declaration.name), fixture.expected), final20: goldFound(final.map((row) => row.declaration.name), fixture.expected), finalNames: final.map((row) => row.declaration.name) })

@@ -26,7 +26,6 @@ const ACTIVE = new Set(["add", "sub", "neg", "mul", "div", "pow", "inv", "le", "
 
 type Fixture = { id: string; goal: string; expected: string[]; domain: string }
 type RelationPolicy = "REL-OFF" | "REL-EXACT"
-type Prepared = ReturnType<typeof prepareFixture>
 type Config = { strategy: SemanticCompatibilityStrategy; cap: number; relation: RelationPolicy }
 
 export function assertStabilityDataset(set: string) {
@@ -37,16 +36,19 @@ export function assertStabilityDataset(set: string) {
 export async function runStabilityAnalysis() {
   const stored = readIndex(DEMO)
   if (!stored) throw new Error("index missing")
+  if (!stored.channels) throw new Error("channel index missing")
+  const channels = stored.channels
   const cache = readInspectionCache(DEMO, stored.manifest.leanVersion, stored.manifest.mathlibRevision)
   const selector = new StratifiedInspectSelector("SOFT_CONSENSUS_REDUNDANCY")
   const datasets = {
-    development: MATHLIB_FIXTURES.map((fixture) => ({ id: fixture.id, goal: fixture.goal, expected: fixture.expected, domain: fixture.domain })) as Fixture[],
+    development: MATHLIB_FIXTURES.map((fixture) => ({ id: fixture.id, goal: fixture.goal, expected: fixture.expected, domain: fixture.expected[0]?.split(".")[0] ?? "Root" })) as Fixture[],
     validation: RETRIEVAL_VALIDATION_FIXTURES.map((fixture) => ({ id: fixture.id, goal: fixture.goal, expected: fixture.expectedAnyOf, domain: fixture.domain })) as Fixture[],
   }
   const prepared = {
     development: datasets.development.map(prepareFixture),
     validation: datasets.validation.map(prepareFixture),
   }
+  type Prepared = ReturnType<typeof prepareFixture>
   const baseline = {
     development: evaluateBaseline(prepared.development),
     validation: evaluateBaseline(prepared.validation),
@@ -121,16 +123,16 @@ export async function runStabilityAnalysis() {
     const relationGoalTokens = [...exact, ...relationTokens]
     const relGoal = relationGoalTokens.length ? `${fixture.goal} semantic_v2 ${relationGoalTokens.join(" ")}` : fixture.goal
     const baselineStageStarted = performance.now()
-    const baselineUnion = generateCandidates(stored!.declarations, stored!.channels, { goalText: fixture.goal, goal: goalProfile, formal: true })
-    const baselineHeader = retrieveFromDeclarations(stored!.declarations, { query: fixture.goal, goal: fixture.goal, maxPremises: 200, candidatePool: 200, skipInspect: true }, stored!.manifest.revision, stored!.channels)
+    const baselineUnion = generateCandidates(stored!.declarations, channels, { goalText: fixture.goal, goal: goalProfile, formal: true })
+    const baselineHeader = retrieveFromDeclarations(stored!.declarations, { query: fixture.goal, goal: fixture.goal, maxPremises: 200, candidatePool: 200, skipInspect: true }, stored!.manifest.revision, channels)
     const baselineStage1Ms = performance.now() - baselineStageStarted
     const offStageStarted = performance.now()
-    const offUnionRaw = offGoal === fixture.goal ? baselineUnion : generateCandidates(stored!.declarations, stored!.channels, { goalText: offGoal, goal: profileGoal(offGoal), formal: true })
-    const offHeader = offGoal === fixture.goal ? baselineHeader : retrieveFromDeclarations(stored!.declarations, { query: offGoal, goal: offGoal, maxPremises: 200, candidatePool: 200, skipInspect: true }, stored!.manifest.revision, stored!.channels)
+    const offUnionRaw = offGoal === fixture.goal ? baselineUnion : generateCandidates(stored!.declarations, channels, { goalText: offGoal, goal: profileGoal(offGoal), formal: true })
+    const offHeader = offGoal === fixture.goal ? baselineHeader : retrieveFromDeclarations(stored!.declarations, { query: offGoal, goal: offGoal, maxPremises: 200, candidatePool: 200, skipInspect: true }, stored!.manifest.revision, channels)
     const offStage1Ms = performance.now() - offStageStarted + baselineStage1Ms
     const relStageStarted = performance.now()
-    const relUnionRaw = relGoal === offGoal ? offUnionRaw : generateCandidates(stored!.declarations, stored!.channels, { goalText: relGoal, goal: profileGoal(relGoal), formal: true })
-    const relHeader = relGoal === offGoal ? offHeader : retrieveFromDeclarations(stored!.declarations, { query: relGoal, goal: relGoal, maxPremises: 200, candidatePool: 200, skipInspect: true }, stored!.manifest.revision, stored!.channels)
+    const relUnionRaw = relGoal === offGoal ? offUnionRaw : generateCandidates(stored!.declarations, channels, { goalText: relGoal, goal: profileGoal(relGoal), formal: true })
+    const relHeader = relGoal === offGoal ? offHeader : retrieveFromDeclarations(stored!.declarations, { query: relGoal, goal: relGoal, maxPremises: 200, candidatePool: 200, skipInspect: true }, stored!.manifest.revision, channels)
     const relStage1Ms = performance.now() - relStageStarted + baselineStage1Ms
     const mergeUnion = (left: any[], right: any[]) => [...new Map([...left, ...right].map((row: any) => [row.declaration.name, row])).values()]
     const offUnion = mergeUnion(baselineUnion, offUnionRaw)
@@ -181,7 +183,7 @@ export async function runStabilityAnalysis() {
     const fullStarted = performance.now()
     const selection = selector.select(top, item.goalProfile, 30)
     const inspected = selection.selected.map((row) => row.candidate)
-    const inspections = inspected.map((candidate) => cache.file.entries[candidate.declaration.name]?.inspection).filter(Boolean)
+    const inspections = inspected.flatMap((candidate) => { const inspection = cache.file.entries[candidate.declaration.name]?.inspection; return inspection ? [inspection] : [] })
     const adjusted = enrichForLean(inspected, inspections, item.goalProfile, new Set(inspections.map((row) => row.name)))
     const final = fuseCandidateRanks(inspected, adjusted, { method: "SCORE_FUSION", stage1Weight: 0.45, leanWeight: 0.55 }).candidates.slice(0, 20)
     const expected = item.fixture.expected
@@ -199,7 +201,7 @@ export async function runStabilityAnalysis() {
 }
 
 function aggregate(rows: any[], baselineRows?: any[]) {
-  const fixtures = rows.map((row) => ({ id: row.id, expected: row.expected }))
+  const fixtures = rows.map((row) => ({ id: String(row.id), goal: String(row.id), expected: row.expected as string[] }))
   const ranked = metricsFor(rows.map((row) => row.finalNames), fixtures)
   const n = rows.length || 1
   const metrics = { union: count(rows, "union") / n, top200: count(rows, "top200") / n, inspect30: count(rows, "inspect30") / n, final20: count(rows, "final20") / n, hit5: ranked.hit5, hit10: ranked.hit10, mrr: ranked.mrr }

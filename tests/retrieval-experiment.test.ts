@@ -2,7 +2,7 @@ import { resolve } from "node:path"
 import { describe, expect, test } from "bun:test"
 import { existsSync, readFileSync } from "node:fs"
 import { createHash } from "node:crypto"
-import { DEFAULT_RETRIEVAL_CONFIG, StratifiedInspectSelector, profileGoal } from "@mathos/retrieval"
+import { DEFAULT_RETRIEVAL_CONFIG, StratifiedInspectSelector, profileGoal, type ExperimentalRetrievalContext, type PremiseCandidate } from "@mathos/retrieval"
 import { EXPERIMENTS } from "../scripts/retrieval-experiment.ts"
 
 const ROOT = resolve(import.meta.dir, "..")
@@ -23,9 +23,9 @@ describe("retrieval experiment laboratory", () => {
     const retrieverSource = readFileSync(`${ROOT}/packages/retrieval/src/retriever.ts`, "utf8")
     const coreSource = readFileSync(`${ROOT}/packages/core/src/mathos.ts`, "utf8")
     const fusionSource = readFileSync(`${ROOT}/packages/retrieval/src/fusion.ts`, "utf8")
-    const candidate = { declaration: { name: "Nat.add_assoc", signature: "theorem Nat.add_assoc (a b c : Nat) : a + b + c = a + (b + c)", origin: "mathlib" as const }, score: 1 }
+    const candidate: PremiseCandidate = { declaration: { name: "Nat.add_assoc", kind: "theorem", signature: "theorem Nat.add_assoc (a b c : Nat) : a + b + c = a + (b + c)", origin: "mathlib" }, score: 1, reasons: [] }
     const union = [candidate]
-    const context = {
+    const context: ExperimentalRetrievalContext = {
       fixtureId: "synthetic",
       domain: "Nat/Int",
       goal: "theorem validation (a b c : Nat) : a + b + c = a + (b + c)",

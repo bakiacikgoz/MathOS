@@ -86,6 +86,7 @@ describe("retrieval", () => {
     const created = await MathOS.init(tempDir(), "idx")
     writeIndex(created.root, {
       revision: "old",
+      formatVersion: 3,
       leanVersion: "x",
       mathlibRevision: "y",
       formalFingerprint: "a",

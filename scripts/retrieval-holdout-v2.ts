@@ -59,6 +59,8 @@ export async function compareHoldoutV2() {
   assertFrozenManifest()
   const stored = readIndex(DEMO)
   if (!stored) throw new Error("MathOS demo index missing")
+  if (!stored.channels) throw new Error("MathOS demo channel index missing")
+  const channels = stored.channels
   const indexPath = `${DEMO}/.mathos/index/declarations.json`
   const indexBytesBefore = statSync(indexPath).size
   const cache = readInspectionCache(DEMO, stored.manifest.leanVersion, stored.manifest.mathlibRevision)
@@ -123,14 +125,14 @@ export async function compareHoldoutV2() {
 
   function evaluate(item: any, policy: Policy, baseline?: Row): Row {
     const stageStarted = performance.now()
-    const baselineUnion = generateCandidates(stored!.declarations, stored!.channels, { goalText: item.fixture.goal, goal: item.goalProfile, formal: true })
-    const baselineHeader = retrieveFromDeclarations(stored!.declarations, { query: item.fixture.goal, goal: item.fixture.goal, maxPremises: 200, candidatePool: 200, skipInspect: true }, stored!.manifest.revision, stored!.channels).candidates
+    const baselineUnion = generateCandidates(stored!.declarations, channels, { goalText: item.fixture.goal, goal: item.goalProfile, formal: true })
+    const baselineHeader = retrieveFromDeclarations(stored!.declarations, { query: item.fixture.goal, goal: item.fixture.goal, maxPremises: 200, candidatePool: 200, skipInspect: true }, stored!.manifest.revision, channels).candidates
     const baselineStage1Ms = performance.now() - stageStarted
     if (policy === "BASELINE") return finalize(item, baselineUnion, baselineHeader, baselineStage1Ms, 0, 0, undefined)
 
     const semanticStage = performance.now()
-    const semanticUnionRaw = item.semanticGoal === item.fixture.goal ? baselineUnion : generateCandidates(stored!.declarations, stored!.channels, { goalText: item.semanticGoal, goal: profileGoal(item.semanticGoal), formal: true })
-    const semanticHeader = item.semanticGoal === item.fixture.goal ? baselineHeader : retrieveFromDeclarations(stored!.declarations, { query: item.semanticGoal, goal: item.semanticGoal, maxPremises: 200, candidatePool: 200, skipInspect: true }, stored!.manifest.revision, stored!.channels).candidates
+    const semanticUnionRaw = item.semanticGoal === item.fixture.goal ? baselineUnion : generateCandidates(stored!.declarations, channels, { goalText: item.semanticGoal, goal: profileGoal(item.semanticGoal), formal: true })
+    const semanticHeader = item.semanticGoal === item.fixture.goal ? baselineHeader : retrieveFromDeclarations(stored!.declarations, { query: item.semanticGoal, goal: item.semanticGoal, maxPremises: 200, candidatePool: 200, skipInspect: true }, stored!.manifest.revision, channels).candidates
     const stage1Ms = baselineStage1Ms + (performance.now() - semanticStage)
     const compatibilityStart = performance.now()
     const baseRanks = new Map(baselineHeader.map((candidate, rank) => [candidate.declaration.name, rank + 1]))
@@ -159,7 +161,7 @@ export async function compareHoldoutV2() {
     const selection = selector.select(top, item.goalProfile, 30)
     if (selection.selected.length > 30) throw new Error("inspection batch exceeds 30")
     const inspected = selection.selected.map((entry) => entry.candidate)
-    const inspections = inspected.map((candidate) => cache.file.entries[candidate.declaration.name]?.inspection).filter(Boolean)
+    const inspections = inspected.flatMap((candidate) => { const inspection = cache.file.entries[candidate.declaration.name]?.inspection; return inspection ? [inspection] : [] })
     const adjusted = enrichForLean(inspected, inspections, item.goalProfile, new Set(inspections.map((inspection) => inspection.name)))
     const final = fuseCandidateRanks(inspected, adjusted, { method: "SCORE_FUSION", stage1Weight: .45, leanWeight: .55 }).candidates.slice(0, 20)
     const expected = item.fixture.expectedAnyOf
@@ -196,7 +198,7 @@ function rankDeltaSummary(rows: any[]) { const stages = ["union", "top200", "ins
 function performanceSummary(rows: Row[]) { return { stage1MedianMs: percentile(rows.map((row) => row.stage1Ms), .5), stage1P95Ms: percentile(rows.map((row) => row.stage1Ms), .95), semanticMedianMs: percentile(rows.map((row) => row.semanticMs), .5), semanticP95Ms: percentile(rows.map((row) => row.semanticMs), .95), compatibilityMedianMs: percentile(rows.map((row) => row.compatibilityMs), .5), compatibilityP95Ms: percentile(rows.map((row) => row.compatibilityMs), .95), fullMedianMs: percentile(rows.map((row) => row.fullMs), .5), fullP95Ms: percentile(rows.map((row) => row.fullMs), .95) } }
 function overhead(base: any, feature: any) { return { stage1MedianMs: feature.stage1MedianMs - base.stage1MedianMs, stage1P95Ms: feature.stage1P95Ms - base.stage1P95Ms, fullMedianMs: feature.fullMedianMs - base.fullMedianMs, fullP95Ms: feature.fullP95Ms - base.fullP95Ms } }
 function stageValues(base: Row[], feature: Row[], stage: "top200" | "final20") { return base.map((row, index) => ({ baseline: Number(row[stage].found), feature: Number(feature[index]![stage].found) })) }
-function numericDelta(before: Record<string, number>, after: Record<string, number>) { return Object.fromEntries(Object.keys(before).map((key) => [key, Number(((after[key] ?? 0) - (before[key] ?? 0)).toFixed(10))])) }
+function numericDelta<T extends Record<string, number>>(before: T, after: T): T { return Object.fromEntries(Object.keys(before).map((key) => [key, Number(((after[key] ?? 0) - (before[key] ?? 0)).toFixed(10))])) as T }
 function reciprocal(rankValue: number | null) { return rankValue ? 1 / rankValue : 0 }
 function rank(names: string[], target: string) { const index = names.indexOf(target); return index < 0 ? null : index + 1 }
 function percentile(values: number[], p: number) { if (!values.length) return 0; const sorted = [...values].sort((a, b) => a - b); return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))]! }

@@ -51,6 +51,7 @@ export function classifyPairedRanks(baselineRank: number | null, featureRank: nu
 export async function evaluateHoldoutPolicy(policy: Policy) {
   const stored = readIndex(DEMO)
   if (!stored) throw new Error("MathOS demo index missing")
+  if (!stored.channels) throw new Error("MathOS demo channel index missing")
   const cache = readInspectionCache(DEMO, stored.manifest.leanVersion, stored.manifest.mathlibRevision)
   const selector = new StratifiedInspectSelector("SOFT_CONSENSUS_REDUNDANCY")
   const rows: EvaluationRow[] = []
@@ -67,7 +68,7 @@ export async function evaluateHoldoutPolicy(policy: Policy) {
     const stage1Ms = performance.now() - stageStart
     const selection = selector.select(header.candidates, goal, 30)
     const inspected = selection.selected.map((item) => item.candidate)
-    const inspections = inspected.map((candidate) => cache.file.entries[candidate.declaration.name]?.inspection).filter(Boolean)
+    const inspections = inspected.flatMap((candidate) => { const inspection = cache.file.entries[candidate.declaration.name]?.inspection; return inspection ? [inspection] : [] })
     const cacheHits = new Set(inspections.map((item) => item.name))
     const adjusted = enrichForLean(inspected, inspections, goal, cacheHits)
     const final = fuseCandidateRanks(inspected, adjusted, { method: "SCORE_FUSION", stage1Weight: 0.45, leanWeight: 0.55 }).candidates.slice(0, 20)
@@ -149,7 +150,7 @@ function failures(rows: EvaluationRow[]) {
 function domainResults(rows: EvaluationRow[]) { return Object.fromEntries([...new Set(rows.map((row) => row.domain))].sort().map((domain) => { const subset = rows.filter((row) => row.domain === domain); return [domain, { count: subset.length, ...aggregate(subset) }] })) }
 function percentile(values: number[], fraction: number) { const sorted = [...values].sort((a, b) => a - b); return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * fraction))] ?? 0 }
 function performanceSummary(rows: EvaluationRow[]) { return { medianStage1Ms: percentile(rows.map((row) => row.stage1Ms), 0.5), p95Stage1Ms: percentile(rows.map((row) => row.stage1Ms), 0.95), medianFullMs: percentile(rows.map((row) => row.fullMs), 0.5), p95FullMs: percentile(rows.map((row) => row.fullMs), 0.95) } }
-function numericDelta(before: Record<string, number>, after: Record<string, number>) { return Object.fromEntries(Object.keys(before).map((key) => [key, Number((after[key]! - before[key]!).toFixed(8))])) as Record<string, number> }
+function numericDelta<T extends Record<string, number>>(before: T, after: T): T { return Object.fromEntries(Object.keys(before).map((key) => [key, Number((after[key]! - before[key]!).toFixed(8))])) as T }
 
 if (import.meta.main) {
   const compare = process.argv.includes("--compare")

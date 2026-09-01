@@ -51,6 +51,7 @@ export function fixtureSet(name: EvaluationOptions["set"]): EvaluationFixture[] 
 export async function evaluateRetrieval(options: EvaluationOptions) {
   const stored = readIndex(DEMO)
   if (!stored) throw new Error("demo index missing; run mathos index build")
+  if (!stored.channels) throw new Error("demo channel index missing; rebuild index")
   const fixtures = fixtureSet(options.set)
   const indexedNames = new Set(stored.declarations.map((row) => row.name.toLowerCase()))
   const prepared: PreparedFixture[] = []
@@ -82,7 +83,7 @@ export async function evaluateRetrieval(options: EvaluationOptions) {
       const chunkSize = 30
       for (let offset = 0; offset < missing.length; offset += chunkSize) {
         const chunk = missing.slice(offset, offset + chunkSize)
-        const result = await adapter.inspectDeclarations(chunk, { workspaceRoot: DEMO, formalProjectRoot: `${DEMO}/formal` }, { timeoutMs: 180_000 })
+        const result = await adapter.inspectDeclarations(chunk, { workspaceRoot: DEMO }, { timeoutMs: 180_000 })
         if (result.failed || result.timedOut) throw new Error(`validation cache population failed at chunk ${offset / chunkSize + 1}: ${result.detail ?? "unknown"}`)
         for (const inspection of result.inspections) storeInspection(cacheBefore.file, inspection.name, inspection, null)
         populated += result.inspections.length
@@ -208,18 +209,17 @@ function selectorBoundary(prepared: PreparedFixture[], name: string) {
   const item = prepared.find((row) => row.fixture.expected.some((expected) => expected.toLowerCase() === name.toLowerCase()))
   if (!item) return null
   const diagnostic = item.selector.diagnostics[name]
-  const selected = item.selector.selected.map((row) => ({ name: row.candidate.declaration.name, selectionReason: row.selectionReason, marginalValue: row.diagnostic.marginalValue, redundancyPenalty: row.diagnostic.redundancyPenalty })).filter((row) => Number.isFinite(row.marginalValue))
-  const marginallySelected = selected.filter((row) => row.selectionReason === "MARGINAL")
-  const thresholdPool = marginallySelected.length ? marginallySelected : selected
-  const threshold = thresholdPool.length ? Math.min(...thresholdPool.map((row) => row.marginalValue)) : null
-  const nearest = diagnostic ? [...selected].sort((a, b) => Math.abs(a.marginalValue - diagnostic.marginalValue) - Math.abs(b.marginalValue - diagnostic.marginalValue) || a.name.localeCompare(b.name))[0] ?? null : null
+  const selected = item.selector.selected.map((row) => ({ name: row.candidate.declaration.name, selectionReason: row.selectionReason, marginalValue: row.diagnostic?.marginalValue, redundancyPenalty: row.diagnostic?.redundancyPenalty })).filter((row): row is typeof row & { marginalValue: number } => typeof row.marginalValue === "number" && Number.isFinite(row.marginalValue))
+  const threshold = selected.length ? Math.min(...selected.map((row) => row.marginalValue)) : null
+  const diagnosticMarginal = diagnostic?.marginalValue
+  const nearest = typeof diagnosticMarginal === "number" ? [...selected].sort((a, b) => Math.abs(a.marginalValue - diagnosticMarginal) - Math.abs(b.marginalValue - diagnosticMarginal) || a.name.localeCompare(b.name))[0] ?? null : null
   return {
     top200Rank: diagnostic?.ranks.overallRank ?? null,
     channelRanks: diagnostic?.ranks ?? null,
     marginalValue: diagnostic?.marginalValue ?? null,
     redundancyPenalty: diagnostic?.redundancyPenalty ?? null,
     selectionThreshold: threshold,
-    scoreDelta: threshold === null || !diagnostic ? null : Number((diagnostic.marginalValue - threshold).toFixed(8)),
+    scoreDelta: threshold === null || typeof diagnosticMarginal !== "number" ? null : Number((diagnosticMarginal - threshold).toFixed(8)),
     nearestSelectedCandidate: nearest,
     exclusionReason: diagnostic?.exclusionReason ?? null,
   }
@@ -269,7 +269,7 @@ function developmentDomain(name: string) { return name.includes(".") ? name.spli
 
 if (import.meta.main) {
   const setArg = process.argv[process.argv.indexOf("--set") + 1]
-  const requested = setArg === "development" || setArg === "validation" ? [setArg] : ["development", "validation"] as const
+  const requested: EvaluationOptions["set"][] = setArg === "development" || setArg === "validation" ? [setArg] : ["development", "validation"]
   const populateCache = process.argv.includes("--populate-cache")
   const reports = []
   for (const set of requested) reports.push(await evaluateRetrieval({ set, populateCache }))

@@ -11,22 +11,25 @@ import {
   readIndex,
   readInspectionCache,
   retrieveFromDeclarations,
+  type PremiseCandidate,
 } from "@mathos/retrieval"
 import { RETRIEVAL_HOLDOUT_FIXTURES } from "../packages/retrieval/src/holdout-fixtures.ts"
 
 const ROOT = resolve(import.meta.dir, "..")
 const DEMO = `${ROOT}/demo`
-const RESULT = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-holdout-v1-results.json`, "utf8"))
-const HURT = new Set(RESULT.paired.fixtures.filter((row: any) => row.classification === "HURT").map((row: any) => row.id))
+const RESULT = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-holdout-v1-results.json`, "utf8")) as { paired: { fixtures: Array<{ id: string; classification: string }> } }
+const HURT = new Set<string>(RESULT.paired.fixtures.filter((row) => row.classification === "HURT").map((row) => row.id))
 const ALL_TOKENS = ["add", "sub", "mul", "div", "pow", "inv", "neg", "le", "lt", "union", "inter", "subset", "mem", "card", "comp", "relation_comp", "zero", "one", "assoc", "comm", "self"]
 
-type Candidate = any
-interface Trace { fixture: any; tokens: string[]; baseline: PolicyTrace; feature: PolicyTrace }
-interface PolicyTrace { unionNames: string[]; top: Candidate[]; inspected: Candidate[]; final: Candidate[]; selector: any }
+type Candidate = PremiseCandidate
+interface Trace { fixture: (typeof RETRIEVAL_HOLDOUT_FIXTURES)[number]; tokens: string[]; baseline: PolicyTrace; feature: PolicyTrace }
+interface PolicyTrace { unionNames: string[]; top: Candidate[]; inspected: Candidate[]; final: Candidate[]; selector: ReturnType<StratifiedInspectSelector["select"]> }
 
 export async function runV1Forensics() {
   const stored = readIndex(DEMO)
   if (!stored) throw new Error("index missing")
+  if (!stored.channels) throw new Error("channel index missing")
+  const channels = stored.channels
   const cache = readInspectionCache(DEMO, stored.manifest.leanVersion, stored.manifest.mathlibRevision)
   const selector = new StratifiedInspectSelector("SOFT_CONSENSUS_REDUNDANCY")
   const traces: Trace[] = []
@@ -38,11 +41,11 @@ export async function runV1Forensics() {
 
   function evaluate(goalText: string): PolicyTrace {
     const goal = profileGoal(goalText)
-    const union = generateCandidates(stored!.declarations, stored!.channels, { goalText, goal, formal: true })
-    const header = retrieveFromDeclarations(stored!.declarations, { query: goalText, goal: goalText, maxPremises: 200, candidatePool: 200, skipInspect: true }, stored!.manifest.revision, stored!.channels)
+    const union = generateCandidates(stored!.declarations, channels, { goalText, goal, formal: true })
+    const header = retrieveFromDeclarations(stored!.declarations, { query: goalText, goal: goalText, maxPremises: 200, candidatePool: 200, skipInspect: true }, stored!.manifest.revision, channels)
     const selection = selector.select(header.candidates, goal, 30)
     const inspected = selection.selected.map((row) => row.candidate)
-    const inspections = inspected.map((candidate) => cache.file.entries[candidate.declaration.name]?.inspection).filter(Boolean)
+    const inspections = inspected.flatMap((candidate) => { const inspection = cache.file.entries[candidate.declaration.name]?.inspection; return inspection ? [inspection] : [] })
     const adjusted = enrichForLean(inspected, inspections, goal, new Set(inspections.map((row) => row.name)))
     const final = fuseCandidateRanks(inspected, adjusted, { method: "SCORE_FUSION", stage1Weight: 0.45, leanWeight: 0.55 }).candidates.slice(0, 20)
     return { unionNames: union.map((row) => row.declaration.name), top: header.candidates, inspected, final, selector: selection }
@@ -78,7 +81,7 @@ export async function runV1Forensics() {
       const baselineFinalRank = rankName(trace.baseline.final, candidateName) ?? 21
       const featureFinalRank = rankName(trace.feature.final, candidateName) ?? 21
       const candidate = trace.feature.top.find((row) => name(row) === candidateName) ?? trace.baseline.top.find((row) => name(row) === candidateName)
-      const matches = trace.tokens.filter((token) => candidateTokens(candidate).has(token))
+      const matches = candidate ? trace.tokens.filter((token) => candidateTokens(candidate).has(token)) : []
       return { name: candidateName, baselineRank: baseRank, featureRank, rankDelta: baseRank - featureRank, baselineFinalRank, featureFinalRank, finalRankDelta: baselineFinalRank - featureFinalRank, semanticMatches: matches, promotedAboveGold: featureRank < featureGoldTopRank && baseRank >= featureGoldTopRank, promotedAboveGoldFinal: featureFinalRank < featureGoldFinalRank && baselineFinalRank >= featureGoldFinalRank }
     }).filter((row) => row.rankDelta > 0 && (row.promotedAboveGold || row.promotedAboveGoldFinal || row.rankDelta >= 20)).sort((a, b) => Number(b.promotedAboveGoldFinal) - Number(a.promotedAboveGoldFinal) || b.rankDelta - a.rankDelta).slice(0, 50)
     const causeCounts = new Map<string, number>()
@@ -112,7 +115,7 @@ function tokenAttribution(token: string, traces: Trace[]) {
     for (const candidateName of names) {
       if (golds.has(candidateName.toLowerCase())) continue
       const candidate = trace.feature.top.find((row) => name(row) === candidateName) ?? trace.baseline.top.find((row) => name(row) === candidateName)
-      if (!candidateTokens(candidate).has(token)) continue
+      if (!candidate || !candidateTokens(candidate).has(token)) continue
       const movement = (rankName(trace.baseline.top, candidateName) ?? 201) - (rankName(trace.feature.top, candidateName) ?? 201)
       if (movement >= 20) falsePositivePromotions += 1
     }

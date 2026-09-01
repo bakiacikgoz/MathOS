@@ -18,7 +18,7 @@ import {
   scoreExperiment,
   selectorExperiment,
 } from "@mathos/retrieval"
-import type { ExperimentalRetrievalContext, GoalProfile, PremiseCandidate, RetrievalExperiment } from "@mathos/retrieval"
+import type { CandidateChannelRanks, ExperimentalRetrievalContext, GoalProfile, PremiseCandidate, RetrievalExperiment } from "@mathos/retrieval"
 import { RETRIEVAL_VALIDATION_FIXTURES } from "../packages/retrieval/src/validation-fixtures.ts"
 
 const DEMO = resolve(resolve(import.meta.dir, ".."), "demo")
@@ -37,7 +37,7 @@ export interface RetrievalFailureCase {
     unionRank?: number
     top200Rank?: number
     inspectRank?: number
-    channelRanks?: Record<string, number | null>
+    channelRanks?: CandidateChannelRanks
     matchedTokens?: string[]
     missingTokens?: string[]
     goalProfile?: GoalProfile
@@ -94,6 +94,8 @@ export const EXPERIMENTS: RetrievalExperiment[] = [
 export async function runExperimentLaboratory(selectedIds?: string[]) {
   const stored = readIndex(DEMO)
   if (!stored) throw new Error("demo index missing")
+  if (!stored.channels) throw new Error("demo channel index missing")
+  const channels = stored.channels
   const cache = readInspectionCache(DEMO, stored.manifest.leanVersion, stored.manifest.mathlibRevision)
   const fixtures = RETRIEVAL_VALIDATION_FIXTURES.map((fixture) => ({ id: fixture.id, goal: fixture.goal, expected: fixture.expectedAnyOf, domain: fixture.domain }))
   const declarationByName = new Map(stored.declarations.map((row) => [row.name.toLowerCase(), row]))
@@ -102,18 +104,18 @@ export async function runExperimentLaboratory(selectedIds?: string[]) {
 
   for (const fixture of fixtures) {
     const goalProfile = profileGoal(fixture.goal)
-    const generated = generateCandidates(stored.declarations, stored.channels, { goalText: fixture.goal, goal: goalProfile, formal: true })
+    const generated = generateCandidates(stored.declarations, channels, { goalText: fixture.goal, goal: goalProfile, formal: true })
     const evidence = new Map(generated.map((row) => [row.declaration.name, row.evidence]))
     const lexical = rankDeclarations(generated.map((row) => row.declaration), { query: fixture.goal, goal: fixture.goal, maxPremises: 800, candidatePool: 800 })
-    const named = nameAwareRank(lexical, goalProfile, { query: fixture.goal, goal: fixture.goal, maxPremises: 800, candidatePool: 800 }, stored.channels)
+    const named = nameAwareRank(lexical, goalProfile, { query: fixture.goal, goal: fixture.goal, maxPremises: 800, candidatePool: 800 }, channels)
     const attached = named.map((candidate) => {
       const item = evidence.get(candidate.declaration.name)
       return item ? { ...candidate, generation: { channels: item.channels, matchedTokens: item.matchedTokens, channelRanks: item.channelRanks as Record<string, number> } } : candidate
     })
     const rankedUnion = applyGoalAwareRerank(attached, goalProfile, { query: fixture.goal, goal: fixture.goal, maxPremises: 800, candidatePool: 800 })
-    const production = retrieveFromDeclarations(stored.declarations, { query: fixture.goal, goal: fixture.goal, maxPremises: 200, candidatePool: 200, skipInspect: true }, stored.manifest.revision, stored.channels)
+    const production = retrieveFromDeclarations(stored.declarations, { query: fixture.goal, goal: fixture.goal, maxPremises: 200, candidatePool: 200, skipInspect: true }, stored.manifest.revision, channels)
     const productionSelector = new StratifiedInspectSelector("SOFT_CONSENSUS_REDUNDANCY").select(production.candidates, goalProfile, 30)
-    prepared.push({ fixture, goalProfile, union: generated.map((row) => ({ ...row, generation: { channels: row.evidence.channels, matchedTokens: row.evidence.matchedTokens, channelRanks: row.evidence.channelRanks as Record<string, number> } })), rankedUnion, productionTop200: production.candidates, productionInspect: productionSelector.selected.map((row) => row.candidate), productionSelector })
+    prepared.push({ fixture, goalProfile, union: attached, rankedUnion, productionTop200: production.candidates, productionInspect: productionSelector.selected.map((row) => row.candidate), productionSelector })
   }
 
   const baseline = evaluatePrepared(prepared, cache.file.entries)
@@ -187,7 +189,7 @@ function applyExperiment(item: Prepared, experiment: RetrievalExperiment): Prepa
       const current = replaceable[replacements]
       if (!current) break
       const rank = challenger.diagnostic!.ranks.structureRank!
-      const structuralValue = challenger.diagnostic!.marginalValue + applied.structureAuthorityMultiplier / rank
+      const structuralValue = (challenger.diagnostic!.marginalValue ?? 0) + applied.structureAuthorityMultiplier / rank
       if (structuralValue > current.value) {
         inspected[current.index] = challenger.candidate
         replacements += 1
@@ -308,8 +310,8 @@ function clusterSummary(failures: RetrievalFailureCase[]) {
 function domainMetrics(rows: any[], lists: string[][], fixtures: any[], domain: string) {
   const indices = fixtures.map((fixture, index) => fixture.domain === domain ? index : -1).filter((index) => index >= 0)
   const n = indices.length || 1
-  const cases = indices.map((index) => ({ id: fixtures[index].id, goal: fixtures[index].goal, expected: fixtures[index].expected }))
-  const ranked = indices.map((index) => lists[index])
+  const cases = indices.flatMap((index) => { const fixture = fixtures[index]; return fixture ? [{ id: fixture.id, goal: fixture.goal, expected: fixture.expected }] : [] })
+  const ranked = indices.flatMap((index) => { const list = lists[index]; return list ? [list] : [] })
   const metrics = metricsFor(ranked, cases)
   return { union: indices.filter((index) => rows[index].union.found).length / n, top200: indices.filter((index) => rows[index].top200.found).length / n, inspect30: indices.filter((index) => rows[index].inspect30.found).length / n, final20: indices.filter((index) => rows[index].final20.found).length / n, hit10: metrics.hit10, mrr: metrics.mrr }
 }
@@ -330,7 +332,7 @@ function isRelationGoal(goal: string) { return /∘r|\bReflexive\b|\bSymmetric\b
 function relationStructureOverlap(candidate: PremiseCandidate, goal: string) { const vocabulary = ["refl", "symm", "trans", "antisymm", "irrefl", "total", "preorder", "partialorder", "equiv", "comp", "flip"]; const a = tokens(candidate.declaration.name + " " + candidate.declaration.signature); const b = new Set([...tokens(goal), ...(/∘r/.test(goal) ? ["comp"] : [])]); return vocabulary.filter((word) => a.includes(word) && b.has(word)).length }
 function roleOverlap(signature: string, goal: string) { const arrowsA = (signature.match(/→/g) ?? []).length; const arrowsB = (goal.match(/→/g) ?? []).length; const relationsA = (signature.match(/\b[a-zA-Z]\s+[a-zA-Z]\s+[a-zA-Z]\b/g) ?? []).length; const relationsB = (goal.match(/\b[a-zA-Z]\s+[a-zA-Z]\s+[a-zA-Z]\b/g) ?? []).length; return arrowsA === arrowsB && relationsA === relationsB ? 1 : 0 }
 function rankOf(candidates: PremiseCandidate[], expected: string[]) { const index = candidates.findIndex((candidate) => expected.some((name) => name.toLowerCase() === candidate.declaration.name.toLowerCase())); return index >= 0 ? index + 1 : null }
-function selectionCutoff(selection: ReturnType<StratifiedInspectSelector["select"]>) { const values = selection.selected.map((row) => row.diagnostic.marginalValue).filter(Number.isFinite); return values.length ? Math.min(...values) : undefined }
+function selectionCutoff(selection: ReturnType<StratifiedInspectSelector["select"]>) { const values = selection.selected.flatMap((row) => typeof row.diagnostic?.marginalValue === "number" ? [row.diagnostic.marginalValue] : []).filter(Number.isFinite); return values.length ? Math.min(...values) : undefined }
 
 function writeFailureArtifacts(failures: RetrievalFailureCase[]) {
   mkdirSync(OUT, { recursive: true })

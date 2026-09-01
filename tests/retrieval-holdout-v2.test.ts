@@ -53,7 +53,7 @@ describe("retrieval holdout-v2 frozen unseen dataset", () => {
   })
 
   test("sampling order and quotas are deterministic", () => {
-    expect(RETRIEVAL_HOLDOUT_V2_METADATA.domainDistribution).toEqual(HOLDOUT_V2_QUOTAS)
+    expect(JSON.stringify(RETRIEVAL_HOLDOUT_V2_METADATA.domainDistribution)).toBe(JSON.stringify(HOLDOUT_V2_QUOTAS))
     for (const domain of Object.keys(HOLDOUT_V2_QUOTAS)) {
       const rows = RETRIEVAL_HOLDOUT_V2_FIXTURES.filter((item) => item.domain === domain)
       expect(rows.map((item) => item.sampleHash)).toEqual([...rows].sort((a, b) => a.sampleHash.localeCompare(b.sampleHash)).map((item) => item.sampleHash))
