@@ -1088,17 +1088,22 @@ export class MathOS {
       const stores = this.researchStores()
       for (const run of stores.runs.list(workspace.id)) {
         if (run.status !== "RUNNING") continue
-        for (const step of stores.steps.interrupted(run.id)) {
-          step.status = "INTERRUPTED"
-          step.finishedAt = at
-          step.summary = "process interrupted"
-          stores.steps.update(step)
-        }
-        run.status = "PAUSED"
-        run.stopReason = "EXECUTION_FAILURE"
-        run.stoppedAt = at
-        run.updatedAt = at
-        stores.runs.update(run)
+        this.mutateAndRecord("research_run_reconciled_after_interrupt", {
+          target: run.id,
+          metadata: { runId: run.id, branchId: run.branchId },
+        }, () => {
+          for (const step of stores.steps.interrupted(run.id)) {
+            step.status = "INTERRUPTED"
+            step.finishedAt = at
+            step.summary = "process interrupted"
+            stores.steps.update(step)
+          }
+          run.status = "PAUSED"
+          run.stopReason = "EXECUTION_FAILURE"
+          run.stoppedAt = at
+          run.updatedAt = at
+          stores.runs.update(run)
+        })
         research.push(run.id)
       }
       for (const session of this.teamStores().sessions.list(workspace.id)) {
@@ -1106,7 +1111,10 @@ export class MathOS {
         session.status = "PAUSED"
         session.stopReason = "FATAL_EXECUTION_ERROR"
         session.stoppedAt = at
-        this.teamStores().sessions.update(session)
+        this.mutateAndRecord("multi_agent_session_reconciled_after_interrupt", {
+          target: session.id,
+          metadata: { sessionId: session.id },
+        }, () => this.teamStores().sessions.update(session))
         team.push(session.id)
       }
       experiments.push(...this.experimentService.reconcileInterrupted(at))
