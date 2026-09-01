@@ -14,6 +14,17 @@ import {
   type MultiAgentResearchSession,
   type ResearchAgentWorker,
   type SharedResearchDigest,
+  type Claim,
+  type MultiAgentRound,
+  type SolutionCandidate,
+  type VerifiedArtifactImport,
+  type ImportPreview,
+  type ResearchRun,
+  type ResearchStep,
+  type ResearchBranch,
+  type MergePreview,
+  type ProofAttempt,
+  type VerificationReport,
 } from "@mathos/domain"
 import { createId, nowIso } from "@mathos/shared"
 import {
@@ -23,28 +34,78 @@ import {
   ResearchAgentRepository,
   SharedDigestRepository,
   SolutionCandidateRepository,
+  DatabaseClient,
+  ClaimRepository,
+  DependencyRepository,
+  FormalStatementRepository,
+  VerificationRunRepository,
+  ProofAttemptRepository,
+  ResearchBlockerRepository,
 } from "@mathos/storage"
 import { FakeMultiAgentPlanner } from "../multi-agent-planner.ts"
+import type { MultiAgentPlanner } from "../multi-agent-planner.ts"
 import type { ResearchPlanner } from "../research-planner.ts"
+import type { ResearchEngine } from "./research-engine.ts"
+
+export interface TeamResearchStores {
+  sessions: MultiAgentSessionRepository
+  agents: ResearchAgentRepository
+  rounds: MultiAgentRoundRepository
+  solutions: SolutionCandidateRepository
+  digests: SharedDigestRepository
+  imports: ArtifactImportRepository
+}
 
 /** Explicit capability boundary between team orchestration and the MathOS facade. */
 export interface TeamResearchCoordinatorDependencies {
   root: string
-  client: any
-  claims: any
-  dependencies: any
-  formalStatements: any
-  verificationRuns: any
-  proofs: any
-  researchEngine: any
-  multiAgentPlanner: any
+  client: DatabaseClient
+  claims: ClaimRepository
+  dependencies: DependencyRepository
+  formalStatements: FormalStatementRepository
+  verificationRuns: VerificationRunRepository
+  proofs: ProofAttemptRepository
+  researchEngine: ResearchEngine
+  multiAgentPlanner: MultiAgentPlanner | null
   maxStepWallClockMs: number
   teamCrashAfterAgent: string | null
   teamCrashAt: string | null
   teamCrashBoundary: string | null
   teamCrashTwoRunning: boolean
-  stores?: () => any
-  [capability: string]: any
+  abandonBranch: (id: string) => unknown
+  allocateId: (prefix: string) => string
+  createBranch: (name: string, goal?: string) => Promise<ResearchBranch>
+  createClaim: (input: { kind: string; title: string; naturalStatement?: string; statement?: string; status?: string; asMainObjective?: boolean }) => Claim
+  getBranch: (id: string) => ResearchBranch
+  getClaim: (id: string) => Claim
+  getResearch: (id: string) => ResearchRun
+  previewMerge: (id: string) => MergePreview
+  record: (action: string, options?: { target?: string | null; metadata?: Record<string, unknown> }) => void
+  registerRunPlanner: (runId: string, planner: ResearchPlanner) => unknown
+  requireCurrentBranch: () => ResearchBranch
+  requireWorkspace: () => { id: string; mainObjectiveId: string | null }
+  researchHistory: (id: string) => ResearchStep[]
+  researchStores: () => { blockers: ResearchBlockerRepository }
+  startResearch: (input: { objectiveClaimId?: string; limits?: Partial<import("@mathos/domain").ResearchBudget> }) => ResearchRun
+  stepResearch: (id: string) => Promise<ResearchRun>
+  stopRun: (run: ResearchRun, reason: import("@mathos/domain").ResearchStopReason, status?: ResearchRun["status"]) => ResearchRun
+  storeAttempt: (workspaceId: string, claimId: string, formalId: string, attemptNumber: number, proofSource: string, status: ProofAttempt["status"], leanVersion: string | null, diagnostics: ProofAttempt["diagnostics"]) => ProofAttempt
+  switchBranch: (id: string) => unknown
+  verify: (claimId: string) => Promise<VerificationReport>
+}
+
+export interface TeamResearchOverview {
+  session: MultiAgentResearchSession
+  agents: Array<{
+    agent: ResearchAgentWorker
+    run: ResearchRun
+    localStatus: Claim["status"]
+    verified: boolean
+    recentSteps: ResearchStep[]
+  }>
+  imports: VerifiedArtifactImport[]
+  solutions: SolutionCandidate[]
+  digest: SharedResearchDigest | null
 }
 
 export class TeamResearchCoordinator {
@@ -61,8 +122,7 @@ export class TeamResearchCoordinator {
     return this.frozenDigestBySession.get(sessionId) ?? null
   }
 
-  private teamStores() {
-    if (this.d.stores) return this.d.stores()
+  private teamStores(): TeamResearchStores {
     return {
       sessions: new MultiAgentSessionRepository(this.d.client.db),
       agents: new ResearchAgentRepository(this.d.client.db),
@@ -73,7 +133,7 @@ export class TeamResearchCoordinator {
     }
   }
 
-  stores() { return this.teamStores() }
+  stores(): TeamResearchStores { return this.teamStores() }
 
   getTeam(id: string): MultiAgentResearchSession {
     const session = this.teamStores().sessions.get(id.toUpperCase())
@@ -81,23 +141,23 @@ export class TeamResearchCoordinator {
     return session
   }
 
-  listTeamSessions() {
+  listTeamSessions(): MultiAgentResearchSession[] {
     return this.teamStores().sessions.ids(this.d.requireWorkspace().id).map((id) => this.getTeam(id))
   }
 
-  teamAgents(sessionId: string) {
+  teamAgents(sessionId: string): ResearchAgentWorker[] {
     return this.teamStores().agents.list(this.getTeam(sessionId).id)
   }
 
-  teamSolutions(sessionId: string) {
+  teamSolutions(sessionId: string): SolutionCandidate[] {
     return this.teamStores().solutions.list(this.getTeam(sessionId).id)
   }
 
-  teamHistory(sessionId: string) {
+  teamHistory(sessionId: string): MultiAgentRound[] {
     return this.teamStores().rounds.list(this.getTeam(sessionId).id)
   }
 
-  teamDigest(sessionId: string, round?: number) {
+  teamDigest(sessionId: string, round?: number): SharedResearchDigest | null {
     const session = this.getTeam(sessionId)
     return this.teamStores().digests.get(session.id, round ?? session.currentRound)
   }
@@ -290,7 +350,7 @@ export class TeamResearchCoordinator {
     return clone
   }
 
-  pauseTeam(id: string) {
+  pauseTeam(id: string): MultiAgentResearchSession {
     const session = this.getTeam(id)
     this.teamPauseRequested.add(session.id)
     const busy = this.d.client.db.query<{ n: number }, [string]>("SELECT COUNT(*) as n FROM execution_leases WHERE session_id = ? AND status IN ('RESERVED','RUNNING')").get(session.id)
@@ -303,7 +363,7 @@ export class TeamResearchCoordinator {
     return session
   }
 
-  resumeTeam(id: string) {
+  resumeTeam(id: string): MultiAgentResearchSession {
     const session = this.getTeam(id)
     for (const round of this.teamStores().rounds.list(session.id).filter((item) => item.status === "RUNNING")) {
       round.status = "INTERRUPTED"
@@ -320,7 +380,7 @@ export class TeamResearchCoordinator {
     return session
   }
 
-  cancelTeam(id: string) {
+  cancelTeam(id: string): MultiAgentResearchSession {
     const session = this.getTeam(id)
     this.teamCancelRequested.add(session.id)
     const busy = this.d.client.db.query<{ n: number }, [string]>("SELECT COUNT(*) as n FROM execution_leases WHERE session_id = ? AND status IN ('RESERVED','RUNNING')").get(session.id)
@@ -442,7 +502,7 @@ export class TeamResearchCoordinator {
     return this.getTeam(id)
   }
 
-  teamMergePreview(sessionId: string, agentId: string) {
+  teamMergePreview(sessionId: string, agentId: string): MergePreview {
     const agent = this.teamStores().agents.get(agentId.toUpperCase())
     if (!agent || agent.sessionId !== this.getTeam(sessionId).id) throw new Error(`Agent ${agentId} was not found.`)
     const run = this.d.getResearch(agent.researchRunId)
@@ -484,7 +544,7 @@ export class TeamResearchCoordinator {
     }
   }
 
-  teamOverview(sessionId: string) {
+  teamOverview(sessionId: string): TeamResearchOverview {
     const session = this.getTeam(sessionId)
     const agents = this.teamAgents(session.id)
     return {
@@ -500,17 +560,17 @@ export class TeamResearchCoordinator {
     }
   }
 
-  teamImports(sessionId: string) {
+  teamImports(sessionId: string): VerifiedArtifactImport[] {
     return this.teamStores().imports.list(this.getTeam(sessionId).id)
   }
 
-  getImport(id: string) {
+  getImport(id: string): VerifiedArtifactImport {
     const row = this.teamStores().imports.get(id.toUpperCase())
     if (!row) throw new Error(`Import ${id} was not found.`)
     return row
   }
 
-  previewImport(id: string): import("@mathos/domain").ImportPreview {
+  previewImport(id: string): ImportPreview {
     const item = this.getImport(id)
     const deps = this.dependencyClosure(item.sourceClaimId)
     return {
@@ -527,7 +587,7 @@ export class TeamResearchCoordinator {
     }
   }
 
-  proposeImport(sessionId: string, sourceAgentId: string, targetAgentId: string, sourceClaimId: string) {
+  proposeImport(sessionId: string, sourceAgentId: string, targetAgentId: string, sourceClaimId: string): VerifiedArtifactImport {
     const session = this.getTeam(sessionId)
     const sourceAgent = this.teamStores().agents.get(sourceAgentId.toUpperCase())
     const targetAgent = this.teamStores().agents.get(targetAgentId.toUpperCase())
@@ -557,7 +617,7 @@ export class TeamResearchCoordinator {
     return item
   }
 
-  rejectImport(id: string) {
+  rejectImport(id: string): VerifiedArtifactImport {
     const item = this.getImport(id)
     item.status = "REJECTED"
     this.teamStores().imports.update(item)
@@ -565,7 +625,7 @@ export class TeamResearchCoordinator {
     return item
   }
 
-  async applyImport(id: string) {
+  async applyImport(id: string): Promise<VerifiedArtifactImport> {
     const item = this.getImport(id)
     if (item.status === "APPLIED") return item
     const busy = this.d.client.db.query<{ n: number }, [string]>("SELECT COUNT(*) as n FROM execution_leases WHERE agent_id = ? AND status IN ('RESERVED','RUNNING')").get(item.targetAgentId)

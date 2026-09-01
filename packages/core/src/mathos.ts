@@ -60,6 +60,10 @@ import {
   type MultiAgentResearchSession,
   type ResearchAgentWorker,
   type SharedResearchDigest,
+  type SolutionCandidate,
+  type MultiAgentRound,
+  type VerifiedArtifactImport,
+  type ImportPreview,
 } from "@mathos/domain"
 import { EventLog, makeEvent } from "@mathos/events"
 import {
@@ -86,7 +90,7 @@ import { VerificationService } from "./services/verification-service.ts"
 import { ExperimentService } from "./services/experiment-service.ts"
 import { LiteratureService } from "./services/literature-service.ts"
 import { ResearchEngine } from "./services/research-engine.ts"
-import { TeamResearchCoordinator } from "./services/team-research-coordinator.ts"
+import { TeamResearchCoordinator, type TeamResearchOverview, type TeamResearchStores } from "./services/team-research-coordinator.ts"
 import {
   buildResearchGraph,
   formatClaimDetail,
@@ -1476,28 +1480,28 @@ export class MathOS {
   registerRunPlanner(runId: string, planner: ResearchPlanner) { return this.researchEngine.registerPlanner(runId, planner) }
   restorePersistentPlanners() { return this.researchEngine.restorePersistentPlanners() }
 
-  private teamStores() { return this.teamResearchCoordinator.stores() }
+  private teamStores(): TeamResearchStores { return this.teamResearchCoordinator.stores() }
 
   getTeam(id: string): MultiAgentResearchSession { return this.teamResearchCoordinator.getTeam(id) }
-  listTeamSessions() { return this.teamResearchCoordinator.listTeamSessions() }
-  teamAgents(sessionId: string) { return this.teamResearchCoordinator.teamAgents(sessionId) }
-  teamSolutions(sessionId: string) { return this.teamResearchCoordinator.teamSolutions(sessionId) }
-  teamHistory(sessionId: string) { return this.teamResearchCoordinator.teamHistory(sessionId) }
-  teamDigest(sessionId: string, round?: number) { return this.teamResearchCoordinator.teamDigest(sessionId, round) }
-  startTeam(input: { planners?: ResearchPlanner[]; limits?: Partial<MultiAgentBudget>; workerLimits?: Array<Partial<import("@mathos/domain").ResearchBudget>>; executionMode?: MultiAgentExecutionMode; maxParallelWorkers?: number } = {}) { return this.teamResearchCoordinator.startTeam(input) }
-  pauseTeam(id: string) { return this.teamResearchCoordinator.pauseTeam(id) }
-  resumeTeam(id: string) { return this.teamResearchCoordinator.resumeTeam(id) }
-  cancelTeam(id: string) { return this.teamResearchCoordinator.cancelTeam(id) }
-  stepTeam(id: string) { return this.teamResearchCoordinator.stepTeam(id) }
-  runTeam(id: string) { return this.teamResearchCoordinator.runTeam(id) }
-  teamMergePreview(sessionId: string, agentId: string) { return this.teamResearchCoordinator.teamMergePreview(sessionId, agentId) }
-  teamOverview(sessionId: string) { return this.teamResearchCoordinator.teamOverview(sessionId) }
-  teamImports(sessionId: string) { return this.teamResearchCoordinator.teamImports(sessionId) }
-  getImport(id: string) { return this.teamResearchCoordinator.getImport(id) }
-  previewImport(id: string) { return this.teamResearchCoordinator.previewImport(id) }
-  proposeImport(sessionId: string, sourceAgentId: string, targetAgentId: string, sourceClaimId: string) { return this.teamResearchCoordinator.proposeImport(sessionId, sourceAgentId, targetAgentId, sourceClaimId) }
-  rejectImport(id: string) { return this.teamResearchCoordinator.rejectImport(id) }
-  applyImport(id: string) { return this.teamResearchCoordinator.applyImport(id) }
+  listTeamSessions(): MultiAgentResearchSession[] { return this.teamResearchCoordinator.listTeamSessions() }
+  teamAgents(sessionId: string): ResearchAgentWorker[] { return this.teamResearchCoordinator.teamAgents(sessionId) }
+  teamSolutions(sessionId: string): SolutionCandidate[] { return this.teamResearchCoordinator.teamSolutions(sessionId) }
+  teamHistory(sessionId: string): MultiAgentRound[] { return this.teamResearchCoordinator.teamHistory(sessionId) }
+  teamDigest(sessionId: string, round?: number): SharedResearchDigest | null { return this.teamResearchCoordinator.teamDigest(sessionId, round) }
+  startTeam(input: { planners?: ResearchPlanner[]; limits?: Partial<MultiAgentBudget>; workerLimits?: Array<Partial<import("@mathos/domain").ResearchBudget>>; executionMode?: MultiAgentExecutionMode; maxParallelWorkers?: number } = {}): Promise<MultiAgentResearchSession> { return this.teamResearchCoordinator.startTeam(input) }
+  pauseTeam(id: string): MultiAgentResearchSession { return this.teamResearchCoordinator.pauseTeam(id) }
+  resumeTeam(id: string): MultiAgentResearchSession { return this.teamResearchCoordinator.resumeTeam(id) }
+  cancelTeam(id: string): MultiAgentResearchSession { return this.teamResearchCoordinator.cancelTeam(id) }
+  stepTeam(id: string): Promise<MultiAgentResearchSession> { return this.teamResearchCoordinator.stepTeam(id) }
+  runTeam(id: string): Promise<MultiAgentResearchSession> { return this.teamResearchCoordinator.runTeam(id) }
+  teamMergePreview(sessionId: string, agentId: string): MergePreview { return this.teamResearchCoordinator.teamMergePreview(sessionId, agentId) }
+  teamOverview(sessionId: string): TeamResearchOverview { return this.teamResearchCoordinator.teamOverview(sessionId) }
+  teamImports(sessionId: string): VerifiedArtifactImport[] { return this.teamResearchCoordinator.teamImports(sessionId) }
+  getImport(id: string): VerifiedArtifactImport { return this.teamResearchCoordinator.getImport(id) }
+  previewImport(id: string): ImportPreview { return this.teamResearchCoordinator.previewImport(id) }
+  proposeImport(sessionId: string, sourceAgentId: string, targetAgentId: string, sourceClaimId: string): VerifiedArtifactImport { return this.teamResearchCoordinator.proposeImport(sessionId, sourceAgentId, targetAgentId, sourceClaimId) }
+  rejectImport(id: string): VerifiedArtifactImport { return this.teamResearchCoordinator.rejectImport(id) }
+  applyImport(id: string): Promise<VerifiedArtifactImport> { return this.teamResearchCoordinator.applyImport(id) }
 
   graphSnapshot(): ResearchGraphSnapshot {
     const workspace = this.requireWorkspace()
@@ -1656,7 +1660,7 @@ export class MathOS {
       workers: agents.map((agent) => ({
         agentId: agent.id,
         branchId: agent.branchId,
-        focusClaimId: this.getResearch(agent.researchRunId).strategy.focusClaimId,
+        focusClaimId: this.getResearch(agent.researchRunId).strategy.focusClaimId ?? null,
         localClaimId: agent.localClaimId,
       })),
       solutions: this.teamSolutions(session.id).map((item) => item.claimId),
