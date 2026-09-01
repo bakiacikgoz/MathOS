@@ -5,8 +5,12 @@ import { evaluateRetrieval, failureAggregate } from "../scripts/retrieval-eval.t
 import { compareRetrievalBaseline } from "../scripts/retrieval-regression.ts"
 import { validateRetrievalFixtures } from "../scripts/validate-retrieval-fixtures.ts"
 import { resolve } from "node:path"
+import { existsSync } from "node:fs"
 
 const repositoryRoot = resolve(import.meta.dir, "..")
+const hasIndex = existsSync(resolve(repositoryRoot, "demo/.mathos/index/declarations.json"))
+const indexedTest = hasIndex ? test : test.skip
+const leanTest = hasIndex && Boolean(Bun.which("lake")) ? test : test.skip
 
 let reportPromise: ReturnType<typeof evaluateRetrieval> | null = null
 function validationReport() {
@@ -29,7 +33,7 @@ describe("retrieval validation dataset", () => {
     }
   })
 
-  test("all expected declarations pass real Lean #check", async () => {
+  leanTest("all expected declarations pass real Lean #check", async () => {
     const report = await validateRetrievalFixtures()
     expect(report.fixtureCount).toBe(60)
     expect(report.duplicatesWithDevelopment).toEqual([])
@@ -50,7 +54,7 @@ describe("retrieval validation dataset", () => {
     expect(Object.keys(result).sort()).toEqual(["LEAN_INSPECTION_FAILED", "NOT_GENERATED", "NOT_INDEXED", "OUTSIDE_FINAL20", "OUTSIDE_INSPECT30", "OUTSIDE_TOP200"].sort())
   })
 
-  test("per-domain, fusion sensitivity and header-vs-Lean aggregation", async () => {
+  indexedTest("per-domain, fusion sensitivity and header-vs-Lean aggregation", async () => {
     const report = await validationReport()
     expect(Object.keys(report.domainResults)).toHaveLength(12)
     expect(Object.values(report.domainResults).every((row) => row.fixtureCount === 5)).toBe(true)
@@ -69,7 +73,7 @@ describe("retrieval validation dataset", () => {
     expect(Object.values(same.comparisons).every((row) => row.delta === 0)).toBe(true)
   })
 
-  test("JSON benchmark output is machine readable", () => {
+  indexedTest("JSON benchmark output is machine readable", () => {
     const result = Bun.spawnSync([process.execPath, resolve(repositoryRoot, "scripts/retrieval-eval.ts"), "--json"], { cwd: repositoryRoot, stdout: "pipe", stderr: "pipe", timeout: 60_000 })
     expect(result.exitCode).toBe(0)
     const parsed = JSON.parse(new TextDecoder().decode(result.stdout))

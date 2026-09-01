@@ -149,7 +149,7 @@ describe("research loop", () => {
   })
 })
 
-describe("dual real Lean worktrees", () => {
+;(Bun.which("lean") ? describe : describe.skip)("dual real Lean worktrees", () => {
   test("MAIN and B-001 both check independently", async () => {
     const created = await MathOS.init(tempDir(), "duallean")
     const app = MathOS.open(created.root)

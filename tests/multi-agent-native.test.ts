@@ -11,6 +11,7 @@ import type { ResearchDecision } from "@mathos/domain"
 
 const DEMO = resolve(resolve(import.meta.dir, ".."), "demo")
 const DEMO_FORMAL = `${DEMO}/formal`
+const nativeTest = Bun.which("lake") ? test : test.skip
 const temps: string[] = []
 function tempDir() {
   const dir = mkdtempSync(join(tmpdir(), "mathos-man-"))
@@ -27,7 +28,7 @@ afterEach(() => {
 const d = (action: ResearchDecision["action"], extra: Partial<ResearchDecision> = {}): ResearchDecision => ({ action, rationaleSummary: action, parameters: {}, researchDecisionVersion: "v1", ...extra })
 
 describe("native multi-agent + hybrid retrieval", () => {
-  test("real team smoke SOLUTION_FOUND and MAIN unverified", async () => {
+  nativeTest("real team smoke SOLUTION_FOUND and MAIN unverified", async () => {
     const created = await MathOS.init(tempDir(), "nat")
     const model = new FakeModelProvider()
     model.enqueue({ declarationName: "multi_agent_smoke", leanStatement: "theorem multi_agent_smoke : 1 + 1 = 2", variableMapping: [], assumptionMapping: [], uncertainties: [] })
@@ -64,7 +65,7 @@ describe("native multi-agent + hybrid retrieval", () => {
     app.close()
   }, 180000)
 
-  test("real cross-agent verified import", async () => {
+  nativeTest("real cross-agent verified import", async () => {
     const created = await MathOS.init(tempDir(), "imp")
     const model = new FakeModelProvider()
     model.enqueue({ declarationName: "imported_helper", leanStatement: "theorem imported_helper : True", variableMapping: [], assumptionMapping: [], uncertainties: [] })
@@ -100,7 +101,7 @@ describe("native multi-agent + hybrid retrieval", () => {
     app.close()
   }, 180000)
 
-  test("full-stack single-agent HybridPremiseRetriever", async () => {
+  nativeTest("full-stack single-agent HybridPremiseRetriever", async () => {
     const created = await MathOS.init(tempDir(), "hyb")
     const model = new FakeModelProvider()
     model.enqueue({ declarationName: "research_id", leanStatement: "theorem research_id (n : Nat) : n = n", variableMapping: [], assumptionMapping: [], uncertainties: [] })

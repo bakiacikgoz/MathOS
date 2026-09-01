@@ -65,7 +65,7 @@ describe("retrieval holdout-v2 frozen unseen dataset", () => {
     expect(assertFrozenManifest()).toBe(true)
   })
 
-  test("all expected declarations pass real Lean #check in batches of at most 30", async () => {
+  ;(Bun.which("lake") ? test : test.skip)("all expected declarations pass real Lean #check in batches of at most 30", async () => {
     const adapter = new NativeLeanAdapter()
     for (const batch of chunk(RETRIEVAL_HOLDOUT_V2_FIXTURES.flatMap((item) => item.expectedAnyOf), 30)) {
       expect(batch.length).toBeLessThanOrEqual(30)

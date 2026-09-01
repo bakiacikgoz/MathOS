@@ -5,9 +5,11 @@ import { join, resolve } from "node:path"
 import { NativeLeanAdapter, parseAxioms } from "@mathos/lean"
 
 const adapter = new NativeLeanAdapter()
+const nativeTest = Bun.which("lean") ? test : test.skip
+const mathlibTest = Bun.which("lake") ? test : test.skip
 
 describe("real lean", () => {
-  test("id_nat rfl is KERNEL_ACCEPTED", async () => {
+  nativeTest("id_nat rfl is KERNEL_ACCEPTED", async () => {
     const env = await adapter.detect(resolve(import.meta.dir, ".."))
     if (!env.leanAvailable) {
       throw new Error("Lean should be installed for this task")
@@ -36,7 +38,7 @@ describe("real lean", () => {
     }
   })
 
-  test("demo formal project is pinned with Mathlib", async () => {
+  mathlibTest("demo formal project is pinned with Mathlib", async () => {
     const env = await adapter.detect(resolve(import.meta.dir, "../demo"))
     expect(env.leanAvailable).toBe(true)
     expect(env.mathlib).toBe(true)

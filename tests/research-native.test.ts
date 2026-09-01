@@ -9,6 +9,7 @@ import { FakeVcs } from "@mathos/vcs"
 import { InMemoryPremiseRetriever } from "@mathos/retrieval"
 
 const DEMO_FORMAL = resolve(resolve(import.meta.dir, ".."), "demo/formal")
+const nativeTest = Bun.which("lake") ? test : test.skip
 const temps: string[] = []
 function tempDir() {
   const dir = mkdtempSync(join(tmpdir(), "mathos-native-"))
@@ -31,7 +32,7 @@ const lakeEnv = (file: string) =>
   })
 
 describe("native research loop", () => {
-  test("real Lean smoke KERNEL_VERIFIED", async () => {
+  nativeTest("real Lean smoke KERNEL_VERIFIED", async () => {
     const created = await MathOS.init(tempDir(), "native-smoke")
     const model = new FakeModelProvider()
     model.enqueue({
@@ -68,7 +69,7 @@ describe("native research loop", () => {
     app.close()
   }, 180000)
 
-  test("real Lean failure then recovery", async () => {
+  nativeTest("real Lean failure then recovery", async () => {
     const created = await MathOS.init(tempDir(), "native-fail")
     const model = new FakeModelProvider()
     model.enqueue({
@@ -105,7 +106,7 @@ describe("native research loop", () => {
     app.close()
   }, 180000)
 
-  test("dual lake env lean MAIN vs B-001", async () => {
+  nativeTest("dual lake env lean MAIN vs B-001", async () => {
     const created = await MathOS.init(tempDir(), "dual-lake")
     const app = MathOS.open(created.root, { formalProjectRoot: DEMO_FORMAL })
     await app.setupResearchVersioning()

@@ -1,6 +1,6 @@
 import { resolve } from "node:path"
 import { describe, expect, test } from "bun:test"
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { createHash } from "node:crypto"
 import { DEFAULT_RETRIEVAL_CONFIG, StratifiedInspectSelector, profileGoal } from "@mathos/retrieval"
 import { EXPERIMENTS } from "../scripts/retrieval-experiment.ts"
@@ -18,7 +18,7 @@ describe("retrieval experiment laboratory", () => {
   })
 
   test("experiment apply is side-effect free and production-isolated", () => {
-    const beforeIndex = hash(INDEX)
+    const beforeIndex = existsSync(INDEX) ? hash(INDEX) : null
     const beforeConfig = structuredClone(DEFAULT_RETRIEVAL_CONFIG)
     const retrieverSource = readFileSync(`${ROOT}/packages/retrieval/src/retriever.ts`, "utf8")
     const coreSource = readFileSync(`${ROOT}/packages/core/src/mathos.ts`, "utf8")
@@ -50,7 +50,7 @@ describe("retrieval experiment laboratory", () => {
     expect(fusionSource).toContain("options.leanWeight ?? 0.55")
     expect(retrieverSource).not.toContain("retrieval-experiment")
     expect(coreSource).not.toContain("retrieval-experiment")
-    expect(hash(INDEX)).toBe(beforeIndex)
+    expect(existsSync(INDEX) ? hash(INDEX) : null).toBe(beforeIndex)
   })
 
   test("stored results satisfy the experiment result schema", () => {

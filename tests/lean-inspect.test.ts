@@ -3,9 +3,10 @@ import { describe, expect, test } from "bun:test"
 import { NativeLeanAdapter, parseCheckOutput } from "@mathos/lean"
 
 const DEMO = resolve(resolve(import.meta.dir, ".."), "demo")
+const nativeTest = Bun.which("lake") ? test : test.skip
 
 describe("real lean declaration inspect", () => {
-  test("batch inspect Eq.refl Finset.card_union_le Nat.add_le_add", async () => {
+  nativeTest("batch inspect Eq.refl Finset.card_union_le Nat.add_le_add", async () => {
     const adapter = new NativeLeanAdapter()
     const result = await adapter.inspectDeclarations(
       ["Eq.refl", "Finset.card_union_le", "Nat.add_le_add"],

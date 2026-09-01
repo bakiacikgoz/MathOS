@@ -1,6 +1,6 @@
 import { resolve } from "node:path"
 import { describe, expect, test } from "bun:test"
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { createHash } from "node:crypto"
 import { DEFAULT_RETRIEVAL_CONFIG, StratifiedInspectSelector, extractSemanticOperatorProfile, profileGoal } from "@mathos/retrieval"
 import { MATHLIB_FIXTURES } from "@mathos/retrieval"
@@ -12,6 +12,8 @@ import { validateRetrievalHoldout } from "../scripts/validate-retrieval-holdout.
 const ROOT = resolve(import.meta.dir, "..")
 const SPEC = `${ROOT}/benchmarks/retrieval-experiments/semantic-operator-profile-v1.json`
 const INDEX = `${ROOT}/demo/.mathos/index/declarations.json`
+const indexedTest = existsSync(INDEX) ? test : test.skip
+const leanTest = existsSync(INDEX) && Boolean(Bun.which("lake")) ? test : test.skip
 const hash = (path: string) => createHash("sha256").update(readFileSync(path)).digest("hex")
 
 describe("semantic operator profile v1", () => {
@@ -80,7 +82,7 @@ describe("retrieval holdout v1", () => {
     }
   })
 
-  test("all expected declarations pass real Lean check", async () => {
+  leanTest("all expected declarations pass real Lean check", async () => {
     const report = await validateRetrievalHoldout()
     expect(report.failed).toBe(false)
     expect(report.missing).toEqual([])
@@ -102,7 +104,7 @@ describe("retrieval holdout v1", () => {
   })
 
   test("feature is production-isolated and index/config remain unchanged", () => {
-    const beforeIndex = hash(INDEX)
+    const beforeIndex = existsSync(INDEX) ? hash(INDEX) : null
     const beforeConfig = structuredClone(DEFAULT_RETRIEVAL_CONFIG)
     extractSemanticOperatorProfile("theorem t : a + b = b + a")
     expect(DEFAULT_RETRIEVAL_CONFIG).toEqual(beforeConfig)
@@ -111,6 +113,6 @@ describe("retrieval holdout v1", () => {
     const productionSources = ["packages/retrieval/src/retriever.ts", "packages/core/src/mathos.ts", "packages/core/src/proof-context.ts"].filter((relative) => { try { readFileSync(`${ROOT}/${relative}`); return true } catch { return false } }).map((relative) => readFileSync(`${ROOT}/${relative}`, "utf8")).join("\n")
     expect(productionSources).not.toContain("SEMANTIC_OPERATOR_PROFILE_V1")
     expect(productionSources).not.toContain("semantic-operator-profile")
-    expect(hash(INDEX)).toBe(beforeIndex)
+    expect(existsSync(INDEX) ? hash(INDEX) : null).toBe(beforeIndex)
   })
 })

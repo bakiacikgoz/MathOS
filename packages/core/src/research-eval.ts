@@ -252,15 +252,15 @@ async function runExperimentResearchCase(id: string): Promise<ResearchEvalRow> {
     let pass = false
     if (id === "experiment-support-not-proof") {
       const exp = await app.createExperiment({ claimId: claim.id, kind: "FINITE_VERIFICATION", parameters: { property: "n == n", domainStart: 0, domainEnd: 5 } })
-      const result = await app.runExperiment(exp.id)
+      const result = await app.runExperiment(exp.id, { allowUserAuthored: true })
       pass = result.outcome === "NO_COUNTEREXAMPLE_FOUND" && app.getClaim(claim.id).status !== "KERNEL_VERIFIED"
     } else if (id === "experiment-counterexample") {
       const exp = await app.createExperiment({ claimId: claim.id, kind: "COUNTEREXAMPLE_SEARCH", parameters: { property: "n > 0", domainStart: -2, domainEnd: 2 } })
-      const result = await app.runExperiment(exp.id)
+      const result = await app.runExperiment(exp.id, { allowUserAuthored: true })
       pass = result.outcome === "COUNTEREXAMPLE_FOUND" && app.getClaim(claim.id).status !== "DISPROVED"
     } else if (id === "experiment-timeout") {
       const exp = await app.createExperiment({ kind: "GENERAL", code: "import time\ntime.sleep(20)\n" })
-      const result = await app.runExperiment(exp.id, { timeoutMs: 300 })
+      const result = await app.runExperiment(exp.id, { timeoutMs: 300, allowUserAuthored: true })
       pass = app.getExperiment(exp.id).status === "TIMED_OUT" && result.summary === "EXPERIMENT_TIMEOUT"
     } else if (id === "experiment-reproducibility") {
       const exp = await app.createExperiment({ kind: "FINITE_VERIFICATION", parameters: { property: "n == n", domainStart: 0, domainEnd: 2 } })
