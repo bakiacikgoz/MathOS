@@ -82,9 +82,8 @@ import {
   type PremiseRetriever,
 } from "@mathos/retrieval"
 import { runResearchIntake } from "./intake.ts"
-import { draftFormalization } from "./formalize.ts"
-import { reviewFidelity } from "./fidelity.ts"
 import { parseProofBody, PROVE_SYSTEM_PROMPT } from "./prove.ts"
+import { FormalizationService } from "./services/formalization-service.ts"
 import { VerificationService } from "./services/verification-service.ts"
 import {
   buildResearchGraph,
@@ -106,7 +105,6 @@ import {
 } from "@mathos/graph"
 import {
   ClaimNotFound,
-  FormalizationFailed,
   FormalStatementNotFound,
   InvalidClaimStatus,
   ProofAttemptFailed,
@@ -210,6 +208,7 @@ export interface MathOSOptions {
 }
 
 export class MathOS {
+  private formalizationService!: FormalizationService
   private verificationService!: VerificationService
   private constructor(
     readonly root: string,
@@ -326,6 +325,22 @@ export class MathOS {
       options.computationRuntime ?? new PythonRuntime(),
       options.literatureProvider ?? new FakeLiteratureProvider(),
     )
+    instance.formalizationService = new FormalizationService({
+      root: workspaceRoot,
+      workspaces: instance.workspaces,
+      claims: instance.claims,
+      formalStatements: instance.formalStatements,
+      fidelityReviews: instance.fidelityReviews,
+      verificationRuns: instance.verificationRuns,
+      modelProvider: instance.modelProvider,
+      auditorProvider: instance.auditorProvider,
+      leanAdapter: instance.leanAdapter,
+      leanContext: () => ({
+        workspaceRoot: instance.leanContext().workspaceRoot,
+        tmpDir: `${instance.root}/.mathos/tmp`,
+      }),
+      recordEvent: (action, event) => instance.record(action, event),
+    })
     instance.verificationService = new VerificationService({
       root: workspaceRoot,
       workspaces: instance.workspaces,
@@ -965,149 +980,27 @@ export class MathOS {
   }
 
   async formalize(claimId: string): Promise<FormalizationSession> {
-    const workspace = this.requireWorkspace()
-    const claim = this.getClaim(claimId)
-    let draft = await draftFormalization(this.modelProvider, claim)
-    this.record("formalization_drafted", {
-      target: claim.id,
-      metadata: { declaration: draft.declarationName, provider: draft.modelProvenance.provider },
-    })
-
-    let repairs = 0
-    let check = await this.leanAdapter.checkStatement(draft.leanStatement, {
-      workspaceRoot: this.leanContext().workspaceRoot,
-      tmpDir: `${this.root}/.mathos/tmp`,
-    })
-    while (check.result !== "ELABORATES" && repairs < 2) {
-      repairs += 1
-      draft = await draftFormalization(this.modelProvider, claim, {
-        previous: draft.leanStatement,
-        diagnostics: check.diagnostics.map((item) => item.message).join("\n"),
-      })
-      check = await this.leanAdapter.checkStatement(draft.leanStatement, {
-        workspaceRoot: this.leanContext().workspaceRoot,
-        tmpDir: `${this.root}/.mathos/tmp`,
-      })
-    }
-    if (check.result !== "ELABORATES") {
-      throw new FormalizationFailed("FORMALIZATION_FAILED: Lean statement did not elaborate after 2 repairs.")
-    }
-
-    const timestamp = nowIso()
-    const id = nextSequentialId(this.formalStatements.ids(workspace.id), "FS")
-    this.formalStatements.markOthersNotCurrent(claim.id)
-    const statement: FormalStatement = {
-      id,
-      workspaceId: workspace.id,
-      claimId: claim.id,
-      language: "lean4",
-      declarationName: draft.declarationName,
-      sourceText: draft.leanStatement,
-      filePath: null,
-      isCurrent: true,
-      verificationStatus: "ELABORATES",
-      fidelityStatus: "AI_REVIEWED",
-      createdBy: "model",
-      provider: draft.modelProvenance.provider,
-      modelName: draft.modelProvenance.model,
-      leanVersion: check.leanVersion,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    }
-    this.formalStatements.insert(statement)
-    this.record("formal_statement_created", {
-      target: statement.id,
-      metadata: { claim_id: claim.id, declaration: statement.declarationName, lean: check.leanVersion },
-    })
-
-    this.verificationRuns.insert({
-      id: createId("vr"),
-      workspaceId: workspace.id,
-      formalStatementId: statement.id,
-      claimId: claim.id,
-      proofAttemptId: null,
-      result: "ELABORATES",
-      leanVersion: check.leanVersion,
-      toolchain: check.toolchain,
-      diagnosticsJson: JSON.stringify(check.diagnostics),
-      axiomsJson: "[]",
-      forbiddenJson: "[]",
-      fidelityStatus: statement.fidelityStatus,
-      gateJson: "[]",
-      createdAt: timestamp,
-    })
-    this.record("formal_statement_checked", {
-      target: statement.id,
-      metadata: { result: "ELABORATES", repairs },
-    })
-
-    const reviewed = await reviewFidelity(this.auditorProvider, {
-      claimId: claim.id,
-      naturalStatement: claim.naturalStatement,
-      leanStatement: statement.sourceText,
-    })
-    const fidelity: FidelityReview = {
-      ...reviewed,
-      id: createId("fr"),
-      workspaceId: workspace.id,
-      formalStatementId: statement.id,
-      createdAt: timestamp,
-    }
-    this.fidelityReviews.insert(fidelity)
-    this.record("fidelity_review_completed", {
-      target: statement.id,
-      metadata: { verdict: fidelity.verdict, provider: fidelity.provider },
-    })
-
-    if (claim.status === "KERNEL_VERIFIED") {
-      throw new FormalizationFailed("Refusing to treat elaboration as kernel verification.")
-    }
-
-    return {
-      claimId: claim.id,
-      formalStatement: statement,
-      check: { result: check.result, diagnostics: check.diagnostics, repairs },
-      fidelity,
-      proofAttempted: false,
-    }
+    return this.formalizationService.formalize(claimId)
   }
 
   getFormal(claimId: string): FormalStatement {
-    const statement = this.formalStatements.currentForClaim(this.getClaim(claimId).id)
-    if (!statement) throw new FormalStatementNotFound(claimId)
-    return statement
+    return this.formalizationService.getFormal(claimId)
   }
 
   getFidelity(formalId: string): FidelityReview | null {
-    return this.fidelityReviews.latestForFormal(formalId)
+    return this.formalizationService.getFidelity(formalId)
   }
 
   approveFormal(formalId: string): FormalStatement {
-    const statement = this.formalStatements.get(formalId)
-    if (!statement) throw new FormalStatementNotFound(formalId)
-    const claim = this.getClaim(statement.claimId)
-    if (statement.verificationStatus !== "ELABORATES") {
-      throw new FormalizationFailed("Cannot approve a statement that does not elaborate.")
-    }
-    const timestamp = nowIso()
-    this.formalStatements.updateStatuses(statement.id, "ELABORATES", "HUMAN_APPROVED", timestamp, maybeWriteFormalFile(this.root, claim.id, statement.sourceText))
-    if (claim.status !== "KERNEL_VERIFIED" && claim.status !== "INDEPENDENTLY_CHECKED") {
-      this.claims.updateStatus(claim.id, "FORMALIZED_UNVERIFIED", timestamp)
-    }
-    this.record("fidelity_approved", { target: statement.id, metadata: { claim_id: claim.id } })
-    return this.formalStatements.get(statement.id)!
+    return this.formalizationService.approveFormal(formalId)
   }
 
   rejectFormal(formalId: string): FormalStatement {
-    const statement = this.formalStatements.get(formalId)
-    if (!statement) throw new FormalStatementNotFound(formalId)
-    this.formalStatements.updateStatuses(statement.id, statement.verificationStatus, "REJECTED", nowIso())
-    this.record("fidelity_rejected", { target: statement.id, metadata: { claim_id: statement.claimId } })
-    return this.formalStatements.get(statement.id)!
+    return this.formalizationService.rejectFormal(formalId)
   }
 
   formalSetup() {
-    return this.leanAdapter.setupProject(this.root)
+    return this.formalizationService.formalSetup()
   }
 
   listProofs(claimId: string): ProofAttempt[] {
@@ -3434,15 +3327,6 @@ export class MathOS {
   static versionText(): string {
     return formatMathosVersion(SCHEMA_EPOCH)
   }
-}
-
-function maybeWriteFormalFile(root: string, claimId: string, source: string): string | null {
-  const dir = join(root, "formal", "Claims")
-  mkdirSync(dir, { recursive: true })
-  const file = join(dir, `${claimId.replace("-", "")}.lean`)
-  if (existsSync(file)) return null
-  writeFileSync(file, `${source.trim()}\n`, "utf8")
-  return `formal/Claims/${claimId.replace("-", "")}.lean`
 }
 
 export { buildDoctorReport } from "./doctor.ts"
