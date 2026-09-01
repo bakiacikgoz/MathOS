@@ -10,6 +10,7 @@ export { PersistentScriptedPlanner, createPlannerFromDescriptor } from "./planne
 export { FakeMultiAgentPlanner, ModelMultiAgentPlanner, type MultiAgentPlanner } from "./multi-agent-planner.ts"
 export { TeamResearchCoordinator, type TeamResearchCoordinatorDependencies } from "./services/team-research-coordinator.ts"
 export { BranchService, type BranchServiceDependencies } from "./services/branch-service.ts"
+export { ResearchQueryService, type ResearchQueryServiceDependencies } from "./services/research-query-service.ts"
 export { runResearchEval, runResearchScenario, RESEARCH_EVAL_SCENARIOS } from "./research-eval.ts"
 export { createDemoWorkspace } from "./product-demo.ts"
 export * from "./product-ux.ts"

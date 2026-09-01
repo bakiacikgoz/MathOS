@@ -87,20 +87,10 @@ import { ExperimentService } from "./services/experiment-service.ts"
 import { LiteratureService } from "./services/literature-service.ts"
 import { ResearchEngine } from "./services/research-engine.ts"
 import { BranchService } from "./services/branch-service.ts"
+import { ResearchQueryService } from "./services/research-query-service.ts"
 import { TeamResearchCoordinator, type TeamResearchOverview, type TeamResearchStores } from "./services/team-research-coordinator.ts"
 import {
-  buildResearchGraph,
-  formatClaimDetail,
-  formatGraphDot,
-  formatGraphJson,
-  formatGraphMermaid,
-  formatGraphTree,
-  formatGraphContext,
-  formatFrontier,
   buildGraphContextSummary,
-  buildTeamGraphContext,
-  summarizeObjective,
-  pathBetween,
   validateResearchGraph,
   type ResearchGraph,
   type ResearchGraphBuildOptions,
@@ -162,22 +152,7 @@ import {
 import { createWorkspaceLayout, findWorkspaceRoot, tryFindWorkspaceRoot } from "@mathos/workspace"
 import { buildDoctorReport } from "./doctor.ts"
 import {
-  workspaceHome as formatWorkspaceHome,
-  formatStatusSummary,
-  reopenSummary as formatReopenSummary,
-  researchDashboard as formatResearchDashboard,
-  claimPage as formatClaimPage,
-  whyVerified,
-  whyNotVerified,
-  epistemicLedger,
-  formatLedger,
-  sessionTimeline,
-  blockerReview,
-  experimentPanel,
-  literaturePanel,
-  formatEnvironmentReadiness,
   writeReport,
-  formatConfigShow,
 } from "./product-ux.ts"
 import { backupWorkspace, restoreWorkspace, eventLogHealth, exportDiagnostics } from "./release.ts"
 import { SCHEMA_EPOCH } from "@mathos/storage"
@@ -218,6 +193,7 @@ export class MathOS {
   private researchEngine!: ResearchEngine
   private branchService!: BranchService
   private teamResearchCoordinator!: TeamResearchCoordinator
+  private researchQueryService!: ResearchQueryService
   private constructor(
     readonly root: string,
     private readonly client: DatabaseClient,
@@ -426,6 +402,21 @@ export class MathOS {
       runExperiment: (id, options) => instance.runExperiment(id, options),
       searchLiterature: (query, options) => instance.searchLiterature(query, options),
       inspectSource: (id) => instance.inspectSource(id),
+    })
+    instance.researchQueryService = new ResearchQueryService({
+      root: workspaceRoot,
+      snapshot: () => instance.assembleGraphSnapshot(),
+      currentBranchId: () => instance.requireCurrentBranch().id,
+      getTeam: (id) => instance.getTeam(id),
+      teamAgents: (id) => instance.teamAgents(id),
+      teamSolutions: (id) => instance.teamSolutions(id),
+      getResearch: (id) => instance.getResearch(id),
+      latestResearch: () => instance.latestResearch(),
+      getClaim: (id) => instance.getClaim(id),
+      workspace: () => instance.requireWorkspace(),
+      events: (workspaceId) => instance.eventRows.list(workspaceId),
+      stepsForRun: (runId) => instance.researchStores().steps.list(runId),
+      interruptSummary: () => instance.interruptSummary(),
     })
     instance.restorePersistentPlanners()
     instance.reconcileInterrupted()
@@ -1320,7 +1311,7 @@ export class MathOS {
   rejectImport(id: string): VerifiedArtifactImport { return this.teamResearchCoordinator.rejectImport(id) }
   applyImport(id: string): Promise<VerifiedArtifactImport> { return this.teamResearchCoordinator.applyImport(id) }
 
-  graphSnapshot(): ResearchGraphSnapshot {
+  private assembleGraphSnapshot(): ResearchGraphSnapshot {
     const workspace = this.requireWorkspace()
     const visibility: ResearchGraphSnapshot["visibility"] = []
     for (const branch of this.branches.list(workspace.id)) {
@@ -1351,138 +1342,22 @@ export class MathOS {
     }
   }
 
-  buildGraph(options: ResearchGraphBuildOptions = {}): ResearchGraph {
-    const snapshot = this.graphSnapshot()
-    if (options.teamSessionId) {
-      const session = this.getTeam(options.teamSessionId)
-      const agents = this.teamAgents(session.id)
-      const allowed = new Set(snapshot.visibility.filter((row) => row.branchId === session.sourceBranchId || agents.some((agent) => agent.branchId === row.branchId)).map((row) => `${row.branchId}:${row.claimId}`))
-      snapshot.visibility = snapshot.visibility.filter((row) => allowed.has(`${row.branchId}:${row.claimId}`))
-      return buildResearchGraph(snapshot, { ...options, includeResearchRuntime: true, includeImports: true })
-    }
-    return buildResearchGraph(snapshot, { branchId: options.branchId ?? this.requireCurrentBranch().id, ...options })
-  }
-
-  graphShow(focusId?: string, options: ResearchGraphBuildOptions & { depth?: number; format?: "text" | "json" | "dot" | "mermaid" } = {}) {
-    const graph = this.buildGraph({ ...options, proofOnly: options.proofOnly ?? options.format !== "json" })
-    const focus = focusId ?? graph.metadata.focusNodeId
-    const analysis = buildGraphContextSummary(graph, { focusClaimId: focus })
-    if (options.format === "json") return formatGraphJson(graph, { ...analysis })
-    if (options.format === "dot") return formatGraphDot(graph)
-    if (options.format === "mermaid") return formatGraphMermaid(graph)
-    return formatGraphTree(graph, focus, options.depth ?? 2)
-  }
-
-  graphDependencies(claimId: string) {
-    const graph = this.buildGraph()
-    return graph.edges.filter((edge) => edge.kind === "DEPENDS_ON" && edge.fromNodeId === claimId.toUpperCase()).map((edge) => `${edge.fromNodeId} DEPENDS_ON ${edge.toNodeId}`)
-  }
-
-  graphDependents(claimId: string) {
-    const graph = this.buildGraph()
-    return graph.edges.filter((edge) => edge.kind === "DEPENDS_ON" && edge.toNodeId === claimId.toUpperCase()).map((edge) => `${edge.fromNodeId} DEPENDS_ON ${edge.toNodeId}`)
-  }
-
-  graphBlockers(claimId: string) {
-    const graph = this.buildGraph()
-    return graph.edges.filter((edge) => edge.kind === "BLOCKS" && edge.toNodeId === claimId.toUpperCase()).map((edge) => edge.fromNodeId)
-  }
-
-  graphPath(fromId: string, toId: string) {
-    return pathBetween(this.buildGraph(), fromId.toUpperCase(), toId.toUpperCase())
-  }
-
-  graphCompare(leftId: string, rightId: string) {
-    const left = this.buildGraph({ branchId: leftId.toUpperCase(), includeResearchRuntime: true, includeImports: true, proofOnly: false })
-    const right = this.buildGraph({ branchId: rightId.toUpperCase(), includeResearchRuntime: true, includeImports: true, proofOnly: false })
-    const leftClaims = new Set(left.nodes.filter((node) => node.kind === "CLAIM" || node.kind === "OBJECTIVE").map((node) => node.id))
-    const rightClaims = new Set(right.nodes.filter((node) => node.kind === "CLAIM" || node.kind === "OBJECTIVE").map((node) => node.id))
-    return {
-      left: leftId.toUpperCase(),
-      right: rightId.toUpperCase(),
-      shared: [...leftClaims].filter((id) => rightClaims.has(id)).sort(),
-      onlyLeft: [...leftClaims].filter((id) => !rightClaims.has(id)).sort(),
-      onlyRight: [...rightClaims].filter((id) => !leftClaims.has(id)).sort(),
-      leftVerified: left.nodes.filter((node) => node.epistemicStatus === "KERNEL_VERIFIED").map((node) => node.id).sort(),
-      rightVerified: right.nodes.filter((node) => node.epistemicStatus === "KERNEL_VERIFIED").map((node) => node.id).sort(),
-      leftBlockers: left.nodes.filter((node) => node.kind === "BLOCKER").map((node) => node.id),
-      rightBlockers: right.nodes.filter((node) => node.kind === "BLOCKER").map((node) => node.id),
-    }
-  }
-
-  graphClaimDetail(claimId: string) {
-    return formatClaimDetail(this.buildGraph({ includeResearchRuntime: true }), claimId.toUpperCase())
-  }
-
-  researchContext(runId?: string) {
-    const run = runId ? this.getResearch(runId) : this.latestResearch()
-    const objective = (run?.objectiveClaimId ?? this.requireWorkspace().mainObjectiveId)
-      ? this.getClaim((run?.objectiveClaimId ?? this.requireWorkspace().mainObjectiveId)!)
-      : null
-    const graph = this.buildGraph({ branchId: run?.branchId ?? this.requireCurrentBranch().id, includeImports: true })
-    const summary = buildGraphContextSummary(graph, { focusClaimId: run?.strategy.focusClaimId ?? objective?.id ?? null })
-    return { run, objective, graph, summary, text: formatGraphContext(summary) }
-  }
-
-  researchProgress(runId?: string) {
-    const ctx = this.researchContext(runId)
-    const run = ctx.run
-    const objective = ctx.objective
-    const lines = [
-      run ? `RESEARCH RUN ${run.id}` : "WORKSPACE",
-      `Objective ${objective?.id ?? "none"} · ${objective?.status ?? "n/a"}`,
-      run ? `Focus ${run.strategy.focusClaimId ?? run.objectiveClaimId ?? "none"}` : `Focus ${objective?.id ?? "none"}`,
-      `Structural frontier ${ctx.summary.unverifiedFrontier.length} claims`,
-      `Verified prerequisites ${ctx.summary.verifiedPrerequisites.length}`,
-      `Open blockers ${ctx.summary.openBlockingChain.length}`,
-      `Computational evidence ${ctx.summary.computationalEvidence.length}`,
-    ]
-    if (run) {
-      lines.push(`Steps ${run.usage.steps} / ${run.limits.maxSteps}`)
-      lines.push(`Lean ${run.usage.leanCalls} / ${run.limits.maxLeanCalls}`)
-      lines.push(`Model ${run.usage.modelCalls} / ${run.limits.maxModelCalls}`)
-    }
-    lines.push(summarizeObjective(ctx.graph, objective?.id ?? ctx.summary.objectiveClaimId ?? "none"))
-    return lines.join("\n")
-  }
-
-  graphFrontier(claimId?: string) {
-    const graph = this.buildGraph({ includeImports: true })
-    const summary = buildGraphContextSummary(graph, { focusClaimId: claimId?.toUpperCase() ?? graph.metadata.focusNodeId })
-    return { text: formatFrontier(summary), summary }
-  }
-
-  graphBlockingChain(claimId: string) {
-    const graph = this.buildGraph({ includeImports: true })
-    const summary = buildGraphContextSummary(graph, { focusClaimId: claimId.toUpperCase() })
-    return summary.openBlockingChain
-  }
-
-  graphSupport(claimId: string) {
-    const graph = this.buildGraph({ includeImports: true })
-    return buildGraphContextSummary(graph, { focusClaimId: claimId.toUpperCase() }).verifiedPrerequisites
-  }
-
-  graphUnresolved(claimId: string) {
-    const graph = this.buildGraph({ includeImports: true })
-    return buildGraphContextSummary(graph, { focusClaimId: claimId.toUpperCase() }).unverifiedFrontier
-  }
-
-  teamGraphContext(sessionId: string) {
-    const session = this.getTeam(sessionId)
-    const graph = this.buildGraph({ teamSessionId: session.id, includeResearchRuntime: true, includeImports: true, proofOnly: false })
-    const agents = this.teamAgents(session.id)
-    return buildTeamGraphContext({
-      graph,
-      workers: agents.map((agent) => ({
-        agentId: agent.id,
-        branchId: agent.branchId,
-        focusClaimId: this.getResearch(agent.researchRunId).strategy.focusClaimId ?? null,
-        localClaimId: agent.localClaimId,
-      })),
-      solutions: this.teamSolutions(session.id).map((item) => item.claimId),
-    })
-  }
+  graphSnapshot(): ResearchGraphSnapshot { return this.researchQueryService.graphSnapshot() }
+  buildGraph(options: ResearchGraphBuildOptions = {}): ResearchGraph { return this.researchQueryService.buildGraph(options) }
+  graphShow(focusId?: string, options: ResearchGraphBuildOptions & { depth?: number; format?: "text" | "json" | "dot" | "mermaid" } = {}) { return this.researchQueryService.graphShow(focusId, options) }
+  graphDependencies(claimId: string) { return this.researchQueryService.graphDependencies(claimId) }
+  graphDependents(claimId: string) { return this.researchQueryService.graphDependents(claimId) }
+  graphBlockers(claimId: string) { return this.researchQueryService.graphBlockers(claimId) }
+  graphPath(fromId: string, toId: string) { return this.researchQueryService.graphPath(fromId, toId) }
+  graphCompare(leftId: string, rightId: string) { return this.researchQueryService.graphCompare(leftId, rightId) }
+  graphClaimDetail(claimId: string) { return this.researchQueryService.graphClaimDetail(claimId) }
+  researchContext(runId?: string) { return this.researchQueryService.researchContext(runId) }
+  researchProgress(runId?: string) { return this.researchQueryService.researchProgress(runId) }
+  graphFrontier(claimId?: string) { return this.researchQueryService.graphFrontier(claimId) }
+  graphBlockingChain(claimId: string) { return this.researchQueryService.graphBlockingChain(claimId) }
+  graphSupport(claimId: string) { return this.researchQueryService.graphSupport(claimId) }
+  graphUnresolved(claimId: string) { return this.researchQueryService.graphUnresolved(claimId) }
+  teamGraphContext(sessionId: string) { return this.researchQueryService.teamGraphContext(sessionId) }
 
   async createExperiment(input: {
     origin?: import("@mathos/domain").ExperimentOrigin
@@ -1561,77 +1436,22 @@ export class MathOS {
   linkExternalKnown(claimId: string, externalResultId: string) { return this.literatureService.linkExternalKnown(claimId, externalResultId) }
   formatSource(id: string) { return this.literatureService.formatSource(id) }
 
-  productState(): import("./product-ux.ts").ProductState {
-    const workspace = this.requireWorkspace()
-    const snapshot = this.graphSnapshot()
-    const events = this.eventRows.list(workspace.id)
-    const steps = snapshot.runs.flatMap((run) => this.researchStores().steps.list(run.id))
-    return { projectName: workspace.name, workspaceRoot: this.root, snapshot, events, steps }
-  }
-
-  workspaceHome(): string {
-    return formatWorkspaceHome(this.productState())
-  }
-
-  statusSummary(): string {
-    return formatStatusSummary(this.productState())
-  }
-
-  reopenSummary(): string {
-    const extra = this.interruptSummary()
-    const base = formatReopenSummary(this.productState())
-    return extra ? `${extra}\n\n${base}` : base
-  }
-
-  researchDashboard(): string {
-    return formatResearchDashboard(this.productState())
-  }
-
-  claimPage(id: string): string {
-    return formatClaimPage(this.productState(), id)
-  }
-
-  whyClaim(id: string): string {
-    const state = this.productState()
-    const claim = state.snapshot.claims.find((item) => item.id === id)
-    return claim?.status === "KERNEL_VERIFIED" ? whyVerified(state, id) : whyNotVerified(state, id)
-  }
-
-  ledger(id: string) {
-    return epistemicLedger(this.productState(), id)
-  }
-
-  ledgerText(id: string): string {
-    return formatLedger(this.ledger(id))
-  }
-
-  timeline(filter = "all"): string {
-    return sessionTimeline(this.productState(), filter)
-  }
-
-  blockersPanel(): string {
-    return blockerReview(this.productState())
-  }
-
-  experimentsPanel(): string {
-    return experimentPanel(this.productState())
-  }
-
-  literatureHome(): string {
-    return literaturePanel(this.productState())
-  }
-
-  environmentReadinessText(checks: Array<{ name: string; status: string; detail: string }>): string {
-    return formatEnvironmentReadiness(checks)
-  }
-
-  exportReport(format: "md" | "json" = "md", dir?: string) {
-    return writeReport(this.productState(), format, dir ?? join(this.root, "reports"))
-  }
-
-  configShow(): string {
-    return formatConfigShow(this.root)
-  }
+  productState(): import("./product-ux.ts").ProductState { return this.researchQueryService.productState() }
+  workspaceHome(): string { return this.researchQueryService.workspaceHome() }
+  statusSummary(): string { return this.researchQueryService.statusSummary() }
+  reopenSummary(): string { return this.researchQueryService.reopenSummary() }
+  researchDashboard(): string { return this.researchQueryService.researchDashboard() }
+  claimPage(id: string): string { return this.researchQueryService.claimPage(id) }
+  whyClaim(id: string): string { return this.researchQueryService.whyClaim(id) }
+  ledger(id: string) { return this.researchQueryService.ledger(id) }
+  ledgerText(id: string): string { return this.researchQueryService.ledgerText(id) }
+  timeline(filter = "all"): string { return this.researchQueryService.timeline(filter) }
+  blockersPanel(): string { return this.researchQueryService.blockersPanel() }
+  experimentsPanel(): string { return this.researchQueryService.experimentsPanel() }
+  literatureHome(): string { return this.researchQueryService.literatureHome() }
+  environmentReadinessText(checks: Array<{ name: string; status: string; detail: string }>): string { return this.researchQueryService.environmentReadinessText(checks) }
+  exportReport(format: "md" | "json" = "md", dir?: string) { return writeReport(this.productState(), format, dir ?? join(this.root, "reports")) }
+  configShow(): string { return this.researchQueryService.configShow() }
 
   reconcileInterrupted(): { research: string[]; team: string[]; experiments: string[] } {
     const research: string[] = []
