@@ -85,6 +85,7 @@ import { runResearchIntake } from "./intake.ts"
 import { parseProofBody, PROVE_SYSTEM_PROMPT } from "./prove.ts"
 import { FormalizationService } from "./services/formalization-service.ts"
 import { VerificationService } from "./services/verification-service.ts"
+import { ExperimentService } from "./services/experiment-service.ts"
 import {
   buildResearchGraph,
   formatClaimDetail,
@@ -182,9 +183,9 @@ import { FakeResearchPlanner, ModelResearchPlanner, type ResearchPlanner } from 
 import { buildResearchContext } from "./research-context.ts"
 import { FakeMultiAgentPlanner, type MultiAgentPlanner } from "./multi-agent-planner.ts"
 import { createPlannerFromDescriptor, plannerDescriptorFrom, PersistentScriptedPlanner } from "./planner-factory.ts"
-import { PythonRuntime, recipeCode, parseStructured, sha256Text, canonicalJson, type ComputationalRuntime } from "@mathos/computation"
+import { PythonRuntime, sha256Text, type ComputationalRuntime } from "@mathos/computation"
 import { FakeLiteratureProvider, queryFingerprint, sourceFingerprint, type LiteratureProvider, type LiteratureSearchResult } from "@mathos/literature"
-import { DEFAULT_COMPUTATIONAL_BUDGET, isExperimentKind, type Experiment, type ExperimentKind, type ExperimentResult, type RuntimeDescriptor, type CitationPurpose, type ExternalResultKind, type SourceLocator, type Source, type SourceExcerpt, type Citation, type ExternalResult, formatLocator } from "@mathos/domain"
+import { DEFAULT_COMPUTATIONAL_BUDGET, type Experiment, type ExperimentResult, type CitationPurpose, type ExternalResultKind, type SourceLocator, type Source, type SourceExcerpt, type Citation, type ExternalResult, formatLocator } from "@mathos/domain"
 
 export interface MathOSOptions {
   logger?: Logger
@@ -210,6 +211,7 @@ export interface MathOSOptions {
 export class MathOS {
   private formalizationService!: FormalizationService
   private verificationService!: VerificationService
+  private experimentService!: ExperimentService
   private constructor(
     readonly root: string,
     private readonly client: DatabaseClient,
@@ -352,6 +354,19 @@ export class MathOS {
       leanContext: () => instance.leanContext(),
       consumeLeanBudget: (reason) => instance.chargeLean(reason),
       recordEvent: (action, event) => instance.record(action, event),
+    })
+    instance.experimentService = new ExperimentService({
+      root: workspaceRoot,
+      workspaces: instance.workspaces,
+      branches: instance.branches,
+      claims: instance.claims,
+      evidence: instance.evidence,
+      experiments: new ExperimentRepository(client.db),
+      results: new ExperimentResultRepository(client.db),
+      computationRuntime: instance.computationRuntime,
+      allocateId: (prefix) => instance.allocateId(prefix),
+      recordEvent: (action, event) => instance.record(action, event),
+      recordPid: (pid) => { instance.lastExperimentPid = pid },
     })
     instance.restorePersistentPlanners()
     instance.reconcileInterrupted()
@@ -2520,8 +2535,8 @@ export class MathOS {
       imports: this.teamStores().imports.listAll(),
       sessions: this.teamStores().sessions.list(workspace.id),
       visibility,
-      experiments: this.experimentStores().experiments.list(workspace.id),
-      experimentResults: this.experimentStores().experiments.list(workspace.id).flatMap((item) => this.experimentStores().results.list(item.id)),
+      experiments: this.experimentService.listWorkspaceExperiments(),
+      experimentResults: this.experimentService.listWorkspaceExperiments().flatMap((item) => this.experimentService.experimentResults(item.id)),
       sources: this.literatureStores().sources.list(workspace.id),
       excerpts: this.literatureStores().sources.list(workspace.id).flatMap((item) => this.literatureStores().excerpts.list(item.id)),
       externalResults: this.literatureStores().external.list(workspace.id),
@@ -2662,19 +2677,6 @@ export class MathOS {
     })
   }
 
-  private experimentStores() {
-    return {
-      experiments: new ExperimentRepository(this.client.db),
-      results: new ExperimentResultRepository(this.client.db),
-    }
-  }
-
-  private experimentRoot(id: string, branchId?: string) {
-    const branch = branchId ? this.getBranch(branchId) : this.requireCurrentBranch()
-    const fsRoot = branch.worktreePath && branch.id !== "B-000" ? branch.worktreePath : this.root
-    return join(fsRoot, ".mathos", "experiments", id)
-  }
-
   async createExperiment(input: {
     origin?: import("@mathos/domain").ExperimentOrigin
     kind?: string
@@ -2685,178 +2687,27 @@ export class MathOS {
     runId?: string
     agentId?: string
   } = {}): Promise<Experiment> {
-    const workspace = this.requireWorkspace()
-    const branch = this.requireCurrentBranch()
-    const kind = isExperimentKind(String(input.kind ?? "GENERAL")) ? String(input.kind ?? "GENERAL") as ExperimentKind : "GENERAL"
-    const parameters = { ...(input.parameters ?? {}) }
-    if (input.code) parameters.code = input.code
-    const id = this.allocateId("EXP")
-    const dir = this.experimentRoot(id, branch.id)
-    mkdirSync(dir, { recursive: true })
-    const code = recipeCode(kind, parameters)
-    writeFileSync(join(dir, "main.py"), code, "utf8")
-    writeFileSync(join(dir, "input.json"), `${canonicalJson(parameters)}\n`, "utf8")
-    const env = await this.computationRuntime.inspectEnvironment()
-    const runtime: RuntimeDescriptor = {
-      adapter: env.pythonExecutable === "fake-python" ? "fake" : "python",
-      executable: env.pythonExecutable,
-      version: env.pythonVersion,
-      sympyVersion: env.sympyVersion,
-      platform: env.platform,
-      adapterVersion: "v1",
-    }
-    const experiment: Experiment = {
-      origin: input.runId ? "MODEL_GENERATED" : input.origin ?? "USER_AUTHORED",
-      id,
-      workspaceId: workspace.id,
-      branchId: branch.id,
-      claimId: input.claimId ? this.getClaim(input.claimId).id : null,
-      researchRunId: input.runId ?? null,
-      researchStepId: null,
-      agentId: input.agentId ?? null,
-      kind,
-      status: "READY",
-      hypothesis: input.hypothesis ?? null,
-      runtime,
-      codeArtifactId: join(dir, "main.py"),
-      parameters,
-      codeHash: sha256Text(code),
-      inputHash: sha256Text(canonicalJson(parameters)),
-      createdAt: nowIso(),
-      startedAt: null,
-      finishedAt: null,
-    }
-    this.experimentStores().experiments.insert(experiment)
-    this.record("experiment_created", { target: id, metadata: { experimentId: id, branchId: branch.id } })
-    return experiment
+    return this.experimentService.createExperiment(input)
   }
 
   listExperiments(branchId?: string) {
-    return this.experimentStores().experiments.list(this.requireWorkspace().id, branchId ?? this.requireCurrentBranch().id)
+    return this.experimentService.listExperiments(branchId)
   }
 
   getExperiment(id: string) {
-    const row = this.experimentStores().experiments.get(id.toUpperCase())
-    if (!row) throw new Error(`Experiment ${id} was not found.`)
-    return row
+    return this.experimentService.getExperiment(id)
   }
 
   experimentResults(id: string) {
-    return this.experimentStores().results.list(this.getExperiment(id).id)
+    return this.experimentService.experimentResults(id)
   }
 
   async runExperiment(id: string, opts: { timeoutMs?: number; stepId?: string; allowUserAuthored?: boolean } = {}): Promise<ExperimentResult> {
-    const experiment = this.getExperiment(id)
-    if (experiment.status === "RUNNING") throw new Error("EXPERIMENT_ALREADY_RUNNING")
-    const budget = DEFAULT_COMPUTATIONAL_BUDGET
-    const dir = this.experimentRoot(experiment.id, experiment.branchId)
-    mkdirSync(dir, { recursive: true })
-    const code = readFileSync(experiment.codeArtifactId, "utf8")
-    if (sha256Text(code) !== experiment.codeHash) throw new Error("EXPERIMENT_CODE_MUTATED")
-    experiment.status = "RUNNING"
-    experiment.startedAt = nowIso()
-    experiment.researchStepId = opts.stepId ?? experiment.researchStepId
-    this.experimentStores().experiments.update(experiment)
-    this.record("experiment_started", { target: experiment.id, metadata: { experimentId: experiment.id, branchId: experiment.branchId } })
-    let executed: Awaited<ReturnType<ComputationalRuntime["execute"]>>
-    try {
-      executed = await this.computationRuntime.execute({
-        executable: experiment.runtime.executable,
-        origin: experiment.origin,
-        allowUserAuthored: opts.allowUserAuthored,
-        scriptPath: experiment.codeArtifactId,
-        cwd: dir,
-        timeoutMs: opts.timeoutMs ?? budget.maxWallClockMsPerExperiment,
-        maxOutputBytes: budget.maxOutputBytes,
-      })
-    } catch {
-      executed = {
-        exitCode: null, timedOut: false, stdout: "", stderr: "", stdoutTruncated: false,
-        stderrTruncated: false, durationMs: 0, pid: null,
-        blockedReason: "EXPERIMENT_BLOCKED_SANDBOX_FAILURE",
-        securityReport: {
-          sandboxAvailable: false, sandboxBackend: null, networkAllowed: false,
-          filesystemMode: "PRIVATE_TEMP_ONLY", timeoutMs: opts.timeoutMs ?? budget.maxWallClockMsPerExperiment,
-          outputLimitBytes: budget.maxOutputBytes, blockedReason: "EXPERIMENT_BLOCKED_SANDBOX_FAILURE",
-          executionPolicyVersion: "sandbox-v1",
-        },
-      }
-    }
-    this.lastExperimentPid = executed.pid
-    experiment.sandboxMode = executed.securityReport?.sandboxBackend ?? null
-    experiment.networkPolicy = executed.securityReport ? (executed.securityReport.networkAllowed ? "NETWORK_ALLOW" : "NETWORK_DENY") : null
-    experiment.executionPolicyVersion = executed.securityReport?.executionPolicyVersion ?? null
-    writeFileSync(join(dir, "stdout.txt"), executed.stdout, "utf8")
-    writeFileSync(join(dir, "stderr.txt"), executed.stderr, "utf8")
-    const structured = parseStructured(executed.stdout)
-    const reportedOutcome = typeof structured.outcome === "string" && ["SUPPORTING_EVIDENCE", "COUNTEREXAMPLE_FOUND", "NO_COUNTEREXAMPLE_FOUND", "INCONCLUSIVE", "EXECUTION_FAILED"].includes(structured.outcome)
-      ? structured.outcome as ExperimentResult["outcome"] : null
-    const outcome = executed.blockedReason ? "INCONCLUSIVE" : executed.timedOut
-      ? "EXECUTION_FAILED"
-      : executed.exitCode === 0
-        ? (reportedOutcome ?? (typeof structured.outcome === "string" ? "INCONCLUSIVE" : structured.witness ? "COUNTEREXAMPLE_FOUND" : Object.keys(structured).length === 1 && "raw" in structured ? "INCONCLUSIVE" : "SUPPORTING_EVIDENCE"))
-        : "EXECUTION_FAILED"
-    const result: ExperimentResult = {
-      id: this.allocateId("ER"),
-      experimentId: experiment.id,
-      outcome: executed.timedOut ? "EXECUTION_FAILED" : outcome,
-      summary: executed.blockedReason ?? (executed.stdoutTruncated || executed.stderrTruncated
-        ? "OUTPUT_TRUNCATED"
-        : executed.timedOut
-        ? "EXPERIMENT_TIMEOUT"
-        : executed.exitCode === 0
-          ? String(structured.outcome ?? "SUPPORTING_EVIDENCE")
-          : (executed.stderr || "EXECUTION_FAILED").slice(0, 400)),
-      structuredOutput: { ...structured, security: executed.securityReport ?? null, epistemic: "COMPUTATIONAL EVIDENCE — NOT PROOF" },
-      stdoutArtifactId: join(dir, "stdout.txt"),
-      stderrArtifactId: join(dir, "stderr.txt"),
-      startedAt: experiment.startedAt ?? nowIso(),
-      finishedAt: nowIso(),
-      runtimeFingerprint: sha256Text(`${experiment.runtime.executable}|${experiment.runtime.version}|${experiment.runtime.sympyVersion}|${experiment.runtime.platform}|${experiment.runtime.adapterVersion}`),
-      codeHash: experiment.codeHash,
-      inputHash: experiment.inputHash,
-      exactArithmetic: structured.exact === true,
-      deterministic: experiment.parameters.randomSeed != null || experiment.kind !== "NUMERICAL_EXPERIMENT",
-      stdoutTruncated: executed.stdoutTruncated,
-      stderrTruncated: executed.stderrTruncated,
-      randomSeed: experiment.parameters.randomSeed ?? null,
-    }
-    if (executed.timedOut) result.outcome = "EXECUTION_FAILED"
-    this.experimentStores().results.insert(result)
-    experiment.status = executed.blockedReason ? "BLOCKED" : executed.timedOut ? "TIMED_OUT" : executed.exitCode === 0 ? "SUCCEEDED" : "FAILED"
-    experiment.finishedAt = result.finishedAt
-    this.experimentStores().experiments.update(experiment)
-    this.record(executed.blockedReason ? "experiment_blocked" : executed.timedOut ? "experiment_timed_out" : executed.exitCode === 0 ? "experiment_completed" : "experiment_failed", { target: experiment.id, metadata: { experimentId: experiment.id, branchId: experiment.branchId, resultId: result.id, blockedReason: executed.blockedReason ?? null, securityReport: executed.securityReport ?? null, outputTruncated: executed.stdoutTruncated || executed.stderrTruncated } })
-    this.record("experiment_result_recorded", { target: result.id, metadata: { experimentId: experiment.id, branchId: experiment.branchId } })
-    if (experiment.claimId && !executed.blockedReason) {
-      const kind = result.outcome === "COUNTEREXAMPLE_FOUND" ? "counterexample" : "computation"
-      this.addEvidence({
-        claimId: experiment.claimId,
-        kind,
-        summary: `${result.outcome}: ${result.summary}`.slice(0, 400),
-        artifactRef: JSON.stringify({ experimentId: experiment.id, resultId: result.id, codeHash: result.codeHash, runtimeFingerprint: result.runtimeFingerprint, parameters: experiment.parameters }),
-        reproducible: result.deterministic,
-      })
-      this.record("computational_evidence_recorded", { target: experiment.claimId, metadata: { experimentId: experiment.id, resultId: result.id, branchId: experiment.branchId } })
-      if (result.outcome === "COUNTEREXAMPLE_FOUND") this.record("counterexample_candidate_found", { target: experiment.claimId, metadata: { experimentId: experiment.id, resultId: result.id } })
-      this.applyComputationalStatus(experiment.claimId, result.outcome)
-    }
-    return result
+    return this.experimentService.runExperiment(id, opts)
   }
 
   async rerunExperiment(id: string, opts: { allowUserAuthored?: boolean } = {}) {
-    return this.runExperiment(id, opts)
-  }
-
-  private applyComputationalStatus(claimId: string, outcome: ExperimentResult["outcome"]) {
-    const claim = this.getClaim(claimId)
-    if (["FORMALIZED_UNVERIFIED", "KERNEL_VERIFIED", "INDEPENDENTLY_CHECKED", "EXTERNAL_KNOWN", "DISPROVED"].includes(claim.status)) return
-    if (outcome === "SUPPORTING_EVIDENCE" || outcome === "NO_COUNTEREXAMPLE_FOUND") {
-      const next = outcome === "NO_COUNTEREXAMPLE_FOUND" && claim.status !== "COMPUTATIONALLY_SUPPORTED" ? "COMPUTATIONALLY_SUPPORTED" : "HEURISTIC_SUPPORT"
-      if (claim.status === "IDEA" || claim.status === "CONJECTURE" || claim.status === "HEURISTIC_SUPPORT") {
-        this.claims.updateStatus(claim.id, next, nowIso())
-      }
-    }
+    return this.experimentService.rerunExperiment(id, opts)
   }
 
   formatExperiment(id: string) {
@@ -3272,13 +3123,7 @@ export class MathOS {
         this.teamStores().sessions.update(session)
         team.push(session.id)
       }
-      for (const experiment of this.experimentStores().experiments.list(workspace.id)) {
-        if (experiment.status !== "RUNNING") continue
-        experiment.status = "FAILED"
-        experiment.finishedAt = at
-        this.experimentStores().experiments.update(experiment)
-        experiments.push(experiment.id)
-      }
+      experiments.push(...this.experimentService.reconcileInterrupted(at))
       if (research.length || team.length || experiments.length) {
         this.record("workspace_reopened_after_interrupt", {
           target: workspace.id,
@@ -3301,7 +3146,7 @@ export class MathOS {
     for (const session of this.teamStores().sessions.list(workspace.id)) {
       if (session.stopReason === "FATAL_EXECUTION_ERROR") notes.push(`${session.id} interrupted`)
     }
-    for (const experiment of this.experimentStores().experiments.list(workspace.id)) {
+    for (const experiment of this.experimentService.listWorkspaceExperiments()) {
       if (experiment.status === "FAILED" && experiment.finishedAt) notes.push(`${experiment.id} was interrupted`)
     }
     if (!notes.length) return ""
