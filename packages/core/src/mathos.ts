@@ -1,7 +1,7 @@
 import { basename, join, resolve } from "node:path"
 import { createHash } from "node:crypto"
 import { AsyncLocalStorage } from "node:async_hooks"
-import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs"
 import {
   type Blocker,
   type Claim,
@@ -85,7 +85,7 @@ import { runResearchIntake } from "./intake.ts"
 import { draftFormalization } from "./formalize.ts"
 import { reviewFidelity } from "./fidelity.ts"
 import { parseProofBody, PROVE_SYSTEM_PROMPT } from "./prove.ts"
-import { runVerificationGate } from "./verify.ts"
+import { VerificationService } from "./services/verification-service.ts"
 import {
   buildResearchGraph,
   formatClaimDetail,
@@ -210,6 +210,7 @@ export interface MathOSOptions {
 }
 
 export class MathOS {
+  private verificationService!: VerificationService
   private constructor(
     readonly root: string,
     private readonly client: DatabaseClient,
@@ -325,6 +326,18 @@ export class MathOS {
       options.computationRuntime ?? new PythonRuntime(),
       options.literatureProvider ?? new FakeLiteratureProvider(),
     )
+    instance.verificationService = new VerificationService({
+      root: workspaceRoot,
+      workspaces: instance.workspaces,
+      claims: instance.claims,
+      formalStatements: instance.formalStatements,
+      verificationRuns: instance.verificationRuns,
+      proofs: instance.proofs,
+      leanAdapter: instance.leanAdapter,
+      leanContext: () => instance.leanContext(),
+      consumeLeanBudget: (reason) => instance.chargeLean(reason),
+      recordEvent: (action, event) => instance.record(action, event),
+    })
     instance.restorePersistentPlanners()
     instance.reconcileInterrupted()
     return instance
@@ -1270,63 +1283,7 @@ export class MathOS {
   }
 
   async verify(claimId: string): Promise<VerificationReport> {
-    const workspace = this.requireWorkspace()
-    const claim = this.getClaim(claimId)
-    const formal = this.formalStatements.currentForClaim(claim.id)
-    if (!formal) throw new FormalStatementNotFound(claim.id)
-    const proof = this.proofs.latestAccepted(claim.id)
-    this.record("verification_started", { target: claim.id, metadata: { formal_id: formal.id, proof_id: proof?.id ?? null } })
-
-    if (proof && !this.chargeLean("VERIFICATION")) throw new Error("LEAN_CALL_BUDGET_EXHAUSTED")
-    const compiled = proof
-      ? (await this.leanAdapter.checkProof(proof.proofSource, { workspaceRoot: this.leanContext().workspaceRoot, tmpDir: this.leanContext().tmpDir })).result ===
-        "KERNEL_ACCEPTED"
-      : false
-    if (proof && !this.chargeLean("AXIOM_AUDIT")) throw new Error("LEAN_CALL_BUDGET_EXHAUSTED")
-    const axioms = proof
-      ? await this.leanAdapter.printAxioms(formal.declarationName, proof.proofSource, {
-          workspaceRoot: this.leanContext().workspaceRoot,
-          tmpDir: this.leanContext().tmpDir,
-        })
-      : []
-    const env = await this.leanAdapter.detect(this.leanContext().workspaceRoot)
-    const report = runVerificationGate({
-      claim,
-      formal,
-      proof,
-      axioms,
-      leanVersion: env.leanVersion,
-      toolchain: env.toolchain,
-      compiled,
-      currentRevision: formal.isCurrent,
-    })
-
-    this.verificationRuns.insert({
-      id: createId("vr"),
-      workspaceId: workspace.id,
-      formalStatementId: formal.id,
-      claimId: claim.id,
-      proofAttemptId: proof?.id ?? null,
-      result: report.passed ? "KERNEL_ACCEPTED" : "FAILED",
-      leanVersion: env.leanVersion,
-      toolchain: env.toolchain,
-      diagnosticsJson: "[]",
-      axiomsJson: JSON.stringify(axioms),
-      forbiddenJson: JSON.stringify(proof ? scanForbidden(proof.proofSource) : []),
-      fidelityStatus: formal.fidelityStatus,
-      gateJson: JSON.stringify(report.checks),
-      createdAt: nowIso(),
-    })
-
-    if (report.passed) {
-      this.claims.updateStatus(claim.id, "KERNEL_VERIFIED", nowIso())
-      writeProofFile(this.root, claim.id, proof!.proofSource)
-      this.record("verification_passed", { target: claim.id, metadata: { formal_id: formal.id, proof_id: proof?.id } })
-      this.record("claim_kernel_verified", { target: claim.id, metadata: { formal_id: formal.id } })
-    } else {
-      this.record("verification_failed", { target: claim.id, metadata: { reasons: report.checks.filter((c) => c.status === "FAIL").map((c) => c.name) } })
-    }
-    return { ...report, claimStatus: report.passed ? "KERNEL_VERIFIED" : this.getClaim(claim.id).status }
+    return this.verificationService.verify(claimId)
   }
 
   private storeAttempt(
@@ -3485,22 +3442,6 @@ function maybeWriteFormalFile(root: string, claimId: string, source: string): st
   const file = join(dir, `${claimId.replace("-", "")}.lean`)
   if (existsSync(file)) return null
   writeFileSync(file, `${source.trim()}\n`, "utf8")
-  return `formal/Claims/${claimId.replace("-", "")}.lean`
-}
-
-function writeProofFile(root: string, claimId: string, source: string): string | null {
-  const dir = join(root, "formal", "Claims")
-  mkdirSync(dir, { recursive: true })
-  const file = join(dir, `${claimId.replace("-", "")}.lean`)
-  const tmp = `${file}.tmp`
-  if (existsSync(file)) {
-    const existing = readFileSync(file, "utf8")
-    if (existing.includes(":= by") && !existing.includes(source.slice(0, 40))) {
-      return null
-    }
-  }
-  writeFileSync(tmp, `${source.trim()}\n`, "utf8")
-  renameSync(tmp, file)
   return `formal/Claims/${claimId.replace("-", "")}.lean`
 }
 
