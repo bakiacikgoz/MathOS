@@ -1,8 +1,8 @@
-import { MathOS, createDemoWorkspace, formatInitReport, formatTypedUserError, formatConfigShow, inspectHostEnvironment } from "@mathos/core"
+import { MathOS, createDemoWorkspace, experimentTrustLabels, formatInitReport, formatTypedUserError, formatConfigShow, inspectHostEnvironment } from "@mathos/core"
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { formatUserError, isMathOSError } from "@mathos/shared"
-import { formatBranchDetail, formatBranches, formatClaimDetail, formatClaims, formatDoctor, formatMergePreview, formatResearchRun, formatStatus, HELP_TEXT } from "./format.ts"
+import { formatBranchDetail, formatBranches, formatClaims, formatDoctor, formatMergePreview, formatResearchRun, formatStatus, HELP_TEXT } from "./format.ts"
 
 function joinCwdBackups(): string {
   return join(process.cwd(), "backups")
@@ -309,7 +309,7 @@ export async function runHeadless(argv: string[]): Promise<number> {
           return 0
         }
         if (sub === "show" && rest[1]) {
-          process.stdout.write(`${formatClaimDetail(app.getClaimDetail(rest[1]))}\n`)
+          process.stdout.write(`${app.claimPage(rest[1])}\n`)
           return 0
         }
         process.stderr.write("Usage: mathos claim create --type <kind> --title <title> --statement <text>\n")
@@ -473,9 +473,11 @@ export async function runHeadless(argv: string[]): Promise<number> {
           return 0
         }
         if ((sub === "status" || sub === "show") && rest[1]) {
-          const session = app.getTeam(rest[1])
-          const agents = app.teamAgents(session.id)
-          process.stdout.write(json ? `${JSON.stringify({ session, agents }, null, 2)}\n` : `MULTI-AGENT · ${session.id}\nExecution ${session.executionMode}\nParallel workers ${session.maxParallelWorkers}\n${session.status}\n${agents.map((agent) => `${agent.id} ${agent.role} ${agent.branchId} ${agent.status}`).join("\n")}\n`)
+          const overview = app.teamOverview(rest[1])
+          const session = overview.session
+          const verified = overview.agents.filter((row) => row.verified)
+          const unverified = overview.agents.filter((row) => !row.verified)
+          process.stdout.write(json ? `${JSON.stringify(overview, null, 2)}\n` : `MULTI-AGENT · ${session.id}\nExecution ${session.executionMode}\nParallel workers ${session.maxParallelWorkers}\n${session.status}\n\nVERIFIED FINDINGS\n${verified.map((row) => `${row.agent.id} ${row.agent.role} KERNEL_VERIFIED`).join("\n") || "none"}\n\nUNVERIFIED FINDINGS\n${unverified.map((row) => `${row.agent.id} ${row.agent.role} ${row.localStatus}`).join("\n") || "none"}\n`)
           return 0
         }
         if (sub === "step" && rest[1]) {
@@ -607,7 +609,7 @@ export async function runHeadless(argv: string[]): Promise<number> {
         }
         if (sub === "list") {
           const rows = app.listExperiments()
-          process.stdout.write(json ? `${JSON.stringify(rows, null, 2)}\n` : `${rows.map((item) => `${item.id} ${item.kind} ${item.status}`).join("\n")}\n`)
+          process.stdout.write(json ? `${JSON.stringify(rows, null, 2)}\n` : `${rows.map((item) => `${item.id} ${item.kind} ${item.status} · ${experimentTrustLabels(item).join(" · ")}`).join("\n")}\n`)
           return 0
         }
         if (sub === "show" && rest[1]) {
@@ -616,7 +618,8 @@ export async function runHeadless(argv: string[]): Promise<number> {
         }
         if ((sub === "run" || sub === "rerun") && rest[1]) {
           const result = sub === "rerun" ? await app.rerunExperiment(rest[1]) : await app.runExperiment(rest[1])
-          process.stdout.write(json ? `${JSON.stringify(result, null, 2)}\n` : `${result.id} ${result.outcome}\nCOMPUTATIONAL EVIDENCE — NOT PROOF\n`)
+          const experiment = app.getExperiment(result.experimentId)
+          process.stdout.write(json ? `${JSON.stringify(result, null, 2)}\n` : `${result.id} ${result.outcome}\n${experimentTrustLabels(experiment).join(" · ")}\n`)
           return result.outcome === "EXECUTION_FAILED" ? 1 : 0
         }
         if (sub === "results" && rest[1]) {
@@ -635,12 +638,12 @@ export async function runHeadless(argv: string[]): Promise<number> {
           const query = rest.filter((item) => item !== "search" && item !== "--json").join(" ").replace(/^"|"$/g, "")
           const search = await app.searchLiterature(query)
           const hits = app.literatureHits(search.id)
-          process.stdout.write(json ? `${JSON.stringify({ search, hits }, null, 2)}\n` : `${hits.map((hit, i) => `${i}. ${hit.title} (${hit.year ?? "?"})`).join("\n")}\n`)
+          process.stdout.write(json ? `${JSON.stringify({ search, hits }, null, 2)}\n` : `EXTERNAL SOURCE\nNOT A PROOF\n${hits.map((hit, i) => `${i}. ${hit.title} (${hit.year ?? "?"})`).join("\n")}\n`)
           return 0
         }
         if (command === "source" && sub === "list") {
           const rows = app.listSources()
-          process.stdout.write(json ? `${JSON.stringify(rows, null, 2)}\n` : `${rows.map((item) => `${item.id} ${item.title}`).join("\n")}\n`)
+          process.stdout.write(json ? `${JSON.stringify(rows, null, 2)}\n` : `EXTERNAL SOURCE\nNOT A PROOF\n${rows.map((item) => `${item.id} ${item.title}`).join("\n")}\n`)
           return 0
         }
         if (command === "source" && sub === "show" && rest[1]) {
@@ -669,20 +672,22 @@ export async function runHeadless(argv: string[]): Promise<number> {
         }
         if (command === "citation" && sub === "list") {
           const rows = app.listCitations()
-          process.stdout.write(json ? `${JSON.stringify(rows, null, 2)}\n` : `${rows.map((item) => `${item.id} ${item.purpose} ${item.sourceId}`).join("\n")}\n`)
+          process.stdout.write(json ? `${JSON.stringify(rows, null, 2)}\n` : `EXTERNAL SOURCE\nNOT A PROOF\n${rows.map((item) => `${item.id} ${item.purpose} ${item.sourceId}`).join("\n")}\n`)
           return 0
         }
         if (command === "citation" && sub === "show" && rest[1]) {
-          process.stdout.write(`${JSON.stringify(app.getCitation(rest[1]), null, 2)}\n`)
+          const citation = app.getCitation(rest[1])
+          process.stdout.write(json ? `${JSON.stringify(citation, null, 2)}\n` : `EXTERNAL SOURCE\nNOT A PROOF\n${citation.id} ${citation.purpose} ${citation.sourceId}\n`)
           return 0
         }
         if (command === "external" && sub === "list") {
           const rows = app.listExternal()
-          process.stdout.write(json ? `${JSON.stringify(rows, null, 2)}\n` : `${rows.map((item) => `${item.id} ${item.status}`).join("\n")}\n`)
+          process.stdout.write(json ? `${JSON.stringify(rows, null, 2)}\n` : `EXTERNAL SOURCE\nNOT A PROOF\n${rows.map((item) => `${item.id} ${item.status}`).join("\n")}\n`)
           return 0
         }
         if (command === "external" && sub === "show" && rest[1]) {
-          process.stdout.write(`${JSON.stringify(app.getExternal(rest[1]), null, 2)}\n`)
+          const external = app.getExternal(rest[1])
+          process.stdout.write(json ? `${JSON.stringify(external, null, 2)}\n` : `EXTERNAL SOURCE\nNOT A PROOF\n${external.id} ${external.status}\n`)
           return 0
         }
         process.stderr.write("Usage: mathos literature search | source list|show|import|add|excerpts|inspect | citation list|show | external list|show\n")

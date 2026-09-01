@@ -251,7 +251,7 @@ export class LiteratureService {
     const source = this.getSource(id)
     const externals = this.listExternal().filter((item) => item.sourceId === source.id)
     const citations = this.listCitations().filter((item) => item.sourceId === source.id)
-    return [`SOURCE · ${source.id}`, `Title ${source.title}`, `Authors ${source.authors.join(", ") || "unknown"}`, `Year ${source.year ?? "n/a"}`, `DOI ${source.doi ?? "n/a"}`, `Status ${source.status}`, `External results ${externals.length}`, `Citations ${citations.length}`, "EXTERNAL SOURCE — NOT KERNEL VERIFIED"].join("\n")
+    return [`SOURCE · ${source.id}`, "EXTERNAL SOURCE", "NOT A PROOF", `Title ${source.title}`, `Authors ${source.authors.join(", ") || "unknown"}`, `Year ${source.year ?? "n/a"}`, `DOI ${source.doi ?? "n/a"}`, `Status ${source.status}`, `External results ${externals.length}`, `Citations ${citations.length}`].join("\n")
   }
 
   private recordLiteratureEvidence(citation: Citation, source: Source): Evidence {

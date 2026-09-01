@@ -42,11 +42,40 @@ test("tui renders workspace name and prompt", async () => {
     const frame = setup.captureCharFrame()
     expect(frame).toContain("MathOS")
     expect(frame).toContain("additive-combinatorics")
-    expect(frame).toContain("MAIN OBJECTIVE")
+    expect(frame).toContain("Objective")
     expect(frame).toContain("C-001")
+    expect(frame).toContain("Epistemic status")
+    expect(frame).toContain("Research state")
+    expect(frame).toContain("Open blockers")
   } finally {
     setup.renderer.destroy()
   }
+})
+
+test("claim detail renders verification explanation", async () => {
+  const { ClaimDetailView } = await import("../apps/tui/src/ui/ClaimsViews.tsx")
+  const setup = await testRender(() => <ClaimDetailView id="C-001" kind="conjecture" title="T" status="CONJECTURE" statement="S" evidence="None" dependencies="None" branchName="main" createdAt="now" trustExplanation="WHY NOT VERIFIED\nVerificationGate none" onBack={() => {}} />, { width: 80, height: 28 })
+  try {
+    await setup.renderOnce()
+    const frame = setup.captureCharFrame()
+    expect(frame).toContain("WHY NOT VERIFIED")
+    expect(frame).toContain("VerificationGate none")
+  } finally { setup.renderer.destroy() }
+})
+
+test("team view separates verified and unverified findings", async () => {
+  const { TeamPanel } = await import("../apps/tui/src/ui/TeamPanel.tsx")
+  const session = { id: "MR-001", executionMode: "SEQUENTIAL", maxParallelWorkers: 1, objectiveClaimId: "C-001", sourceBranchId: "B-000", status: "RUNNING", currentRound: 1, limits: { maxRounds: 2, maxTotalSteps: 10, maxTotalLeanCalls: 10 }, usage: { steps: 1, leanCalls: 1 } } as any
+  const make = (id: string, verified: boolean) => ({ agent: { id, role: "prover", branchId: "B-001", researchRunId: `RR-${id}`, status: "RUNNING" }, run: { usage: { leanCalls: 1, modelCalls: 1 }, limits: { maxLeanCalls: 5, maxModelCalls: 5 }, stopReason: null }, localStatus: verified ? "KERNEL_VERIFIED" : "CONJECTURE", verified }) as any
+  const setup = await testRender(() => <TeamPanel session={session} rows={[make("A-1", true), make("A-2", false)]} importCount={0} solutions={0} />, { width: 100, height: 28 })
+  try {
+    await setup.renderOnce()
+    const frame = setup.captureCharFrame()
+    expect(frame).toContain("VERIFIED FINDINGS")
+    expect(frame).toContain("UNVERIFIED FINDINGS")
+    expect(frame).toContain("A-1")
+    expect(frame).toContain("A-2")
+  } finally { setup.renderer.destroy() }
 })
 
 test("claim creation form smoke", async () => {

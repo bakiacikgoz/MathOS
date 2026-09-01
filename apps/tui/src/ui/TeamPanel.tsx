@@ -20,15 +20,29 @@ export function TeamPanel(props: {
           <text fg={theme.text}>{`Objective ${s().objectiveClaimId}   Source ${s().sourceBranchId}`}</text>
           <text fg={theme.text}>{`Status ${s().status}   Round ${s().currentRound} / ${s().limits.maxRounds}`}</text>
           <box height={1} />
-          <For each={props.rows}>
+          <text fg={theme.success}>VERIFIED FINDINGS</text>
+          <For each={props.rows.filter((row) => row.verified)}>
             {(row, i) => (
               <box flexDirection="column" marginBottom={1}>
-                <text fg={theme.accent}>{`${(props.selectedIndex ?? 0) === i() ? ">" : " "} ${row.agent.status === "BLOCKED" ? "Ⅱ" : "●"} ${row.agent.id} · ${row.agent.role}`}</text>
+                <text fg={theme.success}>{`${(props.selectedIndex ?? 0) === props.rows.indexOf(row) ? ">" : " "} ${row.agent.id} · ${row.agent.role} · KERNEL_VERIFIED`}</text>
                 <text fg={theme.textMuted}>{`  ${row.agent.branchId}  ${row.agent.researchRunId}  ${row.agent.status}`}</text>
                 <text fg={theme.textMuted}>{`  Lean ${row.run.usage.leanCalls}/${row.run.limits.maxLeanCalls}  Model ${row.run.usage.modelCalls}/${row.run.limits.maxModelCalls}  ${row.run.stopReason ?? row.localStatus}`}</text>
               </box>
             )}
           </For>
+          <Show when={props.rows.filter((row) => row.verified).length === 0}><text fg={theme.textMuted}>none</text></Show>
+          <box height={1} />
+          <text fg={theme.warning}>UNVERIFIED FINDINGS</text>
+          <For each={props.rows.filter((row) => !row.verified)}>
+            {(row) => (
+              <box flexDirection="column" marginBottom={1}>
+                <text fg={theme.warning}>{`${(props.selectedIndex ?? 0) === props.rows.indexOf(row) ? ">" : " "} ${row.agent.id} · ${row.agent.role} · UNVERIFIED`}</text>
+                <text fg={theme.textMuted}>{`  ${row.agent.branchId}  ${row.agent.researchRunId}  ${row.agent.status}`}</text>
+                <text fg={theme.textMuted}>{`  Lean ${row.run.usage.leanCalls}/${row.run.limits.maxLeanCalls}  Model ${row.run.usage.modelCalls}/${row.run.limits.maxModelCalls}  ${row.run.stopReason ?? row.localStatus}`}</text>
+              </box>
+            )}
+          </For>
+          <Show when={props.rows.filter((row) => !row.verified).length === 0}><text fg={theme.textMuted}>none</text></Show>
           <text fg={theme.text}>{`Shared verified ${(props.rows.filter((row) => row.verified).length)}   Open imports ${props.importCount}   Solutions ${props.solutions}`}</text>
           <text fg={theme.textMuted}>{`TOTAL  Steps ${s().usage.steps}/${s().limits.maxTotalSteps}  Lean ${s().usage.leanCalls}/${s().limits.maxTotalLeanCalls}`}</text>
           <box height={1} />

@@ -174,6 +174,7 @@ export function MainPanel(props: {
           }
           branchName={props.detail!.branchName}
           createdAt={props.detail!.createdAt}
+          trustExplanation={props.productText?.includes("WHY ") ? props.productText.slice(props.productText.indexOf("WHY ")) : "VerificationGate evidence unavailable."}
           onBack={() => props.onCancelOverlay()}
         />
       </Show>

@@ -68,6 +68,7 @@ export function ClaimDetailView(props: {
   dependencies: string
   branchName: string
   createdAt: string
+  trustExplanation: string
   onBack: () => void
 }) {
   useKeyboard((key) => {
@@ -96,6 +97,9 @@ export function ClaimDetailView(props: {
       <box height={1} />
       <text fg={theme.textMuted}>DEPENDENCIES</text>
       <text fg={theme.textMuted}>{props.dependencies}</text>
+      <box height={1} />
+      <text fg={theme.textMuted}>{props.status === "KERNEL_VERIFIED" ? "WHY VERIFIED" : "WHY NOT VERIFIED"}</text>
+      <text fg={theme.text}>{props.trustExplanation}</text>
       <box height={1} />
       <text fg={theme.textMuted}>BRANCH</text>
       <text fg={theme.text}>{props.branchName}</text>

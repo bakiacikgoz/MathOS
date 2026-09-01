@@ -51,6 +51,7 @@ import {
   type VerifiedArtifactImport,
   type ImportPreview,
 } from "@mathos/domain"
+import { experimentTrustLabels } from "./product-ux.ts"
 import { EventLog, EventProjection, makeEvent, type EventProjectionHealth, type EventProjectionPoint } from "@mathos/events"
 import {
   createDefaultModelProvider,
@@ -1021,6 +1022,7 @@ export class MathOS {
     const latest = this.experimentResults(experiment.id).at(-1)
     return [
       `EXPERIMENT · ${experiment.id}`,
+      `Trust labels ${experimentTrustLabels(experiment).join(" · ")}`,
       `Claim ${experiment.claimId ?? "none"}`,
       `Kind ${experiment.kind}`,
       `Runtime ${experiment.runtime.adapter} ${experiment.runtime.version ?? ""}`.trim(),

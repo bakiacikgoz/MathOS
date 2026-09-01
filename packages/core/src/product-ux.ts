@@ -3,7 +3,7 @@ import { mkdirSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import type { ResearchGraphSnapshot } from "@mathos/graph"
 import { buildResearchGraph, unverifiedFrontier, blockingChain } from "@mathos/graph"
-import type { Claim, ResearchEvent, ResearchRun, ResearchStep, VerificationRun } from "@mathos/domain"
+import type { Claim, Experiment, ResearchEvent, ResearchRun, ResearchStep, VerificationRun } from "@mathos/domain"
 import { resolveModelConfig } from "@mathos/models"
 import { isMathOSError } from "@mathos/shared"
 
@@ -135,47 +135,41 @@ export function workspaceHome(state: ProductState): string {
   const graph = buildResearchGraph(state.snapshot, { branchId: state.snapshot.branches.find((item) => item.isCurrent)?.id })
   const frontier = unverifiedFrontier(graph, obj?.id)
   const openBlockers = state.snapshot.blockers.filter((item) => item.status === "OPEN")
-  const team = state.snapshot.sessions.at(-1)
+  const team = state.snapshot.sessions?.at(-1)
   const formal = obj ? state.snapshot.formals.find((item) => item.claimId === obj.id && item.isCurrent) : null
   const empty = !obj
+  const lastStep = [...state.steps].reverse().find((item) => item.status === "SUCCEEDED")
+  const lastEvent = state.events.at(-1)
+  const progress = lastStep ? `${lastStep.action}${lastStep.summary ? ` · ${lastStep.summary}` : ""}` : lastEvent ? `${lastEvent.action} · ${lastEvent.target ?? "workspace"}` : "No recorded progress"
+  const host = inspectHostEnvironment()
+  const readiness = `Lean ${host.lean.status} · Model ${host.model.status} · Python ${host.python.status}`
   return [
     "MATHOS",
-    "",
-    "Workspace",
-    state.projectName,
-    "",
-    "MAIN OBJECTIVE",
-    obj ? obj.id : "none",
-    obj ? obj.title : "No research objective yet.",
-    obj ? obj.status : "",
+    `Workspace · ${state.projectName}`,
     "",
     "Objective",
-    obj ? `${obj.id}` : "none",
+    obj ? `${obj.id} · ${obj.title}` : "none",
     "",
-    "Status",
+    "Epistemic status",
     obj?.status ?? "—",
     "",
-    "Formalization",
-    formal?.fidelityStatus ?? "Not created",
-    "",
-    "Research",
+    "Research state",
     run ? `${run.id} · ${run.status}` : "No active session",
     "",
+    "Open blockers",
+    String(openBlockers.length),
+    "",
+    "Last meaningful progress",
+    progress,
+    "",
+    "Environment readiness",
+    readiness,
+    "",
+    `Formalization · ${formal?.fidelityStatus ?? "Not created"}`,
     "Graph",
-    `${state.snapshot.claims.length} claims`,
-    `${kernelCount(state)} verified`,
-    `${frontier.length} frontier`,
-    `${openBlockers.length} blocker`,
-    "",
-    "Team",
-    team ? `${team.id} ${team.status}` : "No active session",
-    "",
-    "Computation",
-    `${state.snapshot.experiments?.length ?? 0} experiments`,
-    "",
-    "Literature",
-    `${state.snapshot.sources?.length ?? 0} sources`,
-    `${state.snapshot.citations?.length ?? 0} cited results`,
+    `${state.snapshot.claims.length} claims · ${kernelCount(state)} verified · ${frontier.length} frontier`,
+    `Team · ${team ? `${team.id} ${team.status}` : "No active session"}`,
+    `Evidence · ${state.snapshot.experiments?.length ?? 0} experiments · ${state.snapshot.sources?.length ?? 0} sources · ${state.snapshot.citations?.length ?? 0} citations`,
     "",
     empty ? "No research objective yet.\n\nCreate one to begin." : "Primary actions: research · objective · graph · claims · experiments · literature · team · blockers · history",
   ].join("\n")
@@ -186,7 +180,10 @@ export function formatStatusSummary(state: ProductState, host = inspectHostEnvir
   const run = latestRun(state)
   const graph = buildResearchGraph(state.snapshot, { branchId: state.snapshot.branches.find((item) => item.isCurrent)?.id })
   const frontier = unverifiedFrontier(graph, obj?.id)
-  const team = state.snapshot.sessions.at(-1)
+  const team = state.snapshot.sessions?.at(-1)
+  const openBlockers = state.snapshot.blockers.filter((item) => item.status === "OPEN")
+  const lastStep = [...state.steps].reverse().find((item) => item.status === "SUCCEEDED")
+  const progress = lastStep ? `${lastStep.action}${lastStep.summary ? ` · ${lastStep.summary}` : ""}` : state.events.at(-1)?.action ?? "No recorded progress"
   const mark = (item: { status: string }) => (item.status === "PASS" ? "✓" : "○")
   return [
     "MATHOS WORKSPACE",
@@ -194,11 +191,17 @@ export function formatStatusSummary(state: ProductState, host = inspectHostEnvir
     "Objective",
     obj?.id ?? "none",
     "",
-    "Status",
+    "Epistemic status",
     obj?.status ?? "—",
     "",
-    "Research",
+    "Research state",
     run ? `${run.id} ${run.status}` : "none",
+    "",
+    "Open blockers",
+    String(openBlockers.length),
+    "",
+    "Last meaningful progress",
+    progress,
     "",
     "Claims",
     `${state.snapshot.claims.length} total`,
@@ -213,7 +216,7 @@ export function formatStatusSummary(state: ProductState, host = inspectHostEnvir
     "Team",
     team ? `${team.id} ${team.status}` : "none",
     "",
-    "Environment",
+    "Environment readiness",
     `Lean ${mark(host.lean)}`,
     `Python ${mark(host.python)}`,
     `Model ${mark(host.model)}`,
@@ -369,6 +372,8 @@ export function claimPage(state: ProductState, claimId: string): string {
     "Evidence",
     `${experiments.length} computational`,
     `${citations.length} literature`,
+    "",
+    claim.status === "KERNEL_VERIFIED" ? whyVerified(state, claim.id) : whyNotVerified(state, claim.id),
   ].join("\n")
 }
 
@@ -376,6 +381,15 @@ function gateChecks(vr: VerificationRun | undefined): Array<{ name: string; stat
   if (!vr) return []
   try {
     const parsed = JSON.parse(vr.gateJson) as Array<{ name: string; status: string; detail?: string }>
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+function jsonArray(value: string): unknown[] {
+  try {
+    const parsed = JSON.parse(value) as unknown
     return Array.isArray(parsed) ? parsed : []
   } catch {
     return []
@@ -426,19 +440,15 @@ export function whyVerified(state: ProductState, claimId: string): string {
     return whyNotVerified(state, claimId)
   }
   const checks = gateChecks(vr)
-  const line = (name: string, fallback: string) => {
-    const hit = checks.find((item) => item.name === name)
-    return `✓ ${hit ? `${hit.name}${hit.detail ? ` ${hit.detail}` : ""}` : fallback}`
-  }
+  const evidence = checks.length ? checks.map((item) => `${item.status === "PASS" ? "✓" : "×"} ${item.name}${item.detail ? ` · ${item.detail}` : ""}`) : ["○ Gate check details unavailable in this legacy run"]
   return [
-    "Why KERNEL_VERIFIED?",
+    "WHY VERIFIED",
     "",
-    line("current revision", "Current formal revision"),
-    line("fidelity", "Fidelity HUMAN_APPROVED"),
-    line("proof compiles", "Native Lean compilation"),
-    line("forbidden constructs", "Forbidden construct check"),
-    line("custom axioms", "Axiom audit"),
-    "✓ VerificationGate PASS",
+    ...evidence,
+    `✓ VerificationGate ${vr.result}`,
+    `✓ Fidelity ${vr.fidelityStatus}`,
+    `✓ Forbidden constructs ${jsonArray(vr.forbiddenJson).length === 0 ? "none" : vr.forbiddenJson}`,
+    `✓ Axiom audit ${jsonArray(vr.axiomsJson).length === 0 ? "none" : vr.axiomsJson}`,
     "",
     `Provenance ${vr.id}`,
     "This is deterministic provenance. No generated reasoning.",
@@ -452,6 +462,7 @@ export function whyNotVerified(state: ProductState, claimId: string): string {
   const open = state.snapshot.blockers.filter((item) => item.claimId === claimId && item.status === "OPEN")
   const accepted = proofs.some((item) => item.status === "KERNEL_ACCEPTED")
   const vr = state.snapshot.verifications.filter((item) => item.claimId === claimId).at(-1)
+  const failedChecks = gateChecks(vr).filter((item) => item.status !== "PASS")
   return [
     "WHY NOT VERIFIED?",
     "",
@@ -460,6 +471,7 @@ export function whyNotVerified(state: ProductState, claimId: string): string {
     `Proof attempt ${accepted ? "✓" : proofs.length ? "×" : "×"}`,
     open.length ? `Open blocker ${open.map((item) => item.id).join(", ")}` : "Open blocker none",
     vr && vr.result !== "KERNEL_ACCEPTED" ? `VerificationGate ${vr.result}` : "VerificationGate none",
+    ...failedChecks.map((item) => `× ${item.name}${item.detail ? ` · ${item.detail}` : ""}`),
     "",
     claim ? `Current status ${claim.status}` : `Claim ${claimId} missing`,
     "KERNEL_VERIFIED requires VerificationGate. Computation and literature are not proofs.",
@@ -537,7 +549,7 @@ export function experimentPanel(state: ProductState): string {
   return [
     "EXPERIMENTS",
     "",
-    ...rows.map((item) => `${item.id}  ${item.kind}   ${item.status}`),
+    ...rows.map((item) => `${item.id}  ${item.kind}   ${item.status}\n  ${experimentTrustLabels(item).join(" · ")}`),
     "",
     "COMPUTATIONAL EVIDENCE — NOT PROOF",
   ].join("\n")
@@ -549,6 +561,9 @@ export function experimentDetail(state: ProductState, id: string): string {
   const result = (state.snapshot.experimentResults ?? []).filter((item) => item.experimentId === id).at(-1)
   return [
     `EXPERIMENT · ${exp.id}`,
+    "",
+    "Trust labels",
+    experimentTrustLabels(exp).join(" · "),
     "",
     "Claim",
     exp.claimId ?? "none",
@@ -581,7 +596,8 @@ export function literaturePanel(state: ProductState): string {
     `External     ${state.snapshot.externalResults?.length ?? 0}`,
     `Citations    ${state.snapshot.citations?.length ?? 0}`,
     "",
-    "EXTERNAL SOURCE — NOT KERNEL VERIFIED",
+    "EXTERNAL SOURCE",
+    "NOT A PROOF",
   ].join("\n")
 }
 
@@ -593,6 +609,7 @@ export function sourceDetail(state: ProductState, id: string): string {
   const citations = (state.snapshot.citations ?? []).filter((item) => item.sourceId === id)
   return [
     `SOURCE · ${source.id}`,
+    "EXTERNAL SOURCE · NOT A PROOF",
     source.title,
     source.fingerprint,
     "",
@@ -613,6 +630,7 @@ export function externalResultDetail(state: ProductState, id: string): string {
   const citation = (state.snapshot.citations ?? []).find((item) => item.externalResultId === ext.id)
   return [
     `EXTERNAL · ${ext.id}`,
+    "EXTERNAL SOURCE · NOT A PROOF",
     ext.kind,
     "",
     "Grounding",
@@ -622,6 +640,15 @@ export function externalResultDetail(state: ProductState, id: string): string {
     "",
     "EXTERNAL_KNOWN ≠ KERNEL_VERIFIED",
   ].join("\n")
+}
+
+export function experimentTrustLabels(experiment: Experiment): string[] {
+  return [
+    ...(experiment.origin === "MODEL_GENERATED" ? ["MODEL GENERATED CODE"] : []),
+    ...(experiment.sandboxMode ? ["SANDBOXED"] : []),
+    ...(experiment.networkPolicy === "NETWORK_DENY" ? ["NETWORK DENIED"] : []),
+    "NOT A PROOF",
+  ]
 }
 
 export function emptyStates(kind: "objective" | "formalization" | "model" | "python"): string {
@@ -695,8 +722,8 @@ export function researchReportMarkdown(state: ProductState): string {
     ...state.snapshot.runs.map((item) => `- ${item.id} ${item.status} steps ${item.usage.steps}`),
     "",
     `# Team Findings`,
-    ...state.snapshot.sessions.map((item) => `- ${item.id} ${item.status}`),
-    state.snapshot.sessions.length ? "" : "none",
+    ...(state.snapshot.sessions ?? []).map((item) => `- ${item.id} ${item.status}`),
+    state.snapshot.sessions?.length ? "" : "none",
     `# Provenance / Environment`,
     `workspace ${state.workspaceRoot}`,
     `events ${state.events.length}`,
