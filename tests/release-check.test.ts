@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test"
+import { resolve } from "node:path"
 import { executeReleaseCheck, RELEASE_CHECK_ORDER, type ReleaseCommandRunner } from "../scripts/release-check.ts"
 
 const successfulRunner: ReleaseCommandRunner = async (command) => ({
@@ -60,5 +61,18 @@ describe("release check contract", () => {
     expect(report.checks.find((check) => check.name === "verification-trust-tests")?.status).toBe("FAIL")
     expect(report.checks.find((check) => check.name === "research-regression")?.status).toBe("FAIL")
     expect(report.ready).toBe(false)
+  })
+
+  test("package script starts without a global bun on PATH", () => {
+    const root = resolve(import.meta.dir, "..")
+    const result = Bun.spawnSync([process.execPath, "run", "release-check", "--contract-probe"], {
+      cwd: root,
+      env: { ...process.env, PATH: "/usr/bin:/bin" },
+      stdout: "pipe",
+      stderr: "pipe",
+    })
+    expect(result.exitCode).toBe(0)
+    const output = new TextDecoder().decode(result.stdout)
+    expect(JSON.parse(output.slice(output.indexOf("{")))).toMatchObject({ ok: true })
   })
 })

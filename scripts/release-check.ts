@@ -176,6 +176,10 @@ function textReport(report: ReleaseCheckReport): string {
 }
 
 if (import.meta.main) {
+  if (process.argv.includes("--contract-probe")) {
+    console.log(JSON.stringify({ ok: true, runtime: process.execPath }))
+    process.exit(0)
+  }
   const report = await executeReleaseCheck()
   if (process.argv.includes("--json")) console.log(JSON.stringify(report, null, 2))
   else console.log(textReport(report))
