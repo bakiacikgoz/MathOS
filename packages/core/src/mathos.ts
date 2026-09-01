@@ -4,12 +4,9 @@ import {
   type Blocker,
   type Claim,
   type ClaimDetail,
-  type ClaimKind,
-  type ClaimStatus,
   type Dependency,
   type DependencyRelation,
   type Evidence,
-  type EvidenceKind,
   type StatusProjection,
   nextClaimId,
   statusFamily,
@@ -20,10 +17,7 @@ import {
   type ProofAttempt,
   type ProofSession,
   type VerificationReport,
-  composeProof,
-  declarationsMatch,
   nextSequentialId,
-  scanForbidden,
   MAIN_BRANCH_ID,
   MAIN_BRANCH_NAME,
   MAIN_BRANCH_SLUG,
@@ -65,26 +59,18 @@ import {
   type ModelProvider,
 } from "@mathos/models"
 import { NativeLeanAdapter, type LeanAdapter } from "@mathos/lean"
-import {
-  buildProofContext,
-  extractUnknownIdentifiers,
-  HybridPremiseRetriever,
-  resolveRetrievalConfig,
-  writeRetrievalLog,
-  type IndexStatus,
-  type PremiseCandidate,
-  type PremiseRetriever,
-} from "@mathos/retrieval"
-import { parseProofBody, PROVE_SYSTEM_PROMPT } from "./prove.ts"
+import { type PremiseRetriever } from "@mathos/retrieval"
 import { FormalizationService } from "./services/formalization-service.ts"
-import { ClaimService } from "./services/claim-service.ts"
+import { ClaimService, type AddBlockerInput, type AddEvidenceInput, type CreateClaimInput } from "./services/claim-service.ts"
+import { ProofService, type ProveOptions } from "./services/proof-service.ts"
+import { RetrievalService } from "./services/retrieval-service.ts"
 import { VerificationService } from "./services/verification-service.ts"
 import { ExperimentService } from "./services/experiment-service.ts"
 import { LiteratureService } from "./services/literature-service.ts"
 import { ResearchEngine } from "./services/research-engine.ts"
 import { BranchService } from "./services/branch-service.ts"
 import { ResearchQueryService } from "./services/research-query-service.ts"
-import { TeamResearchCoordinator, type TeamResearchOverview, type TeamResearchStores } from "./services/team-research-coordinator.ts"
+import { TeamResearchCoordinator, type TeamResearchCoordinatorDependencies, type TeamResearchOverview, type TeamResearchStores } from "./services/team-research-coordinator.ts"
 import {
   buildGraphContextSummary,
   validateResearchGraph,
@@ -93,9 +79,6 @@ import {
   type ResearchGraphSnapshot,
 } from "@mathos/graph"
 import {
-  FormalStatementNotFound,
-  ProofAttemptFailed,
-  ProofPrerequisiteFailed,
   createId,
   createLogger,
   databasePath,
@@ -181,6 +164,8 @@ export interface MathOSOptions {
 
 export class MathOS {
   private claimService!: ClaimService
+  private proofService!: ProofService
+  private retrievalService!: RetrievalService
   private formalizationService!: FormalizationService
   private verificationService!: VerificationService
   private experimentService!: ExperimentService
@@ -336,6 +321,33 @@ export class MathOS {
       consumeLeanBudget: (reason) => instance.chargeLean(reason),
       recordEvent: (action, event) => instance.record(action, event),
     })
+    instance.retrievalService = new RetrievalService({
+      root: workspaceRoot,
+      workspaces: instance.workspaces,
+      branches: instance.branches,
+      claims: instance.claims,
+      dependencies: instance.dependencies,
+      formalStatements: instance.formalStatements,
+      leanAdapter: instance.leanAdapter,
+      premiseRetriever: instance.premiseRetriever,
+      hasActiveAccounting: () => Boolean(instance.currentAccounting()),
+    })
+    instance.proofService = new ProofService({
+      workspaces: instance.workspaces,
+      claims: instance.claims,
+      formalStatements: instance.formalStatements,
+      proofs: instance.proofs,
+      modelProvider: instance.modelProvider,
+      leanAdapter: instance.leanAdapter,
+      retrieval: instance.retrievalService,
+      leanContext: () => instance.leanContext(),
+      hasActiveAccounting: () => Boolean(instance.currentAccounting()),
+      consumeLeanBudget: () => instance.chargeLean("PROOF_COMPILE"),
+      crashBoundary: () => instance.teamCrashBoundary,
+      allocateId: (prefix) => instance.allocateId(prefix),
+      verify: (claimId) => instance.verify(claimId),
+      recordEvent: (action, event) => instance.record(action, event),
+    })
     instance.experimentService = new ExperimentService({
       root: workspaceRoot,
       workspaces: instance.workspaces,
@@ -376,7 +388,6 @@ export class MathOS {
       vcs: instance.vcs,
       recordEvent: (action, event = {}) => instance.record(action, event),
     })
-    instance.teamResearchCoordinator = new TeamResearchCoordinator(instance as unknown as import("./services/team-research-coordinator.ts").TeamResearchCoordinatorDependencies)
     instance.researchEngine = new ResearchEngine({
       runs: new ResearchRunRepository(client.db),
       steps: new ResearchStepRepository(client.db),
@@ -412,6 +423,43 @@ export class MathOS {
       searchLiterature: (query, options) => instance.searchLiterature(query, options),
       inspectSource: (id) => instance.inspectSource(id),
     })
+    const teamDependencies: TeamResearchCoordinatorDependencies = {
+      root: instance.root,
+      client: instance.client,
+      claims: instance.claims,
+      dependencies: instance.dependencies,
+      formalStatements: instance.formalStatements,
+      verificationRuns: instance.verificationRuns,
+      proofs: instance.proofs,
+      researchEngine: instance.researchEngine,
+      multiAgentPlanner: instance.multiAgentPlanner,
+      maxStepWallClockMs: instance.maxStepWallClockMs,
+      teamCrashAfterAgent: instance.teamCrashAfterAgent,
+      teamCrashAt: instance.teamCrashAt,
+      teamCrashBoundary: instance.teamCrashBoundary,
+      teamCrashTwoRunning: instance.teamCrashTwoRunning,
+      abandonBranch: (id) => instance.abandonBranch(id),
+      allocateId: (prefix) => instance.allocateId(prefix),
+      createBranch: (name, goal) => instance.createBranch(name, goal),
+      createClaim: (input) => instance.createClaim(input),
+      getBranch: (id) => instance.getBranch(id),
+      getClaim: (id) => instance.getClaim(id),
+      getResearch: (id) => instance.getResearch(id),
+      previewMerge: (id) => instance.previewMerge(id),
+      record: (action, options) => instance.record(action, options),
+      registerRunPlanner: (runId, planner) => instance.registerRunPlanner(runId, planner),
+      requireCurrentBranch: () => instance.requireCurrentBranch(),
+      requireWorkspace: () => instance.requireWorkspace(),
+      researchHistory: (id) => instance.researchHistory(id),
+      researchStores: () => instance.researchStores(),
+      startResearch: (input) => instance.startResearch(input),
+      stepResearch: (id) => instance.stepResearch(id),
+      stopRun: (run, reason, status) => instance.stopRun(run, reason, status),
+      storeAttempt: (workspaceId, claimId, formalId, attemptNumber, proofSource, status, leanVersion, diagnostics) => instance.storeAttempt(workspaceId, claimId, formalId, attemptNumber, proofSource, status, leanVersion, diagnostics),
+      switchBranch: (id) => instance.switchBranch(id),
+      verify: (claimId) => instance.verify(claimId),
+    }
+    instance.teamResearchCoordinator = new TeamResearchCoordinator(teamDependencies)
     instance.researchQueryService = new ResearchQueryService({
       root: workspaceRoot,
       snapshot: () => instance.assembleGraphSnapshot(),
@@ -609,18 +657,7 @@ export class MathOS {
 
   confirmIntake(draft: ResearchDraft, options: { asMainObjective?: boolean } = {}) { return this.claimService.confirmIntake(draft, options) }
 
-  createClaim(input: {
-    kind: ClaimKind | string
-    title: string
-    naturalStatement?: string
-    statement?: string
-    status?: ClaimStatus | string
-    asMainObjective?: boolean
-    originalInput?: string | null
-    createdBy?: "user" | "model"
-    provider?: string | null
-    modelName?: string | null
-  }): Claim { return this.claimService.create(input) }
+  createClaim(input: CreateClaimInput): Claim { return this.claimService.create(input) }
 
   listClaims(): Claim[] { return this.claimService.list() }
 
@@ -632,20 +669,9 @@ export class MathOS {
 
   addDependency(fromClaimId: string, toClaimId: string, relation: DependencyRelation = "depends_on"): Dependency { return this.claimService.addDependency(fromClaimId, toClaimId, relation) }
 
-  addEvidence(input: {
-    claimId: string
-    kind: EvidenceKind
-    summary: string
-    artifactRef?: string | null
-    reproducible?: boolean
-  }): Evidence { return this.claimService.addEvidence(input) }
+  addEvidence(input: AddEvidenceInput): Evidence { return this.claimService.addEvidence(input) }
 
-  addBlocker(input: {
-    title: string
-    description?: string
-    targetClaimId?: string | null
-    priority?: Blocker["priority"]
-  }): Blocker { return this.claimService.addBlocker(input) }
+  addBlocker(input: AddBlockerInput): Blocker { return this.claimService.addBlocker(input) }
 
   currentBranch(): ResearchBranch { return this.branchService.current() }
 
@@ -706,181 +732,11 @@ export class MathOS {
     return this.formalizationService.formalSetup()
   }
 
-  listProofs(claimId: string): ProofAttempt[] {
-    return this.proofs.listForClaim(this.getClaim(claimId).id)
-  }
+  listProofs(claimId: string): ProofAttempt[] { return this.proofService.list(claimId) }
 
-  async prove(claimId: string, signal?: AbortSignal, options?: { maxAttempts?: number; proofBody?: string; skipInspect?: boolean; skipVerify?: boolean }): Promise<ProofSession> {
-    const workspace = this.requireWorkspace()
-    const claim = this.getClaim(claimId)
-    const formal = this.formalStatements.currentForClaim(claim.id)
-    if (!formal) throw new FormalStatementNotFound(claim.id)
-    if (formal.verificationStatus !== "ELABORATES") {
-      throw new ProofPrerequisiteFailed("Formal statement must elaborate before /prove.")
-    }
-    if (formal.fidelityStatus === "REJECTED") {
-      throw new ProofPrerequisiteFailed("Rejected fidelity cannot be proved.")
-    }
-    if ((claim.kind === "theorem" || claim.kind === "corollary") && formal.fidelityStatus !== "HUMAN_APPROVED") {
-      throw new ProofPrerequisiteFailed("Theorems require HUMAN_APPROVED fidelity before /prove.")
-    }
+  async prove(claimId: string, signal?: AbortSignal, options?: ProveOptions): Promise<ProofSession> { return this.proofService.prove(claimId, signal, options) }
 
-    this.record("proof_attempt_started", { target: claim.id, metadata: { formal_id: formal.id } })
-    const attempts: ProofAttempt[] = []
-    let previous = ""
-    let lastDiagnostics = ""
-    let lastRetrieval: ProofSession["retrieval"] = null
-    const config = resolveRetrievalConfig(this.root)
-
-    for (let n = 1; n <= (options?.maxAttempts ?? 3); n += 1) {
-      if (signal?.aborted) throw new ProofAttemptFailed("Proof attempt cancelled.")
-      const unknown = extractUnknownIdentifiers(lastDiagnostics)
-      const retrieved = await this.retriever().retrieve({
-        query: formal.sourceText,
-        goal: formal.sourceText,
-        unknownIdentifiers: unknown,
-        localBoosts: this.dependencyNames(claim.id),
-        dependencyNames: this.dependencyNames(claim.id),
-        allowedLocalStatuses: config.includeUnverifiedLocal ? ["KERNEL_VERIFIED", "FORMALIZED_UNVERIFIED"] : ["KERNEL_VERIFIED"],
-        maxPremises: config.maxPremises,
-        candidatePool: config.candidatePool,
-        inspectTopK: config.inspectTopK,
-        excludeNames: [formal.declarationName],
-        previousNames: attempts.map((item) => item.candidateNames).flat(),
-        goalAware: config.goalAware,
-        mode: unknown.length ? "DIAGNOSTIC_REPAIR" : "FORMAL_GOAL",
-        skipInspect: options?.skipInspect === true || Boolean(this.currentAccounting()),
-      })
-      lastRetrieval = {
-        localCount: retrieved.localCount,
-        mathlibCount: retrieved.mathlibCount,
-        topNames: retrieved.candidates.slice(0, 6).map((item) => item.declaration.name),
-        indexRevision: retrieved.indexRevision,
-        mode: retrieved.mode,
-        warning: retrieved.warning,
-        enrichment: retrieved.enrichment,
-        inspectedCount: retrieved.inspectedCount,
-        cacheHits: retrieved.cacheHits,
-        inspectSelectionStrategy: retrieved.inspectSelectionStrategy,
-        inspectSelectorVersion: retrieved.inspectSelectorVersion,
-        inspectionLimit: retrieved.inspectionLimit,
-        inspectedCandidates: retrieved.inspectedCandidates,
-        selectionReasons: retrieved.selectionReasons,
-        fusionMethod: retrieved.fusionMethod,
-      }
-      writeRetrievalLog(this.root, {
-        claimId: claim.id,
-        attempt: n,
-        query: retrieved.query,
-        names: retrieved.candidates.map((item) => item.declaration.name),
-        mode: retrieved.mode,
-        indexRevision: retrieved.indexRevision,
-        pool: retrieved.candidatePoolSize,
-        inspected: retrieved.inspectedCount,
-        cacheHits: retrieved.cacheHits,
-        enrichment: retrieved.enrichment,
-      })
-
-      const context = buildProofContext({
-        formalStatement: formal.sourceText,
-        naturalStatement: claim.naturalStatement,
-        diagnostics: lastDiagnostics,
-        premises: retrieved.candidates,
-        goalProfile: retrieved.goalProfile,
-        config,
-      })
-      const body = options?.proofBody ?? await this.modelProvider.generateStructured({
-        schemaName: "proof_body",
-        signal,
-        messages: [
-          { role: "system", content: PROVE_SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: [
-              `Claim ${claim.id}: ${claim.title}`,
-              `NATURAL:\n${claim.naturalStatement}`,
-              `FORMAL:\n${formal.sourceText}`,
-              context,
-              previous ? `PREVIOUS PROOF:\n${previous}` : "",
-              lastDiagnostics ? `LEAN DIAGNOSTICS:\n${lastDiagnostics}` : "",
-              "Return only a proof body. Do not change the statement.",
-            ]
-              .filter(Boolean)
-              .join("\n\n"),
-          },
-        ],
-        parse: parseProofBody,
-      })
-      const source = composeProof(formal.sourceText, body)
-      const names = retrieved.candidates.map((item) => item.declaration.name)
-      const retrievalProvenance: ProofAttempt["retrievalProvenance"] = {
-        inspectSelectionStrategy: retrieved.inspectSelectionStrategy ?? null,
-        inspectSelectorVersion: retrieved.inspectSelectorVersion ?? null,
-        inspectionLimit: retrieved.inspectionLimit ?? null,
-        inspectedCandidates: retrieved.inspectedCandidates ?? [],
-        selectionReasons: retrieved.selectionReasons ?? {},
-        fusionMethod: retrieved.fusionMethod ?? null,
-      }
-      if (!declarationsMatch(formal.sourceText, source)) {
-        const failed = this.storeAttempt(workspace.id, claim.id, formal.id, n, source, "FAILED", formal.leanVersion, [
-          { severity: "error", message: "Proof mutated the formal statement." },
-        ], retrieved.query, names, retrieved.indexRevision, retrieved.mode, retrievalProvenance)
-        attempts.push(failed)
-        this.record("proof_attempt_failed", { target: failed.id, metadata: { reason: "statement_mutated", n } })
-        continue
-      }
-      const forbidden = scanForbidden(source)
-      if (forbidden.length) {
-        const failed = this.storeAttempt(workspace.id, claim.id, formal.id, n, source, "FAILED", formal.leanVersion, [
-          { severity: "error", message: `Forbidden constructs: ${forbidden.join(", ")}` },
-        ], retrieved.query, names, retrieved.indexRevision, retrieved.mode, retrievalProvenance)
-        attempts.push(failed)
-        this.record("proof_attempt_failed", { target: failed.id, metadata: { reason: "forbidden", n } })
-        previous = source
-        lastDiagnostics = forbidden.join(", ")
-        continue
-      }
-
-      if (!this.chargeLean("PROOF_COMPILE")) throw new Error("LEAN_CALL_BUDGET_EXHAUSTED")
-      if (this.teamCrashBoundary === "after_tool_start") throw new Error("crash")
-      const checked = await this.leanAdapter.checkProof(source, {
-        workspaceRoot: this.leanContext().workspaceRoot,
-        tmpDir: this.leanContext().tmpDir,
-        signal: this.leanContext().signal ?? signal,
-      })
-      if (this.teamCrashBoundary === "after_result") throw new Error("crash")
-      if (checked.result === "KERNEL_ACCEPTED") {
-        const accepted = this.storeAttempt(workspace.id, claim.id, formal.id, n, source, "KERNEL_ACCEPTED", checked.leanVersion, checked.diagnostics, retrieved.query, names, retrieved.indexRevision, retrieved.mode, retrievalProvenance)
-        attempts.push(accepted)
-        this.record("proof_attempt_accepted", {
-          target: accepted.id,
-          metadata: { claim_id: claim.id, formal_id: formal.id, n, lean: checked.leanVersion, premises: names.slice(0, 8) },
-        })
-        const verification = options?.skipVerify || this.currentAccounting() ? null : await this.verify(claim.id)
-        return { claimId: claim.id, formalStatement: formal, attempts, accepted, verification, proofAttempted: true, retrieval: lastRetrieval }
-      }
-
-      const failed = this.storeAttempt(workspace.id, claim.id, formal.id, n, source, "FAILED", checked.leanVersion, checked.diagnostics, retrieved.query, names, retrieved.indexRevision, retrieved.mode, retrievalProvenance)
-      attempts.push(failed)
-      this.record("proof_attempt_failed", { target: failed.id, metadata: { n } })
-      previous = source
-      lastDiagnostics = checked.diagnostics.map((item) => item.message).join("\n")
-    }
-
-    return {
-      claimId: claim.id,
-      formalStatement: formal,
-      attempts,
-      accepted: null,
-      verification: null,
-      proofAttempted: true,
-      retrieval: lastRetrieval,
-    }
-  }
-
-  async verify(claimId: string): Promise<VerificationReport> {
-    return this.verificationService.verify(claimId)
-  }
+  async verify(claimId: string): Promise<VerificationReport> { return this.verificationService.verify(claimId) }
 
   private storeAttempt(
     workspaceId: string,
@@ -891,108 +747,15 @@ export class MathOS {
     status: ProofAttempt["status"],
     leanVersion: string | null,
     diagnostics: ProofAttempt["diagnostics"],
-    retrievalQuery: string | null = null,
-    candidateNames: string[] = [],
-    indexRevision: string | null = null,
-    retrievalMode: string | null = null,
-    retrievalProvenance: ProofAttempt["retrievalProvenance"] = null,
-  ): ProofAttempt {
-    const attempt: ProofAttempt = {
-      id: this.allocateId("PA"),
-      workspaceId,
-      claimId,
-      formalStatementId: formalId,
-      status,
-      proofSource,
-      attemptNumber,
-      provider: this.modelProvider.id,
-      modelName: this.modelProvider.model,
-      leanVersion,
-      diagnostics,
-      retrievalQuery,
-      candidateNames,
-      indexRevision,
-      retrievalMode,
-      retrievalProvenance,
-      createdAt: nowIso(),
-    }
-    this.proofs.insert(attempt)
-    return attempt
-  }
+  ): ProofAttempt { return this.proofService.storeAttempt(workspaceId, claimId, formalId, attemptNumber, proofSource, status, leanVersion, diagnostics) }
 
-  private retriever(): PremiseRetriever {
-    if (this.premiseRetriever) return this.premiseRetriever
-    return new HybridPremiseRetriever(this.root, () => this.localDecls(), this.leanAdapter)
-  }
+  indexStatus() { return this.retrievalService.indexStatus() }
 
-  private localDecls() {
-    return this.listClaims().flatMap((claim) => {
-      const formal = this.formalStatements.currentForClaim(claim.id)
-      if (!formal) return []
-      return [{ name: formal.declarationName, signature: formal.sourceText, claimId: claim.id, claimStatus: claim.status }]
-    })
-  }
+  indexBuild() { return this.retrievalService.indexBuild() }
 
-  private dependencyNames(claimId: string): string[] {
-    const workspace = this.requireWorkspace()
-    return this.dependencies.listForClaim(workspace.id, claimId).flatMap((item) => {
-      const other = item.fromClaimId === claimId ? item.toClaimId : item.fromClaimId
-      const formal = this.formalStatements.currentForClaim(other)
-      return [other, formal?.declarationName ?? ""].filter(Boolean)
-    })
-  }
+  async searchTheorems(query: string, options: { goal?: string } = {}): Promise<import("@mathos/retrieval").PremiseRetrievalResult> { return this.retrievalService.searchTheorems(query, options) }
 
-  indexStatus(): IndexStatus {
-    const hybrid = this.retriever()
-    if (hybrid instanceof HybridPremiseRetriever) {
-      return hybrid.status(null)
-    }
-    return { present: true, stale: false, manifest: null, reason: "in-memory retriever" }
-  }
-
-  indexBuild() {
-    const envPromise = this.leanAdapter.detect(this.root)
-    return envPromise.then((env) => {
-      const hybrid = this.retriever()
-      if (!(hybrid instanceof HybridPremiseRetriever)) {
-        return { revision: "memory", declarationCount: 0, mathlibCount: 0, workspaceCount: 0, builtAt: new Date().toISOString() }
-      }
-      return hybrid.build(env.leanVersion)
-    })
-  }
-
-  async searchTheorems(query: string, options: { goal?: string } = {}): Promise<import("@mathos/retrieval").PremiseRetrievalResult> {
-    const config = resolveRetrievalConfig(this.root)
-    const looksFormal = /theorem |lemma |:\s*\S/.test(query)
-    return this.retriever().retrieve({
-      query,
-      goal: options.goal ?? (looksFormal ? query : undefined),
-      maxPremises: config.maxPremises,
-      candidatePool: config.candidatePool,
-      inspectTopK: config.inspectTopK,
-      goalAware: config.goalAware,
-    })
-  }
-
-  async premisesForClaim(claimId: string, options: { skipInspect?: boolean } = {}): Promise<import("@mathos/retrieval").PremiseRetrievalResult> {
-    const claim = this.getClaim(claimId)
-    const formal = this.formalStatements.currentForClaim(claim.id)
-    const config = resolveRetrievalConfig(this.root)
-    return this.retriever().retrieve({
-      query: formal?.sourceText ?? `${claim.title} ${claim.naturalStatement}`,
-      goal: formal?.sourceText,
-      localBoosts: this.dependencyNames(claim.id),
-      dependencyNames: this.dependencyNames(claim.id),
-      allowedLocalStatuses: config.includeUnverifiedLocal ? ["KERNEL_VERIFIED", "FORMALIZED_UNVERIFIED"] : ["KERNEL_VERIFIED"],
-      maxPremises: config.maxPremises,
-      candidatePool: config.candidatePool,
-      inspectTopK: config.inspectTopK,
-      excludeNames: formal ? [formal.declarationName] : [],
-      goalAware: config.goalAware,
-      mode: formal ? "FORMAL_GOAL" : "NATURAL_FALLBACK",
-      skipInspect: options.skipInspect === true,
-    })
-  }
+  async premisesForClaim(claimId: string, options: { skipInspect?: boolean } = {}): Promise<import("@mathos/retrieval").PremiseRetrievalResult> { return this.retrievalService.premisesForClaim(claimId, options) }
 
   private allocateId(prefix: string): string {
     return this.client.db.transaction(() => {
