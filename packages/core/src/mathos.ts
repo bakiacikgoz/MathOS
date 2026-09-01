@@ -11,12 +11,8 @@ import {
   type Evidence,
   type EvidenceKind,
   type StatusProjection,
-  claimPrefix,
-  defaultStatusForKind,
-  isClaimStatus,
   nextClaimId,
   statusFamily,
-  validateClaimDraft,
   type ResearchDraft,
   type FormalizationSession,
   type FormalStatement,
@@ -79,9 +75,9 @@ import {
   type PremiseCandidate,
   type PremiseRetriever,
 } from "@mathos/retrieval"
-import { runResearchIntake } from "./intake.ts"
 import { parseProofBody, PROVE_SYSTEM_PROMPT } from "./prove.ts"
 import { FormalizationService } from "./services/formalization-service.ts"
+import { ClaimService } from "./services/claim-service.ts"
 import { VerificationService } from "./services/verification-service.ts"
 import { ExperimentService } from "./services/experiment-service.ts"
 import { LiteratureService } from "./services/literature-service.ts"
@@ -97,9 +93,7 @@ import {
   type ResearchGraphSnapshot,
 } from "@mathos/graph"
 import {
-  ClaimNotFound,
   FormalStatementNotFound,
-  InvalidClaimStatus,
   ProofAttemptFailed,
   ProofPrerequisiteFailed,
   createId,
@@ -186,6 +180,7 @@ export interface MathOSOptions {
 }
 
 export class MathOS {
+  private claimService!: ClaimService
   private formalizationService!: FormalizationService
   private verificationService!: VerificationService
   private experimentService!: ExperimentService
@@ -299,6 +294,20 @@ export class MathOS {
       options.computationRuntime ?? new PythonRuntime(),
       options.literatureProvider ?? new FakeLiteratureProvider(),
     )
+    instance.claimService = new ClaimService({
+      client,
+      workspaces: instance.workspaces,
+      claims: instance.claims,
+      dependencies: instance.dependencies,
+      evidence: instance.evidence,
+      branches: instance.branches,
+      blockers: instance.blockers,
+      visibility: instance.visibility,
+      modelProvider: instance.modelProvider,
+      logger: instance.logger,
+      allocateId: (prefix) => instance.allocateId(prefix),
+      recordEvent: (action, event) => instance.record(action, event),
+    })
     instance.formalizationService = new FormalizationService({
       root: workspaceRoot,
       workspaces: instance.workspaces,
@@ -596,23 +605,9 @@ export class MathOS {
     }
   }
 
-  ingest(text: string, signal?: AbortSignal) {
-    return runResearchIntake(this.modelProvider, text, signal)
-  }
+  ingest(text: string, signal?: AbortSignal) { return this.claimService.ingest(text, signal) }
 
-  confirmIntake(draft: ResearchDraft, options: { asMainObjective?: boolean } = {}) {
-    return this.createClaim({
-      kind: draft.kind,
-      title: draft.title,
-      statement: draft.normalizedStatement,
-      status: draft.suggestedStatus,
-      originalInput: draft.originalInput,
-      createdBy: "model",
-      provider: draft.modelProvenance.provider,
-      modelName: draft.modelProvenance.model,
-      asMainObjective: options.asMainObjective,
-    })
-  }
+  confirmIntake(draft: ResearchDraft, options: { asMainObjective?: boolean } = {}) { return this.claimService.confirmIntake(draft, options) }
 
   createClaim(input: {
     kind: ClaimKind | string
@@ -625,143 +620,17 @@ export class MathOS {
     createdBy?: "user" | "model"
     provider?: string | null
     modelName?: string | null
-  }): Claim {
-    const draft = validateClaimDraft({
-      kind: input.kind,
-      title: input.title,
-      statement: input.statement ?? input.naturalStatement ?? "",
-    })
-    const status = input.status ?? defaultStatusForKind(draft.kind)
-    if (!isClaimStatus(String(status))) throw new InvalidClaimStatus(String(status))
+  }): Claim { return this.claimService.create(input) }
 
-    const workspace = this.requireWorkspace()
-    const branch = this.branches.current(workspace.id)
-    if (!branch) throw new Error("Current branch is missing")
+  listClaims(): Claim[] { return this.claimService.list() }
 
-    const prefix = claimPrefix(draft.kind)
-    const id = this.allocateId(prefix)
-    const timestamp = nowIso()
+  getClaim(id: string): Claim { return this.claimService.get(id) }
 
-    const claim: Claim = {
-      id,
-      workspaceId: workspace.id,
-      kind: draft.kind,
-      title: draft.title,
-      naturalStatement: draft.statement,
-      originalInput: input.originalInput ?? null,
-      status,
-      branchId: branch.id,
-      createdBy: input.createdBy ?? "user",
-      provider: input.provider ?? null,
-      modelName: input.modelName ?? null,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    }
+  getClaimDetail(id: string): ClaimDetail { return this.claimService.detail(id) }
 
-    const run = this.client.db.transaction(() => {
-      this.claims.insert(claim)
-      this.visibility.insert(branch.id, claim.id, "LOCAL", timestamp)
-      if (input.asMainObjective) {
-        this.workspaces.setMainObjective(workspace.id, claim.id, timestamp)
-      }
-    })
-    run()
+  setMainObjective(claimId: string): Claim { return this.claimService.setMainObjective(claimId) }
 
-    this.record("claim_created", {
-      target: claim.id,
-      metadata: {
-        claim_id: claim.id,
-        claim_type: claim.kind,
-        title: claim.title,
-        status: claim.status,
-        branch: branch.id,
-        branch_name: branch.name,
-        created_by: claim.createdBy,
-        provider: claim.provider,
-        model: claim.modelName,
-      },
-    })
-    if (input.asMainObjective) {
-      this.record("main_objective_changed", {
-        target: claim.id,
-        metadata: { previous: workspace.mainObjectiveId, claim_id: claim.id },
-      })
-    }
-    this.logger.info("claim created", { id: claim.id, kind: claim.kind })
-    return claim
-  }
-
-  listClaims(): Claim[] {
-    const branch = this.requireCurrentBranch()
-    const visible = this.claims.listVisible(branch.id)
-    return visible.length ? visible : this.claims.list(this.requireWorkspace().id).filter((claim) => claim.branchId === branch.id)
-  }
-
-  getClaim(id: string): Claim {
-    const claim = this.claims.get(id.trim().toUpperCase())
-    if (!claim) throw new ClaimNotFound(id)
-    return claim
-  }
-
-  getClaimDetail(id: string): ClaimDetail {
-    const workspace = this.requireWorkspace()
-    const claim = this.getClaim(id)
-    const branch = this.branches.get(claim.branchId)
-    return {
-      id: claim.id,
-      kind: claim.kind,
-      title: claim.title,
-      status: claim.status,
-      naturalStatement: claim.naturalStatement,
-      branchName: branch?.name ?? "unknown",
-      createdAt: claim.createdAt,
-      updatedAt: claim.updatedAt,
-      evidence: this.evidence.listForClaim(workspace.id, claim.id).map((item) => ({
-        id: item.id,
-        kind: item.kind,
-        summary: item.summary,
-      })),
-      dependencies: this.dependencies.listForClaim(workspace.id, claim.id).map((item) => ({
-        id: item.id,
-        relation: item.relation,
-        fromClaimId: item.fromClaimId,
-        toClaimId: item.toClaimId,
-      })),
-    }
-  }
-
-  setMainObjective(claimId: string): Claim {
-    const workspace = this.requireWorkspace()
-    const claim = this.getClaim(claimId)
-    const previous = workspace.mainObjectiveId
-    this.workspaces.setMainObjective(workspace.id, claim.id, nowIso())
-    this.record("main_objective_changed", {
-      target: claim.id,
-      metadata: { previous, claim_id: claim.id, title: claim.title },
-    })
-    return claim
-  }
-
-  addDependency(fromClaimId: string, toClaimId: string, relation: DependencyRelation = "depends_on"): Dependency {
-    const workspace = this.requireWorkspace()
-    if (!this.claims.get(fromClaimId)) throw new ClaimNotFound(fromClaimId)
-    if (!this.claims.get(toClaimId)) throw new ClaimNotFound(toClaimId)
-
-    const dep: Dependency = {
-      id: createId("dep"),
-      workspaceId: workspace.id,
-      fromClaimId,
-      toClaimId,
-      relation,
-      createdAt: nowIso(),
-    }
-    this.dependencies.insert(dep)
-    this.record("dependency_created", {
-      target: dep.id,
-      metadata: { from: fromClaimId, to: toClaimId, relation },
-    })
-    return dep
-  }
+  addDependency(fromClaimId: string, toClaimId: string, relation: DependencyRelation = "depends_on"): Dependency { return this.claimService.addDependency(fromClaimId, toClaimId, relation) }
 
   addEvidence(input: {
     claimId: string
@@ -769,52 +638,14 @@ export class MathOS {
     summary: string
     artifactRef?: string | null
     reproducible?: boolean
-  }): Evidence {
-    const workspace = this.requireWorkspace()
-    if (!this.claims.get(input.claimId)) throw new ClaimNotFound(input.claimId)
-    const evidence: Evidence = {
-      id: createId("ev"),
-      workspaceId: workspace.id,
-      claimId: input.claimId,
-      kind: input.kind,
-      summary: input.summary,
-      artifactRef: input.artifactRef ?? null,
-      reproducible: input.reproducible ?? false,
-      createdAt: nowIso(),
-    }
-    this.evidence.insert(evidence)
-    this.record("evidence_created", {
-      target: evidence.id,
-      metadata: { claimId: input.claimId, kind: input.kind },
-    })
-    return evidence
-  }
+  }): Evidence { return this.claimService.addEvidence(input) }
 
   addBlocker(input: {
     title: string
     description?: string
     targetClaimId?: string | null
     priority?: Blocker["priority"]
-  }): Blocker {
-    const workspace = this.requireWorkspace()
-    if (input.targetClaimId && !this.claims.get(input.targetClaimId)) {
-      throw new ClaimNotFound(input.targetClaimId)
-    }
-    const blocker: Blocker = {
-      id: createId("blk"),
-      workspaceId: workspace.id,
-      targetClaimId: input.targetClaimId ?? null,
-      title: input.title,
-      description: input.description ?? "",
-      priority: input.priority ?? "normal",
-      status: "open",
-      createdAt: nowIso(),
-      resolvedAt: null,
-    }
-    this.blockers.insert(blocker)
-    this.record("blocker_created", { target: blocker.id, metadata: { title: blocker.title } })
-    return blocker
-  }
+  }): Blocker { return this.claimService.addBlocker(input) }
 
   currentBranch(): ResearchBranch { return this.branchService.current() }
 
