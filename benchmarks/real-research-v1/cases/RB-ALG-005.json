@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-ALG-005",
+  "naturalStatement": "Addition of naturals does not depend on order.",
+  "expectedFormalTarget": "theorem rb_alg_005 (n m : Nat) : n + m = m + n",
+  "domain": "natural numbers",
+  "difficulty": "TIER_2_RETRIEVAL",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  exact Nat.add_comm n m"
+  },
+  "requiredConcepts": [
+    "nat",
+    "comm"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-ALG-005",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

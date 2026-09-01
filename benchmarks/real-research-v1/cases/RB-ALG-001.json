@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-ALG-001",
+  "naturalStatement": "Show that one plus one equals two.",
+  "expectedFormalTarget": "theorem rb_alg_001 : 1 + 1 = 2",
+  "domain": "elementary algebra",
+  "difficulty": "TIER_1_DIRECT",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  rfl"
+  },
+  "requiredConcepts": [
+    "algebra",
+    "equality"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-ALG-001",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

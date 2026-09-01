@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-ORD-001",
+  "naturalStatement": "A natural number is at most itself.",
+  "expectedFormalTarget": "theorem rb_ord_001 (n : Nat) : n ≤ n",
+  "domain": "basic order",
+  "difficulty": "TIER_1_DIRECT",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  exact Nat.le_refl n"
+  },
+  "requiredConcepts": [
+    "order"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-ORD-001",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

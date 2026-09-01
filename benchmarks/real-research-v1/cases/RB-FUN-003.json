@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-FUN-003",
+  "naturalStatement": "Composing with the identity on the left does nothing.",
+  "expectedFormalTarget": "theorem rb_fun_003 {α β : Type*} (f : α → β) : (fun x => x) ∘ f = f",
+  "domain": "functions",
+  "difficulty": "TIER_3_DECOMPOSITION",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  rfl"
+  },
+  "requiredConcepts": [
+    "functions"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-FUN-003",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

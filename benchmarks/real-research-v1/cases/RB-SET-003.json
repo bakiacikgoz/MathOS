@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-SET-003",
+  "naturalStatement": "Containment of collections is transitive.",
+  "expectedFormalTarget": "theorem rb_set_003 {α : Type*} (s t u : Set α) (h : s ⊆ t ∧ t ⊆ u) : s ⊆ u",
+  "domain": "finite sets",
+  "difficulty": "TIER_3_DECOMPOSITION",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  intro x hx\n  exact h.right (h.left hx)"
+  },
+  "requiredConcepts": [
+    "sets"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-SET-003",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

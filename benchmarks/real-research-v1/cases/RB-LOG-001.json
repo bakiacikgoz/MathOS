@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-LOG-001",
+  "naturalStatement": "Establish a trivially true proposition.",
+  "expectedFormalTarget": "theorem rb_log_001 : True",
+  "domain": "logic",
+  "difficulty": "TIER_1_DIRECT",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  trivial"
+  },
+  "requiredConcepts": [
+    "logic"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-LOG-001",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

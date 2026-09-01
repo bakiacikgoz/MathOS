@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-ALG-006",
+  "naturalStatement": "Addition of naturals is associative.",
+  "expectedFormalTarget": "theorem rb_alg_006 (n m k : Nat) : n + m + k = n + (m + k)",
+  "domain": "natural numbers",
+  "difficulty": "TIER_3_DECOMPOSITION",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  exact Nat.add_assoc n m k"
+  },
+  "requiredConcepts": [
+    "nat"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-ALG-006",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

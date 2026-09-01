@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-NUM-003",
+  "naturalStatement": "A square of a natural is nonnegative; a finite check may precede a proof.",
+  "expectedFormalTarget": "theorem rb_num_003 (n : Nat) : 0 ≤ n * n",
+  "domain": "intro number theory",
+  "difficulty": "TIER_4_RESEARCH",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  exact Nat.zero_le (n * n)"
+  },
+  "requiredConcepts": [
+    "nat",
+    "computation"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-NUM-003",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

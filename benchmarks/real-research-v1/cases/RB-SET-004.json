@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-SET-004",
+  "naturalStatement": "The intersection of two collections sits inside the first.",
+  "expectedFormalTarget": "theorem rb_set_004 {α : Type*} (s t : Set α) : s ∩ t ⊆ s",
+  "domain": "finite sets",
+  "difficulty": "TIER_3_DECOMPOSITION",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  intro x hx\n  exact hx.left"
+  },
+  "requiredConcepts": [
+    "sets"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-SET-004",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

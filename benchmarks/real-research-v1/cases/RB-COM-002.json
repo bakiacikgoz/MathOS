@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-COM-002",
+  "naturalStatement": "Length of a concatenation is the sum of lengths.",
+  "expectedFormalTarget": "theorem rb_com_002 (l m : List Nat) : (l ++ m).length = l.length + m.length",
+  "domain": "lists",
+  "difficulty": "TIER_2_RETRIEVAL",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  exact List.length_append"
+  },
+  "requiredConcepts": [
+    "lists"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-COM-002",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

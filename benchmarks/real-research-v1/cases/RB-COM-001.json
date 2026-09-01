@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-COM-001",
+  "naturalStatement": "The empty list of naturals has length zero.",
+  "expectedFormalTarget": "theorem rb_com_001 : ([] : List Nat).length = 0",
+  "domain": "lists",
+  "difficulty": "TIER_1_DIRECT",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  rfl"
+  },
+  "requiredConcepts": [
+    "lists"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-COM-001",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

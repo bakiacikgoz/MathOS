@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-REL-003",
+  "naturalStatement": "Equality of naturals is transitive.",
+  "expectedFormalTarget": "theorem rb_rel_003 (a b c : Nat) (h₁ : a = b) (h₂ : b = c) : a = c",
+  "domain": "logic",
+  "difficulty": "TIER_2_RETRIEVAL",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  exact h₁.trans h₂"
+  },
+  "requiredConcepts": [
+    "equality"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-REL-003",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

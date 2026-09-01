@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-LOG-008",
+  "naturalStatement": "Recover a trivial truth after an unsuccessful proof attempt.",
+  "expectedFormalTarget": "theorem rb_log_008 : True",
+  "domain": "logic",
+  "difficulty": "TIER_4_RESEARCH",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  trivial"
+  },
+  "requiredConcepts": [
+    "recovery"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-LOG-008",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-ALG-004",
+  "naturalStatement": "Multiplying a natural by one leaves it unchanged.",
+  "expectedFormalTarget": "theorem rb_alg_004 (n : Nat) : n * 1 = n",
+  "domain": "natural numbers",
+  "difficulty": "TIER_2_RETRIEVAL",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  exact Nat.mul_one n"
+  },
+  "requiredConcepts": [
+    "nat",
+    "mul"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-ALG-004",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

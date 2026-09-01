@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-ALG-003",
+  "naturalStatement": "Adding zero on the left leaves a natural unchanged.",
+  "expectedFormalTarget": "theorem rb_alg_003 (n : Nat) : 0 + n = n",
+  "domain": "intro number theory",
+  "difficulty": "TIER_2_RETRIEVAL",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  exact Nat.zero_add n"
+  },
+  "requiredConcepts": [
+    "nat",
+    "add"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-ALG-003",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-LOG-007",
+  "naturalStatement": "A double negation of a trivial truth still holds.",
+  "expectedFormalTarget": "theorem rb_log_007 : ¬¬True",
+  "domain": "logic",
+  "difficulty": "TIER_3_DECOMPOSITION",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  intro h\n  exact h trivial"
+  },
+  "requiredConcepts": [
+    "logic"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-LOG-007",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

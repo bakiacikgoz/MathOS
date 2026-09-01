@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-ALG-008",
+  "naturalStatement": "Successor is injective on naturals.",
+  "expectedFormalTarget": "theorem rb_alg_008 (a b : Nat) (h : a + 1 = b + 1) : a = b",
+  "domain": "natural numbers",
+  "difficulty": "TIER_4_RESEARCH",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  exact Nat.succ.inj h"
+  },
+  "requiredConcepts": [
+    "nat"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-ALG-008",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

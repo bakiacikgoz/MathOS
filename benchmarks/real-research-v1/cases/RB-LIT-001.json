@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-LIT-001",
+  "naturalStatement": "A classical identity may be known from sources, yet still needs a formal proof.",
+  "expectedFormalTarget": "theorem rb_lit_001 (n : Nat) : n = n",
+  "domain": "logic",
+  "difficulty": "TIER_4_RESEARCH",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  rfl"
+  },
+  "requiredConcepts": [
+    "literature"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-LIT-001",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

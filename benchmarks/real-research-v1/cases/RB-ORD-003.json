@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-ORD-003",
+  "naturalStatement": "The order on naturals is transitive.",
+  "expectedFormalTarget": "theorem rb_ord_003 (a b c : Nat) (h : a ≤ b ∧ b ≤ c) : a ≤ c",
+  "domain": "basic order",
+  "difficulty": "TIER_3_DECOMPOSITION",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  exact Nat.le_trans h.left h.right"
+  },
+  "requiredConcepts": [
+    "order"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-ORD-003",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

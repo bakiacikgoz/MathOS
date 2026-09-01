@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-ORD-002",
+  "naturalStatement": "A natural is strictly smaller than its successor.",
+  "expectedFormalTarget": "theorem rb_ord_002 (n : Nat) : n < n + 1",
+  "domain": "basic order",
+  "difficulty": "TIER_2_RETRIEVAL",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  exact Nat.lt_succ_self n"
+  },
+  "requiredConcepts": [
+    "order"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-ORD-002",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

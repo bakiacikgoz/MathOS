@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-LOG-005",
+  "naturalStatement": "Falsehood is not the case.",
+  "expectedFormalTarget": "theorem rb_log_005 : ¬False",
+  "domain": "logic",
+  "difficulty": "TIER_2_RETRIEVAL",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  exact not_false"
+  },
+  "requiredConcepts": [
+    "logic"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-LOG-005",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

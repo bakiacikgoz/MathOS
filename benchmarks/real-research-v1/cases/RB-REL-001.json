@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-REL-001",
+  "naturalStatement": "The conjunction of two truths is still true.",
+  "expectedFormalTarget": "theorem rb_rel_001 : True ∧ True → True",
+  "domain": "logic",
+  "difficulty": "TIER_1_DIRECT",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  intro h\n  exact h.left"
+  },
+  "requiredConcepts": [
+    "logic"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-REL-001",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

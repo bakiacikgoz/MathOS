@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-NUM-001",
+  "naturalStatement": "Every natural number equals itself.",
+  "expectedFormalTarget": "theorem rb_num_001 (n : Nat) : n = n",
+  "domain": "intro number theory",
+  "difficulty": "TIER_1_DIRECT",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  rfl"
+  },
+  "requiredConcepts": [
+    "identity"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-NUM-001",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

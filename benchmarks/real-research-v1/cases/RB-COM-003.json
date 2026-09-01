@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-COM-003",
+  "naturalStatement": "Appending the empty list does not change a list of naturals.",
+  "expectedFormalTarget": "theorem rb_com_003 (l : List Nat) : l ++ [] = l",
+  "domain": "simple combinatorics",
+  "difficulty": "TIER_4_RESEARCH",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  simp"
+  },
+  "requiredConcepts": [
+    "lists"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-COM-003",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

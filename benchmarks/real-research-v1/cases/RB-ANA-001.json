@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-ANA-001",
+  "naturalStatement": "Zero is a lower bound for every natural.",
+  "expectedFormalTarget": "theorem rb_ana_001 (n : Nat) : 0 ≤ n",
+  "domain": "basic order",
+  "difficulty": "TIER_4_RESEARCH",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  exact Nat.zero_le n"
+  },
+  "requiredConcepts": [
+    "analysis",
+    "bound"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-ANA-001",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

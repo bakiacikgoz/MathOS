@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-REL-004",
+  "naturalStatement": "If a equals b and b equals c then a equals c, via an intermediate fact.",
+  "expectedFormalTarget": "theorem rb_rel_004 (a b c : Nat) (h : a = b ∧ b = c) : a = c",
+  "domain": "logic",
+  "difficulty": "TIER_3_DECOMPOSITION",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  exact h.left.trans h.right"
+  },
+  "requiredConcepts": [
+    "equality",
+    "and"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-REL-004",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

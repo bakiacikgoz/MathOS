@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-LOG-002",
+  "naturalStatement": "A true hypothesis implies a true conclusion.",
+  "expectedFormalTarget": "theorem rb_log_002 : True → True",
+  "domain": "logic",
+  "difficulty": "TIER_1_DIRECT",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  intro h\n  exact h"
+  },
+  "requiredConcepts": [
+    "logic",
+    "implication"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-LOG-002",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

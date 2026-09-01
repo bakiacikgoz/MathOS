@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-REL-002",
+  "naturalStatement": "Equality of naturals is symmetric.",
+  "expectedFormalTarget": "theorem rb_rel_002 (a b : Nat) (h : a = b) : b = a",
+  "domain": "logic",
+  "difficulty": "TIER_2_RETRIEVAL",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  exact h.symm"
+  },
+  "requiredConcepts": [
+    "equality"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-REL-002",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

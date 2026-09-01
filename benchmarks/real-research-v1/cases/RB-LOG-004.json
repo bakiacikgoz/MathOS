@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-LOG-004",
+  "naturalStatement": "Conjunction of propositions may be swapped.",
+  "expectedFormalTarget": "theorem rb_log_004 (P Q : Prop) : P ∧ Q → Q ∧ P",
+  "domain": "logic",
+  "difficulty": "TIER_2_RETRIEVAL",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  intro h\n  exact And.intro h.right h.left"
+  },
+  "requiredConcepts": [
+    "logic"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-LOG-004",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-LOG-003",
+  "naturalStatement": "From a contradiction any claim follows.",
+  "expectedFormalTarget": "theorem rb_log_003 (P : Prop) : False → P",
+  "domain": "logic",
+  "difficulty": "TIER_1_DIRECT",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  intro h\n  exact False.elim h"
+  },
+  "requiredConcepts": [
+    "logic",
+    "ex-falso"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-LOG-003",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

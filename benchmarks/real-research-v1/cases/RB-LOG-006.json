@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "real-research-case-v1",
+  "id": "RB-LOG-006",
+  "naturalStatement": "Implications may be chained.",
+  "expectedFormalTarget": "theorem rb_log_006 (P Q R : Prop) : (P → Q) → (Q → R) → P → R",
+  "domain": "logic",
+  "difficulty": "TIER_3_DECOMPOSITION",
+  "knownProof": {
+    "exists": true,
+    "leanBody": "by\n  intro hpq hqr hp\n  exact hqr (hpq hp)"
+  },
+  "requiredConcepts": [
+    "logic"
+  ],
+  "provenance": {
+    "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
+    "sourceCaseId": "RB-LOG-006",
+    "openProblem": false,
+    "reviewStatus": "KNOWN_PROVED_FIXTURE"
+  }
+}

@@ -1,0 +1,220 @@
+{
+  "schemaVersion": "real-research-manifest-v1",
+  "datasetVersion": "1.0.0",
+  "frozen": true,
+  "caseCount": 40,
+  "categories": [
+    "elementary algebra",
+    "natural numbers",
+    "lists",
+    "finite sets",
+    "basic order",
+    "logic",
+    "functions",
+    "simple combinatorics",
+    "intro number theory"
+  ],
+  "cases": [
+    {
+      "id": "RB-ALG-001",
+      "file": "cases/RB-ALG-001.json",
+      "sha256": "4bacb2e4dbba762097cf2d47607c3250d79b83b5d71c2f0983a797f92949dd49"
+    },
+    {
+      "id": "RB-LOG-001",
+      "file": "cases/RB-LOG-001.json",
+      "sha256": "488acafda5dd8e95b47d8c8b5ec78b6b86e1d217e7923c67a600a486854787e7"
+    },
+    {
+      "id": "RB-LOG-002",
+      "file": "cases/RB-LOG-002.json",
+      "sha256": "c3f9b9f8bd63ebd64885400c3eded37c221dbfa3d8f915ce00bb318c9a963db4"
+    },
+    {
+      "id": "RB-NUM-001",
+      "file": "cases/RB-NUM-001.json",
+      "sha256": "a440b12a80ca8b34968025873360a0e8be904d73451a9f4a03496a781be2fa63"
+    },
+    {
+      "id": "RB-LOG-003",
+      "file": "cases/RB-LOG-003.json",
+      "sha256": "7560b84f00e92d73f87313650a45ce5a71ef7902cf446e550d46f61aa67c14b3"
+    },
+    {
+      "id": "RB-SET-001",
+      "file": "cases/RB-SET-001.json",
+      "sha256": "78f59696b03ecfe8504b30a7530c0a715e79c30365bca2a9b31ac49ab21c72f6"
+    },
+    {
+      "id": "RB-ORD-001",
+      "file": "cases/RB-ORD-001.json",
+      "sha256": "ca05a7e808c05c25d8a98977174939625781d29b57d91e2fe16c133b5739df53"
+    },
+    {
+      "id": "RB-COM-001",
+      "file": "cases/RB-COM-001.json",
+      "sha256": "61e7cdfbb1eb5e47af221f53e1aa6562dc7a7835d5de7763dee1a3aa2a4e91f1"
+    },
+    {
+      "id": "RB-FUN-001",
+      "file": "cases/RB-FUN-001.json",
+      "sha256": "542babd8f4f4aa4fb53013e0e0fa0c2c9df88b93a37ecfdc765af4021597a7dc"
+    },
+    {
+      "id": "RB-REL-001",
+      "file": "cases/RB-REL-001.json",
+      "sha256": "a36a8f3659d384fcb0fa882bac3fe79d9d26ad1b450084359e348e3e4c602de0"
+    },
+    {
+      "id": "RB-ALG-002",
+      "file": "cases/RB-ALG-002.json",
+      "sha256": "25d39a0026c6738c0f761480e91c1fe7a41f2468692d764a9a03b16bbfcd5bf0"
+    },
+    {
+      "id": "RB-ALG-003",
+      "file": "cases/RB-ALG-003.json",
+      "sha256": "14edcc75eb0fe1b6929be1b5db181b3a658f568fb02495e3b49834b43925758f"
+    },
+    {
+      "id": "RB-ALG-004",
+      "file": "cases/RB-ALG-004.json",
+      "sha256": "09fb18e4ed94d0df1b215aa471542a4274d8387ab58ccb82121313b6c65b3f70"
+    },
+    {
+      "id": "RB-REL-002",
+      "file": "cases/RB-REL-002.json",
+      "sha256": "c99a90cfd18f7d0bed55971806c61c45de6e06a2b54cfb5d82a90a4c9fcfa05d"
+    },
+    {
+      "id": "RB-LOG-004",
+      "file": "cases/RB-LOG-004.json",
+      "sha256": "18042416ebc358d987f9d71894f77705a553b0acbca259c23e57b8ae5362ba9f"
+    },
+    {
+      "id": "RB-SET-002",
+      "file": "cases/RB-SET-002.json",
+      "sha256": "a5c8daee21d3f1304b902d9f8122ace6e29875e5a2aed5845f2da7857beaf426"
+    },
+    {
+      "id": "RB-ORD-002",
+      "file": "cases/RB-ORD-002.json",
+      "sha256": "11405bd336dfb1cc72f943f210f7c12b130628173ada36e1707969baa597b7e7"
+    },
+    {
+      "id": "RB-LOG-005",
+      "file": "cases/RB-LOG-005.json",
+      "sha256": "f057a11b806b225b746df4e6e6c91e13257389c5539d1c210b89e3bdc536475f"
+    },
+    {
+      "id": "RB-FUN-002",
+      "file": "cases/RB-FUN-002.json",
+      "sha256": "bbe54996e427119680a40dc58a6f7e62930b88b651b6b6c5a45b4aa1b0036cec"
+    },
+    {
+      "id": "RB-REL-003",
+      "file": "cases/RB-REL-003.json",
+      "sha256": "12d93f8c579ef063c9d23e5a9b471dd8382b442ad8567f9a722eef0bcceb804c"
+    },
+    {
+      "id": "RB-COM-002",
+      "file": "cases/RB-COM-002.json",
+      "sha256": "f5c2ba242017b726275460f13df4a287fa8765a3895978df97429cf471a15bc3"
+    },
+    {
+      "id": "RB-ALG-005",
+      "file": "cases/RB-ALG-005.json",
+      "sha256": "1c3270e671a353f83f20b4628f82345d9c976ffe3d309855f3da22a8570bd999"
+    },
+    {
+      "id": "RB-REL-004",
+      "file": "cases/RB-REL-004.json",
+      "sha256": "8c99d894518d399a854b800b7d502658b2262926ec0792e08d312d2891bf9b2b"
+    },
+    {
+      "id": "RB-SET-003",
+      "file": "cases/RB-SET-003.json",
+      "sha256": "d8041d2232f4bb4b8636d733b50f6967655a72a61519e1fcbfbfba08439c3cf2"
+    },
+    {
+      "id": "RB-LOG-006",
+      "file": "cases/RB-LOG-006.json",
+      "sha256": "dbd44b371df37d01b31a28d7ac59f4e6346997af694c44e751758fab3c5635a7"
+    },
+    {
+      "id": "RB-ALG-006",
+      "file": "cases/RB-ALG-006.json",
+      "sha256": "b90ad63ea19604025cbc91314f2bf0e88571cf2e319fbb718d683c404418c478"
+    },
+    {
+      "id": "RB-SET-004",
+      "file": "cases/RB-SET-004.json",
+      "sha256": "028c70143126b436e1572d7be6af0129492be1347d6ebbd8ad8e36bba24bfe31"
+    },
+    {
+      "id": "RB-NUM-002",
+      "file": "cases/RB-NUM-002.json",
+      "sha256": "a73050e2812eff0661dfc4836d76a037fe72bca823e80129c632e687c71aafca"
+    },
+    {
+      "id": "RB-FUN-003",
+      "file": "cases/RB-FUN-003.json",
+      "sha256": "84714a8e33f202794d10a87ba1330ec920a1065eb4219893e0163e0c1f08162e"
+    },
+    {
+      "id": "RB-ORD-003",
+      "file": "cases/RB-ORD-003.json",
+      "sha256": "40279ce3295c1dc33bfa81ba41e1894c231d4343cd1a4fbf439b0272657b647c"
+    },
+    {
+      "id": "RB-LOG-007",
+      "file": "cases/RB-LOG-007.json",
+      "sha256": "9a44c8d7ad16c57e24e93b270573691b90b7a60609303affde0d6517dcb7bd21"
+    },
+    {
+      "id": "RB-SEQ-001",
+      "file": "cases/RB-SEQ-001.json",
+      "sha256": "69663d5c5e8b676ae751a665ae67bcaa1baf012ecb19225dab5c5097eb28cdfd"
+    },
+    {
+      "id": "RB-LOG-008",
+      "file": "cases/RB-LOG-008.json",
+      "sha256": "f552785d457f589a54cb4bb00744a1c05b5c84ce6eb0f10d5e7f9482c9ad73e7"
+    },
+    {
+      "id": "RB-ALG-007",
+      "file": "cases/RB-ALG-007.json",
+      "sha256": "b013d39fab962b9f27cd2db971df63deb2a3c93b2ab8e12131d14775bc651530"
+    },
+    {
+      "id": "RB-NUM-003",
+      "file": "cases/RB-NUM-003.json",
+      "sha256": "eb5659d8c7da733c5dabb699fb9e41c42760ce7cb31f8ba43cd1f01abc591500"
+    },
+    {
+      "id": "RB-ALG-008",
+      "file": "cases/RB-ALG-008.json",
+      "sha256": "0261059b1848e22a134d2271b77eb42322c76fdbe25e843b5d6d258d4f79f82a"
+    },
+    {
+      "id": "RB-LIT-001",
+      "file": "cases/RB-LIT-001.json",
+      "sha256": "9f485a08617b7f8a3758a6539ce4a6b68971d2a45d5316bea153cf641f2b0ddd"
+    },
+    {
+      "id": "RB-LOG-009",
+      "file": "cases/RB-LOG-009.json",
+      "sha256": "205af879713d41f1c0f2fc63f1ab8875e632cb440d9a530d89a7959dfb40f8a0"
+    },
+    {
+      "id": "RB-ANA-001",
+      "file": "cases/RB-ANA-001.json",
+      "sha256": "b49896013adba946a740dea20af8be40ea6e58063afca39641a234a153019e65"
+    },
+    {
+      "id": "RB-COM-003",
+      "file": "cases/RB-COM-003.json",
+      "sha256": "e9680263657639bd684d95aab9de06fcd30ec1c1edab959a67efe565db31bd93"
+    }
+  ],
+  "manifestHash": "f84f187e83b3c472be54833efd5e5e6a00d1709fd4b3572d06029b9c1e721b96"
+}
