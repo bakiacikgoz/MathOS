@@ -23,8 +23,7 @@ import {
 } from "@mathos/storage"
 import type { ResearchVcs, VcsStatus } from "@mathos/vcs"
 import { ClaimNotFound, nowIso } from "@mathos/shared"
-
-type BranchEvent = { target?: string | null; metadata?: Record<string, unknown> }
+import type { MutationRecorder } from "../mutation-recorder.ts"
 
 export interface BranchServiceDependencies {
   root: string
@@ -36,7 +35,7 @@ export interface BranchServiceDependencies {
   blockers: BlockerRepository
   runs: ResearchRunRepository
   vcs: ResearchVcs
-  recordEvent: (action: string, event?: BranchEvent) => void
+  recorder: MutationRecorder
 }
 
 export class BranchService {
@@ -77,7 +76,7 @@ export class BranchService {
 
   async setup(): Promise<VcsStatus> {
     const status = await this.d.vcs.initialize(this.d.root)
-    this.d.recordEvent("branch_versioning_initialized", { metadata: { root: status.root } })
+    this.d.recorder.record("branch_versioning_initialized", { metadata: { root: status.root } })
     return status
   }
 
@@ -94,31 +93,47 @@ export class BranchService {
       purpose: purpose?.trim() || name.trim(), status: "ACTIVE", isCurrent: false, staleBase: false,
       createdFromEventId: null, gitRef: null, worktreePath: null, setupState: "READY", createdAt: timestamp, updatedAt: timestamp,
     }
-    this.d.branches.insert(branch)
-    this.d.visibility.copyInherited(parent.id, id, timestamp)
     const vcs = await this.d.vcs.detect(this.d.root)
     if (vcs.initialized) {
       try {
         await this.d.vcs.createBranch(this.d.root, gitRef)
         await this.d.vcs.createWorktree(this.d.root, gitRef, worktreePath)
         for (const dir of ["formal", "research", "experiments"]) mkdirSync(join(worktreePath, dir), { recursive: true })
-        this.d.branches.updateWorktree(id, gitRef, worktreePath, "READY", timestamp)
       } catch (error) {
         await this.d.vcs.removeWorktree(this.d.root, worktreePath, gitRef).catch(() => undefined)
-        this.d.branches.delete(id)
         throw error
       }
     }
-    const created = this.get(id)
-    this.d.recordEvent("branch_created", { target: id, metadata: { parent: parent.id, name: created.name, slug, purpose: created.purpose, gitRef: created.gitRef } })
-    return created
+    try {
+      return this.d.recorder.mutate("branch_created", {
+        target: id,
+        metadata: {
+          parent: parent.id,
+          name: branch.name,
+          slug,
+          purpose: branch.purpose,
+          gitRef: vcs.initialized ? gitRef : null,
+        },
+      }, () => {
+        this.d.branches.insert(branch)
+        this.d.visibility.copyInherited(parent.id, id, timestamp)
+        if (vcs.initialized) this.d.branches.updateWorktree(id, gitRef, worktreePath, "READY", timestamp)
+        return this.get(id)
+      })
+    } catch (error) {
+      if (vcs.initialized) await this.d.vcs.removeWorktree(this.d.root, worktreePath, gitRef).catch(() => undefined)
+      throw error
+    }
   }
 
   switch(idOrName: string): ResearchBranch {
     const branch = this.get(idOrName)
     if (branch.status === "ABANDONED") throw new Error(`Branch ${branch.id} is abandoned.`)
-    this.d.branches.setCurrent(this.workspace().id, branch.id, nowIso())
-    this.d.recordEvent("branch_switched", { target: branch.id, metadata: { name: branch.name } })
+    this.d.recorder.mutate(
+      "branch_switched",
+      { target: branch.id, metadata: { name: branch.name } },
+      () => this.d.branches.setCurrent(this.workspace().id, branch.id, nowIso()),
+    )
     return this.get(branch.id)
   }
 
@@ -169,23 +184,28 @@ export class BranchService {
 
   merge(sourceId: string, options: { applySafe?: boolean } = {}): MergePreview {
     const preview = this.previewMerge(sourceId)
-    this.d.recordEvent("branch_merge_started", { target: sourceId, metadata: { conflicts: preview.conflicts } })
+    this.d.recorder.record("branch_merge_started", { target: sourceId, metadata: { conflicts: preview.conflicts } })
     if (!options.applySafe) return preview
     const running = this.d.runs.runningOnBranch(this.workspace().id, this.get(sourceId).id)
     if (running) throw new Error(`ACTIVE_RESEARCH_RUN_EXISTS:${running.id}`)
     if (preview.conflicts > 0) {
-      this.d.recordEvent("branch_merge_conflict", { target: sourceId, metadata: { conflicts: preview.conflicts } })
+      this.d.recorder.record("branch_merge_conflict", { target: sourceId, metadata: { conflicts: preview.conflicts } })
       throw new Error("Merge has conflicts and cannot auto-apply.")
     }
     const timestamp = nowIso()
-    for (const item of preview.items.filter((row) => row.safe && (row.kind === "claim" || row.kind === "verified_proof"))) {
-      const claim = this.d.claims.get(item.id)
-      if (!claim) continue
-      this.d.visibility.insert(preview.targetId, claim.id, "MERGED", timestamp)
-      if (item.reverifyRequired && claim.status === "KERNEL_VERIFIED") this.d.claims.updateStatus(claim.id, "STALE", timestamp)
-    }
-    this.d.branches.updateStatus(sourceId, "MERGED", timestamp)
-    this.d.recordEvent("branch_merge_completed", { target: sourceId, metadata: { additive: preview.additiveClaims } })
+    this.d.recorder.mutate(
+      "branch_merge_completed",
+      { target: sourceId, metadata: { additive: preview.additiveClaims } },
+      () => {
+        for (const item of preview.items.filter((row) => row.safe && (row.kind === "claim" || row.kind === "verified_proof"))) {
+          const claim = this.d.claims.get(item.id)
+          if (!claim) continue
+          this.d.visibility.insert(preview.targetId, claim.id, "MERGED", timestamp)
+          if (item.reverifyRequired && claim.status === "KERNEL_VERIFIED") this.d.claims.updateStatus(claim.id, "STALE", timestamp)
+        }
+        this.d.branches.updateStatus(sourceId, "MERGED", timestamp)
+      },
+    )
     return preview
   }
 
@@ -197,8 +217,9 @@ export class BranchService {
 
   private setStatus(idOrName: string, status: ResearchBranch["status"], action: string): ResearchBranch {
     const branch = this.get(idOrName)
-    this.d.branches.updateStatus(branch.id, status, nowIso())
-    this.d.recordEvent(action, { target: branch.id })
+    this.d.recorder.mutate(action, { target: branch.id }, () => {
+      this.d.branches.updateStatus(branch.id, status, nowIso())
+    })
     return this.get(branch.id)
   }
 

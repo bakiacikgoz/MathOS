@@ -29,11 +29,7 @@ import {
 } from "@mathos/storage"
 import { ClaimNotFound, InvalidClaimStatus, VerificationFailed, createId, nowIso, type Logger } from "@mathos/shared"
 import { runResearchIntake } from "../intake.ts"
-
-type ClaimEvent = {
-  target?: string | null
-  metadata?: Record<string, unknown>
-}
+import type { MutationRecorder } from "../mutation-recorder.ts"
 
 export interface ClaimServiceDependencies {
   client: DatabaseClient
@@ -47,7 +43,7 @@ export interface ClaimServiceDependencies {
   modelProvider: ModelProvider
   logger: Logger
   allocateId: (prefix: string) => string
-  recordEvent: (action: string, event: ClaimEvent) => void
+  recorder: MutationRecorder
 }
 
 export interface CreateClaimInput {
@@ -134,14 +130,7 @@ export class ClaimService {
       updatedAt: timestamp,
     }
 
-    const persist = this.d.client.db.transaction(() => {
-      this.d.claims.insert(claim)
-      this.d.visibility.insert(branch.id, claim.id, "LOCAL", timestamp)
-      if (input.asMainObjective) this.d.workspaces.setMainObjective(workspace.id, claim.id, timestamp)
-    })
-    persist()
-
-    this.d.recordEvent("claim_created", {
+    this.d.recorder.mutate("claim_created", {
       target: claim.id,
       metadata: {
         claim_id: claim.id,
@@ -154,9 +143,13 @@ export class ClaimService {
         provider: claim.provider,
         model: claim.modelName,
       },
+    }, () => {
+      this.d.claims.insert(claim)
+      this.d.visibility.insert(branch.id, claim.id, "LOCAL", timestamp)
+      if (input.asMainObjective) this.d.workspaces.setMainObjective(workspace.id, claim.id, timestamp)
     })
     if (input.asMainObjective) {
-      this.d.recordEvent("main_objective_changed", {
+      this.d.recorder.record("main_objective_changed", {
         target: claim.id,
         metadata: { previous: workspace.mainObjectiveId, claim_id: claim.id },
       })
@@ -210,11 +203,10 @@ export class ClaimService {
     const workspace = this.requireWorkspace()
     const claim = this.get(claimId)
     const previous = workspace.mainObjectiveId
-    this.d.workspaces.setMainObjective(workspace.id, claim.id, nowIso())
-    this.d.recordEvent("main_objective_changed", {
+    this.d.recorder.mutate("main_objective_changed", {
       target: claim.id,
       metadata: { previous, claim_id: claim.id, title: claim.title },
-    })
+    }, () => this.d.workspaces.setMainObjective(workspace.id, claim.id, nowIso()))
     return claim
   }
 
@@ -230,11 +222,10 @@ export class ClaimService {
       relation,
       createdAt: nowIso(),
     }
-    this.d.dependencies.insert(dependency)
-    this.d.recordEvent("dependency_created", {
+    this.d.recorder.mutate("dependency_created", {
       target: dependency.id,
       metadata: { from: fromClaimId, to: toClaimId, relation },
-    })
+    }, () => this.d.dependencies.insert(dependency))
     return dependency
   }
 
@@ -251,11 +242,10 @@ export class ClaimService {
       reproducible: input.reproducible ?? false,
       createdAt: nowIso(),
     }
-    this.d.evidence.insert(evidence)
-    this.d.recordEvent("evidence_created", {
+    this.d.recorder.mutate("evidence_created", {
       target: evidence.id,
       metadata: { claimId: input.claimId, kind: input.kind },
-    })
+    }, () => this.d.evidence.insert(evidence))
     return evidence
   }
 
@@ -273,8 +263,11 @@ export class ClaimService {
       createdAt: nowIso(),
       resolvedAt: null,
     }
-    this.d.blockers.insert(blocker)
-    this.d.recordEvent("blocker_created", { target: blocker.id, metadata: { title: blocker.title } })
+    this.d.recorder.mutate(
+      "blocker_created",
+      { target: blocker.id, metadata: { title: blocker.title } },
+      () => this.d.blockers.insert(blocker),
+    )
     return blocker
   }
 
