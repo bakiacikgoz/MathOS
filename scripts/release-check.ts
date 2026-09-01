@@ -80,7 +80,7 @@ export const runReleaseCommand: ReleaseCommandRunner = async (command, options) 
 function unitTestFiles(): string[] {
   const listed = Bun.spawnSync(["git", "ls-files", "tests/*.test.ts", "tests/*.test.tsx"], { cwd: repositoryRoot })
   if (listed.exitCode !== 0) return ["tests/__MISSING_TEST_DISCOVERY__.test.ts"]
-  const excluded = /(?:release-check|verification-trust|sandbox|release\.test|event-projection|lean-real|lean-inspect|research-native|multi-agent-native|retrieval-validation|retrieval-holdout)/u
+  const excluded = /(?:release-check|package-smoke|verification-trust|sandbox|release\.test|event-projection|lean-real|lean-inspect|research-native|multi-agent-native|retrieval-validation|retrieval-holdout)/u
   return new TextDecoder().decode(listed.stdout).trim().split("\n").filter((file) => file && !excluded.test(file))
 }
 
@@ -97,7 +97,7 @@ function commands(): Record<ReleaseCheckName, string[]> {
     "backup-restore": [bun, "test", "tests/release.test.ts", "-t", "backup restore semantic equivalence"],
     "secret-redaction": [bun, "test", "tests/release.test.ts", "-t", "secret canary does not leak"],
     "event-rebuild": [bun, "test", "tests/event-projection.test.ts", "-t", "rebuild"],
-    "package-smoke": [bun, "apps/tui/src/cli.ts", "--version"],
+    "package-smoke": [bun, "test", "tests/package-smoke.test.ts"],
     "lean-smoke": [bun, "test", "tests/research-native.test.ts", "-t", "real Lean smoke"],
     "research-regression": [bun, "scripts/research-regression.ts"],
     "ux-regression": [bun, "scripts/ux-regression.ts"],
@@ -111,7 +111,7 @@ function unsupportedPlatform(name: ReleaseCheckName, platform: NodeJS.Platform):
 
 function validatesEvidence(name: ReleaseCheckName, result: CommandResult): boolean {
   const output = result.stdout + "\n" + result.stderr
-  if (name === "version" || name === "package-smoke") return result.stdout.includes(mathosVersion())
+  if (name === "version") return result.stdout.includes(mathosVersion())
   if (name === "typecheck") return true
   if (name.endsWith("-regression")) {
     try {
