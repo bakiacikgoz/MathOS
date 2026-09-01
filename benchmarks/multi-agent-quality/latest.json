@@ -1,0 +1,23 @@
+{
+  "measuredAt": "2026-09-01T18:57:24.496Z",
+  "mode": "FAKE_HARNESS",
+  "decision": "INCONCLUSIVE",
+  "single": {
+    "qualityPass": true,
+    "wallMs": 34.492082999999994,
+    "cases": 1,
+    "modelCalls": null,
+    "leanCalls": null,
+    "proofAttempts": null
+  },
+  "multi": {
+    "qualityPass": true,
+    "wallMs": 65.181083,
+    "cases": 1,
+    "agents": 3,
+    "modelCalls": null,
+    "leanCalls": null,
+    "proofAttempts": null
+  },
+  "note": "Fake planners validate orchestration only. No real model credential was available, so quality is inconclusive."
+}

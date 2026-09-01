@@ -168,6 +168,8 @@ export interface SharedResearchDigest {
   approachesTried: Array<{ agentId: string; approach: string; summary: string }>
   failedApproaches: Array<{ agentId: string; approach: string; summary: string }>
   solutionCandidates: Array<{ id: string; agentId: string; claimId: string }>
+  checkerReviews: Array<{ checkerAgentId: string; candidateId: string; verdict: "ACCEPT" | "REJECT" | "NEEDS_REVIEW"; critique: string[] }>
+  duplicateApproachFingerprints: string[]
 }
 
 export function nextRoundId(sessionId: string, sequence: number): string {
@@ -189,10 +191,16 @@ export function fallbackAssignmentPlan(objectiveClaimId: string): AgentAssignmen
 export function assignmentDiversity(plan: AgentAssignmentPlan): { ok: boolean; warning?: "LOW_ASSIGNMENT_DIVERSITY" } {
   const approaches = new Set(plan.assignments.map((item) => item.approach))
   const roles = new Set(plan.assignments.map((item) => item.role))
-  if (plan.assignments.length >= 3 && (approaches.size === 1 || roles.size === 1)) {
+  const fingerprints = plan.assignments.map(approachFingerprint)
+  if (new Set(fingerprints).size !== fingerprints.length || (plan.assignments.length >= 3 && (approaches.size === 1 || roles.size === 1))) {
     return { ok: false, warning: "LOW_ASSIGNMENT_DIVERSITY" }
   }
   return { ok: true }
+}
+
+export function approachFingerprint(assignment: Pick<PlannedAgentAssignment, "approach" | "goalSummary" | "targetClaimId">): string {
+  const goal = assignment.goalSummary.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().split(/\s+/).sort().join(" ")
+  return `${assignment.approach}|${assignment.targetClaimId ?? "objective"}|${goal}`
 }
 
 export function parseAssignmentPlan(value: unknown): AgentAssignmentPlan {

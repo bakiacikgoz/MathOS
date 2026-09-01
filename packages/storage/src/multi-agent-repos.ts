@@ -176,6 +176,8 @@ export class SharedDigestRepository {
 
   get(sessionId: string, round: number): SharedResearchDigest | null {
     const row = this.db.query<{ digest_json: string }, [string, number]>("SELECT digest_json FROM shared_digests WHERE session_id = ? AND round = ?").get(sessionId, round)
-    return row ? JSON.parse(row.digest_json) : null
+    if (!row) return null
+    const digest = JSON.parse(row.digest_json) as SharedResearchDigest
+    return { ...digest, checkerReviews: digest.checkerReviews ?? [], duplicateApproachFingerprints: digest.duplicateApproachFingerprints ?? [] }
   }
 }

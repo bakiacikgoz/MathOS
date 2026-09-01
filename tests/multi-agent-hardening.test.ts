@@ -132,11 +132,37 @@ describe("multi-agent hardening", () => {
     const agents = app.teamAgents(session.id)
     const source = agents[1]!
     const proposed = app.proposeImport(session.id, source.id, agents[0]!.id, source.localClaimId)
-    const formal = app["formalStatements"].currentForClaim(source.localClaimId)!
-    app["formalStatements"].markOthersNotCurrent(source.localClaimId)
-    app["formalStatements"].insert({ ...formal, id: formal.id + "x", isCurrent: true })
+    app["client"].db.query("UPDATE verified_artifact_imports SET source_formal_revision = 'stale' WHERE id = ?").run(proposed.id)
     const applied = await app.applyImport(proposed.id)
     expect(applied.status).toBe("REVERIFY_REQUIRED")
+    expect(applied.failureCode).toBe("SOURCE_NOT_CURRENT")
+    app.close()
+  })
+
+  test("incompatible target is rejected", async () => {
+    const { app } = await ready()
+    const session = await app.startTeam({ planners: [new FakeResearchPlanner(idle()), new FakeResearchPlanner(prove()), new FakeResearchPlanner(idle())] })
+    await app.runTeam(session.id)
+    const agents = app.teamAgents(session.id), source = agents[1]!, target = agents[0]!
+    const proposed = app.proposeImport(session.id, source.id, target.id, source.localClaimId)
+    app["client"].db.query("UPDATE research_agents SET branch_id = ? WHERE id = ?").run(source.branchId, target.id)
+    const applied = await app.applyImport(proposed.id)
+    expect(applied.status).toBe("FAILED")
+    expect(applied.failureCode).toBe("TARGET_NOT_COMPATIBLE")
+    app.close()
+  })
+
+  test("target verification failure cannot become applied", async () => {
+    const lean = new FakeLeanAdapter()
+    const { app } = await ready({}, lean)
+    const session = await app.startTeam({ planners: [new FakeResearchPlanner(idle()), new FakeResearchPlanner(prove()), new FakeResearchPlanner(idle())] })
+    await app.runTeam(session.id)
+    const agents = app.teamAgents(session.id), source = agents[1]!
+    const proposed = app.proposeImport(session.id, source.id, agents[0]!.id, source.localClaimId)
+    lean.axioms = ["untrusted.custom"]
+    const applied = await app.applyImport(proposed.id)
+    expect(applied.status).toBe("FAILED")
+    expect(applied.failureCode).toBe("TARGET_VERIFICATION_FAILED")
     app.close()
   })
 

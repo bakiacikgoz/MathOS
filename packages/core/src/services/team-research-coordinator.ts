@@ -5,6 +5,7 @@ import {
   DEFAULT_MAX_PARALLEL_WORKERS,
   HARD_MAX_PARALLEL_WORKERS,
   assignmentDiversity,
+  approachFingerprint,
   fallbackAssignmentPlan,
   nextPrefixedId,
   nextRoundId,
@@ -178,7 +179,10 @@ export class TeamResearchCoordinator {
     const planner = this.d.multiAgentPlanner ?? new FakeMultiAgentPlanner()
     let plan = await planner.planAssignments(objectiveId)
     const diversity = assignmentDiversity(plan)
-    if (!diversity.ok) plan = { ...fallbackAssignmentPlan(objectiveId), warning: "LOW_ASSIGNMENT_DIVERSITY" }
+    if (!diversity.ok) {
+      this.d.recorder.record("low_assignment_diversity", { target: sessionId, metadata: { objectiveClaimId: objectiveId } })
+      plan = { ...fallbackAssignmentPlan(objectiveId), warning: "LOW_ASSIGNMENT_DIVERSITY" }
+    }
     const created: ResearchAgentWorker[] = []
     try {
       for (const assignment of plan.assignments.slice(0, input.limits?.maxAgents ?? DEFAULT_MULTI_AGENT_BUDGET.maxAgents)) {
@@ -271,6 +275,7 @@ export class TeamResearchCoordinator {
     const timer = setTimeout(() => ac.abort(), this.d.maxStepWallClockMs)
     try {
       const after = await this.d.researchEngine.withAbortSignal(ac.signal, async () => {
+        if (agent.role === "INDEPENDENT_CHECKER") return before
         let done = false
         try {
           return await Promise.race([
@@ -481,10 +486,15 @@ export class TeamResearchCoordinator {
       stores.digests.upsert(digest)
     })
     const solutions = stores.solutions.list(session.id)
+    const checkerPresent = agents.some((agent) => agent.role === "INDEPENDENT_CHECKER")
+    const acceptedSolutions = checkerPresent
+      ? solutions.filter((solution) => digest.checkerReviews.some((review) => review.candidateId === solution.id && review.verdict === "ACCEPT"))
+      : solutions
     const live = stores.agents.list(session.id)
     if (this.teamPauseRequested.has(session.id)) return this.pauseTeam(session.id)
     if (this.teamCancelRequested.has(session.id)) return this.cancelTeam(session.id)
-    if (solutions.length) {
+    if (digest.duplicateApproachFingerprints.length) return this.stopTeam(session, "LOW_ASSIGNMENT_DIVERSITY")
+    if (acceptedSolutions.length) {
       if (this.d.teamCrashAt === "before_solution_found") throw new Error("crash")
       const stopped = this.stopTeam(session, "SOLUTION_FOUND", "SOLUTION_FOUND")
       if (this.d.teamCrashAt === "after_solution_found") throw new Error("crash")
@@ -528,14 +538,29 @@ export class TeamResearchCoordinator {
     const unverified: SharedResearchDigest["unverifiedFindings"] = []
     const approachesTried: SharedResearchDigest["approachesTried"] = []
     const failedApproaches: SharedResearchDigest["failedApproaches"] = []
+    const fingerprints = new Map<string, number>()
     for (const agent of agents) {
       const claim = this.d.getClaim(agent.localClaimId)
       if (claim.status === "KERNEL_VERIFIED") verified.push({ claimId: claim.id, branchId: agent.branchId, title: claim.title })
       else unverified.push({ claimId: claim.id, branchId: agent.branchId, status: claim.status })
       approachesTried.push({ agentId: agent.id, approach: agent.assignment.approach, summary: agent.assignment.goalSummary })
+      const fingerprint = approachFingerprint(agent.assignment)
+      fingerprints.set(fingerprint, (fingerprints.get(fingerprint) ?? 0) + 1)
       const last = this.d.researchHistory(agent.researchRunId).at(-1)
       if (last?.status === "FAILED") failedApproaches.push({ agentId: agent.id, approach: agent.assignment.approach, summary: last.summary ?? last.action })
     }
+    const solutions = this.teamStores().solutions.list(session.id)
+    const checkers = agents.filter((agent) => agent.role === "INDEPENDENT_CHECKER")
+    const checkerReviews = checkers.flatMap((checker) => solutions.map((candidate) => {
+      const critique: string[] = []
+      const claim = this.d.getClaim(candidate.claimId)
+      const formal = this.d.formalStatements.currentForClaim(candidate.claimId)
+      const verification = formal ? this.d.verificationRuns.latestForFormal(formal.id) : null
+      if (claim.status !== "KERNEL_VERIFIED") critique.push("candidate claim is not kernel verified")
+      if (!formal || candidate.formalRevision !== formal.id) critique.push("candidate formal revision is stale")
+      if (!verification || candidate.verificationRunId !== verification.id || verification.result !== "KERNEL_ACCEPTED") critique.push("candidate verification evidence is missing or stale")
+      return { checkerAgentId: checker.id, candidateId: candidate.id, verdict: critique.length ? "REJECT" as const : "ACCEPT" as const, critique }
+    }))
     return {
       sessionId: session.id,
       round: session.currentRound,
@@ -544,7 +569,9 @@ export class TeamResearchCoordinator {
       openBlockers: this.d.researchStores().blockers.open(session.sourceBranchId).map((item) => ({ id: item.id, summary: item.summary })),
       approachesTried,
       failedApproaches,
-      solutionCandidates: this.teamStores().solutions.list(session.id).map((item) => ({ id: item.id, agentId: item.agentId, claimId: item.claimId })),
+      solutionCandidates: solutions.map((item) => ({ id: item.id, agentId: item.agentId, claimId: item.claimId })),
+      checkerReviews,
+      duplicateApproachFingerprints: [...fingerprints].filter(([, count]) => count > 1).map(([fingerprint]) => fingerprint),
     }
   }
 
@@ -635,6 +662,13 @@ export class TeamResearchCoordinator {
     const busy = this.d.client.db.query<{ n: number }, [string]>("SELECT COUNT(*) as n FROM execution_leases WHERE agent_id = ? AND status IN ('RESERVED','RUNNING')").get(item.targetAgentId)
     if (busy && busy.n > 0) throw new Error("TARGET_WORKER_BUSY")
     const source = this.d.getClaim(item.sourceClaimId)
+    const sourceAgent = this.teamStores().agents.get(item.sourceAgentId)
+    const targetAgent = this.teamStores().agents.get(item.targetAgentId)
+    if (!sourceAgent || !targetAgent || sourceAgent.sessionId !== item.sessionId || targetAgent.sessionId !== item.sessionId || sourceAgent.branchId !== item.sourceBranchId || targetAgent.branchId !== item.targetBranchId || source.branchId !== item.sourceBranchId || item.sourceAgentId === item.targetAgentId) {
+      item.status = "FAILED"; item.failureCode = "TARGET_NOT_COMPATIBLE"
+      this.d.recorder.mutate("artifact_import_failed", { target: item.id, metadata: { sessionId: item.sessionId, code: item.failureCode } }, () => this.teamStores().imports.update(item))
+      return item
+    }
     if (source.status !== "KERNEL_VERIFIED") {
       item.status = "FAILED"
       item.failureCode = "SOURCE_NOT_KERNEL_VERIFIED"
@@ -642,10 +676,11 @@ export class TeamResearchCoordinator {
       return item
     }
     const formal = this.d.formalStatements.currentForClaim(source.id)
-    if (!formal || formal.id !== item.sourceFormalRevision) {
+    const sourceVerification = formal ? this.d.verificationRuns.latestForFormal(formal.id) : null
+    if (!formal || formal.id !== item.sourceFormalRevision || !sourceVerification || sourceVerification.id !== item.sourceVerificationRunId || sourceVerification.result !== "KERNEL_ACCEPTED") {
       item.status = "REVERIFY_REQUIRED"
-      item.failureCode = "REVERIFY_REQUIRED"
-      this.d.recorder.mutate("artifact_import_failed", { target: item.id, metadata: { sessionId: item.sessionId, code: "REVERIFY_REQUIRED" } }, () => this.teamStores().imports.update(item))
+      item.failureCode = "SOURCE_NOT_CURRENT"
+      this.d.recorder.mutate("artifact_import_failed", { target: item.id, metadata: { sessionId: item.sessionId, code: item.failureCode } }, () => this.teamStores().imports.update(item))
       return item
     }
     let deps: string[]
@@ -699,7 +734,9 @@ export class TeamResearchCoordinator {
       const worktree = this.d.getBranch(item.targetBranchId).worktreePath
       if (worktree) writeFileSync(join(worktree, `${clone.id}.lean`), `${targetFormal.sourceText}\n`, "utf8")
       const report = await this.d.verify(clone.id)
-      if (!report.passed) {
+      const verifiedFormal = this.d.formalStatements.currentForClaim(clone.id)
+      const targetVerification = verifiedFormal ? this.d.verificationRuns.latestForFormal(verifiedFormal.id) : null
+      if (!report.passed || report.formalStatementId !== verifiedFormal?.id || report.claimStatus !== "KERNEL_VERIFIED" || targetVerification?.result !== "KERNEL_ACCEPTED") {
         item.status = "FAILED"
         item.failureCode = "TARGET_VERIFICATION_FAILED"
         item.targetClaimId = clone.id
