@@ -1,0 +1,54 @@
+{
+  "version": "retrieval-v3",
+  "split": "holdout",
+  "labels": {
+    "HOLD-001": {
+      "gold": [
+        "and_comm"
+      ],
+      "proofNames": [
+        "and_comm"
+      ]
+    },
+    "HOLD-002": {
+      "gold": [
+        "mul_assoc"
+      ],
+      "proofNames": [
+        "mul_assoc"
+      ]
+    },
+    "HOLD-003": {
+      "gold": [
+        "Nat.add_comm"
+      ],
+      "proofNames": [
+        "Nat.add_comm"
+      ]
+    },
+    "HOLD-004": {
+      "gold": [
+        "and_comm"
+      ],
+      "proofNames": [
+        "and_comm"
+      ]
+    },
+    "HOLD-005": {
+      "gold": [
+        "Nat.add_comm"
+      ],
+      "proofNames": [
+        "Nat.add_comm"
+      ]
+    },
+    "HOLD-006": {
+      "gold": [
+        "mul_assoc"
+      ],
+      "proofNames": [
+        "mul_assoc"
+      ]
+    }
+  }
+}

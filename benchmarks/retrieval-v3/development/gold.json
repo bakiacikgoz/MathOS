@@ -1,0 +1,54 @@
+{
+  "version": "retrieval-v3",
+  "split": "development",
+  "labels": {
+    "DEV-001": {
+      "gold": [
+        "mul_assoc"
+      ],
+      "proofNames": [
+        "mul_assoc"
+      ]
+    },
+    "DEV-002": {
+      "gold": [
+        "Nat.add_comm"
+      ],
+      "proofNames": [
+        "Nat.add_comm"
+      ]
+    },
+    "DEV-003": {
+      "gold": [
+        "and_comm"
+      ],
+      "proofNames": [
+        "and_comm"
+      ]
+    },
+    "DEV-004": {
+      "gold": [
+        "mul_assoc"
+      ],
+      "proofNames": [
+        "mul_assoc"
+      ]
+    },
+    "DEV-005": {
+      "gold": [
+        "Nat.add_comm"
+      ],
+      "proofNames": [
+        "Nat.add_comm"
+      ]
+    },
+    "DEV-006": {
+      "gold": [
+        "and_comm"
+      ],
+      "proofNames": [
+        "and_comm"
+      ]
+    }
+  }
+}

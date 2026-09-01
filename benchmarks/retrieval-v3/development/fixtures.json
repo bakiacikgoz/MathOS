@@ -1,0 +1,336 @@
+{
+  "version": "retrieval-v3",
+  "split": "development",
+  "cases": [
+    {
+      "id": "DEV-001",
+      "domain": "Algebra",
+      "goal": "prove mul assoc identity",
+      "candidates": [
+        {
+          "name": "Algebra.decoy_01",
+          "baselineScore": 0.97
+        },
+        {
+          "name": "Algebra.decoy_02",
+          "baselineScore": 0.94
+        },
+        {
+          "name": "Algebra.decoy_03",
+          "baselineScore": 0.91
+        },
+        {
+          "name": "Algebra.decoy_04",
+          "baselineScore": 0.88
+        },
+        {
+          "name": "Algebra.decoy_05",
+          "baselineScore": 0.85
+        },
+        {
+          "name": "Algebra.decoy_06",
+          "baselineScore": 0.82
+        },
+        {
+          "name": "Algebra.decoy_07",
+          "baselineScore": 0.79
+        },
+        {
+          "name": "Algebra.decoy_08",
+          "baselineScore": 0.76
+        },
+        {
+          "name": "Algebra.decoy_09",
+          "baselineScore": 0.73
+        },
+        {
+          "name": "Algebra.decoy_10",
+          "baselineScore": 0.7
+        },
+        {
+          "name": "Algebra.decoy_11",
+          "baselineScore": 0.67
+        },
+        {
+          "name": "mul_assoc",
+          "baselineScore": 0.64
+        }
+      ]
+    },
+    {
+      "id": "DEV-002",
+      "domain": "Nat",
+      "goal": "prove Nat add comm equality",
+      "candidates": [
+        {
+          "name": "Nat.decoy_01",
+          "baselineScore": 0.97
+        },
+        {
+          "name": "Nat.decoy_02",
+          "baselineScore": 0.94
+        },
+        {
+          "name": "Nat.decoy_03",
+          "baselineScore": 0.91
+        },
+        {
+          "name": "Nat.decoy_04",
+          "baselineScore": 0.88
+        },
+        {
+          "name": "Nat.decoy_05",
+          "baselineScore": 0.85
+        },
+        {
+          "name": "Nat.decoy_06",
+          "baselineScore": 0.82
+        },
+        {
+          "name": "Nat.decoy_07",
+          "baselineScore": 0.79
+        },
+        {
+          "name": "Nat.decoy_08",
+          "baselineScore": 0.76
+        },
+        {
+          "name": "Nat.decoy_09",
+          "baselineScore": 0.73
+        },
+        {
+          "name": "Nat.decoy_10",
+          "baselineScore": 0.7
+        },
+        {
+          "name": "Nat.decoy_11",
+          "baselineScore": 0.67
+        },
+        {
+          "name": "Nat.add_comm",
+          "baselineScore": 0.64
+        }
+      ]
+    },
+    {
+      "id": "DEV-003",
+      "domain": "Logic",
+      "goal": "prove and comm proposition",
+      "candidates": [
+        {
+          "name": "Logic.decoy_01",
+          "baselineScore": 0.97
+        },
+        {
+          "name": "Logic.decoy_02",
+          "baselineScore": 0.94
+        },
+        {
+          "name": "Logic.decoy_03",
+          "baselineScore": 0.91
+        },
+        {
+          "name": "Logic.decoy_04",
+          "baselineScore": 0.88
+        },
+        {
+          "name": "Logic.decoy_05",
+          "baselineScore": 0.85
+        },
+        {
+          "name": "Logic.decoy_06",
+          "baselineScore": 0.82
+        },
+        {
+          "name": "Logic.decoy_07",
+          "baselineScore": 0.79
+        },
+        {
+          "name": "Logic.decoy_08",
+          "baselineScore": 0.76
+        },
+        {
+          "name": "Logic.decoy_09",
+          "baselineScore": 0.73
+        },
+        {
+          "name": "Logic.decoy_10",
+          "baselineScore": 0.7
+        },
+        {
+          "name": "Logic.decoy_11",
+          "baselineScore": 0.67
+        },
+        {
+          "name": "and_comm",
+          "baselineScore": 0.64
+        }
+      ]
+    },
+    {
+      "id": "DEV-004",
+      "domain": "Algebra",
+      "goal": "prove mul assoc identity",
+      "candidates": [
+        {
+          "name": "Algebra.decoy_01",
+          "baselineScore": 0.97
+        },
+        {
+          "name": "Algebra.decoy_02",
+          "baselineScore": 0.94
+        },
+        {
+          "name": "Algebra.decoy_03",
+          "baselineScore": 0.91
+        },
+        {
+          "name": "Algebra.decoy_04",
+          "baselineScore": 0.88
+        },
+        {
+          "name": "Algebra.decoy_05",
+          "baselineScore": 0.85
+        },
+        {
+          "name": "Algebra.decoy_06",
+          "baselineScore": 0.82
+        },
+        {
+          "name": "Algebra.decoy_07",
+          "baselineScore": 0.79
+        },
+        {
+          "name": "Algebra.decoy_08",
+          "baselineScore": 0.76
+        },
+        {
+          "name": "Algebra.decoy_09",
+          "baselineScore": 0.73
+        },
+        {
+          "name": "Algebra.decoy_10",
+          "baselineScore": 0.7
+        },
+        {
+          "name": "Algebra.decoy_11",
+          "baselineScore": 0.67
+        },
+        {
+          "name": "mul_assoc",
+          "baselineScore": 0.64
+        }
+      ]
+    },
+    {
+      "id": "DEV-005",
+      "domain": "Nat",
+      "goal": "prove Nat add comm equality",
+      "candidates": [
+        {
+          "name": "Nat.decoy_01",
+          "baselineScore": 0.97
+        },
+        {
+          "name": "Nat.decoy_02",
+          "baselineScore": 0.94
+        },
+        {
+          "name": "Nat.decoy_03",
+          "baselineScore": 0.91
+        },
+        {
+          "name": "Nat.decoy_04",
+          "baselineScore": 0.88
+        },
+        {
+          "name": "Nat.decoy_05",
+          "baselineScore": 0.85
+        },
+        {
+          "name": "Nat.decoy_06",
+          "baselineScore": 0.82
+        },
+        {
+          "name": "Nat.decoy_07",
+          "baselineScore": 0.79
+        },
+        {
+          "name": "Nat.decoy_08",
+          "baselineScore": 0.76
+        },
+        {
+          "name": "Nat.decoy_09",
+          "baselineScore": 0.73
+        },
+        {
+          "name": "Nat.decoy_10",
+          "baselineScore": 0.7
+        },
+        {
+          "name": "Nat.decoy_11",
+          "baselineScore": 0.67
+        },
+        {
+          "name": "Nat.add_comm",
+          "baselineScore": 0.64
+        }
+      ]
+    },
+    {
+      "id": "DEV-006",
+      "domain": "Logic",
+      "goal": "prove and comm proposition",
+      "candidates": [
+        {
+          "name": "Logic.decoy_01",
+          "baselineScore": 0.97
+        },
+        {
+          "name": "Logic.decoy_02",
+          "baselineScore": 0.94
+        },
+        {
+          "name": "Logic.decoy_03",
+          "baselineScore": 0.91
+        },
+        {
+          "name": "Logic.decoy_04",
+          "baselineScore": 0.88
+        },
+        {
+          "name": "Logic.decoy_05",
+          "baselineScore": 0.85
+        },
+        {
+          "name": "Logic.decoy_06",
+          "baselineScore": 0.82
+        },
+        {
+          "name": "Logic.decoy_07",
+          "baselineScore": 0.79
+        },
+        {
+          "name": "Logic.decoy_08",
+          "baselineScore": 0.76
+        },
+        {
+          "name": "Logic.decoy_09",
+          "baselineScore": 0.73
+        },
+        {
+          "name": "Logic.decoy_10",
+          "baselineScore": 0.7
+        },
+        {
+          "name": "Logic.decoy_11",
+          "baselineScore": 0.67
+        },
+        {
+          "name": "and_comm",
+          "baselineScore": 0.64
+        }
+      ]
+    }
+  ]
+}

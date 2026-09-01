@@ -1,0 +1,21 @@
+{
+  "version": "retrieval-v3",
+  "split": "development",
+  "frozen": true,
+  "caseCount": 6,
+  "files": [
+    {
+      "path": "benchmarks/retrieval-v3/development/fixtures.json",
+      "sha256": "152f5a91ff781e3f0d63a3107c5c7fbfba363a59f8e5146d83c3c6202b124cf2"
+    },
+    {
+      "path": "benchmarks/retrieval-v3/development/gold.json",
+      "sha256": "c8c3b3d8ef2bb12072d2cbadbdb53187492a12d2fa76739090ed7c798274e7e4"
+    }
+  ],
+  "candidateChannel": {
+    "id": "lexical-declaration-name",
+    "tunableOn": "development-only"
+  },
+  "createdAt": "2026-09-01T00:00:00.000Z"
+}

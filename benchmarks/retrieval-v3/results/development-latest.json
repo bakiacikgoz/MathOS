@@ -1,0 +1,340 @@
+{
+  "version": "retrieval-v3",
+  "split": "development",
+  "candidateChannel": "lexical-declaration-name",
+  "measuredAt": "2026-09-01T18:50:49.936Z",
+  "decision": "INCONCLUSIVE",
+  "checks": {
+    "hit10NonDecreasing": true,
+    "mrrMateriallyNonNegative": true,
+    "noMajorDomainRegression": true,
+    "noCompletenessRegression": true,
+    "latencyAcceptable": true,
+    "downstreamNonDecreasing": true,
+    "environmentReady": null
+  },
+  "reasons": [
+    "environmentReady:unavailable"
+  ],
+  "paired": {
+    "baseline": {
+      "rows": [
+        {
+          "id": "DEV-001",
+          "domain": "Algebra",
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 0,
+          "hit5": 0,
+          "hit10": 0,
+          "mrr": 0.08333333333333333,
+          "complete": true,
+          "latencyMs": 0.010916000000008808
+        },
+        {
+          "id": "DEV-002",
+          "domain": "Nat",
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 0,
+          "hit5": 0,
+          "hit10": 0,
+          "mrr": 0.08333333333333333,
+          "complete": true,
+          "latencyMs": 0.0014170000000035543
+        },
+        {
+          "id": "DEV-003",
+          "domain": "Logic",
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 0,
+          "hit5": 0,
+          "hit10": 0,
+          "mrr": 0.08333333333333333,
+          "complete": true,
+          "latencyMs": 0.002375000000000682
+        },
+        {
+          "id": "DEV-004",
+          "domain": "Algebra",
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 0,
+          "hit5": 0,
+          "hit10": 0,
+          "mrr": 0.08333333333333333,
+          "complete": true,
+          "latencyMs": 0.0017500000000012506
+        },
+        {
+          "id": "DEV-005",
+          "domain": "Nat",
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 0,
+          "hit5": 0,
+          "hit10": 0,
+          "mrr": 0.08333333333333333,
+          "complete": true,
+          "latencyMs": 0.0014999999999929514
+        },
+        {
+          "id": "DEV-006",
+          "domain": "Logic",
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 0,
+          "hit5": 0,
+          "hit10": 0,
+          "mrr": 0.08333333333333333,
+          "complete": true,
+          "latencyMs": 0.0008749999999935199
+        }
+      ],
+      "aggregate": {
+        "cases": 6,
+        "completeCases": 6,
+        "candidateRecall": 1,
+        "top200": 1,
+        "inspect30": 1,
+        "final20": 1,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0.08333333333333333,
+        "latencyMs": 0.003138833333333461
+      },
+      "domains": {
+        "Algebra": {
+          "cases": 2,
+          "completeCases": 2,
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 0,
+          "hit5": 0,
+          "hit10": 0,
+          "mrr": 0.08333333333333333,
+          "latencyMs": 0.006333000000005029
+        },
+        "Logic": {
+          "cases": 2,
+          "completeCases": 2,
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 0,
+          "hit5": 0,
+          "hit10": 0,
+          "mrr": 0.08333333333333333,
+          "latencyMs": 0.001624999999997101
+        },
+        "Nat": {
+          "cases": 2,
+          "completeCases": 2,
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 0,
+          "hit5": 0,
+          "hit10": 0,
+          "mrr": 0.08333333333333333,
+          "latencyMs": 0.0014584999999982529
+        }
+      }
+    },
+    "candidate": {
+      "rows": [
+        {
+          "id": "DEV-001",
+          "domain": "Algebra",
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 1,
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 1,
+          "complete": true,
+          "latencyMs": 0.07341600000000881
+        },
+        {
+          "id": "DEV-002",
+          "domain": "Nat",
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 1,
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 1,
+          "complete": true,
+          "latencyMs": 0.02429100000000517
+        },
+        {
+          "id": "DEV-003",
+          "domain": "Logic",
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 1,
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 1,
+          "complete": true,
+          "latencyMs": 0.016749999999987608
+        },
+        {
+          "id": "DEV-004",
+          "domain": "Algebra",
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 1,
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 1,
+          "complete": true,
+          "latencyMs": 0.028874999999999318
+        },
+        {
+          "id": "DEV-005",
+          "domain": "Nat",
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 1,
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 1,
+          "complete": true,
+          "latencyMs": 0.020291999999997756
+        },
+        {
+          "id": "DEV-006",
+          "domain": "Logic",
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 1,
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 1,
+          "complete": true,
+          "latencyMs": 0.01679099999999778
+        }
+      ],
+      "aggregate": {
+        "cases": 6,
+        "completeCases": 6,
+        "candidateRecall": 1,
+        "top200": 1,
+        "inspect30": 1,
+        "final20": 1,
+        "hit1": 1,
+        "hit5": 1,
+        "hit10": 1,
+        "mrr": 1,
+        "latencyMs": 0.030069166666666074
+      },
+      "domains": {
+        "Algebra": {
+          "cases": 2,
+          "completeCases": 2,
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 1,
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 1,
+          "latencyMs": 0.05114550000000406
+        },
+        "Logic": {
+          "cases": 2,
+          "completeCases": 2,
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 1,
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 1,
+          "latencyMs": 0.016770499999992694
+        },
+        "Nat": {
+          "cases": 2,
+          "completeCases": 2,
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 1,
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 1,
+          "latencyMs": 0.022291500000001463
+        }
+      }
+    },
+    "deltas": {
+      "candidateRecall": 0,
+      "top200": 0,
+      "inspect30": 0,
+      "final20": 0,
+      "hit1": 1,
+      "hit5": 1,
+      "hit10": 1,
+      "mrr": 0.9166666666666666,
+      "latencyMs": 0.026930333333332612
+    },
+    "completenessRegressions": [],
+    "domainHit10Deltas": {
+      "Algebra": 1,
+      "Logic": 1,
+      "Nat": 1
+    }
+  },
+  "downstream": {
+    "baseline": {
+      "k": 10,
+      "attempted": 6,
+      "successes": 0,
+      "rate": 0
+    },
+    "candidate": {
+      "k": 10,
+      "attempted": 6,
+      "successes": 6,
+      "rate": 1
+    }
+  },
+  "environment": {
+    "leanAvailable": false,
+    "note": "Lean unavailable; promotion is inconclusive"
+  }
+}

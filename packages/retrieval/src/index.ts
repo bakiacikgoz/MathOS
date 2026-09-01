@@ -52,3 +52,7 @@ export { normalizeScores, enrichForLean, fuseCandidateRanks, type FusionOptions,
 export { readInspectionCache, writeInspectionCache, inspectionCacheStats, storeInspection } from "./inspect-cache.ts"
 export { scoreExperiment, selectorExperiment, type RetrievalExperiment, type ExperimentalRetrievalContext, type ExperimentalScore } from "./experiments.ts"
 export { extractSemanticOperatorProfile, SEMANTIC_OPERATOR_PROFILE_VERSION, type SemanticOperatorProfile, type SemanticOperator, type RelationProfile, type RelationProperty } from "./semantic-operator-profile.ts"
+export * from "./evaluation/metrics.ts"
+export * from "./evaluation/paired-analysis.ts"
+export * from "./evaluation/downstream.ts"
+export * from "./evaluation/report.ts"
