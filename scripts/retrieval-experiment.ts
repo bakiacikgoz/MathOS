@@ -1,3 +1,4 @@
+import { resolve } from "node:path"
 import { mkdirSync, writeFileSync } from "node:fs"
 import {
   StratifiedInspectSelector,
@@ -20,8 +21,8 @@ import {
 import type { ExperimentalRetrievalContext, GoalProfile, PremiseCandidate, RetrievalExperiment } from "@mathos/retrieval"
 import { RETRIEVAL_VALIDATION_FIXTURES } from "../packages/retrieval/src/validation-fixtures.ts"
 
-const DEMO = "/Users/yazilim/Projects/mathos/demo"
-const OUT = "/Users/yazilim/Projects/mathos/benchmarks/retrieval-experiments"
+const DEMO = resolve(resolve(import.meta.dir, ".."), "demo")
+const OUT = resolve(import.meta.dir, "../benchmarks/retrieval-experiments")
 const TARGET_DOMAINS = new Set(["algebra", "Nat/Int", "relations"])
 const ALGEBRA_CLASSES = ["monoid", "group", "ring", "semiring", "addgroup", "linearorderedring", "module", "field"]
 const GENERIC = new Set(["theorem", "validation", "a", "b", "c", "x", "y", "n", "m", "α", "β", "prop", "type", "eq"])

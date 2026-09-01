@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { join, resolve } from "node:path"
 import { MathOS, createDemoWorkspace } from "@mathos/core"
 import { DatabaseClient, SCHEMA_EPOCH } from "@mathos/storage"
 import { WorkspaceSchemaTooNew, mathosVersion } from "@mathos/shared"
@@ -83,7 +83,7 @@ export async function runReleaseEval(): Promise<ReleaseRow[]> {
         model.enqueue({ proofBody: "by\n  trivial" })
       }
       const leanWs = await MathOS.init(parent, "lean-pilot")
-      const leanApp = MathOS.open(leanWs.root, { modelProvider: model, auditorProvider: model, leanAdapter: lean, vcs: new FakeVcs(), formalProjectRoot: join(process.cwd(), "demo", "formal") })
+      const leanApp = MathOS.open(leanWs.root, { modelProvider: model, auditorProvider: model, leanAdapter: lean, vcs: new FakeVcs(), formalProjectRoot: resolve(import.meta.dir, "../../../demo/formal") })
       const claim = leanApp.createClaim({ kind: "theorem", title: "pilot", statement: "True", asMainObjective: true })
       const fs = await leanApp.formalize(claim.id)
       leanApp.approveFormal(fs.formalStatement.id)

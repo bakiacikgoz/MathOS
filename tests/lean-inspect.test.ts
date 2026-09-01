@@ -1,7 +1,8 @@
+import { resolve } from "node:path"
 import { describe, expect, test } from "bun:test"
 import { NativeLeanAdapter, parseCheckOutput } from "@mathos/lean"
 
-const DEMO = "/Users/yazilim/Projects/mathos/demo"
+const DEMO = resolve(resolve(import.meta.dir, ".."), "demo")
 
 describe("real lean declaration inspect", () => {
   test("batch inspect Eq.refl Finset.card_union_le Nat.add_le_add", async () => {

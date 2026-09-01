@@ -1,10 +1,11 @@
+import { resolve } from "node:path"
 import { describe, expect, test } from "bun:test"
 import { createHash } from "node:crypto"
 import { readFileSync } from "node:fs"
 import { extractV2CandidateEvidence, V2_CANDIDATE_CONFIG } from "../packages/retrieval/src/semantic-operator-profile-v2-candidate.ts"
 import { assertV2SetAllowed } from "../scripts/semantic-profile-v2.ts"
 
-const ROOT = "/Users/yazilim/Projects/mathos"
+const ROOT = resolve(import.meta.dir, "..")
 const immutable = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-experiments/semantic-v1-immutable.json`, "utf8"))
 const regressions = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-experiments/semantic-v1-regressions.json`, "utf8"))
 const candidate = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-experiments/semantic-operator-profile-v2-candidate.json`, "utf8"))

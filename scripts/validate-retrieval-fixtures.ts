@@ -1,3 +1,4 @@
+import { resolve } from "node:path"
 import { NativeLeanAdapter } from "@mathos/lean"
 import { MATHLIB_FIXTURES } from "@mathos/retrieval"
 import { RETRIEVAL_VALIDATION_FIXTURES, RETRIEVAL_VALIDATION_METADATA } from "../packages/retrieval/src/validation-fixtures.ts"
@@ -17,8 +18,8 @@ export async function validateRetrievalFixtures(): Promise<FixtureValidationRepo
   const duplicatesWithDevelopment = names.filter((name) => development.has(name.toLowerCase()))
   const adapter = new NativeLeanAdapter()
   const inspected = await adapter.inspectDeclarations(names, {
-    workspaceRoot: "/Users/yazilim/Projects/mathos/demo",
-    formalProjectRoot: "/Users/yazilim/Projects/mathos/demo/formal",
+    workspaceRoot: resolve(import.meta.dir, "../demo"),
+    formalProjectRoot: resolve(import.meta.dir, "../demo/formal"),
   }, { timeoutMs: 180_000 })
   const byName = new Map(inspected.inspections.map((row) => [row.name, row]))
   const missing = names.filter((name) => {

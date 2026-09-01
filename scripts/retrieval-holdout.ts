@@ -1,3 +1,4 @@
+import { resolve } from "node:path"
 import { writeFileSync } from "node:fs"
 import {
   StratifiedInspectSelector,
@@ -14,7 +15,7 @@ import {
 } from "@mathos/retrieval"
 import { RETRIEVAL_HOLDOUT_FIXTURES, RETRIEVAL_HOLDOUT_METADATA } from "../packages/retrieval/src/holdout-fixtures.ts"
 
-const ROOT = "/Users/yazilim/Projects/mathos"
+const ROOT = resolve(import.meta.dir, "..")
 const DEMO = `${ROOT}/demo`
 const RESULT_PATH = `${ROOT}/benchmarks/retrieval-holdout-v1-results.json`
 const WEAK = new Set(["Algebra", "Nat", "Int", "Relations"])

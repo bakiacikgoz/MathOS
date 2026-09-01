@@ -1,6 +1,6 @@
 import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { join, resolve } from "node:path"
 import { MathOS, FakeResearchPlanner } from "@mathos/core"
 import { FakeModelProvider } from "@mathos/models"
 import { FakeLeanAdapter, NativeLeanAdapter } from "@mathos/lean"
@@ -133,7 +133,7 @@ export async function runResearchScenario(scenario: ResearchEvalScenario, mode: 
       researchPlanner: planner,
       vcs: new FakeVcs(),
       premiseRetriever: new InMemoryPremiseRetriever(),
-      formalProjectRoot: mode === "native" ? "/Users/yazilim/Projects/mathos/demo/formal" : undefined,
+      formalProjectRoot: mode === "native" ? resolve(import.meta.dir, "../../../demo/formal") : undefined,
     })
     const claim = app.createClaim({ kind: "conjecture", title: scenario.id, statement: scenario.objective, asMainObjective: true })
     const session = await app.formalize(claim.id)

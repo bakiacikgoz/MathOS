@@ -1,3 +1,4 @@
+import { resolve } from "node:path"
 import { readFileSync, writeFileSync } from "node:fs"
 import {
   StratifiedInspectSelector,
@@ -13,7 +14,7 @@ import {
 } from "@mathos/retrieval"
 import { RETRIEVAL_HOLDOUT_FIXTURES } from "../packages/retrieval/src/holdout-fixtures.ts"
 
-const ROOT = "/Users/yazilim/Projects/mathos"
+const ROOT = resolve(import.meta.dir, "..")
 const DEMO = `${ROOT}/demo`
 const RESULT = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-holdout-v1-results.json`, "utf8"))
 const HURT = new Set(RESULT.paired.fixtures.filter((row: any) => row.classification === "HURT").map((row: any) => row.id))

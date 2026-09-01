@@ -1,10 +1,13 @@
+import { resolve } from "node:path"
 import { describe, expect, test } from "bun:test"
 import { readFileSync } from "node:fs"
 import { createHash } from "node:crypto"
 
+const ROOT = resolve(import.meta.dir, "..")
+
 describe("retrieval closeout artifacts", () => {
   test("V2 decision is REJECTED and hashes match frozen files", () => {
-    const root = "/Users/yazilim/Projects/mathos"
+    const root = ROOT
     const decision = JSON.parse(readFileSync(`${root}/benchmarks/retrieval-experiments/semantic-operator-profile-v2-decision.json`, "utf8"))
     const governance = JSON.parse(readFileSync(`${root}/benchmarks/retrieval-governance.json`, "utf8"))
     const sha = (path: string) => createHash("sha256").update(readFileSync(`${root}/${path}`)).digest("hex")

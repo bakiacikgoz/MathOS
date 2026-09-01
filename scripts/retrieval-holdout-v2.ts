@@ -1,3 +1,4 @@
+import { resolve } from "node:path"
 import { createHash } from "node:crypto"
 import { readFileSync, statSync, writeFileSync } from "node:fs"
 import { performance } from "node:perf_hooks"
@@ -8,7 +9,7 @@ import {
 import { RETRIEVAL_HOLDOUT_V2_FIXTURES, RETRIEVAL_HOLDOUT_V2_METADATA } from "../packages/retrieval/src/holdout-v2-fixtures.ts"
 import { applyFrozenSemanticV2RankCap, evaluateFrozenSemanticV2Compatibility, extractFrozenSemanticV2Evidence } from "../packages/retrieval/src/semantic-operator-profile-v2.ts"
 
-const ROOT = "/Users/yazilim/Projects/mathos"
+const ROOT = resolve(import.meta.dir, "..")
 const DEMO = `${ROOT}/demo`
 const RESULT = `${ROOT}/benchmarks/retrieval-holdout-v2-results.json`
 const MANIFEST = `${ROOT}/benchmarks/retrieval-holdout-v2-manifest.json`

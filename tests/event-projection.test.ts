@@ -1,12 +1,13 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { join, resolve } from "node:path"
 import { MathOS } from "@mathos/core"
 import { DatabaseClient, EventRepository } from "@mathos/storage"
 import { databasePath, eventLogPath } from "@mathos/shared"
 
 const temps: string[] = []
+const repositoryRoot = resolve(import.meta.dir, "..")
 const tempDir = () => { const value = mkdtempSync(join(tmpdir(), "mathos-events-")); temps.push(value); return value }
 afterEach(() => { for (const value of temps.splice(0)) rmSync(value, { recursive: true, force: true }) })
 
@@ -106,7 +107,7 @@ test("hard process exits recover deterministically at every transaction/projecti
   ] as const
   for (const [point, committed, projected] of boundaries) {
     const created = await MathOS.init(tempDir(), `hard-${point}`)
-    const child = Bun.spawnSync([process.execPath, join(process.cwd(), "tests/fixtures/event-crash-child.ts"), created.root, point], { cwd: process.cwd(), stdout: "pipe", stderr: "pipe" })
+    const child = Bun.spawnSync([process.execPath, join(import.meta.dir, "fixtures/event-crash-child.ts"), created.root, point], { cwd: repositoryRoot, stdout: "pipe", stderr: "pipe" })
     expect(child.exitCode).toBe(77)
     const db = new DatabaseClient(databasePath(created.root)); const workspace = db.db.query<{id:string},[]>("SELECT id FROM workspaces").get()!
     const claimCount = Number(db.db.query<{n:number},[]>("SELECT COUNT(*) AS n FROM claims").get()!.n)
@@ -127,7 +128,7 @@ test("hard process exits recover deterministically at every transaction/projecti
 test("rebuild serializes with a live cross-process writer", async () => {
   const created = await MathOS.init(tempDir(), "concurrent-rebuild")
   const app = MathOS.open(created.root)
-  const child = Bun.spawn([process.execPath, join(process.cwd(), "tests/fixtures/event-writer-child.ts"), created.root, "20"], { cwd: process.cwd(), stdout: "pipe", stderr: "pipe" })
+  const child = Bun.spawn([process.execPath, join(import.meta.dir, "fixtures/event-writer-child.ts"), created.root, "20"], { cwd: repositoryRoot, stdout: "pipe", stderr: "pipe" })
   for (let index = 0; index < 30; index += 1) app.rebuildEventProjection()
   expect(await child.exited).toBe(0)
   app.rebuildEventProjection()
@@ -141,7 +142,7 @@ test("rebuild serializes with a live cross-process writer", async () => {
 test("events rebuild is available through the CLI", async () => {
   const created = await MathOS.init(tempDir(), "cli-rebuild")
   writeFileSync(eventLogPath(created.root), "drift\n", "utf8")
-  const cli = join(process.cwd(), "apps/tui/src/cli.ts")
+  const cli = join(repositoryRoot, "apps/tui/src/cli.ts")
   const result = Bun.spawnSync([process.execPath, cli, "events", "rebuild"], { cwd: created.root, stdout: "pipe", stderr: "pipe" })
   expect(result.exitCode).toBe(0)
   expect(result.stdout.toString()).toContain("Event projection rebuilt")

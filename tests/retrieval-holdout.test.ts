@@ -1,3 +1,4 @@
+import { resolve } from "node:path"
 import { describe, expect, test } from "bun:test"
 import { readFileSync } from "node:fs"
 import { createHash } from "node:crypto"
@@ -8,7 +9,7 @@ import { RETRIEVAL_HOLDOUT_FIXTURES, RETRIEVAL_HOLDOUT_METADATA } from "../packa
 import { bootstrapPaired, classifyPairedRanks } from "../scripts/retrieval-holdout.ts"
 import { validateRetrievalHoldout } from "../scripts/validate-retrieval-holdout.ts"
 
-const ROOT = "/Users/yazilim/Projects/mathos"
+const ROOT = resolve(import.meta.dir, "..")
 const SPEC = `${ROOT}/benchmarks/retrieval-experiments/semantic-operator-profile-v1.json`
 const INDEX = `${ROOT}/demo/.mathos/index/declarations.json`
 const hash = (path: string) => createHash("sha256").update(readFileSync(path)).digest("hex")

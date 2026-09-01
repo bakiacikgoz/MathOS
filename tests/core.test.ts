@@ -149,6 +149,7 @@ describe("doctor", () => {
       const report = await app.doctor()
       const names = report.checks.map((check) => check.name)
       expect(names).toEqual([
+        "Platform support",
         "Bun",
         "Git",
         "SQLite",

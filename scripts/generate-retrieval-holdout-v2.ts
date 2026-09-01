@@ -1,3 +1,4 @@
+import { resolve } from "node:path"
 import { createHash } from "node:crypto"
 import { NativeLeanAdapter } from "@mathos/lean"
 import { MATHLIB_FIXTURES, readIndex } from "@mathos/retrieval"
@@ -6,7 +7,7 @@ import { RETRIEVAL_HOLDOUT_FIXTURES } from "../packages/retrieval/src/holdout-fi
 import { formalGoalFingerprint } from "../packages/retrieval/src/holdout-v2-fingerprint.ts"
 import { writeFileSync } from "node:fs"
 
-const ROOT = "/Users/yazilim/Projects/mathos"
+const ROOT = resolve(import.meta.dir, "..")
 const DEMO = `${ROOT}/demo`
 const OUTPUT = `${ROOT}/packages/retrieval/src/holdout-v2-fixtures.ts`
 export const HOLDOUT_V2_SEED = "mathos-retrieval-holdout-v2-2026-08-24-independent-sample"

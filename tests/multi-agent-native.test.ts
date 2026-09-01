@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { join, resolve } from "node:path"
 import { MathOS, FakeResearchPlanner } from "@mathos/core"
 import { FakeModelProvider } from "@mathos/models"
 import { NativeLeanAdapter } from "@mathos/lean"
@@ -9,7 +9,7 @@ import { FakeVcs } from "@mathos/vcs"
 import { HybridPremiseRetriever, InMemoryPremiseRetriever } from "@mathos/retrieval"
 import type { ResearchDecision } from "@mathos/domain"
 
-const DEMO = "/Users/yazilim/Projects/mathos/demo"
+const DEMO = resolve(resolve(import.meta.dir, ".."), "demo")
 const DEMO_FORMAL = `${DEMO}/formal`
 const temps: string[] = []
 function tempDir() {

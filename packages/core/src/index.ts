@@ -1,5 +1,6 @@
 export { MathOS, type MathOSOptions } from "./mathos.ts"
-export { buildDoctorReport } from "./doctor.ts"
+export { buildDoctorReport, inspectPlatformCapabilities } from "./doctor.ts"
+export type { PlatformCapabilityReport, PlatformReleaseClaim } from "./doctor.ts"
 export { runResearchIntake } from "./intake.ts"
 export { parseFormalizationDraft } from "./formalize.ts"
 export { parseFidelityPayload } from "./fidelity.ts"

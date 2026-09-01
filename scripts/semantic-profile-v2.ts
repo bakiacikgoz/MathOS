@@ -1,3 +1,4 @@
+import { resolve } from "node:path"
 import { writeFileSync } from "node:fs"
 import {
   MATHLIB_FIXTURES,
@@ -15,7 +16,7 @@ import {
 } from "@mathos/retrieval"
 import { RETRIEVAL_VALIDATION_FIXTURES } from "../packages/retrieval/src/validation-fixtures.ts"
 
-const ROOT = "/Users/yazilim/Projects/mathos"
+const ROOT = resolve(import.meta.dir, "..")
 const DEMO = `${ROOT}/demo`
 const MODES = ["BASELINE", "EXACT_ONLY", "EXACT_MULTIPLICITY", "EXACT_SEQUENCE", "MORPHOLOGY_ONLY", "OPERATORS_MORPHOLOGY", "RELATION_ONLY", "ARITHMETIC_ONLY", "V2_CANDIDATE"] as const
 type Mode = typeof MODES[number]

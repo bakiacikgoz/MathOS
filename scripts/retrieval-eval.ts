@@ -1,3 +1,4 @@
+import { resolve } from "node:path"
 import {
   MATHLIB_FIXTURES,
   StratifiedInspectSelector,
@@ -18,7 +19,7 @@ import { NativeLeanAdapter } from "@mathos/lean"
 import type { LeanDeclarationInspection } from "@mathos/lean"
 import { RETRIEVAL_VALIDATION_FIXTURES, RETRIEVAL_VALIDATION_METADATA } from "../packages/retrieval/src/validation-fixtures.ts"
 
-const DEMO = "/Users/yazilim/Projects/mathos/demo"
+const DEMO = resolve(resolve(import.meta.dir, ".."), "demo")
 const FUSION_WEIGHTS = [[0.30, 0.70], [0.40, 0.60], [0.45, 0.55], [0.50, 0.50], [0.60, 0.40], [0.70, 0.30]] as const
 
 export type RetrievalFailureReason = "NOT_INDEXED" | "NOT_GENERATED" | "OUTSIDE_TOP200" | "OUTSIDE_INSPECT30" | "LEAN_INSPECTION_FAILED" | "OUTSIDE_FINAL20"

@@ -1,6 +1,6 @@
 import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { join, resolve } from "node:path"
 import { NativeLeanAdapter, type InspectDeclarationsOptions, type LeanAdapter, type LeanContext } from "@mathos/lean"
 import { createModelProvider, isModelReady, resolveModelConfig, type ModelProvider, type ModelRequest, type ModelResponse, type StructuredModelRequest } from "@mathos/models"
 import { HybridPremiseRetriever } from "@mathos/retrieval"
@@ -83,7 +83,7 @@ export async function runRealResearchCase(item: RealResearchCase, options: { kee
   const config = resolveModelConfig()
   if (!isModelReady(config)) return blocked(item, "MODEL_CONFIGURATION_MISSING", config.model || null, null)
   const lean = new CountingLeanAdapter(new NativeLeanAdapter())
-  const detected = await lean.detect(process.cwd())
+  const detected = await lean.detect(resolve(import.meta.dir, "../../../.."))
   if (!detected.leanAvailable || !detected.lakeAvailable) return blocked(item, "REAL_LEAN_UNAVAILABLE", config.model, detected.leanVersion)
 
   const container = mkdtempSync(join(tmpdir(), `mathos-real-${item.id}-`))

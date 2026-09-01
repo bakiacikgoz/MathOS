@@ -1,14 +1,14 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { join, resolve } from "node:path"
 import { MathOS, FakeResearchPlanner } from "@mathos/core"
 import { FakeModelProvider } from "@mathos/models"
 import { NativeLeanAdapter } from "@mathos/lean"
 import { FakeVcs } from "@mathos/vcs"
 import { InMemoryPremiseRetriever } from "@mathos/retrieval"
 
-const DEMO_FORMAL = "/Users/yazilim/Projects/mathos/demo/formal"
+const DEMO_FORMAL = resolve(resolve(import.meta.dir, ".."), "demo/formal")
 const temps: string[] = []
 function tempDir() {
   const dir = mkdtempSync(join(tmpdir(), "mathos-native-"))

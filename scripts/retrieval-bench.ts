@@ -1,3 +1,4 @@
+import { resolve } from "node:path"
 import {
   AggregateInspectSelector,
   diagnoseFixtures,
@@ -18,7 +19,7 @@ import type { FusionMethod, GoalProfile, InspectSelectorMode, PremiseCandidate }
 import type { LeanDeclarationInspection } from "@mathos/lean"
 import { NativeLeanAdapter } from "@mathos/lean"
 
-const DEMO = "/Users/yazilim/Projects/mathos/demo"
+const DEMO = resolve(resolve(import.meta.dir, ".."), "demo")
 const cacheFile = await Bun.file(`${DEMO}/.mathos/index/lean-inspection-cache.json`).json().catch(() => ({ entries: {} })) as {
   entries: Record<string, { inspection: LeanDeclarationInspection }>
 }

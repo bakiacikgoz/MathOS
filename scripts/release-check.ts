@@ -2,11 +2,14 @@
 import { spawnSync } from "node:child_process"
 import { runReleaseEval } from "../packages/core/src/release-eval.ts"
 import { mathosVersion } from "@mathos/shared"
+import { resolve } from "node:path"
 
 const json = process.argv.includes("--json")
 const rows: Array<{ name: string; result: string; detail?: string }> = []
 
-function run(name: string, cmd: string[], cwd = process.cwd()) {
+const repositoryRoot = resolve(import.meta.dir, "..")
+
+function run(name: string, cmd: string[], cwd = repositoryRoot) {
   const proc = spawnSync(cmd[0]!, cmd.slice(1), { cwd, encoding: "utf8", env: { ...process.env, PATH: process.env.PATH } })
   const ok = proc.status === 0
   rows.push({ name, result: ok ? "PASS" : "FAIL", detail: ok ? undefined : (proc.stderr || proc.stdout).slice(0, 400) })

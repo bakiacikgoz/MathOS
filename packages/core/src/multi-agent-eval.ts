@@ -1,6 +1,6 @@
 import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { join, resolve } from "node:path"
 import { MathOS, FakeResearchPlanner, FakeMultiAgentPlanner } from "@mathos/core"
 import { FakeModelProvider } from "@mathos/models"
 import { FakeLeanAdapter, NativeLeanAdapter } from "@mathos/lean"
@@ -31,7 +31,7 @@ async function boot(mode: "fake" | "native", extra: Record<string, unknown> = {}
     leanAdapter: lean,
     vcs: new FakeVcs(),
     premiseRetriever: new InMemoryPremiseRetriever(),
-    formalProjectRoot: mode === "native" ? "/Users/yazilim/Projects/mathos/demo/formal" : undefined,
+    formalProjectRoot: mode === "native" ? resolve(import.meta.dir, "../../../demo/formal") : undefined,
     ...extra,
   })
   await app.setupResearchVersioning()

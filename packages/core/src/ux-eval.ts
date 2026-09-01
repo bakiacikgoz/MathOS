@@ -1,6 +1,6 @@
 import { mkdtempSync, rmSync, readFileSync, readdirSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { join, resolve } from "node:path"
 import { MathOS, createDemoWorkspace, formatInitReport, formatTypedUserError, formatConfigShow, emptyStates } from "@mathos/core"
 import { FakeModelProvider } from "@mathos/models"
 import { FakeLeanAdapter } from "@mathos/lean"
@@ -76,7 +76,7 @@ export async function runUxEval(): Promise<UxEvalRow[]> {
     rows.push(ok ? pass("fresh-init") : fail("fresh-init", report.slice(0, 200)))
     const app = MathOS.open(created.root, { vcs: new FakeVcs(), leanAdapter: new FakeLeanAdapter() })
     const homeEmpty = app.workspaceHome()
-    rows.push(homeEmpty.includes("No research objective yet") && homeEmpty.includes("MAIN OBJECTIVE") ? pass("empty-states") : fail("empty-states", homeEmpty.slice(0, 120)))
+    rows.push(homeEmpty.includes("No research objective yet") && homeEmpty.includes("Objective") ? pass("empty-states") : fail("empty-states", homeEmpty.slice(0, 120)))
     const env = app.environmentReadinessText((await app.doctor()).checks)
     rows.push(env.includes("ENVIRONMENT") && !env.includes("73%") ? pass("environment-readiness") : fail("environment-readiness", env.slice(0, 120)))
     app.close()
@@ -92,7 +92,7 @@ export async function runUxEval(): Promise<UxEvalRow[]> {
     const reopen = first.reopenSummary()
     const status = first.statusSummary()
     const obj = first.status().mainObjective
-    rows.push(home.includes("MATHOS") && home.includes("MAIN OBJECTIVE") && Boolean(obj) ? pass("workspace-home") : fail("workspace-home", home.slice(0, 160)))
+    rows.push(home.includes("MATHOS") && home.includes("Objective") && Boolean(obj) ? pass("workspace-home") : fail("workspace-home", home.slice(0, 160)))
     rows.push(home.includes("Create") || home.includes("Objective") ? pass("objective-create") : fail("objective-create", "no objective"))
     rows.push(reopen.includes("WELCOME BACK") && reopen.includes("does not call a model") ? pass("reopen-summary") : fail("reopen-summary", reopen.slice(0, 160)))
     rows.push(status.includes("MATHOS WORKSPACE") && status.includes("kernel verified") ? pass("status-summary") : fail("status-summary", status.slice(0, 160)))
@@ -103,17 +103,17 @@ export async function runUxEval(): Promise<UxEvalRow[]> {
     rows.push(page.includes("CLAIM") && page.includes("Status") ? pass("claim-detail") : fail("claim-detail", page.slice(0, 160)))
     const lemma = first.listClaims().find((item) => item.kind === "lemma")
     const whyV = lemma ? first.whyClaim(lemma.id) : ""
-    rows.push(whyV.includes("Why KERNEL_VERIFIED") && whyV.includes("VerificationGate PASS") ? pass("why-verified") : fail("why-verified", whyV.slice(0, 200)))
+    rows.push(whyV.includes("WHY VERIFIED") && whyV.includes("VerificationGate KERNEL_ACCEPTED") ? pass("why-verified") : fail("why-verified", whyV.slice(0, 200)))
     const whyN = first.whyClaim(claimId)
-    rows.push(whyN.includes("WHY NOT VERIFIED") || whyN.includes("Why KERNEL_VERIFIED") ? pass("why-not-verified") : fail("why-not-verified", whyN.slice(0, 160)))
+    rows.push(whyN.includes("WHY NOT VERIFIED") || whyN.includes("WHY VERIFIED") ? pass("why-not-verified") : fail("why-not-verified", whyN.slice(0, 160)))
     const vr = first.productState().snapshot.verifications[0]
     const vtext = lemma ? first.whyClaim(lemma.id) : ""
     rows.push(vr && vtext.includes(vr.id) || vtext.includes("VerificationGate") ? pass("verification-detail") : fail("verification-detail", "missing gate id"))
     const led = first.ledgerText(lemma?.id ?? claimId)
     rows.push(led.includes("LEDGER") && (led.includes("claim_created") || led.includes("UNKNOWN_OR_LEGACY") || led.includes("verification")) ? pass("ledger") : fail("ledger", led.slice(0, 160)))
     rows.push(first.blockersPanel().includes("BLOCKERS") ? pass("blocker-review") : fail("blocker-review", "missing"))
-    rows.push(first.experimentsPanel().includes("EXPERIMENTS") && first.experimentsPanel().includes("NOT PROOF") ? pass("experiment-panel") : fail("experiment-panel", first.experimentsPanel().slice(0, 120)))
-    rows.push(first.literatureHome().includes("LITERATURE") && first.literatureHome().includes("NOT KERNEL VERIFIED") ? pass("literature-panel") : fail("literature-panel", first.literatureHome().slice(0, 120)))
+    rows.push(first.experimentsPanel().includes("EXPERIMENTS") && first.experimentsPanel().includes("NOT A PROOF") ? pass("experiment-panel") : fail("experiment-panel", first.experimentsPanel().slice(0, 120)))
+    rows.push(first.literatureHome().includes("LITERATURE") && first.literatureHome().includes("NOT A PROOF") ? pass("literature-panel") : fail("literature-panel", first.literatureHome().slice(0, 120)))
     const graph = first.buildGraph()
     const claimNode = graph.nodes.find((node) => node.kind === "CLAIM" || node.kind === "OBJECTIVE")
     rows.push(claimNode ? pass("graph-to-claim-navigation") : fail("graph-to-claim-navigation", "no claim node"))
@@ -137,9 +137,10 @@ export async function runUxEval(): Promise<UxEvalRow[]> {
 
   const runtimeFiles = ["packages/core/src/mathos.ts", "packages/core/src/doctor.ts", "apps/tui/src/headless.ts", "apps/tui/src/ui/AppShell.tsx"]
   let leaked = false
+  const repositoryRoot = resolve(import.meta.dir, "../../..")
   for (const file of runtimeFiles) {
-    const text = readFileSync(join("/Users/yazilim/Projects/mathos", file), "utf8")
-    if (text.includes("/Users/yazilim/Projects/mathos")) leaked = true
+    const text = readFileSync(join(repositoryRoot, file), "utf8")
+    if (/\/Users\/[^/\s]+\//u.test(text)) leaked = true
   }
   rows.push(!leaked ? pass("absolute-runtime-path-independence") : fail("absolute-runtime-path-independence", "hardcoded path"))
 

@@ -1,3 +1,4 @@
+import { resolve } from "node:path"
 import { performance } from "node:perf_hooks"
 import { writeFileSync } from "node:fs"
 import {
@@ -17,7 +18,7 @@ import {
 import { RETRIEVAL_VALIDATION_FIXTURES } from "../packages/retrieval/src/validation-fixtures.ts"
 import { boundedSemanticRank, evaluateSemanticCandidateCompatibility, type SemanticCompatibilityStrategy } from "../packages/retrieval/src/semantic-operator-profile-v2-stability.ts"
 
-const ROOT = "/Users/yazilim/Projects/mathos"
+const ROOT = resolve(import.meta.dir, "..")
 const DEMO = `${ROOT}/demo`
 const CAPS = [4, 6, 8, 10, 12, 16, 20]
 const STRATEGIES: SemanticCompatibilityStrategy[] = ["COMP-A", "COMP-B", "COMP-C", "COMP-D"]

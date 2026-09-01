@@ -1,3 +1,4 @@
+import { resolve } from "node:path"
 import { describe, expect, test } from "bun:test"
 import { createHash } from "node:crypto"
 import { readFileSync } from "node:fs"
@@ -10,7 +11,7 @@ import { formalGoalFingerprint } from "../packages/retrieval/src/holdout-v2-fing
 import { HOLDOUT_V2_QUOTAS, HOLDOUT_V2_SEED } from "../scripts/generate-retrieval-holdout-v2.ts"
 import { assertFrozenManifest, bootstrapPaired, classifyPaired } from "../scripts/retrieval-holdout-v2.ts"
 
-const ROOT = "/Users/yazilim/Projects/mathos"
+const ROOT = resolve(import.meta.dir, "..")
 const DATASET = "packages/retrieval/src/holdout-v2-fixtures.ts"
 const manifest = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-holdout-v2-manifest.json`, "utf8"))
 const sha = (path: string) => createHash("sha256").update(readFileSync(`${ROOT}/${path}`)).digest("hex")

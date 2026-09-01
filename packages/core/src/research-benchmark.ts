@@ -2,7 +2,7 @@ import { createHash } from "node:crypto"
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { mkdtempSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { join, resolve } from "node:path"
 import { MathOS } from "./mathos.ts"
 import { FakeResearchPlanner, ModelResearchPlanner } from "./research-planner.ts"
 import { FakeModelProvider, resolveModelConfig } from "@mathos/models"
@@ -21,8 +21,9 @@ import { RESEARCH_BENCHMARK_SOLUTIONS } from "../../../benchmarks/research-bench
 
 export const BENCHMARK_NAME = "mathos-research-benchmark-v1"
 export const BENCHMARK_VERSION = "v1.0.0"
-export const FORMAL_ROOT = "/Users/yazilim/Projects/mathos/demo/formal"
-export const RESULTS_DIR = "/Users/yazilim/Projects/mathos/benchmarks/results/research-benchmark"
+const REPOSITORY_ROOT = resolve(import.meta.dir, "../../..")
+export const FORMAL_ROOT = resolve(REPOSITORY_ROOT, "demo/formal")
+export const RESULTS_DIR = resolve(REPOSITORY_ROOT, "benchmarks/results/research-benchmark")
 export const MATHLIB_REV = "0df444a360eaa60ab8c11dca51a86af692955474"
 
 export function publicFixtures(): ResearchBenchmarkFixture[] {
@@ -323,7 +324,7 @@ export function selectFixtures(opts: { tier?: string; domain?: string; fixture?:
 }
 
 export function writeDatasetArtifact() {
-  const dir = "/Users/yazilim/Projects/mathos/benchmarks/research-benchmark-v1"
+  const dir = resolve(REPOSITORY_ROOT, "benchmarks/research-benchmark-v1")
   mkdirSync(dir, { recursive: true })
   const payload = {
     schemaVersion: "research-benchmark-v1",
@@ -351,7 +352,7 @@ export function writeGovernance() {
       notes: "NO_TUNING_ON_BENCHMARK. Create research-dev-v1 for planner work. Do not reuse retrieval holdouts.",
     },
   }
-  writeFileSync("/Users/yazilim/Projects/mathos/benchmarks/research-benchmark-governance.json", `${JSON.stringify(payload, null, 2)}\n`)
+  writeFileSync(resolve(REPOSITORY_ROOT, "benchmarks/research-benchmark-governance.json"), `${JSON.stringify(payload, null, 2)}\n`)
   return payload
 }
 
@@ -395,7 +396,7 @@ export async function validateLeanReferences(): Promise<{ statements: boolean; s
 
 export function credentialsAvailable(): boolean {
   try {
-    const config = resolveModelConfig("/Users/yazilim/Projects/mathos")
+    const config = resolveModelConfig({ workspaceRoot: REPOSITORY_ROOT })
     return Boolean(config.apiKey && config.model)
   } catch {
     return false

@@ -4,6 +4,9 @@ import { RETRIEVAL_VALIDATION_FIXTURES, RETRIEVAL_VALIDATION_METADATA } from "..
 import { evaluateRetrieval, failureAggregate } from "../scripts/retrieval-eval.ts"
 import { compareRetrievalBaseline } from "../scripts/retrieval-regression.ts"
 import { validateRetrievalFixtures } from "../scripts/validate-retrieval-fixtures.ts"
+import { resolve } from "node:path"
+
+const repositoryRoot = resolve(import.meta.dir, "..")
 
 let reportPromise: ReturnType<typeof evaluateRetrieval> | null = null
 function validationReport() {
@@ -67,7 +70,7 @@ describe("retrieval validation dataset", () => {
   })
 
   test("JSON benchmark output is machine readable", () => {
-    const result = Bun.spawnSync(["bun", "scripts/retrieval-eval.ts", "--json"], { cwd: process.cwd(), stdout: "pipe", stderr: "pipe", timeout: 60_000 })
+    const result = Bun.spawnSync([process.execPath, resolve(repositoryRoot, "scripts/retrieval-eval.ts"), "--json"], { cwd: repositoryRoot, stdout: "pipe", stderr: "pipe", timeout: 60_000 })
     expect(result.exitCode).toBe(0)
     const parsed = JSON.parse(new TextDecoder().decode(result.stdout))
     expect(parsed.development.set).toBe("development")

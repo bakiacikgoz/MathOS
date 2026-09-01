@@ -1,3 +1,4 @@
+import { resolve } from "node:path"
 import { describe, expect, test } from "bun:test"
 import { createHash } from "node:crypto"
 import { readFileSync } from "node:fs"
@@ -7,7 +8,7 @@ import { applyFrozenSemanticV2RankCap, evaluateFrozenSemanticV2Compatibility, MO
 import { boundedSemanticRank, evaluateSemanticCandidateCompatibility } from "../packages/retrieval/src/semantic-operator-profile-v2-stability.ts"
 import { assertStabilityDataset } from "../scripts/semantic-profile-v2-stability.ts"
 
-const ROOT = "/Users/yazilim/Projects/mathos"
+const ROOT = resolve(import.meta.dir, "..")
 const stability = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-experiments/semantic-operator-profile-v2-stability.json`, "utf8"))
 const spec = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-experiments/semantic-operator-profile-v2.json`, "utf8"))
 const hashes = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-experiments/semantic-operator-profile-v2-frozen-hashes.json`, "utf8"))

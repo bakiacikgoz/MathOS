@@ -4,6 +4,57 @@ import type { DoctorCheck, DoctorReport } from "@mathos/domain"
 import { databasePath, eventLogPath, MATHOS_DIR } from "@mathos/shared"
 import { isWorkspaceRoot, requiredPaths } from "@mathos/workspace"
 
+export type PlatformReleaseClaim = "SUPPORTED" | "UNTESTED" | "NOT_TESTED"
+
+export interface PlatformCapabilityReport {
+  platform: NodeJS.Platform
+  releaseClaim: PlatformReleaseClaim
+  runtime: { available: boolean; path: string | null }
+  sandbox: { available: boolean; backend: string | null; networkIsolation: boolean }
+}
+
+function executablePath(name: string): string | null {
+  return Bun.which(name) ?? null
+}
+
+export function inspectPlatformCapabilities(platform: NodeJS.Platform = process.platform): PlatformCapabilityReport {
+  const runtime = executablePath("bun")
+  if (platform === "darwin") {
+    const sandbox = executablePath("sandbox-exec")
+    return {
+      platform,
+      releaseClaim: "SUPPORTED",
+      runtime: { available: Boolean(runtime), path: runtime },
+      sandbox: { available: Boolean(sandbox), backend: sandbox ? "macos-sandbox-exec" : null, networkIsolation: Boolean(sandbox) },
+    }
+  }
+  if (platform === "linux") {
+    const backend = ["bwrap", "firejail"].map((name) => executablePath(name)).find(Boolean) ?? null
+    return {
+      platform,
+      releaseClaim: "UNTESTED",
+      runtime: { available: Boolean(runtime), path: runtime },
+      sandbox: { available: false, backend, networkIsolation: false },
+    }
+  }
+  return {
+    platform,
+    releaseClaim: "NOT_TESTED",
+    runtime: { available: Boolean(runtime), path: runtime },
+    sandbox: { available: false, backend: null, networkIsolation: false },
+  }
+}
+
+function platformCheck(): DoctorCheck {
+  const capability = inspectPlatformCapabilities()
+  const sandbox = capability.sandbox.backend ?? "no implemented backend"
+  return {
+    name: "Platform support",
+    status: capability.releaseClaim === "SUPPORTED" ? "PASS" : "WARN",
+    detail: `${process.platform}: ${capability.releaseClaim}; runtime=${capability.runtime.path ?? "missing"}; sandbox=${sandbox}; network isolation=${capability.sandbox.networkIsolation ? "detected" : "unavailable"}`,
+  }
+}
+
 function bunCheck(): DoctorCheck {
   const version = Bun.version
   return {
@@ -70,6 +121,7 @@ function eventLogCheck(root: string): DoctorCheck {
 
 export function buildDoctorReport(root: string, queryOk: boolean): DoctorReport {
   const checks = [
+    platformCheck(),
     bunCheck(),
     gitCheck(),
     sqliteCheck(resolve(root)),

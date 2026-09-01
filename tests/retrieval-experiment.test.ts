@@ -1,10 +1,11 @@
+import { resolve } from "node:path"
 import { describe, expect, test } from "bun:test"
 import { readFileSync } from "node:fs"
 import { createHash } from "node:crypto"
 import { DEFAULT_RETRIEVAL_CONFIG, StratifiedInspectSelector, profileGoal } from "@mathos/retrieval"
 import { EXPERIMENTS } from "../scripts/retrieval-experiment.ts"
 
-const ROOT = "/Users/yazilim/Projects/mathos"
+const ROOT = resolve(import.meta.dir, "..")
 const INDEX = `${ROOT}/demo/.mathos/index/declarations.json`
 const RESULTS = `${ROOT}/benchmarks/retrieval-experiments/latest-results.json`
 

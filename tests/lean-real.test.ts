@@ -1,14 +1,14 @@
 import { describe, expect, test } from "bun:test"
 import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { join, resolve } from "node:path"
 import { NativeLeanAdapter, parseAxioms } from "@mathos/lean"
 
 const adapter = new NativeLeanAdapter()
 
 describe("real lean", () => {
   test("id_nat rfl is KERNEL_ACCEPTED", async () => {
-    const env = await adapter.detect(process.cwd())
+    const env = await adapter.detect(resolve(import.meta.dir, ".."))
     if (!env.leanAvailable) {
       throw new Error("Lean should be installed for this task")
     }
@@ -37,7 +37,7 @@ describe("real lean", () => {
   })
 
   test("demo formal project is pinned with Mathlib", async () => {
-    const env = await adapter.detect("/Users/yazilim/Projects/mathos/demo")
+    const env = await adapter.detect(resolve(import.meta.dir, "../demo"))
     expect(env.leanAvailable).toBe(true)
     expect(env.mathlib).toBe(true)
     expect(env.toolchain).toBe("leanprover/lean4:v4.33.1")
