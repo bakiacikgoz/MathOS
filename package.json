@@ -18,7 +18,8 @@
     "typecheck": "$npm_execpath x tsc --noEmit -p tsconfig.json",
     "build": "$npm_execpath scripts/build.ts",
     "release-check": "bun scripts/release-check.ts",
-    "package-smoke": "$npm_execpath dist/cli.js --help"
+    "package-smoke": "$npm_execpath dist/cli.js --help",
+    "pilot-validation": "$npm_execpath scripts/pilot-validation.ts"
   },
   "engines": {
     "bun": ">=1.2.0"

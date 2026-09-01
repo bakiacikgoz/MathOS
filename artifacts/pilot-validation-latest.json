@@ -1,0 +1,178 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-01T19:49:40.674Z",
+  "platform": "darwin-arm64",
+  "runtime": "Bun 1.4.0",
+  "workspaceKind": "fresh-temporary",
+  "steps": [
+    {
+      "id": "init",
+      "status": "PASS",
+      "command": "mathos init pilot",
+      "exitCode": 0,
+      "reason": "Command completed with the expected exit code.",
+      "stdout": "MathOS\n\nCreate research workspace\n\nName\n  pilot\n\nDirectory\n  /private/var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/pilot\n\nFormal environment\n× Lean Lean not on PATH\n○ Mathlib project (workspace-local)\n\nOptional computation\n✓ Python Python 3.9.6\n○ SymPy optional missing\n\nLiterature\n✓ local sources\n○ OpenAlex optional (no live request)\n\nModel  ○ missing — AI planner optional\n\nReady.\nInitialized MathOS workspace: /private/var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/pilot\n",
+      "stderr": "",
+      "rerun": "cd <fresh-parent>/pilot && mathos init pilot"
+    },
+    {
+      "id": "doctor",
+      "status": "PASS",
+      "command": "mathos doctor --json",
+      "exitCode": 0,
+      "reason": "Command completed with the expected exit code.",
+      "stdout": "{\n  \"checks\": [\n    {\n      \"name\": \"Platform support\",\n      \"status\": \"WARN\",\n      \"detail\": \"darwin: SUPPORTED; runtime=missing; sandbox=macos-sandbox-exec; network isolation=detected\"\n    },\n    {\n      \"name\": \"Bun\",\n      \"status\": \"PASS\",\n      \"detail\": \"1.4.0\"\n    },\n    {\n      \"name\": \"Git\",\n      \"status\": \"PASS\",\n      \"detail\": \"git version 2.55.0\"\n    },\n    {\n      \"name\": \"SQLite\",\n      \"status\": \"PASS\",\n      \"detail\": \"mathos.db present\"\n    },\n    {\n      \"name\": \"Workspace\",\n      \"status\": \"PASS\",\n      \"detail\": \"layout complete\"\n    },\n    {\n      \"name\": \"Database\",\n      \"status\": \"PASS\",\n      \"detail\": \"schema reachable\"\n    },\n    {\n      \"name\": \"Event log\",\n      \"status\": \"PASS\",\n      \"detail\": \"appendable\"\n    },\n    {\n      \"name\": \"Model provider\",\n      \"status\": \"PASS\",\n      \"detail\": \"openai-compatible\"\n    },\n    {\n      \"name\": \"API key\",\n      \"status\": \"WARN\",\n      \"detail\": \"MATHOS_API_KEY is not set\"\n    },\n    {\n      \"name\": \"Model\",\n      \"status\": \"WARN\",\n      \"detail\": \"MATHOS_MODEL is not set\"\n    },\n    {\n      \"name\": \"Endpoint\",\n      \"status\": \"PASS\",\n      \"detail\": \"https://api.openai.com/v1\"\n    },\n    {\n      \"name\": \"Lean\",\n      \"status\": \"WARN\",\n      \"detail\": \"not installed\"\n    },\n    {\n      \"name\": \"Lake\",\n      \"status\": \"WARN\",\n      \"detail\": \"not installed\"\n    },\n    {\n      \"name\": \"Lean project\",\n      \"status\": \"WARN\",\n      \"detail\": \"no lean-toolchain / lakefile\"\n    },\n    {\n      \"name\": \"Mathlib\",\n      \"status\": \"WARN\",\n      \"detail\": \"not detected\"\n    },\n    {\n      \"name\": \"Toolchain pinned\",\n      \"status\": \"WARN\",\n      \"detail\": \"lean-toolchain missing\"\n    },\n    {\n      \"name\": \"Lean compile\",\n      \"status\": \"WARN\",\n      \"detail\": \"skipped\"\n    },\n    {\n      \"name\": \"Declaration inspect\",\n      \"status\": \"WARN\",\n      \"detail\": \"skipped\"\n    },\n    {\n      \"name\": \"Research graph\",\n      \"status\": \"PASS\",\n      \"detail\": \"consistent\"\n    },\n    {\n      \"name\": \"Python runtime\",\n      \"status\": \"PASS\",\n      \"detail\": \"3.9.6\"\n    },\n    {\n      \"name\": \"Python version\",\n      \"status\": \"PASS\",\n      \"detail\": \"3.9.6\"\n    },\n    {\n      \"name\": \"SymPy\",\n      \"status\": \"WARN\",\n      \"detail\": \"OPTIONAL_MISSING\"\n    },\n    {\n      \"name\": \"Experiment sandbox\",\n      \"status\": \"PASS\",\n      \"detail\": \"/private/var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/pilot/.mathos/experiments\"\n    },\n    {\n      \"name\": \"Literature providers\",\n      \"status\": \"PASS\",\n      \"detail\": \"fake\"\n    },\n    {\n      \"name\": \"Local source extraction\",\n      \"status\": \"PASS\",\n      \"detail\": \"text/pdf-text\"\n    },\n    {\n      \"name\": \"Event Projection Health\",\n      \"status\": \"PASS\",\n      \"detail\": \"JSONL matches canonical SQLite events\"\n    },\n    {\n      \"name\": \"Schema version\",\n      \"status\": \"PASS\",\n      \"detail\": \"20\"\n    },\n    {\n      \"name\": \"MathOS version\",\n      \"status\": \"PASS\",\n      \"detail\": \"0.1.0-alpha.1\"\n    }\n  ],\n  \"ok\": true,\n  \"schemaVersion\": 20,\n  \"mathosVersion\": \"0.1.0-alpha.1\"\n}\n",
+      "stderr": "",
+      "rerun": "cd <fresh-parent>/pilot && mathos doctor --json"
+    },
+    {
+      "id": "create_conjecture",
+      "status": "PASS",
+      "command": "mathos claim create --type conjecture --title Pilot identity --statement For every natural number n, n equals n.",
+      "exitCode": 0,
+      "reason": "Command completed with the expected exit code.",
+      "stdout": "Created C-001  CONJECTURE  Pilot identity\n",
+      "stderr": "",
+      "rerun": "cd <fresh-parent>/pilot && mathos claim create --type conjecture --title Pilot identity --statement For every natural number n, n equals n."
+    },
+    {
+      "id": "set_objective",
+      "status": "PASS",
+      "command": "mathos objective set C-001",
+      "exitCode": 0,
+      "reason": "Command completed with the expected exit code.",
+      "stdout": "Main objective: C-001  Pilot identity\n",
+      "stderr": "",
+      "rerun": "cd <fresh-parent>/pilot && mathos objective set C-001"
+    },
+    {
+      "id": "formalize",
+      "status": "BLOCKED",
+      "command": "mathos formalize C-001 --json",
+      "exitCode": 1,
+      "reason": "A configured model and usable Lean toolchain are required; no synthetic formalization was substituted.",
+      "stdout": "",
+      "stderr": "Set MATHOS_API_KEY and MATHOS_MODEL to enable research intake.\nSee the error code for debugging. Stack traces stay hidden unless MATHOS_DEBUG=1.\nError code: ModelNotConfigured\n",
+      "rerun": "cd <fresh-parent>/pilot && mathos formalize C-001 --json"
+    },
+    {
+      "id": "fidelity_approval",
+      "status": "NOT_RUN",
+      "reason": "No checked formal draft exists, so fidelity approval would be unsafe.",
+      "rerun": "mathos formalize C-001, review the mapping in the TUI, then approve it"
+    },
+    {
+      "id": "premise_search",
+      "status": "BLOCKED",
+      "command": "mathos premises C-001 --explain",
+      "exitCode": 0,
+      "reason": "A built, provenance-valid retrieval index returned no real candidates; the natural-language fallback was not accepted as a pilot pass.",
+      "stdout": "Formal goal unavailable. Premise ranking is using natural-language fallback and may be noisy. Formalize the claim for goal-aware retrieval.\n\nPREMISES FOR C-001\n\n",
+      "stderr": "",
+      "rerun": "cd <fresh-parent>/pilot && mathos premises C-001 --explain"
+    },
+    {
+      "id": "proof_attempt",
+      "status": "NOT_RUN",
+      "reason": "Proof execution requires an approved formal statement and usable Lean project.",
+      "rerun": "mathos prove C-001 --json"
+    },
+    {
+      "id": "verify",
+      "status": "NOT_RUN",
+      "reason": "Kernel verification requires a compiled proof artifact.",
+      "rerun": "mathos verify C-001 --json"
+    },
+    {
+      "id": "experiment",
+      "status": "BLOCKED",
+      "reason": "No headless experiment-create command exists; sandbox policy must be reviewed in the TUI.",
+      "rerun": "mathos; open Experiments, create a deterministic experiment, and inspect its trust labels"
+    },
+    {
+      "id": "literature",
+      "status": "BLOCKED",
+      "reason": "No headless literature-search command exists and no external provider was configured.",
+      "rerun": "configure a literature provider, run mathos, then search Literature and record source provenance"
+    },
+    {
+      "id": "branch",
+      "status": "PASS",
+      "command": "mathos branch setup",
+      "exitCode": 0,
+      "reason": "Command completed with the expected exit code.",
+      "stdout": "Research versioning ready  /private/var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/pilot\n",
+      "stderr": "",
+      "rerun": "cd <fresh-parent>/pilot && mathos branch setup"
+    },
+    {
+      "id": "branch_create",
+      "status": "PASS",
+      "command": "mathos branch create pilot alternative",
+      "exitCode": 0,
+      "reason": "Command completed with the expected exit code.",
+      "stdout": "Created B-001  pilot alternative\n",
+      "stderr": "",
+      "rerun": "cd <fresh-parent>/pilot && mathos branch create pilot alternative"
+    },
+    {
+      "id": "team_start",
+      "status": "BLOCKED",
+      "reason": "No headless team-start command exists and model-backed workers are unavailable.",
+      "rerun": "mathos; open Team, start a bounded session for C-001"
+    },
+    {
+      "id": "team_pause",
+      "status": "NOT_RUN",
+      "reason": "No team session was started, so pause cannot be exercised.",
+      "rerun": "pause the active session from the Team panel"
+    },
+    {
+      "id": "reopen",
+      "status": "PASS",
+      "command": "mathos status --json",
+      "exitCode": 0,
+      "reason": "Command completed with the expected exit code.",
+      "stdout": "{\n  \"text\": \"MATHOS WORKSPACE\\n\\nObjective\\nC-001\\n\\nEpistemic status\\nCONJECTURE\\n\\nResearch state\\nnone\\n\\nOpen blockers\\n0\\n\\nLast meaningful progress\\nbranch_created\\n\\nClaims\\n1 total\\n0 kernel verified\\n1 frontier\\n0 blocked\\n\\nEvidence\\n0 computation\\n0 citations\\n\\nTeam\\nnone\\n\\nEnvironment readiness\\nLean ○\\nPython ✓\\nModel ○\",\n  \"status\": {\n    \"projectName\": \"pilot\",\n    \"workspaceRoot\": \"/private/var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/pilot\",\n    \"mainObjective\": {\n      \"id\": \"C-001\",\n      \"title\": \"Pilot identity\",\n      \"status\": \"CONJECTURE\"\n    },\n    \"research\": {\n      \"verified\": 0,\n      \"informal\": 0,\n      \"conjectures\": 1,\n      \"blocked\": 0,\n      \"totalClaims\": 1\n    },\n    \"branch\": {\n      \"id\": \"B-000\",\n      \"name\": \"MAIN\",\n      \"slug\": \"main\",\n      \"status\": \"ACTIVE\",\n      \"staleBase\": false\n    },\n    \"integrity\": {\n      \"database\": \"connected\",\n      \"eventLog\": \"ok\",\n      \"initialized\": true\n    }\n  }\n}\n",
+      "stderr": "",
+      "rerun": "cd <fresh-parent>/pilot && mathos status --json"
+    },
+    {
+      "id": "backup",
+      "status": "PASS",
+      "command": "mathos backup --out /var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/backups",
+      "exitCode": 0,
+      "reason": "Command completed with the expected exit code.",
+      "stdout": "/var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/backups/mathos-backup-2026-09-01T194940.tgz\n",
+      "stderr": "",
+      "rerun": "cd <fresh-parent>/pilot && mathos backup --out /var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/backups"
+    },
+    {
+      "id": "restore",
+      "status": "PASS",
+      "command": "mathos restore /var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/backups/mathos-backup-2026-09-01T194940.tgz --into /var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/restored",
+      "exitCode": 0,
+      "reason": "Command completed with the expected exit code.",
+      "stdout": "Restored /var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/restored\n",
+      "stderr": "",
+      "rerun": "cd <fresh-parent>/pilot && mathos restore /var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/backups/mathos-backup-2026-09-01T194940.tgz --into /var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/restored"
+    },
+    {
+      "id": "report",
+      "status": "PASS",
+      "command": "mathos report --format json",
+      "exitCode": 0,
+      "reason": "Command completed with the expected exit code.",
+      "stdout": "/private/var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/pilot/reports/research-report-2026-09-01T1949.json\n",
+      "stderr": "",
+      "rerun": "cd <fresh-parent>/pilot && mathos report --format json"
+    }
+  ],
+  "summary": {
+    "PASS": 10,
+    "BLOCKED": 5,
+    "NOT_RUN": 4,
+    "FAIL": 0
+  },
+  "overall": "BLOCKED"
+}
