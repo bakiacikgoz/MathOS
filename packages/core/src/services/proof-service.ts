@@ -16,9 +16,8 @@ import {
 } from "@mathos/storage"
 import { ClaimNotFound, FormalStatementNotFound, ProofAttemptFailed, ProofPrerequisiteFailed, nowIso } from "@mathos/shared"
 import { parseProofBody, PROVE_SYSTEM_PROMPT } from "../prove.ts"
+import type { MutationEvent, MutationRecorder } from "../mutation-recorder.ts"
 import { RetrievalService } from "./retrieval-service.ts"
-
-type ProofEvent = { target?: string | null; metadata?: Record<string, unknown> }
 
 export interface ProveOptions {
   maxAttempts?: number
@@ -41,7 +40,7 @@ export interface ProofServiceDependencies {
   crashBoundary: () => string | null
   allocateId: (prefix: string) => string
   verify: (claimId: string) => Promise<VerificationReport>
-  recordEvent: (action: string, event: ProofEvent) => void
+  recorder: MutationRecorder
 }
 
 export class ProofService {
@@ -62,7 +61,7 @@ export class ProofService {
       throw new ProofPrerequisiteFailed("Theorems require HUMAN_APPROVED fidelity before /prove.")
     }
 
-    this.d.recordEvent("proof_attempt_started", { target: claim.id, metadata: { formal_id: formal.id } })
+    this.d.recorder.record("proof_attempt_started", { target: claim.id, metadata: { formal_id: formal.id } })
     const attempts: ProofAttempt[] = []
     let previous = ""
     let lastDiagnostics = ""
@@ -111,20 +110,18 @@ export class ProofService {
         fusionMethod: retrieved.fusionMethod ?? null,
       }
       if (!declarationsMatch(formal.sourceText, source)) {
-        const failed = this.storeAttempt(workspace.id, claim.id, formal.id, n, source, "FAILED", formal.leanVersion, [
+        const failed = this.persistAttempt("proof_attempt_failed", { metadata: { reason: "statement_mutated", n } }, workspace.id, claim.id, formal.id, n, source, "FAILED", formal.leanVersion, [
           { severity: "error", message: "Proof mutated the formal statement." },
         ], retrieved.query, names, retrieved.indexRevision, retrieved.mode, provenance)
         attempts.push(failed)
-        this.d.recordEvent("proof_attempt_failed", { target: failed.id, metadata: { reason: "statement_mutated", n } })
         continue
       }
       const forbidden = scanForbidden(source)
       if (forbidden.length) {
-        const failed = this.storeAttempt(workspace.id, claim.id, formal.id, n, source, "FAILED", formal.leanVersion, [
+        const failed = this.persistAttempt("proof_attempt_failed", { metadata: { reason: "forbidden", n } }, workspace.id, claim.id, formal.id, n, source, "FAILED", formal.leanVersion, [
           { severity: "error", message: `Forbidden constructs: ${forbidden.join(", ")}` },
         ], retrieved.query, names, retrieved.indexRevision, retrieved.mode, provenance)
         attempts.push(failed)
-        this.d.recordEvent("proof_attempt_failed", { target: failed.id, metadata: { reason: "forbidden", n } })
         previous = source
         lastDiagnostics = forbidden.join(", ")
         continue
@@ -140,19 +137,16 @@ export class ProofService {
       })
       if (this.d.crashBoundary() === "after_result") throw new Error("crash")
       if (checked.result === "KERNEL_ACCEPTED") {
-        const accepted = this.storeAttempt(workspace.id, claim.id, formal.id, n, source, "KERNEL_ACCEPTED", checked.leanVersion, checked.diagnostics, retrieved.query, names, retrieved.indexRevision, retrieved.mode, provenance)
-        attempts.push(accepted)
-        this.d.recordEvent("proof_attempt_accepted", {
-          target: accepted.id,
+        const accepted = this.persistAttempt("proof_attempt_accepted", {
           metadata: { claim_id: claim.id, formal_id: formal.id, n, lean: checked.leanVersion, premises: names.slice(0, 8) },
-        })
+        }, workspace.id, claim.id, formal.id, n, source, "KERNEL_ACCEPTED", checked.leanVersion, checked.diagnostics, retrieved.query, names, retrieved.indexRevision, retrieved.mode, provenance)
+        attempts.push(accepted)
         const verification = options?.skipVerify || this.d.hasActiveAccounting() ? null : await this.d.verify(claim.id)
         return { claimId: claim.id, formalStatement: formal, attempts, accepted, verification, proofAttempted: true, retrieval: lastRetrieval }
       }
 
-      const failed = this.storeAttempt(workspace.id, claim.id, formal.id, n, source, "FAILED", checked.leanVersion, checked.diagnostics, retrieved.query, names, retrieved.indexRevision, retrieved.mode, provenance)
+      const failed = this.persistAttempt("proof_attempt_failed", { metadata: { n } }, workspace.id, claim.id, formal.id, n, source, "FAILED", checked.leanVersion, checked.diagnostics, retrieved.query, names, retrieved.indexRevision, retrieved.mode, provenance)
       attempts.push(failed)
-      this.d.recordEvent("proof_attempt_failed", { target: failed.id, metadata: { n } })
       previous = source
       lastDiagnostics = checked.diagnostics.map((item) => item.message).join("\n")
     }
@@ -194,8 +188,38 @@ export class ProofService {
       retrievalProvenance,
       createdAt: nowIso(),
     }
-    this.d.proofs.insert(attempt)
-    return attempt
+    return this.d.recorder.mutate("proof_attempt_recorded", { target: attempt.id, metadata: { claim_id: claimId, formal_id: formalId, attemptNumber, status } }, () => {
+      this.d.proofs.insert(attempt)
+      return attempt
+    })
+  }
+
+  private persistAttempt(
+    action: string,
+    event: MutationEvent,
+    workspaceId: string,
+    claimId: string,
+    formalId: string,
+    attemptNumber: number,
+    proofSource: string,
+    status: ProofAttempt["status"],
+    leanVersion: string | null,
+    diagnostics: ProofAttempt["diagnostics"],
+    retrievalQuery: string | null = null,
+    candidateNames: string[] = [],
+    indexRevision: string | null = null,
+    retrievalMode: string | null = null,
+    retrievalProvenance: ProofAttempt["retrievalProvenance"] = null,
+  ): ProofAttempt {
+    const attempt: ProofAttempt = {
+      id: this.d.allocateId("PA"), workspaceId, claimId, formalStatementId: formalId, status, proofSource,
+      attemptNumber, provider: this.d.modelProvider.id, modelName: this.d.modelProvider.model, leanVersion,
+      diagnostics, retrievalQuery, candidateNames, indexRevision, retrievalMode, retrievalProvenance, createdAt: nowIso(),
+    }
+    return this.d.recorder.mutate(action, { ...event, target: attempt.id }, () => {
+      this.d.proofs.insert(attempt)
+      return attempt
+    })
   }
 
   private getClaim(id: string) {

@@ -13,11 +13,7 @@ import {
 import { promoteVerifiedClaim } from "@mathos/storage/internal/verification-claim-promoter"
 import { ClaimNotFound, FormalStatementNotFound, createId, nowIso } from "@mathos/shared"
 import { runVerificationGate } from "../verify.ts"
-
-type VerificationEvent = {
-  target?: string | null
-  metadata?: Record<string, unknown>
-}
+import type { MutationRecorder } from "../mutation-recorder.ts"
 
 interface VerificationServiceDependencies {
   root: string
@@ -30,7 +26,7 @@ interface VerificationServiceDependencies {
   leanAdapter: LeanAdapter
   leanContext: () => LeanContext
   consumeLeanBudget: (reason: "VERIFICATION" | "AXIOM_AUDIT") => boolean
-  recordEvent: (action: string, event: VerificationEvent) => void
+  recorder: MutationRecorder
 }
 
 export class VerificationService {
@@ -45,7 +41,7 @@ export class VerificationService {
     const formal = this.dependencies.formalStatements.currentForClaim(claim.id)
     if (!formal) throw new FormalStatementNotFound(claim.id)
     const proof = this.dependencies.proofs.latestAccepted(claim.id)
-    this.dependencies.recordEvent("verification_started", {
+    this.dependencies.recorder.record("verification_started", {
       target: claim.id,
       metadata: { formal_id: formal.id, proof_id: proof?.id ?? null },
     })
@@ -84,7 +80,7 @@ export class VerificationService {
     })
 
     const verificationRunId = createId("vr")
-    this.dependencies.verificationRuns.insert({
+    const verificationRun: Parameters<VerificationRunRepository["insert"]>[0] = {
       id: verificationRunId,
       workspaceId: workspace.id,
       formalStatementId: formal.id,
@@ -99,23 +95,27 @@ export class VerificationService {
       fidelityStatus: formal.fidelityStatus,
       gateJson: JSON.stringify(report.checks),
       createdAt: nowIso(),
-    })
+    }
 
     if (report.passed) {
-      promoteVerifiedClaim(this.dependencies.database, claim.id, verificationRunId, nowIso())
       writeProofFile(this.dependencies.root, claim.id, proof!.proofSource)
-      this.dependencies.recordEvent("verification_passed", {
+      this.dependencies.recorder.mutate("verification_passed", {
         target: claim.id,
         metadata: { formal_id: formal.id, proof_id: proof?.id },
+      }, () => {
+        this.dependencies.verificationRuns.insert(verificationRun)
+        promoteVerifiedClaim(this.dependencies.database, claim.id, verificationRunId, nowIso())
       })
-      this.dependencies.recordEvent("claim_kernel_verified", {
+      this.dependencies.recorder.record("claim_kernel_verified", {
         target: claim.id,
         metadata: { formal_id: formal.id },
       })
     } else {
-      this.dependencies.recordEvent("verification_failed", {
+      this.dependencies.recorder.mutate("verification_failed", {
         target: claim.id,
         metadata: { reasons: report.checks.filter((check) => check.status === "FAIL").map((check) => check.name) },
+      }, () => {
+        this.dependencies.verificationRuns.insert(verificationRun)
       })
     }
 

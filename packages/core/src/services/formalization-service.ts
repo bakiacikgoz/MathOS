@@ -20,11 +20,7 @@ import {
 } from "@mathos/shared"
 import { reviewFidelity } from "../fidelity.ts"
 import { draftFormalization } from "../formalize.ts"
-
-type FormalizationEvent = {
-  target?: string | null
-  metadata?: Record<string, unknown>
-}
+import type { MutationRecorder } from "../mutation-recorder.ts"
 
 interface FormalizationServiceDependencies {
   root: string
@@ -37,7 +33,7 @@ interface FormalizationServiceDependencies {
   auditorProvider: ModelProvider
   leanAdapter: LeanAdapter
   leanContext: () => LeanContext
-  recordEvent: (action: string, event: FormalizationEvent) => void
+  recorder: MutationRecorder
 }
 
 export class FormalizationService {
@@ -47,7 +43,7 @@ export class FormalizationService {
     const workspace = this.requireWorkspace()
     const claim = this.requireClaim(claimId)
     let draft = await draftFormalization(this.dependencies.modelProvider, claim)
-    this.dependencies.recordEvent("formalization_drafted", {
+    this.dependencies.recorder.record("formalization_drafted", {
       target: claim.id,
       metadata: { declaration: draft.declarationName, provider: draft.modelProvenance.provider },
     })
@@ -68,7 +64,6 @@ export class FormalizationService {
 
     const timestamp = nowIso()
     const id = nextSequentialId(this.dependencies.formalStatements.ids(workspace.id), "FS")
-    this.dependencies.formalStatements.markOthersNotCurrent(claim.id)
     const statement: FormalStatement = {
       id,
       workspaceId: workspace.id,
@@ -87,13 +82,7 @@ export class FormalizationService {
       createdAt: timestamp,
       updatedAt: timestamp,
     }
-    this.dependencies.formalStatements.insert(statement)
-    this.dependencies.recordEvent("formal_statement_created", {
-      target: statement.id,
-      metadata: { claim_id: claim.id, declaration: statement.declarationName, lean: check.leanVersion },
-    })
-
-    this.dependencies.verificationRuns.insert({
+    const verificationRun: Parameters<VerificationRunRepository["insert"]>[0] = {
       id: createId("vr"),
       workspaceId: workspace.id,
       formalStatementId: statement.id,
@@ -108,8 +97,16 @@ export class FormalizationService {
       fidelityStatus: statement.fidelityStatus,
       gateJson: "[]",
       createdAt: timestamp,
+    }
+    this.dependencies.recorder.mutate("formal_statement_created", {
+      target: statement.id,
+      metadata: { claim_id: claim.id, declaration: statement.declarationName, lean: check.leanVersion },
+    }, () => {
+      this.dependencies.formalStatements.markOthersNotCurrent(claim.id)
+      this.dependencies.formalStatements.insert(statement)
+      this.dependencies.verificationRuns.insert(verificationRun)
     })
-    this.dependencies.recordEvent("formal_statement_checked", {
+    this.dependencies.recorder.record("formal_statement_checked", {
       target: statement.id,
       metadata: { result: "ELABORATES", repairs },
     })
@@ -126,10 +123,11 @@ export class FormalizationService {
       formalStatementId: statement.id,
       createdAt: timestamp,
     }
-    this.dependencies.fidelityReviews.insert(fidelity)
-    this.dependencies.recordEvent("fidelity_review_completed", {
+    this.dependencies.recorder.mutate("fidelity_review_completed", {
       target: statement.id,
       metadata: { verdict: fidelity.verdict, provider: fidelity.provider },
+    }, () => {
+      this.dependencies.fidelityReviews.insert(fidelity)
     })
 
     if (claim.status === "KERNEL_VERIFIED") {
@@ -163,25 +161,22 @@ export class FormalizationService {
       throw new FormalizationFailed("Cannot approve a statement that does not elaborate.")
     }
     const timestamp = nowIso()
-    this.dependencies.formalStatements.updateStatuses(
-      statement.id,
-      "ELABORATES",
-      "HUMAN_APPROVED",
-      timestamp,
-      maybeWriteFormalFile(this.dependencies.root, claim.id, statement.sourceText),
-    )
-    if (claim.status !== "KERNEL_VERIFIED" && claim.status !== "INDEPENDENTLY_CHECKED") {
-      this.dependencies.claims.updateStatus(claim.id, "FORMALIZED_UNVERIFIED", timestamp)
-    }
-    this.dependencies.recordEvent("fidelity_approved", { target: statement.id, metadata: { claim_id: claim.id } })
+    const filePath = maybeWriteFormalFile(this.dependencies.root, claim.id, statement.sourceText)
+    this.dependencies.recorder.mutate("fidelity_approved", { target: statement.id, metadata: { claim_id: claim.id } }, () => {
+      this.dependencies.formalStatements.updateStatuses(statement.id, "ELABORATES", "HUMAN_APPROVED", timestamp, filePath)
+      if (claim.status !== "KERNEL_VERIFIED" && claim.status !== "INDEPENDENTLY_CHECKED") {
+        this.dependencies.claims.updateStatus(claim.id, "FORMALIZED_UNVERIFIED", timestamp)
+      }
+    })
     return this.dependencies.formalStatements.get(statement.id)!
   }
 
   rejectFormal(formalId: string): FormalStatement {
     const statement = this.dependencies.formalStatements.get(formalId)
     if (!statement) throw new FormalStatementNotFound(formalId)
-    this.dependencies.formalStatements.updateStatuses(statement.id, statement.verificationStatus, "REJECTED", nowIso())
-    this.dependencies.recordEvent("fidelity_rejected", { target: statement.id, metadata: { claim_id: statement.claimId } })
+    this.dependencies.recorder.mutate("fidelity_rejected", { target: statement.id, metadata: { claim_id: statement.claimId } }, () => {
+      this.dependencies.formalStatements.updateStatuses(statement.id, statement.verificationStatus, "REJECTED", nowIso())
+    })
     return this.dependencies.formalStatements.get(statement.id)!
   }
 

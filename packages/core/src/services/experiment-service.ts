@@ -27,8 +27,7 @@ import {
   WorkspaceRepository,
 } from "@mathos/storage"
 import { ClaimNotFound, createId, nowIso } from "@mathos/shared"
-
-type ExperimentEvent = { target?: string | null; metadata?: Record<string, unknown> }
+import type { MutationRecorder } from "../mutation-recorder.ts"
 
 export interface CreateExperimentInput {
   origin?: ExperimentOrigin
@@ -57,7 +56,7 @@ interface ExperimentServiceDependencies {
   results: ExperimentResultRepository
   computationRuntime: ComputationalRuntime
   allocateId: (prefix: "EXP" | "ER") => string
-  recordEvent: (action: string, event: ExperimentEvent) => void
+  recorder: MutationRecorder
   recordPid: (pid: number | null) => void
 }
 
@@ -109,8 +108,9 @@ export class ExperimentService {
       startedAt: null,
       finishedAt: null,
     }
-    this.dependencies.experiments.insert(experiment)
-    this.dependencies.recordEvent("experiment_created", { target: id, metadata: { experimentId: id, branchId: branch.id } })
+    this.dependencies.recorder.mutate("experiment_created", { target: id, metadata: { experimentId: id, branchId: branch.id } }, () => {
+      this.dependencies.experiments.insert(experiment)
+    })
     return experiment
   }
 
@@ -128,7 +128,9 @@ export class ExperimentService {
       if (experiment.status !== "RUNNING") continue
       experiment.status = "FAILED"
       experiment.finishedAt = at
-      this.dependencies.experiments.update(experiment)
+      this.dependencies.recorder.mutate("experiment_interrupted", { target: experiment.id, metadata: { experimentId: experiment.id, branchId: experiment.branchId } }, () => {
+        this.dependencies.experiments.update(experiment)
+      })
       interrupted.push(experiment.id)
     }
     return interrupted
@@ -155,8 +157,9 @@ export class ExperimentService {
     experiment.status = "RUNNING"
     experiment.startedAt = nowIso()
     experiment.researchStepId = opts.stepId ?? experiment.researchStepId
-    this.dependencies.experiments.update(experiment)
-    this.dependencies.recordEvent("experiment_started", { target: experiment.id, metadata: { experimentId: experiment.id, branchId: experiment.branchId } })
+    this.dependencies.recorder.mutate("experiment_started", { target: experiment.id, metadata: { experimentId: experiment.id, branchId: experiment.branchId } }, () => {
+      this.dependencies.experiments.update(experiment)
+    })
 
     let executed: Awaited<ReturnType<ComputationalRuntime["execute"]>>
     try {
@@ -224,12 +227,13 @@ export class ExperimentService {
         ? experiment.parameters.randomSeed
         : null,
     }
-    this.dependencies.results.insert(result)
     experiment.status = executed.blockedReason ? "BLOCKED" : executed.timedOut ? "TIMED_OUT" : executed.exitCode === 0 ? "SUCCEEDED" : "FAILED"
     experiment.finishedAt = result.finishedAt
-    this.dependencies.experiments.update(experiment)
-    this.dependencies.recordEvent(executed.blockedReason ? "experiment_blocked" : executed.timedOut ? "experiment_timed_out" : executed.exitCode === 0 ? "experiment_completed" : "experiment_failed", { target: experiment.id, metadata: { experimentId: experiment.id, branchId: experiment.branchId, resultId: result.id, blockedReason: executed.blockedReason ?? null, securityReport: executed.securityReport ?? null, outputTruncated: executed.stdoutTruncated || executed.stderrTruncated } })
-    this.dependencies.recordEvent("experiment_result_recorded", { target: result.id, metadata: { experimentId: experiment.id, branchId: experiment.branchId } })
+    this.dependencies.recorder.mutate(executed.blockedReason ? "experiment_blocked" : executed.timedOut ? "experiment_timed_out" : executed.exitCode === 0 ? "experiment_completed" : "experiment_failed", { target: experiment.id, metadata: { experimentId: experiment.id, branchId: experiment.branchId, resultId: result.id, blockedReason: executed.blockedReason ?? null, securityReport: executed.securityReport ?? null, outputTruncated: executed.stdoutTruncated || executed.stderrTruncated } }, () => {
+      this.dependencies.results.insert(result)
+      this.dependencies.experiments.update(experiment)
+    })
+    this.dependencies.recorder.record("experiment_result_recorded", { target: result.id, metadata: { experimentId: experiment.id, branchId: experiment.branchId } })
     if (experiment.claimId && !executed.blockedReason) this.recordComputationalEvidence(experiment, result)
     return result
   }
@@ -247,11 +251,12 @@ export class ExperimentService {
       artifactRef: JSON.stringify({ experimentId: experiment.id, resultId: result.id, codeHash: result.codeHash, runtimeFingerprint: result.runtimeFingerprint, parameters: experiment.parameters }),
       reproducible: result.deterministic, createdAt: nowIso(),
     }
-    this.dependencies.evidence.insert(evidence)
-    this.dependencies.recordEvent("evidence_created", { target: evidence.id, metadata: { claimId: evidence.claimId, kind: evidence.kind } })
-    this.dependencies.recordEvent("computational_evidence_recorded", { target: experiment.claimId, metadata: { experimentId: experiment.id, resultId: result.id, branchId: experiment.branchId } })
-    if (result.outcome === "COUNTEREXAMPLE_FOUND") this.dependencies.recordEvent("counterexample_candidate_found", { target: experiment.claimId, metadata: { experimentId: experiment.id, resultId: result.id } })
-    this.applyComputationalStatus(experiment.claimId!, result.outcome)
+    this.dependencies.recorder.mutate("evidence_created", { target: evidence.id, metadata: { claimId: evidence.claimId, kind: evidence.kind } }, () => {
+      this.dependencies.evidence.insert(evidence)
+      this.applyComputationalStatus(experiment.claimId!, result.outcome)
+    })
+    this.dependencies.recorder.record("computational_evidence_recorded", { target: experiment.claimId, metadata: { experimentId: experiment.id, resultId: result.id, branchId: experiment.branchId } })
+    if (result.outcome === "COUNTEREXAMPLE_FOUND") this.dependencies.recorder.record("counterexample_candidate_found", { target: experiment.claimId, metadata: { experimentId: experiment.id, resultId: result.id } })
   }
 
   private applyComputationalStatus(claimId: string, outcome: ExperimentResult["outcome"]): void {
