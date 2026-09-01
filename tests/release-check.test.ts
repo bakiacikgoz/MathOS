@@ -3,7 +3,7 @@ import { executeReleaseCheck, RELEASE_CHECK_ORDER, type ReleaseCommandRunner } f
 
 const successfulRunner: ReleaseCommandRunner = async (command) => ({
   exitCode: 0,
-  stdout: command[0] === "git" ? "0123456789abcdef0123456789abcdef01234567\n" : command.includes("--version") ? "MathOS 0.1.0-alpha.1\n" : command.some((part) => part.endsWith("-regression.ts")) ? "{\"passed\":true}\n" : "1 pass\n",
+  stdout: command[0] === "git" ? "0123456789abcdef0123456789abcdef01234567\n" : command.includes("--version") ? "MathOS 0.1.0-alpha.1\n" : command.some((part) => part.endsWith("-regression.ts") || part.endsWith("lean-smoke.ts")) ? "{\"passed\":true}\n" : "1 pass\n",
   stderr: "",
   timedOut: false,
   durationMs: 1,

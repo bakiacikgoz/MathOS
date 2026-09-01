@@ -98,7 +98,7 @@ function commands(): Record<ReleaseCheckName, string[]> {
     "secret-redaction": [bun, "test", "tests/release.test.ts", "-t", "secret canary does not leak"],
     "event-rebuild": [bun, "test", "tests/event-projection.test.ts", "-t", "rebuild"],
     "package-smoke": [bun, "test", "tests/package-smoke.test.ts"],
-    "lean-smoke": [bun, "test", "tests/research-native.test.ts", "-t", "real Lean smoke"],
+    "lean-smoke": [bun, "scripts/lean-smoke.ts"],
     "research-regression": [bun, "scripts/research-regression.ts"],
     "ux-regression": [bun, "scripts/ux-regression.ts"],
     "retrieval-regression": [bun, "scripts/retrieval-regression.ts"],
@@ -113,7 +113,7 @@ function validatesEvidence(name: ReleaseCheckName, result: CommandResult): boole
   const output = result.stdout + "\n" + result.stderr
   if (name === "version") return result.stdout.includes(mathosVersion())
   if (name === "typecheck") return true
-  if (name.endsWith("-regression")) {
+  if (name.endsWith("-regression") || name === "lean-smoke") {
     try {
       return JSON.parse(result.stdout).passed === true
     } catch {
