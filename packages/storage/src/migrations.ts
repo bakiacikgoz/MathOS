@@ -716,6 +716,70 @@ export const MIGRATIONS: Migration[] = [
       END;
     `,
   },
+  {
+    id: "019_kernel_evidence_immutability",
+    sql: `
+      CREATE TRIGGER IF NOT EXISTS verified_claim_verification_run_update_guard
+      BEFORE UPDATE ON verification_runs
+      WHEN EXISTS (SELECT 1 FROM claims c WHERE c.id = OLD.claim_id AND c.status = 'KERNEL_VERIFIED')
+      BEGIN SELECT RAISE(ABORT, 'downgrade KERNEL_VERIFIED claim before mutating verification evidence'); END;
+
+      CREATE TRIGGER IF NOT EXISTS verified_claim_verification_run_delete_guard
+      BEFORE DELETE ON verification_runs
+      WHEN EXISTS (SELECT 1 FROM claims c WHERE c.id = OLD.claim_id AND c.status = 'KERNEL_VERIFIED')
+      BEGIN SELECT RAISE(ABORT, 'downgrade KERNEL_VERIFIED claim before deleting verification evidence'); END;
+
+      CREATE TRIGGER IF NOT EXISTS verified_claim_proof_update_guard
+      BEFORE UPDATE ON proof_attempts
+      WHEN EXISTS (
+        SELECT 1 FROM verification_runs vr JOIN claims c ON c.id = vr.claim_id
+        WHERE vr.proof_attempt_id = OLD.id AND vr.result = 'KERNEL_ACCEPTED' AND c.status = 'KERNEL_VERIFIED'
+      )
+      BEGIN SELECT RAISE(ABORT, 'downgrade KERNEL_VERIFIED claim before mutating accepted proof'); END;
+
+      CREATE TRIGGER IF NOT EXISTS verified_claim_proof_delete_guard
+      BEFORE DELETE ON proof_attempts
+      WHEN EXISTS (
+        SELECT 1 FROM verification_runs vr JOIN claims c ON c.id = vr.claim_id
+        WHERE vr.proof_attempt_id = OLD.id AND vr.result = 'KERNEL_ACCEPTED' AND c.status = 'KERNEL_VERIFIED'
+      )
+      BEGIN SELECT RAISE(ABORT, 'downgrade KERNEL_VERIFIED claim before deleting accepted proof'); END;
+
+      CREATE TRIGGER IF NOT EXISTS verified_claim_formal_update_guard
+      BEFORE UPDATE ON formal_statements
+      WHEN EXISTS (
+        SELECT 1 FROM verification_runs vr JOIN claims c ON c.id = vr.claim_id
+        WHERE vr.formal_statement_id = OLD.id AND vr.result = 'KERNEL_ACCEPTED' AND c.status = 'KERNEL_VERIFIED'
+      )
+      BEGIN SELECT RAISE(ABORT, 'downgrade KERNEL_VERIFIED claim before mutating current formal'); END;
+
+      CREATE TRIGGER IF NOT EXISTS verified_claim_formal_delete_guard
+      BEFORE DELETE ON formal_statements
+      WHEN EXISTS (
+        SELECT 1 FROM verification_runs vr JOIN claims c ON c.id = vr.claim_id
+        WHERE vr.formal_statement_id = OLD.id AND vr.result = 'KERNEL_ACCEPTED' AND c.status = 'KERNEL_VERIFIED'
+      )
+      BEGIN SELECT RAISE(ABORT, 'downgrade KERNEL_VERIFIED claim before deleting current formal'); END;
+
+      CREATE TRIGGER IF NOT EXISTS verified_claim_fidelity_update_guard
+      BEFORE UPDATE ON fidelity_reviews
+      WHEN EXISTS (
+        SELECT 1 FROM claims c JOIN formal_statements fs ON fs.claim_id = c.id
+        WHERE c.id = OLD.claim_id AND c.status = 'KERNEL_VERIFIED'
+          AND fs.id = OLD.formal_statement_id AND fs.is_current = 1 AND fs.fidelity_status = 'HUMAN_APPROVED'
+      )
+      BEGIN SELECT RAISE(ABORT, 'downgrade KERNEL_VERIFIED claim before mutating fidelity evidence'); END;
+
+      CREATE TRIGGER IF NOT EXISTS verified_claim_fidelity_delete_guard
+      BEFORE DELETE ON fidelity_reviews
+      WHEN EXISTS (
+        SELECT 1 FROM claims c JOIN formal_statements fs ON fs.claim_id = c.id
+        WHERE c.id = OLD.claim_id AND c.status = 'KERNEL_VERIFIED'
+          AND fs.id = OLD.formal_statement_id AND fs.is_current = 1 AND fs.fidelity_status = 'HUMAN_APPROVED'
+      )
+      BEGIN SELECT RAISE(ABORT, 'downgrade KERNEL_VERIFIED claim before deleting fidelity evidence'); END;
+    `,
+  },
 ]
 
 export const SCHEMA_EPOCH = MIGRATIONS.length

@@ -2,14 +2,15 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "
 import { join } from "node:path"
 import { scanForbidden, type VerificationReport } from "@mathos/domain"
 import type { LeanAdapter, LeanContext } from "@mathos/lean"
+import type { Database } from "bun:sqlite"
 import {
   ClaimRepository,
   FormalStatementRepository,
   ProofAttemptRepository,
   VerificationRunRepository,
-  VerificationClaimPromoter,
   WorkspaceRepository,
 } from "@mathos/storage"
+import { promoteVerifiedClaim } from "@mathos/storage/internal/verification-claim-promoter"
 import { ClaimNotFound, FormalStatementNotFound, createId, nowIso } from "@mathos/shared"
 import { runVerificationGate } from "../verify.ts"
 
@@ -24,7 +25,7 @@ interface VerificationServiceDependencies {
   claims: ClaimRepository
   formalStatements: FormalStatementRepository
   verificationRuns: VerificationRunRepository
-  verificationPromoter: VerificationClaimPromoter
+  database: Database
   proofs: ProofAttemptRepository
   leanAdapter: LeanAdapter
   leanContext: () => LeanContext
@@ -101,7 +102,7 @@ export class VerificationService {
     })
 
     if (report.passed) {
-      this.dependencies.verificationPromoter.promote(claim.id, verificationRunId, nowIso())
+      promoteVerifiedClaim(this.dependencies.database, claim.id, verificationRunId, nowIso())
       writeProofFile(this.dependencies.root, claim.id, proof!.proofSource)
       this.dependencies.recordEvent("verification_passed", {
         target: claim.id,

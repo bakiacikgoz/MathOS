@@ -19,6 +19,7 @@
       "@mathos/domain": ["./packages/domain/src/index.ts"],
       "@mathos/events": ["./packages/events/src/index.ts"],
       "@mathos/storage": ["./packages/storage/src/index.ts"],
+      "@mathos/storage/internal/verification-claim-promoter": ["./packages/storage/src/internal/verification-claim-promoter.ts"],
       "@mathos/workspace": ["./packages/workspace/src/index.ts"],
       "@mathos/models": ["./packages/models/src/index.ts"],
       "@mathos/lean": ["./packages/lean/src/index.ts"],

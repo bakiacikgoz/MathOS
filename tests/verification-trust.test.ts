@@ -78,7 +78,7 @@ describe("KERNEL_VERIFIED assignment authority", () => {
     const writePatterns = [
       /\b(?:status|claimStatus)\s*:[^\n]*["']KERNEL_VERIFIED["']/g,
       /\.updateStatus\([^\n]*["']KERNEL_VERIFIED["']/g,
-      /\.verificationPromoter\.promote\(/g,
+      /\bpromoteVerifiedClaim\(/g,
       /\.status\s*=\s*["']KERNEL_VERIFIED["']/g,
       /\.createClaim\([\s\S]{0,500}?status\s*:\s*["']KERNEL_VERIFIED["'][\s\S]{0,100}?\)/g,
       /\bUPDATE\b[^\n]{0,300}\bstatus\s*=\s*["']KERNEL_VERIFIED["']/gi,
@@ -88,15 +88,22 @@ describe("KERNEL_VERIFIED assignment authority", () => {
       const source = readFileSync(file, "utf8")
       return writePatterns.flatMap((pattern) => [...source.matchAll(pattern)].map(() => file.slice(repoRoot.length + 1)))
     })
-    expect(writes.sort()).toEqual([
-      "packages/core/src/services/verification-service.ts",
+    expect([...new Set(writes)].sort()).toEqual([
       "packages/core/src/services/verification-service.ts",
       "packages/core/src/verify.ts",
+      "packages/storage/src/internal/verification-claim-promoter.ts",
       "packages/storage/src/migrations.ts",
-      "packages/storage/src/migrations.ts",
-      "packages/storage/src/repositories.ts",
     ])
     expect(files.some((file) => readFileSync(file, "utf8").includes("verification-authority"))).toBe(false)
+    const promoterAuthorityFiles = files.flatMap((file) => readFileSync(file, "utf8").includes("promoteVerifiedClaim")
+      ? [file.slice(repoRoot.length + 1)] : [])
+    expect(promoterAuthorityFiles.sort()).toEqual([
+      "packages/core/src/services/verification-service.ts",
+      "packages/storage/src/internal/verification-claim-promoter.ts",
+    ])
+    const promoterImports = files.flatMap((file) => /import\s*\{[^}]*\bpromoteVerifiedClaim(?:\s+as\s+\w+)?[^}]*\}\s*from/.test(readFileSync(file, "utf8"))
+      ? [file.slice(repoRoot.length + 1)] : [])
+    expect(promoterImports).toEqual(["packages/core/src/services/verification-service.ts"])
   })
 })
 

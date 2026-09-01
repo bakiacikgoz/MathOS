@@ -7,6 +7,8 @@ import { composeProof, declarationsMatch, scanForbidden } from "@mathos/domain"
 import { FakeModelProvider } from "@mathos/models"
 import { FakeLeanAdapter } from "@mathos/lean"
 import { ProofPrerequisiteFailed } from "@mathos/shared"
+import { databasePath } from "@mathos/shared"
+import { DatabaseClient } from "@mathos/storage"
 
 const temps: string[] = []
 function tempDir() {
@@ -184,5 +186,32 @@ describe("proof layer", () => {
     } finally {
       reader.close()
     }
+  })
+
+  test("verified claim evidence is immutable until the claim is downgraded", async () => {
+    const created = await MathOS.init(tempDir(), "evidence-lock")
+    const model = new FakeModelProvider()
+    model.enqueue(formalDraft)
+    model.enqueue(fidelityMatch)
+    model.enqueue({ proofBody: "by\n  rfl" })
+    const app = openApp(created.root, model)
+    await readyClaim(app)
+    await app.prove("C-001")
+    app.close()
+
+    const client = new DatabaseClient(databasePath(created.root))
+    client.migrate()
+    try {
+      expect(() => client.db.query("UPDATE verification_runs SET gate_json = '[]' WHERE claim_id = ?").run("C-001")).toThrow("downgrade")
+      expect(() => client.db.query("DELETE FROM verification_runs WHERE claim_id = ?").run("C-001")).toThrow("downgrade")
+      expect(() => client.db.query("UPDATE proof_attempts SET status = 'FAILED' WHERE claim_id = ?").run("C-001")).toThrow("downgrade")
+      expect(() => client.db.query("DELETE FROM proof_attempts WHERE claim_id = ?").run("C-001")).toThrow("downgrade")
+      expect(() => client.db.query("UPDATE formal_statements SET fidelity_status = 'REJECTED' WHERE claim_id = ?").run("C-001")).toThrow("downgrade")
+      expect(() => client.db.query("DELETE FROM formal_statements WHERE claim_id = ?").run("C-001")).toThrow("downgrade")
+      expect(() => client.db.query("UPDATE fidelity_reviews SET verdict = 'MISMATCH' WHERE claim_id = ?").run("C-001")).toThrow("downgrade")
+      expect(() => client.db.query("DELETE FROM fidelity_reviews WHERE claim_id = ?").run("C-001")).toThrow("downgrade")
+      client.db.query("UPDATE claims SET status = 'STALE' WHERE id = ?").run("C-001")
+      expect(client.db.query("DELETE FROM verification_runs WHERE claim_id = ?").run("C-001").changes).toBeGreaterThan(0)
+    } finally { client.close() }
   })
 })

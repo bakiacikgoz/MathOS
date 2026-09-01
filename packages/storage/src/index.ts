@@ -14,7 +14,6 @@ export {
   VerificationRunRepository,
   ProofAttemptRepository,
   ClaimVisibilityRepository,
-  VerificationClaimPromoter,
 } from "./repositories.ts"
 export {
   ResearchRunRepository,
