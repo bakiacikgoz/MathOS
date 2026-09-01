@@ -20,6 +20,9 @@ bun scripts/retrieval-v3-eval.ts --split=development
 bun scripts/retrieval-v3-eval.ts --split=holdout
 ```
 
-The included corpus is a small governance and harness corpus. Its proof-success
-labels are frozen annotations, not evidence of broad mathematical capability.
-Production promotion requires a Lean-enabled run on a larger representative corpus.
+Each case is evaluated through the production `retrieveFromDeclarations` stages and
+reports both source-corpus and generated-stage sizes. A stage below the minimum
+representative size makes promotion inconclusive. Gold files identify expected
+premises and contain proof programs, but success is counted only after that program
+is executed by Lean and returns `KERNEL_ACCEPTED`. Missing Lean/mathlib, a failed
+probe, or any missing downstream execution makes promotion inconclusive.

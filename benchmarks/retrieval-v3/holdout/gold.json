@@ -3,52 +3,40 @@
   "split": "holdout",
   "labels": {
     "HOLD-001": {
-      "gold": [
-        "and_comm"
+      "expectedPremises": [
+        "Nat.add_left_comm"
       ],
-      "proofNames": [
-        "and_comm"
-      ]
+      "proofSource": "import Mathlib\nexample (a b c : Nat) : a + (b + c) = b + (a + c) := by simpa using Nat.add_left_comm a b c"
     },
     "HOLD-002": {
-      "gold": [
-        "mul_assoc"
+      "expectedPremises": [
+        "Nat.mul_left_comm"
       ],
-      "proofNames": [
-        "mul_assoc"
-      ]
+      "proofSource": "import Mathlib\nexample (a b c : Nat) : a * (b * c) = b * (a * c) := by simpa using Nat.mul_left_comm a b c"
     },
     "HOLD-003": {
-      "gold": [
-        "Nat.add_comm"
+      "expectedPremises": [
+        "iff_self"
       ],
-      "proofNames": [
-        "Nat.add_comm"
-      ]
+      "proofSource": "import Mathlib\nexample (p : Prop) : (p \u2194 p) := by simpa using iff_self p"
     },
     "HOLD-004": {
-      "gold": [
-        "and_comm"
+      "expectedPremises": [
+        "Function.comp_id"
       ],
-      "proofNames": [
-        "and_comm"
-      ]
+      "proofSource": "import Mathlib\nexample {\u03b1 \u03b2} (f : \u03b1 \u2192 \u03b2) : f \u2218 id = f := by simpa using Function.comp_id f"
     },
     "HOLD-005": {
-      "gold": [
-        "Nat.add_comm"
+      "expectedPremises": [
+        "Set.union_comm"
       ],
-      "proofNames": [
-        "Nat.add_comm"
-      ]
+      "proofSource": "import Mathlib\nexample {\u03b1} (s t : Set \u03b1) : s \u222a t = t \u222a s := by simpa using Set.union_comm s t"
     },
     "HOLD-006": {
-      "gold": [
-        "mul_assoc"
+      "expectedPremises": [
+        "max_comm"
       ],
-      "proofNames": [
-        "mul_assoc"
-      ]
+      "proofSource": "import Mathlib\nexample (a b : Nat) : max a b = max b a := by simpa using max_comm a b"
     }
   }
 }

@@ -6,11 +6,11 @@
   "files": [
     {
       "path": "benchmarks/retrieval-v3/development/fixtures.json",
-      "sha256": "152f5a91ff781e3f0d63a3107c5c7fbfba363a59f8e5146d83c3c6202b124cf2"
+      "sha256": "e09b4c4ab7e9028cecf7df4387223aa9d77a50beb1554ea7c875f99f5440c746"
     },
     {
       "path": "benchmarks/retrieval-v3/development/gold.json",
-      "sha256": "c8c3b3d8ef2bb12072d2cbadbdb53187492a12d2fa76739090ed7c798274e7e4"
+      "sha256": "7632d4a98f3671bcc1b9ebc25ad839cf150d8321a36f30daa037d9e43a27e92b"
     }
   ],
   "candidateChannel": {

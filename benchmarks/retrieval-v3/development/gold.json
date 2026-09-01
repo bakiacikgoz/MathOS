@@ -3,52 +3,40 @@
   "split": "development",
   "labels": {
     "DEV-001": {
-      "gold": [
-        "mul_assoc"
+      "expectedPremises": [
+        "Nat.add_comm"
       ],
-      "proofNames": [
-        "mul_assoc"
-      ]
+      "proofSource": "import Mathlib\nexample (a b : Nat) : a + b = b + a := by simpa using Nat.add_comm a b"
     },
     "DEV-002": {
-      "gold": [
-        "Nat.add_comm"
+      "expectedPremises": [
+        "Nat.mul_comm"
       ],
-      "proofNames": [
-        "Nat.add_comm"
-      ]
+      "proofSource": "import Mathlib\nexample (a b : Nat) : a * b = b * a := by simpa using Nat.mul_comm a b"
     },
     "DEV-003": {
-      "gold": [
+      "expectedPremises": [
         "and_comm"
       ],
-      "proofNames": [
-        "and_comm"
-      ]
+      "proofSource": "import Mathlib\nexample (p q : Prop) : p \u2227 q \u2194 q \u2227 p := by simpa using and_comm"
     },
     "DEV-004": {
-      "gold": [
-        "mul_assoc"
+      "expectedPremises": [
+        "or_comm"
       ],
-      "proofNames": [
-        "mul_assoc"
-      ]
+      "proofSource": "import Mathlib\nexample (p q : Prop) : p \u2228 q \u2194 q \u2228 p := by simpa using or_comm"
     },
     "DEV-005": {
-      "gold": [
-        "Nat.add_comm"
+      "expectedPremises": [
+        "add_assoc"
       ],
-      "proofNames": [
-        "Nat.add_comm"
-      ]
+      "proofSource": "import Mathlib\nexample (a b c : Int) : a + b + c = a + (b + c) := by simpa using add_assoc a b c"
     },
     "DEV-006": {
-      "gold": [
-        "and_comm"
+      "expectedPremises": [
+        "mul_assoc"
       ],
-      "proofNames": [
-        "and_comm"
-      ]
+      "proofSource": "import Mathlib\nexample (a b c : Int) : a * b * c = a * (b * c) := by simpa using mul_assoc a b c"
     }
   }
 }

@@ -2,7 +2,30 @@
   "version": "retrieval-v3",
   "split": "holdout",
   "candidateChannel": "lexical-declaration-name",
-  "measuredAt": "2026-09-01T18:50:50.014Z",
+  "measuredAt": "2026-09-01T19:05:26.234Z",
+  "corpusSizes": {
+    "HOLD-001": 40,
+    "HOLD-002": 40,
+    "HOLD-003": 40,
+    "HOLD-004": 40,
+    "HOLD-005": 40,
+    "HOLD-006": 40
+  },
+  "pipelineStageSizes": {
+    "HOLD-001": 15,
+    "HOLD-002": 15,
+    "HOLD-003": 1,
+    "HOLD-004": 5,
+    "HOLD-005": 7,
+    "HOLD-006": 16
+  },
+  "environment": {
+    "leanAvailable": false,
+    "mathlib": false,
+    "probe": "Lean/mathlib project unavailable",
+    "corpusReady": false,
+    "executionsValid": false
+  },
   "decision": "INCONCLUSIVE",
   "checks": {
     "hit10NonDecreasing": true,
@@ -10,10 +33,11 @@
     "noMajorDomainRegression": true,
     "noCompletenessRegression": true,
     "latencyAcceptable": true,
-    "downstreamNonDecreasing": true,
+    "downstreamNonDecreasing": null,
     "environmentReady": null
   },
   "reasons": [
+    "downstreamNonDecreasing:unavailable",
     "environmentReady:unavailable"
   ],
   "paired": {
@@ -21,87 +45,87 @@
       "rows": [
         {
           "id": "HOLD-001",
-          "domain": "Logic",
+          "domain": "Nat",
           "candidateRecall": 1,
           "top200": 1,
           "inspect30": 1,
           "final20": 1,
           "hit1": 0,
-          "hit5": 0,
-          "hit10": 0,
-          "mrr": 0.08333333333333333,
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 0.5,
           "complete": true,
-          "latencyMs": 0.013249999999999318
+          "latencyMs": 0.013792000000009352
         },
         {
           "id": "HOLD-002",
-          "domain": "Algebra",
-          "candidateRecall": 1,
-          "top200": 1,
-          "inspect30": 1,
-          "final20": 1,
-          "hit1": 0,
-          "hit5": 0,
-          "hit10": 0,
-          "mrr": 0.08333333333333333,
-          "complete": true,
-          "latencyMs": 0.0015000000000071623
-        },
-        {
-          "id": "HOLD-003",
           "domain": "Nat",
           "candidateRecall": 1,
           "top200": 1,
           "inspect30": 1,
           "final20": 1,
           "hit1": 0,
-          "hit5": 0,
-          "hit10": 0,
-          "mrr": 0.08333333333333333,
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 0.5,
           "complete": true,
-          "latencyMs": 0.002208000000010202
+          "latencyMs": 0.0015839999999940346
         },
         {
-          "id": "HOLD-004",
+          "id": "HOLD-003",
           "domain": "Logic",
           "candidateRecall": 1,
           "top200": 1,
           "inspect30": 1,
           "final20": 1,
-          "hit1": 0,
-          "hit5": 0,
-          "hit10": 0,
-          "mrr": 0.08333333333333333,
+          "hit1": 1,
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 1,
           "complete": true,
-          "latencyMs": 0.0015410000000031232
+          "latencyMs": 0.0004999999999881766
+        },
+        {
+          "id": "HOLD-004",
+          "domain": "Function",
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 0,
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 0.3333333333333333,
+          "complete": true,
+          "latencyMs": 0.0007920000000041227
         },
         {
           "id": "HOLD-005",
-          "domain": "Nat",
+          "domain": "Set",
           "candidateRecall": 1,
           "top200": 1,
           "inspect30": 1,
           "final20": 1,
           "hit1": 0,
-          "hit5": 0,
-          "hit10": 0,
-          "mrr": 0.08333333333333333,
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 0.5,
           "complete": true,
-          "latencyMs": 0.0014999999999929514
+          "latencyMs": 0.0007910000000066475
         },
         {
           "id": "HOLD-006",
-          "domain": "Algebra",
+          "domain": "Order",
           "candidateRecall": 1,
           "top200": 1,
           "inspect30": 1,
           "final20": 1,
           "hit1": 0,
           "hit5": 0,
-          "hit10": 0,
-          "mrr": 0.08333333333333333,
+          "hit10": 1,
+          "mrr": 0.1111111111111111,
           "complete": true,
-          "latencyMs": 0.0009579999999971278
+          "latencyMs": 0.0016669999999976426
         }
       ],
       "aggregate": {
@@ -111,38 +135,38 @@
         "top200": 1,
         "inspect30": 1,
         "final20": 1,
-        "hit1": 0,
-        "hit5": 0,
-        "hit10": 0,
-        "mrr": 0.08333333333333333,
-        "latencyMs": 0.0034928333333349806
+        "hit1": 0.16666666666666666,
+        "hit5": 0.8333333333333334,
+        "hit10": 1,
+        "mrr": 0.49074074074074076,
+        "latencyMs": 0.003187666666666663
       },
       "domains": {
-        "Algebra": {
-          "cases": 2,
-          "completeCases": 2,
+        "Function": {
+          "cases": 1,
+          "completeCases": 1,
           "candidateRecall": 1,
           "top200": 1,
           "inspect30": 1,
           "final20": 1,
           "hit1": 0,
-          "hit5": 0,
-          "hit10": 0,
-          "mrr": 0.08333333333333333,
-          "latencyMs": 0.001229000000002145
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 0.3333333333333333,
+          "latencyMs": 0.0007920000000041227
         },
         "Logic": {
-          "cases": 2,
-          "completeCases": 2,
+          "cases": 1,
+          "completeCases": 1,
           "candidateRecall": 1,
           "top200": 1,
           "inspect30": 1,
           "final20": 1,
-          "hit1": 0,
-          "hit5": 0,
-          "hit10": 0,
-          "mrr": 0.08333333333333333,
-          "latencyMs": 0.0073955000000012205
+          "hit1": 1,
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 1,
+          "latencyMs": 0.0004999999999881766
         },
         "Nat": {
           "cases": 2,
@@ -152,10 +176,36 @@
           "inspect30": 1,
           "final20": 1,
           "hit1": 0,
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 0.5,
+          "latencyMs": 0.0076880000000016935
+        },
+        "Order": {
+          "cases": 1,
+          "completeCases": 1,
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 0,
           "hit5": 0,
-          "hit10": 0,
-          "mrr": 0.08333333333333333,
-          "latencyMs": 0.0018540000000015766
+          "hit10": 1,
+          "mrr": 0.1111111111111111,
+          "latencyMs": 0.0016669999999976426
+        },
+        "Set": {
+          "cases": 1,
+          "completeCases": 1,
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 0,
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 0.5,
+          "latencyMs": 0.0007910000000066475
         }
       }
     },
@@ -163,48 +213,34 @@
       "rows": [
         {
           "id": "HOLD-001",
-          "domain": "Logic",
+          "domain": "Nat",
           "candidateRecall": 1,
           "top200": 1,
           "inspect30": 1,
           "final20": 1,
-          "hit1": 1,
+          "hit1": 0,
           "hit5": 1,
           "hit10": 1,
-          "mrr": 1,
+          "mrr": 0.5,
           "complete": true,
-          "latencyMs": 0.06824999999999193
+          "latencyMs": 0.04766600000000665
         },
         {
           "id": "HOLD-002",
-          "domain": "Algebra",
-          "candidateRecall": 1,
-          "top200": 1,
-          "inspect30": 1,
-          "final20": 1,
-          "hit1": 1,
-          "hit5": 1,
-          "hit10": 1,
-          "mrr": 1,
-          "complete": true,
-          "latencyMs": 0.02579099999999812
-        },
-        {
-          "id": "HOLD-003",
           "domain": "Nat",
           "candidateRecall": 1,
           "top200": 1,
           "inspect30": 1,
           "final20": 1,
-          "hit1": 1,
+          "hit1": 0,
           "hit5": 1,
           "hit10": 1,
-          "mrr": 1,
+          "mrr": 0.5,
           "complete": true,
-          "latencyMs": 0.015165999999993574
+          "latencyMs": 0.014457999999990534
         },
         {
-          "id": "HOLD-004",
+          "id": "HOLD-003",
           "domain": "Logic",
           "candidateRecall": 1,
           "top200": 1,
@@ -215,35 +251,49 @@
           "hit10": 1,
           "mrr": 1,
           "complete": true,
-          "latencyMs": 0.025792000000009807
+          "latencyMs": 0.004458999999997104
+        },
+        {
+          "id": "HOLD-004",
+          "domain": "Function",
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 1,
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 1,
+          "complete": true,
+          "latencyMs": 0.6442090000000036
         },
         {
           "id": "HOLD-005",
-          "domain": "Nat",
+          "domain": "Set",
           "candidateRecall": 1,
           "top200": 1,
           "inspect30": 1,
           "final20": 1,
-          "hit1": 1,
+          "hit1": 0,
           "hit5": 1,
           "hit10": 1,
-          "mrr": 1,
+          "mrr": 0.5,
           "complete": true,
-          "latencyMs": 0.019790999999997894
+          "latencyMs": 0.05762500000000159
         },
         {
           "id": "HOLD-006",
-          "domain": "Algebra",
+          "domain": "Order",
           "candidateRecall": 1,
           "top200": 1,
           "inspect30": 1,
           "final20": 1,
-          "hit1": 1,
-          "hit5": 1,
+          "hit1": 0,
+          "hit5": 0,
           "hit10": 1,
-          "mrr": 1,
+          "mrr": 0.14285714285714285,
           "complete": true,
-          "latencyMs": 0.02158300000000679
+          "latencyMs": 0.04899999999999238
         }
       ],
       "aggregate": {
@@ -253,16 +303,16 @@
         "top200": 1,
         "inspect30": 1,
         "final20": 1,
-        "hit1": 1,
-        "hit5": 1,
+        "hit1": 0.3333333333333333,
+        "hit5": 0.8333333333333334,
         "hit10": 1,
-        "mrr": 1,
-        "latencyMs": 0.029395499999999686
+        "mrr": 0.6071428571428571,
+        "latencyMs": 0.1362361666666653
       },
       "domains": {
-        "Algebra": {
-          "cases": 2,
-          "completeCases": 2,
+        "Function": {
+          "cases": 1,
+          "completeCases": 1,
           "candidateRecall": 1,
           "top200": 1,
           "inspect30": 1,
@@ -271,11 +321,11 @@
           "hit5": 1,
           "hit10": 1,
           "mrr": 1,
-          "latencyMs": 0.023687000000002456
+          "latencyMs": 0.6442090000000036
         },
         "Logic": {
-          "cases": 2,
-          "completeCases": 2,
+          "cases": 1,
+          "completeCases": 1,
           "candidateRecall": 1,
           "top200": 1,
           "inspect30": 1,
@@ -284,7 +334,7 @@
           "hit5": 1,
           "hit10": 1,
           "mrr": 1,
-          "latencyMs": 0.04702100000000087
+          "latencyMs": 0.004458999999997104
         },
         "Nat": {
           "cases": 2,
@@ -293,11 +343,37 @@
           "top200": 1,
           "inspect30": 1,
           "final20": 1,
-          "hit1": 1,
+          "hit1": 0,
           "hit5": 1,
           "hit10": 1,
-          "mrr": 1,
-          "latencyMs": 0.017478499999995734
+          "mrr": 0.5,
+          "latencyMs": 0.03106199999999859
+        },
+        "Order": {
+          "cases": 1,
+          "completeCases": 1,
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 0,
+          "hit5": 0,
+          "hit10": 1,
+          "mrr": 0.14285714285714285,
+          "latencyMs": 0.04899999999999238
+        },
+        "Set": {
+          "cases": 1,
+          "completeCases": 1,
+          "candidateRecall": 1,
+          "top200": 1,
+          "inspect30": 1,
+          "final20": 1,
+          "hit1": 0,
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 0.5,
+          "latencyMs": 0.05762500000000159
         }
       }
     },
@@ -306,35 +382,35 @@
       "top200": 0,
       "inspect30": 0,
       "final20": 0,
-      "hit1": 1,
-      "hit5": 1,
-      "hit10": 1,
-      "mrr": 0.9166666666666666,
-      "latencyMs": 0.025902666666664704
+      "hit1": 0.16666666666666666,
+      "hit5": 0,
+      "hit10": 0,
+      "mrr": 0.11640211640211634,
+      "latencyMs": 0.13304849999999863
     },
     "completenessRegressions": [],
     "domainHit10Deltas": {
-      "Algebra": 1,
-      "Logic": 1,
-      "Nat": 1
+      "Function": 0,
+      "Logic": 0,
+      "Nat": 0,
+      "Order": 0,
+      "Set": 0
     }
   },
   "downstream": {
     "baseline": {
       "k": 10,
-      "attempted": 6,
+      "attempted": 0,
       "successes": 0,
-      "rate": 0
+      "rate": 0,
+      "valid": false
     },
     "candidate": {
       "k": 10,
-      "attempted": 6,
-      "successes": 6,
-      "rate": 1
+      "attempted": 0,
+      "successes": 0,
+      "rate": 0,
+      "valid": false
     }
-  },
-  "environment": {
-    "leanAvailable": false,
-    "note": "Lean unavailable; promotion is inconclusive"
   }
 }

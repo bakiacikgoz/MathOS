@@ -4,331 +4,1483 @@
   "cases": [
     {
       "id": "DEV-001",
-      "domain": "Algebra",
-      "goal": "prove mul assoc identity",
-      "candidates": [
+      "domain": "Nat",
+      "goal": "theorem dev_nat_add (a b : Nat) : a + b = b + a",
+      "declarations": [
         {
-          "name": "Algebra.decoy_01",
-          "baselineScore": 0.97
+          "name": "Nat.add_comm",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_comm : proposition about Nat add_comm",
+          "origin": "mathlib"
         },
         {
-          "name": "Algebra.decoy_02",
-          "baselineScore": 0.94
+          "name": "Nat.mul_comm",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_comm : proposition about Nat mul_comm",
+          "origin": "mathlib"
         },
         {
-          "name": "Algebra.decoy_03",
-          "baselineScore": 0.91
+          "name": "Nat.add_assoc",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_assoc : proposition about Nat add_assoc",
+          "origin": "mathlib"
         },
         {
-          "name": "Algebra.decoy_04",
-          "baselineScore": 0.88
+          "name": "Nat.mul_assoc",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_assoc : proposition about Nat mul_assoc",
+          "origin": "mathlib"
         },
         {
-          "name": "Algebra.decoy_05",
-          "baselineScore": 0.85
+          "name": "Nat.add_left_comm",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_left_comm : proposition about Nat add_left_comm",
+          "origin": "mathlib"
         },
         {
-          "name": "Algebra.decoy_06",
-          "baselineScore": 0.82
+          "name": "Nat.mul_left_comm",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_left_comm : proposition about Nat mul_left_comm",
+          "origin": "mathlib"
         },
         {
-          "name": "Algebra.decoy_07",
-          "baselineScore": 0.79
+          "name": "and_comm",
+          "kind": "theorem",
+          "signature": "theorem and_comm : proposition about and_comm",
+          "origin": "mathlib"
         },
         {
-          "name": "Algebra.decoy_08",
-          "baselineScore": 0.76
+          "name": "or_comm",
+          "kind": "theorem",
+          "signature": "theorem or_comm : proposition about or_comm",
+          "origin": "mathlib"
         },
         {
-          "name": "Algebra.decoy_09",
-          "baselineScore": 0.73
+          "name": "iff_self",
+          "kind": "theorem",
+          "signature": "theorem iff_self : proposition about iff_self",
+          "origin": "mathlib"
         },
         {
-          "name": "Algebra.decoy_10",
-          "baselineScore": 0.7
+          "name": "Function.comp_id",
+          "kind": "theorem",
+          "signature": "theorem Function.comp_id : proposition about Function comp_id",
+          "origin": "mathlib"
         },
         {
-          "name": "Algebra.decoy_11",
-          "baselineScore": 0.67
+          "name": "Set.union_comm",
+          "kind": "theorem",
+          "signature": "theorem Set.union_comm : proposition about Set union_comm",
+          "origin": "mathlib"
         },
         {
-          "name": "mul_assoc",
-          "baselineScore": 0.64
+          "name": "max_comm",
+          "kind": "theorem",
+          "signature": "theorem max_comm : proposition about max_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "min_comm",
+          "kind": "theorem",
+          "signature": "theorem min_comm : proposition about min_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.zero_add",
+          "kind": "theorem",
+          "signature": "theorem Nat.zero_add : proposition about Nat zero_add",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.add_zero",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_zero : proposition about Nat add_zero",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.one_mul",
+          "kind": "theorem",
+          "signature": "theorem Nat.one_mul : proposition about Nat one_mul",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.mul_one",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_one : proposition about Nat mul_one",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Set.inter_comm",
+          "kind": "theorem",
+          "signature": "theorem Set.inter_comm : proposition about Set inter_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Set.union_assoc",
+          "kind": "theorem",
+          "signature": "theorem Set.union_assoc : proposition about Set union_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Set.inter_assoc",
+          "kind": "theorem",
+          "signature": "theorem Set.inter_assoc : proposition about Set inter_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Function.id_comp",
+          "kind": "theorem",
+          "signature": "theorem Function.id_comp : proposition about Function id_comp",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Function.comp_assoc",
+          "kind": "theorem",
+          "signature": "theorem Function.comp_assoc : proposition about Function comp_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "eq_comm",
+          "kind": "theorem",
+          "signature": "theorem eq_comm : proposition about eq_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "not_false",
+          "kind": "theorem",
+          "signature": "theorem not_false : proposition about not_false",
+          "origin": "mathlib"
+        },
+        {
+          "name": "true_and",
+          "kind": "theorem",
+          "signature": "theorem true_and : proposition about true_and",
+          "origin": "mathlib"
+        },
+        {
+          "name": "and_true",
+          "kind": "theorem",
+          "signature": "theorem and_true : proposition about and_true",
+          "origin": "mathlib"
+        },
+        {
+          "name": "false_or",
+          "kind": "theorem",
+          "signature": "theorem false_or : proposition about false_or",
+          "origin": "mathlib"
+        },
+        {
+          "name": "or_false",
+          "kind": "theorem",
+          "signature": "theorem or_false : proposition about or_false",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.succ_inj",
+          "kind": "theorem",
+          "signature": "theorem Nat.succ_inj : proposition about Nat succ_inj",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.add_left_cancel",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_left_cancel : proposition about Nat add_left_cancel",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.mul_left_cancel",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_left_cancel : proposition about Nat mul_left_cancel",
+          "origin": "mathlib"
+        },
+        {
+          "name": "List.append_assoc",
+          "kind": "theorem",
+          "signature": "theorem List.append_assoc : proposition about List append_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "List.length_append",
+          "kind": "theorem",
+          "signature": "theorem List.length_append : proposition about List length_append",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Finset.union_comm",
+          "kind": "theorem",
+          "signature": "theorem Finset.union_comm : proposition about Finset union_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Finset.inter_comm",
+          "kind": "theorem",
+          "signature": "theorem Finset.inter_comm : proposition about Finset inter_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "abs_nonneg",
+          "kind": "theorem",
+          "signature": "theorem abs_nonneg : proposition about abs_nonneg",
+          "origin": "mathlib"
+        },
+        {
+          "name": "le_refl",
+          "kind": "theorem",
+          "signature": "theorem le_refl : proposition about le_refl",
+          "origin": "mathlib"
+        },
+        {
+          "name": "lt_irrefl",
+          "kind": "theorem",
+          "signature": "theorem lt_irrefl : proposition about lt_irrefl",
+          "origin": "mathlib"
+        },
+        {
+          "name": "sup_comm",
+          "kind": "theorem",
+          "signature": "theorem sup_comm : proposition about sup_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "inf_comm",
+          "kind": "theorem",
+          "signature": "theorem inf_comm : proposition about inf_comm",
+          "origin": "mathlib"
         }
       ]
     },
     {
       "id": "DEV-002",
       "domain": "Nat",
-      "goal": "prove Nat add comm equality",
-      "candidates": [
-        {
-          "name": "Nat.decoy_01",
-          "baselineScore": 0.97
-        },
-        {
-          "name": "Nat.decoy_02",
-          "baselineScore": 0.94
-        },
-        {
-          "name": "Nat.decoy_03",
-          "baselineScore": 0.91
-        },
-        {
-          "name": "Nat.decoy_04",
-          "baselineScore": 0.88
-        },
-        {
-          "name": "Nat.decoy_05",
-          "baselineScore": 0.85
-        },
-        {
-          "name": "Nat.decoy_06",
-          "baselineScore": 0.82
-        },
-        {
-          "name": "Nat.decoy_07",
-          "baselineScore": 0.79
-        },
-        {
-          "name": "Nat.decoy_08",
-          "baselineScore": 0.76
-        },
-        {
-          "name": "Nat.decoy_09",
-          "baselineScore": 0.73
-        },
-        {
-          "name": "Nat.decoy_10",
-          "baselineScore": 0.7
-        },
-        {
-          "name": "Nat.decoy_11",
-          "baselineScore": 0.67
-        },
+      "goal": "theorem dev_nat_mul (a b : Nat) : a * b = b * a",
+      "declarations": [
         {
           "name": "Nat.add_comm",
-          "baselineScore": 0.64
+          "kind": "theorem",
+          "signature": "theorem Nat.add_comm : proposition about Nat add_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.mul_comm",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_comm : proposition about Nat mul_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.add_assoc",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_assoc : proposition about Nat add_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.mul_assoc",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_assoc : proposition about Nat mul_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.add_left_comm",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_left_comm : proposition about Nat add_left_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.mul_left_comm",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_left_comm : proposition about Nat mul_left_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "and_comm",
+          "kind": "theorem",
+          "signature": "theorem and_comm : proposition about and_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "or_comm",
+          "kind": "theorem",
+          "signature": "theorem or_comm : proposition about or_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "iff_self",
+          "kind": "theorem",
+          "signature": "theorem iff_self : proposition about iff_self",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Function.comp_id",
+          "kind": "theorem",
+          "signature": "theorem Function.comp_id : proposition about Function comp_id",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Set.union_comm",
+          "kind": "theorem",
+          "signature": "theorem Set.union_comm : proposition about Set union_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "max_comm",
+          "kind": "theorem",
+          "signature": "theorem max_comm : proposition about max_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "min_comm",
+          "kind": "theorem",
+          "signature": "theorem min_comm : proposition about min_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.zero_add",
+          "kind": "theorem",
+          "signature": "theorem Nat.zero_add : proposition about Nat zero_add",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.add_zero",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_zero : proposition about Nat add_zero",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.one_mul",
+          "kind": "theorem",
+          "signature": "theorem Nat.one_mul : proposition about Nat one_mul",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.mul_one",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_one : proposition about Nat mul_one",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Set.inter_comm",
+          "kind": "theorem",
+          "signature": "theorem Set.inter_comm : proposition about Set inter_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Set.union_assoc",
+          "kind": "theorem",
+          "signature": "theorem Set.union_assoc : proposition about Set union_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Set.inter_assoc",
+          "kind": "theorem",
+          "signature": "theorem Set.inter_assoc : proposition about Set inter_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Function.id_comp",
+          "kind": "theorem",
+          "signature": "theorem Function.id_comp : proposition about Function id_comp",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Function.comp_assoc",
+          "kind": "theorem",
+          "signature": "theorem Function.comp_assoc : proposition about Function comp_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "eq_comm",
+          "kind": "theorem",
+          "signature": "theorem eq_comm : proposition about eq_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "not_false",
+          "kind": "theorem",
+          "signature": "theorem not_false : proposition about not_false",
+          "origin": "mathlib"
+        },
+        {
+          "name": "true_and",
+          "kind": "theorem",
+          "signature": "theorem true_and : proposition about true_and",
+          "origin": "mathlib"
+        },
+        {
+          "name": "and_true",
+          "kind": "theorem",
+          "signature": "theorem and_true : proposition about and_true",
+          "origin": "mathlib"
+        },
+        {
+          "name": "false_or",
+          "kind": "theorem",
+          "signature": "theorem false_or : proposition about false_or",
+          "origin": "mathlib"
+        },
+        {
+          "name": "or_false",
+          "kind": "theorem",
+          "signature": "theorem or_false : proposition about or_false",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.succ_inj",
+          "kind": "theorem",
+          "signature": "theorem Nat.succ_inj : proposition about Nat succ_inj",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.add_left_cancel",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_left_cancel : proposition about Nat add_left_cancel",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.mul_left_cancel",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_left_cancel : proposition about Nat mul_left_cancel",
+          "origin": "mathlib"
+        },
+        {
+          "name": "List.append_assoc",
+          "kind": "theorem",
+          "signature": "theorem List.append_assoc : proposition about List append_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "List.length_append",
+          "kind": "theorem",
+          "signature": "theorem List.length_append : proposition about List length_append",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Finset.union_comm",
+          "kind": "theorem",
+          "signature": "theorem Finset.union_comm : proposition about Finset union_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Finset.inter_comm",
+          "kind": "theorem",
+          "signature": "theorem Finset.inter_comm : proposition about Finset inter_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "abs_nonneg",
+          "kind": "theorem",
+          "signature": "theorem abs_nonneg : proposition about abs_nonneg",
+          "origin": "mathlib"
+        },
+        {
+          "name": "le_refl",
+          "kind": "theorem",
+          "signature": "theorem le_refl : proposition about le_refl",
+          "origin": "mathlib"
+        },
+        {
+          "name": "lt_irrefl",
+          "kind": "theorem",
+          "signature": "theorem lt_irrefl : proposition about lt_irrefl",
+          "origin": "mathlib"
+        },
+        {
+          "name": "sup_comm",
+          "kind": "theorem",
+          "signature": "theorem sup_comm : proposition about sup_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "inf_comm",
+          "kind": "theorem",
+          "signature": "theorem inf_comm : proposition about inf_comm",
+          "origin": "mathlib"
         }
       ]
     },
     {
       "id": "DEV-003",
       "domain": "Logic",
-      "goal": "prove and comm proposition",
-      "candidates": [
+      "goal": "theorem dev_and (p q : Prop) : p \u2227 q \u2194 q \u2227 p",
+      "declarations": [
         {
-          "name": "Logic.decoy_01",
-          "baselineScore": 0.97
+          "name": "Nat.add_comm",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_comm : proposition about Nat add_comm",
+          "origin": "mathlib"
         },
         {
-          "name": "Logic.decoy_02",
-          "baselineScore": 0.94
+          "name": "Nat.mul_comm",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_comm : proposition about Nat mul_comm",
+          "origin": "mathlib"
         },
         {
-          "name": "Logic.decoy_03",
-          "baselineScore": 0.91
+          "name": "Nat.add_assoc",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_assoc : proposition about Nat add_assoc",
+          "origin": "mathlib"
         },
         {
-          "name": "Logic.decoy_04",
-          "baselineScore": 0.88
+          "name": "Nat.mul_assoc",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_assoc : proposition about Nat mul_assoc",
+          "origin": "mathlib"
         },
         {
-          "name": "Logic.decoy_05",
-          "baselineScore": 0.85
+          "name": "Nat.add_left_comm",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_left_comm : proposition about Nat add_left_comm",
+          "origin": "mathlib"
         },
         {
-          "name": "Logic.decoy_06",
-          "baselineScore": 0.82
-        },
-        {
-          "name": "Logic.decoy_07",
-          "baselineScore": 0.79
-        },
-        {
-          "name": "Logic.decoy_08",
-          "baselineScore": 0.76
-        },
-        {
-          "name": "Logic.decoy_09",
-          "baselineScore": 0.73
-        },
-        {
-          "name": "Logic.decoy_10",
-          "baselineScore": 0.7
-        },
-        {
-          "name": "Logic.decoy_11",
-          "baselineScore": 0.67
+          "name": "Nat.mul_left_comm",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_left_comm : proposition about Nat mul_left_comm",
+          "origin": "mathlib"
         },
         {
           "name": "and_comm",
-          "baselineScore": 0.64
+          "kind": "theorem",
+          "signature": "theorem and_comm : proposition about and_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "or_comm",
+          "kind": "theorem",
+          "signature": "theorem or_comm : proposition about or_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "iff_self",
+          "kind": "theorem",
+          "signature": "theorem iff_self : proposition about iff_self",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Function.comp_id",
+          "kind": "theorem",
+          "signature": "theorem Function.comp_id : proposition about Function comp_id",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Set.union_comm",
+          "kind": "theorem",
+          "signature": "theorem Set.union_comm : proposition about Set union_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "max_comm",
+          "kind": "theorem",
+          "signature": "theorem max_comm : proposition about max_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "min_comm",
+          "kind": "theorem",
+          "signature": "theorem min_comm : proposition about min_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.zero_add",
+          "kind": "theorem",
+          "signature": "theorem Nat.zero_add : proposition about Nat zero_add",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.add_zero",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_zero : proposition about Nat add_zero",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.one_mul",
+          "kind": "theorem",
+          "signature": "theorem Nat.one_mul : proposition about Nat one_mul",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.mul_one",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_one : proposition about Nat mul_one",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Set.inter_comm",
+          "kind": "theorem",
+          "signature": "theorem Set.inter_comm : proposition about Set inter_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Set.union_assoc",
+          "kind": "theorem",
+          "signature": "theorem Set.union_assoc : proposition about Set union_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Set.inter_assoc",
+          "kind": "theorem",
+          "signature": "theorem Set.inter_assoc : proposition about Set inter_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Function.id_comp",
+          "kind": "theorem",
+          "signature": "theorem Function.id_comp : proposition about Function id_comp",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Function.comp_assoc",
+          "kind": "theorem",
+          "signature": "theorem Function.comp_assoc : proposition about Function comp_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "eq_comm",
+          "kind": "theorem",
+          "signature": "theorem eq_comm : proposition about eq_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "not_false",
+          "kind": "theorem",
+          "signature": "theorem not_false : proposition about not_false",
+          "origin": "mathlib"
+        },
+        {
+          "name": "true_and",
+          "kind": "theorem",
+          "signature": "theorem true_and : proposition about true_and",
+          "origin": "mathlib"
+        },
+        {
+          "name": "and_true",
+          "kind": "theorem",
+          "signature": "theorem and_true : proposition about and_true",
+          "origin": "mathlib"
+        },
+        {
+          "name": "false_or",
+          "kind": "theorem",
+          "signature": "theorem false_or : proposition about false_or",
+          "origin": "mathlib"
+        },
+        {
+          "name": "or_false",
+          "kind": "theorem",
+          "signature": "theorem or_false : proposition about or_false",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.succ_inj",
+          "kind": "theorem",
+          "signature": "theorem Nat.succ_inj : proposition about Nat succ_inj",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.add_left_cancel",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_left_cancel : proposition about Nat add_left_cancel",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.mul_left_cancel",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_left_cancel : proposition about Nat mul_left_cancel",
+          "origin": "mathlib"
+        },
+        {
+          "name": "List.append_assoc",
+          "kind": "theorem",
+          "signature": "theorem List.append_assoc : proposition about List append_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "List.length_append",
+          "kind": "theorem",
+          "signature": "theorem List.length_append : proposition about List length_append",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Finset.union_comm",
+          "kind": "theorem",
+          "signature": "theorem Finset.union_comm : proposition about Finset union_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Finset.inter_comm",
+          "kind": "theorem",
+          "signature": "theorem Finset.inter_comm : proposition about Finset inter_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "abs_nonneg",
+          "kind": "theorem",
+          "signature": "theorem abs_nonneg : proposition about abs_nonneg",
+          "origin": "mathlib"
+        },
+        {
+          "name": "le_refl",
+          "kind": "theorem",
+          "signature": "theorem le_refl : proposition about le_refl",
+          "origin": "mathlib"
+        },
+        {
+          "name": "lt_irrefl",
+          "kind": "theorem",
+          "signature": "theorem lt_irrefl : proposition about lt_irrefl",
+          "origin": "mathlib"
+        },
+        {
+          "name": "sup_comm",
+          "kind": "theorem",
+          "signature": "theorem sup_comm : proposition about sup_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "inf_comm",
+          "kind": "theorem",
+          "signature": "theorem inf_comm : proposition about inf_comm",
+          "origin": "mathlib"
         }
       ]
     },
     {
       "id": "DEV-004",
-      "domain": "Algebra",
-      "goal": "prove mul assoc identity",
-      "candidates": [
+      "domain": "Logic",
+      "goal": "theorem dev_or (p q : Prop) : p \u2228 q \u2194 q \u2228 p",
+      "declarations": [
         {
-          "name": "Algebra.decoy_01",
-          "baselineScore": 0.97
+          "name": "Nat.add_comm",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_comm : proposition about Nat add_comm",
+          "origin": "mathlib"
         },
         {
-          "name": "Algebra.decoy_02",
-          "baselineScore": 0.94
+          "name": "Nat.mul_comm",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_comm : proposition about Nat mul_comm",
+          "origin": "mathlib"
         },
         {
-          "name": "Algebra.decoy_03",
-          "baselineScore": 0.91
+          "name": "Nat.add_assoc",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_assoc : proposition about Nat add_assoc",
+          "origin": "mathlib"
         },
         {
-          "name": "Algebra.decoy_04",
-          "baselineScore": 0.88
+          "name": "Nat.mul_assoc",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_assoc : proposition about Nat mul_assoc",
+          "origin": "mathlib"
         },
         {
-          "name": "Algebra.decoy_05",
-          "baselineScore": 0.85
+          "name": "Nat.add_left_comm",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_left_comm : proposition about Nat add_left_comm",
+          "origin": "mathlib"
         },
         {
-          "name": "Algebra.decoy_06",
-          "baselineScore": 0.82
+          "name": "Nat.mul_left_comm",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_left_comm : proposition about Nat mul_left_comm",
+          "origin": "mathlib"
         },
         {
-          "name": "Algebra.decoy_07",
-          "baselineScore": 0.79
+          "name": "and_comm",
+          "kind": "theorem",
+          "signature": "theorem and_comm : proposition about and_comm",
+          "origin": "mathlib"
         },
         {
-          "name": "Algebra.decoy_08",
-          "baselineScore": 0.76
+          "name": "or_comm",
+          "kind": "theorem",
+          "signature": "theorem or_comm : proposition about or_comm",
+          "origin": "mathlib"
         },
         {
-          "name": "Algebra.decoy_09",
-          "baselineScore": 0.73
+          "name": "iff_self",
+          "kind": "theorem",
+          "signature": "theorem iff_self : proposition about iff_self",
+          "origin": "mathlib"
         },
         {
-          "name": "Algebra.decoy_10",
-          "baselineScore": 0.7
+          "name": "Function.comp_id",
+          "kind": "theorem",
+          "signature": "theorem Function.comp_id : proposition about Function comp_id",
+          "origin": "mathlib"
         },
         {
-          "name": "Algebra.decoy_11",
-          "baselineScore": 0.67
+          "name": "Set.union_comm",
+          "kind": "theorem",
+          "signature": "theorem Set.union_comm : proposition about Set union_comm",
+          "origin": "mathlib"
         },
         {
-          "name": "mul_assoc",
-          "baselineScore": 0.64
+          "name": "max_comm",
+          "kind": "theorem",
+          "signature": "theorem max_comm : proposition about max_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "min_comm",
+          "kind": "theorem",
+          "signature": "theorem min_comm : proposition about min_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.zero_add",
+          "kind": "theorem",
+          "signature": "theorem Nat.zero_add : proposition about Nat zero_add",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.add_zero",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_zero : proposition about Nat add_zero",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.one_mul",
+          "kind": "theorem",
+          "signature": "theorem Nat.one_mul : proposition about Nat one_mul",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.mul_one",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_one : proposition about Nat mul_one",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Set.inter_comm",
+          "kind": "theorem",
+          "signature": "theorem Set.inter_comm : proposition about Set inter_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Set.union_assoc",
+          "kind": "theorem",
+          "signature": "theorem Set.union_assoc : proposition about Set union_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Set.inter_assoc",
+          "kind": "theorem",
+          "signature": "theorem Set.inter_assoc : proposition about Set inter_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Function.id_comp",
+          "kind": "theorem",
+          "signature": "theorem Function.id_comp : proposition about Function id_comp",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Function.comp_assoc",
+          "kind": "theorem",
+          "signature": "theorem Function.comp_assoc : proposition about Function comp_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "eq_comm",
+          "kind": "theorem",
+          "signature": "theorem eq_comm : proposition about eq_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "not_false",
+          "kind": "theorem",
+          "signature": "theorem not_false : proposition about not_false",
+          "origin": "mathlib"
+        },
+        {
+          "name": "true_and",
+          "kind": "theorem",
+          "signature": "theorem true_and : proposition about true_and",
+          "origin": "mathlib"
+        },
+        {
+          "name": "and_true",
+          "kind": "theorem",
+          "signature": "theorem and_true : proposition about and_true",
+          "origin": "mathlib"
+        },
+        {
+          "name": "false_or",
+          "kind": "theorem",
+          "signature": "theorem false_or : proposition about false_or",
+          "origin": "mathlib"
+        },
+        {
+          "name": "or_false",
+          "kind": "theorem",
+          "signature": "theorem or_false : proposition about or_false",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.succ_inj",
+          "kind": "theorem",
+          "signature": "theorem Nat.succ_inj : proposition about Nat succ_inj",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.add_left_cancel",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_left_cancel : proposition about Nat add_left_cancel",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.mul_left_cancel",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_left_cancel : proposition about Nat mul_left_cancel",
+          "origin": "mathlib"
+        },
+        {
+          "name": "List.append_assoc",
+          "kind": "theorem",
+          "signature": "theorem List.append_assoc : proposition about List append_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "List.length_append",
+          "kind": "theorem",
+          "signature": "theorem List.length_append : proposition about List length_append",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Finset.union_comm",
+          "kind": "theorem",
+          "signature": "theorem Finset.union_comm : proposition about Finset union_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Finset.inter_comm",
+          "kind": "theorem",
+          "signature": "theorem Finset.inter_comm : proposition about Finset inter_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "abs_nonneg",
+          "kind": "theorem",
+          "signature": "theorem abs_nonneg : proposition about abs_nonneg",
+          "origin": "mathlib"
+        },
+        {
+          "name": "le_refl",
+          "kind": "theorem",
+          "signature": "theorem le_refl : proposition about le_refl",
+          "origin": "mathlib"
+        },
+        {
+          "name": "lt_irrefl",
+          "kind": "theorem",
+          "signature": "theorem lt_irrefl : proposition about lt_irrefl",
+          "origin": "mathlib"
+        },
+        {
+          "name": "sup_comm",
+          "kind": "theorem",
+          "signature": "theorem sup_comm : proposition about sup_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "inf_comm",
+          "kind": "theorem",
+          "signature": "theorem inf_comm : proposition about inf_comm",
+          "origin": "mathlib"
         }
       ]
     },
     {
       "id": "DEV-005",
-      "domain": "Nat",
-      "goal": "prove Nat add comm equality",
-      "candidates": [
-        {
-          "name": "Nat.decoy_01",
-          "baselineScore": 0.97
-        },
-        {
-          "name": "Nat.decoy_02",
-          "baselineScore": 0.94
-        },
-        {
-          "name": "Nat.decoy_03",
-          "baselineScore": 0.91
-        },
-        {
-          "name": "Nat.decoy_04",
-          "baselineScore": 0.88
-        },
-        {
-          "name": "Nat.decoy_05",
-          "baselineScore": 0.85
-        },
-        {
-          "name": "Nat.decoy_06",
-          "baselineScore": 0.82
-        },
-        {
-          "name": "Nat.decoy_07",
-          "baselineScore": 0.79
-        },
-        {
-          "name": "Nat.decoy_08",
-          "baselineScore": 0.76
-        },
-        {
-          "name": "Nat.decoy_09",
-          "baselineScore": 0.73
-        },
-        {
-          "name": "Nat.decoy_10",
-          "baselineScore": 0.7
-        },
-        {
-          "name": "Nat.decoy_11",
-          "baselineScore": 0.67
-        },
+      "domain": "Algebra",
+      "goal": "theorem dev_add_assoc (a b c : Int) : a + b + c = a + (b + c)",
+      "declarations": [
         {
           "name": "Nat.add_comm",
-          "baselineScore": 0.64
+          "kind": "theorem",
+          "signature": "theorem Nat.add_comm : proposition about Nat add_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.mul_comm",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_comm : proposition about Nat mul_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.add_assoc",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_assoc : proposition about Nat add_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.mul_assoc",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_assoc : proposition about Nat mul_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.add_left_comm",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_left_comm : proposition about Nat add_left_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.mul_left_comm",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_left_comm : proposition about Nat mul_left_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "and_comm",
+          "kind": "theorem",
+          "signature": "theorem and_comm : proposition about and_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "or_comm",
+          "kind": "theorem",
+          "signature": "theorem or_comm : proposition about or_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "iff_self",
+          "kind": "theorem",
+          "signature": "theorem iff_self : proposition about iff_self",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Function.comp_id",
+          "kind": "theorem",
+          "signature": "theorem Function.comp_id : proposition about Function comp_id",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Set.union_comm",
+          "kind": "theorem",
+          "signature": "theorem Set.union_comm : proposition about Set union_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "max_comm",
+          "kind": "theorem",
+          "signature": "theorem max_comm : proposition about max_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "min_comm",
+          "kind": "theorem",
+          "signature": "theorem min_comm : proposition about min_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.zero_add",
+          "kind": "theorem",
+          "signature": "theorem Nat.zero_add : proposition about Nat zero_add",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.add_zero",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_zero : proposition about Nat add_zero",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.one_mul",
+          "kind": "theorem",
+          "signature": "theorem Nat.one_mul : proposition about Nat one_mul",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.mul_one",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_one : proposition about Nat mul_one",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Set.inter_comm",
+          "kind": "theorem",
+          "signature": "theorem Set.inter_comm : proposition about Set inter_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Set.union_assoc",
+          "kind": "theorem",
+          "signature": "theorem Set.union_assoc : proposition about Set union_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Set.inter_assoc",
+          "kind": "theorem",
+          "signature": "theorem Set.inter_assoc : proposition about Set inter_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Function.id_comp",
+          "kind": "theorem",
+          "signature": "theorem Function.id_comp : proposition about Function id_comp",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Function.comp_assoc",
+          "kind": "theorem",
+          "signature": "theorem Function.comp_assoc : proposition about Function comp_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "eq_comm",
+          "kind": "theorem",
+          "signature": "theorem eq_comm : proposition about eq_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "not_false",
+          "kind": "theorem",
+          "signature": "theorem not_false : proposition about not_false",
+          "origin": "mathlib"
+        },
+        {
+          "name": "true_and",
+          "kind": "theorem",
+          "signature": "theorem true_and : proposition about true_and",
+          "origin": "mathlib"
+        },
+        {
+          "name": "and_true",
+          "kind": "theorem",
+          "signature": "theorem and_true : proposition about and_true",
+          "origin": "mathlib"
+        },
+        {
+          "name": "false_or",
+          "kind": "theorem",
+          "signature": "theorem false_or : proposition about false_or",
+          "origin": "mathlib"
+        },
+        {
+          "name": "or_false",
+          "kind": "theorem",
+          "signature": "theorem or_false : proposition about or_false",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.succ_inj",
+          "kind": "theorem",
+          "signature": "theorem Nat.succ_inj : proposition about Nat succ_inj",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.add_left_cancel",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_left_cancel : proposition about Nat add_left_cancel",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.mul_left_cancel",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_left_cancel : proposition about Nat mul_left_cancel",
+          "origin": "mathlib"
+        },
+        {
+          "name": "List.append_assoc",
+          "kind": "theorem",
+          "signature": "theorem List.append_assoc : proposition about List append_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "List.length_append",
+          "kind": "theorem",
+          "signature": "theorem List.length_append : proposition about List length_append",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Finset.union_comm",
+          "kind": "theorem",
+          "signature": "theorem Finset.union_comm : proposition about Finset union_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Finset.inter_comm",
+          "kind": "theorem",
+          "signature": "theorem Finset.inter_comm : proposition about Finset inter_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "abs_nonneg",
+          "kind": "theorem",
+          "signature": "theorem abs_nonneg : proposition about abs_nonneg",
+          "origin": "mathlib"
+        },
+        {
+          "name": "le_refl",
+          "kind": "theorem",
+          "signature": "theorem le_refl : proposition about le_refl",
+          "origin": "mathlib"
+        },
+        {
+          "name": "lt_irrefl",
+          "kind": "theorem",
+          "signature": "theorem lt_irrefl : proposition about lt_irrefl",
+          "origin": "mathlib"
+        },
+        {
+          "name": "sup_comm",
+          "kind": "theorem",
+          "signature": "theorem sup_comm : proposition about sup_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "inf_comm",
+          "kind": "theorem",
+          "signature": "theorem inf_comm : proposition about inf_comm",
+          "origin": "mathlib"
         }
       ]
     },
     {
       "id": "DEV-006",
-      "domain": "Logic",
-      "goal": "prove and comm proposition",
-      "candidates": [
+      "domain": "Algebra",
+      "goal": "theorem dev_mul_assoc (a b c : Int) : a * b * c = a * (b * c)",
+      "declarations": [
         {
-          "name": "Logic.decoy_01",
-          "baselineScore": 0.97
+          "name": "Nat.add_comm",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_comm : proposition about Nat add_comm",
+          "origin": "mathlib"
         },
         {
-          "name": "Logic.decoy_02",
-          "baselineScore": 0.94
+          "name": "Nat.mul_comm",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_comm : proposition about Nat mul_comm",
+          "origin": "mathlib"
         },
         {
-          "name": "Logic.decoy_03",
-          "baselineScore": 0.91
+          "name": "Nat.add_assoc",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_assoc : proposition about Nat add_assoc",
+          "origin": "mathlib"
         },
         {
-          "name": "Logic.decoy_04",
-          "baselineScore": 0.88
+          "name": "Nat.mul_assoc",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_assoc : proposition about Nat mul_assoc",
+          "origin": "mathlib"
         },
         {
-          "name": "Logic.decoy_05",
-          "baselineScore": 0.85
+          "name": "Nat.add_left_comm",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_left_comm : proposition about Nat add_left_comm",
+          "origin": "mathlib"
         },
         {
-          "name": "Logic.decoy_06",
-          "baselineScore": 0.82
-        },
-        {
-          "name": "Logic.decoy_07",
-          "baselineScore": 0.79
-        },
-        {
-          "name": "Logic.decoy_08",
-          "baselineScore": 0.76
-        },
-        {
-          "name": "Logic.decoy_09",
-          "baselineScore": 0.73
-        },
-        {
-          "name": "Logic.decoy_10",
-          "baselineScore": 0.7
-        },
-        {
-          "name": "Logic.decoy_11",
-          "baselineScore": 0.67
+          "name": "Nat.mul_left_comm",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_left_comm : proposition about Nat mul_left_comm",
+          "origin": "mathlib"
         },
         {
           "name": "and_comm",
-          "baselineScore": 0.64
+          "kind": "theorem",
+          "signature": "theorem and_comm : proposition about and_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "or_comm",
+          "kind": "theorem",
+          "signature": "theorem or_comm : proposition about or_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "iff_self",
+          "kind": "theorem",
+          "signature": "theorem iff_self : proposition about iff_self",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Function.comp_id",
+          "kind": "theorem",
+          "signature": "theorem Function.comp_id : proposition about Function comp_id",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Set.union_comm",
+          "kind": "theorem",
+          "signature": "theorem Set.union_comm : proposition about Set union_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "max_comm",
+          "kind": "theorem",
+          "signature": "theorem max_comm : proposition about max_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "min_comm",
+          "kind": "theorem",
+          "signature": "theorem min_comm : proposition about min_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.zero_add",
+          "kind": "theorem",
+          "signature": "theorem Nat.zero_add : proposition about Nat zero_add",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.add_zero",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_zero : proposition about Nat add_zero",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.one_mul",
+          "kind": "theorem",
+          "signature": "theorem Nat.one_mul : proposition about Nat one_mul",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.mul_one",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_one : proposition about Nat mul_one",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Set.inter_comm",
+          "kind": "theorem",
+          "signature": "theorem Set.inter_comm : proposition about Set inter_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Set.union_assoc",
+          "kind": "theorem",
+          "signature": "theorem Set.union_assoc : proposition about Set union_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Set.inter_assoc",
+          "kind": "theorem",
+          "signature": "theorem Set.inter_assoc : proposition about Set inter_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Function.id_comp",
+          "kind": "theorem",
+          "signature": "theorem Function.id_comp : proposition about Function id_comp",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Function.comp_assoc",
+          "kind": "theorem",
+          "signature": "theorem Function.comp_assoc : proposition about Function comp_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "eq_comm",
+          "kind": "theorem",
+          "signature": "theorem eq_comm : proposition about eq_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "not_false",
+          "kind": "theorem",
+          "signature": "theorem not_false : proposition about not_false",
+          "origin": "mathlib"
+        },
+        {
+          "name": "true_and",
+          "kind": "theorem",
+          "signature": "theorem true_and : proposition about true_and",
+          "origin": "mathlib"
+        },
+        {
+          "name": "and_true",
+          "kind": "theorem",
+          "signature": "theorem and_true : proposition about and_true",
+          "origin": "mathlib"
+        },
+        {
+          "name": "false_or",
+          "kind": "theorem",
+          "signature": "theorem false_or : proposition about false_or",
+          "origin": "mathlib"
+        },
+        {
+          "name": "or_false",
+          "kind": "theorem",
+          "signature": "theorem or_false : proposition about or_false",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.succ_inj",
+          "kind": "theorem",
+          "signature": "theorem Nat.succ_inj : proposition about Nat succ_inj",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.add_left_cancel",
+          "kind": "theorem",
+          "signature": "theorem Nat.add_left_cancel : proposition about Nat add_left_cancel",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Nat.mul_left_cancel",
+          "kind": "theorem",
+          "signature": "theorem Nat.mul_left_cancel : proposition about Nat mul_left_cancel",
+          "origin": "mathlib"
+        },
+        {
+          "name": "List.append_assoc",
+          "kind": "theorem",
+          "signature": "theorem List.append_assoc : proposition about List append_assoc",
+          "origin": "mathlib"
+        },
+        {
+          "name": "List.length_append",
+          "kind": "theorem",
+          "signature": "theorem List.length_append : proposition about List length_append",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Finset.union_comm",
+          "kind": "theorem",
+          "signature": "theorem Finset.union_comm : proposition about Finset union_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "Finset.inter_comm",
+          "kind": "theorem",
+          "signature": "theorem Finset.inter_comm : proposition about Finset inter_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "abs_nonneg",
+          "kind": "theorem",
+          "signature": "theorem abs_nonneg : proposition about abs_nonneg",
+          "origin": "mathlib"
+        },
+        {
+          "name": "le_refl",
+          "kind": "theorem",
+          "signature": "theorem le_refl : proposition about le_refl",
+          "origin": "mathlib"
+        },
+        {
+          "name": "lt_irrefl",
+          "kind": "theorem",
+          "signature": "theorem lt_irrefl : proposition about lt_irrefl",
+          "origin": "mathlib"
+        },
+        {
+          "name": "sup_comm",
+          "kind": "theorem",
+          "signature": "theorem sup_comm : proposition about sup_comm",
+          "origin": "mathlib"
+        },
+        {
+          "name": "inf_comm",
+          "kind": "theorem",
+          "signature": "theorem inf_comm : proposition about inf_comm",
+          "origin": "mathlib"
         }
       ]
     }

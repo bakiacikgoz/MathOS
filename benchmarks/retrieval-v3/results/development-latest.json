@@ -2,7 +2,30 @@
   "version": "retrieval-v3",
   "split": "development",
   "candidateChannel": "lexical-declaration-name",
-  "measuredAt": "2026-09-01T18:50:49.936Z",
+  "measuredAt": "2026-09-01T19:05:26.141Z",
+  "corpusSizes": {
+    "DEV-001": 40,
+    "DEV-002": 40,
+    "DEV-003": 40,
+    "DEV-004": 40,
+    "DEV-005": 40,
+    "DEV-006": 40
+  },
+  "pipelineStageSizes": {
+    "DEV-001": 15,
+    "DEV-002": 15,
+    "DEV-003": 1,
+    "DEV-004": 4,
+    "DEV-005": 13,
+    "DEV-006": 13
+  },
+  "environment": {
+    "leanAvailable": false,
+    "mathlib": false,
+    "probe": "Lean/mathlib project unavailable",
+    "corpusReady": false,
+    "executionsValid": false
+  },
   "decision": "INCONCLUSIVE",
   "checks": {
     "hit10NonDecreasing": true,
@@ -10,10 +33,11 @@
     "noMajorDomainRegression": true,
     "noCompletenessRegression": true,
     "latencyAcceptable": true,
-    "downstreamNonDecreasing": true,
+    "downstreamNonDecreasing": null,
     "environmentReady": null
   },
   "reasons": [
+    "downstreamNonDecreasing:unavailable",
     "environmentReady:unavailable"
   ],
   "paired": {
@@ -21,17 +45,17 @@
       "rows": [
         {
           "id": "DEV-001",
-          "domain": "Algebra",
+          "domain": "Nat",
           "candidateRecall": 1,
           "top200": 1,
           "inspect30": 1,
           "final20": 1,
           "hit1": 0,
-          "hit5": 0,
-          "hit10": 0,
-          "mrr": 0.08333333333333333,
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 0.5,
           "complete": true,
-          "latencyMs": 0.010916000000008808
+          "latencyMs": 0.013249999999999318
         },
         {
           "id": "DEV-002",
@@ -41,108 +65,108 @@
           "inspect30": 1,
           "final20": 1,
           "hit1": 0,
-          "hit5": 0,
-          "hit10": 0,
-          "mrr": 0.08333333333333333,
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 0.5,
           "complete": true,
-          "latencyMs": 0.0014170000000035543
+          "latencyMs": 0.00333299999999781
         },
         {
           "id": "DEV-003",
           "domain": "Logic",
-          "candidateRecall": 1,
-          "top200": 1,
-          "inspect30": 1,
-          "final20": 1,
+          "candidateRecall": 0,
+          "top200": 0,
+          "inspect30": 0,
+          "final20": 0,
           "hit1": 0,
           "hit5": 0,
           "hit10": 0,
-          "mrr": 0.08333333333333333,
-          "complete": true,
-          "latencyMs": 0.002375000000000682
+          "mrr": 0,
+          "complete": false,
+          "latencyMs": 0.0006249999999994316
         },
         {
           "id": "DEV-004",
-          "domain": "Algebra",
-          "candidateRecall": 1,
-          "top200": 1,
-          "inspect30": 1,
-          "final20": 1,
-          "hit1": 0,
-          "hit5": 0,
-          "hit10": 0,
-          "mrr": 0.08333333333333333,
-          "complete": true,
-          "latencyMs": 0.0017500000000012506
-        },
-        {
-          "id": "DEV-005",
-          "domain": "Nat",
-          "candidateRecall": 1,
-          "top200": 1,
-          "inspect30": 1,
-          "final20": 1,
-          "hit1": 0,
-          "hit5": 0,
-          "hit10": 0,
-          "mrr": 0.08333333333333333,
-          "complete": true,
-          "latencyMs": 0.0014999999999929514
-        },
-        {
-          "id": "DEV-006",
           "domain": "Logic",
           "candidateRecall": 1,
           "top200": 1,
           "inspect30": 1,
           "final20": 1,
           "hit1": 0,
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 0.3333333333333333,
+          "complete": true,
+          "latencyMs": 0.0010410000000007358
+        },
+        {
+          "id": "DEV-005",
+          "domain": "Algebra",
+          "candidateRecall": 0,
+          "top200": 0,
+          "inspect30": 0,
+          "final20": 0,
+          "hit1": 0,
           "hit5": 0,
           "hit10": 0,
-          "mrr": 0.08333333333333333,
-          "complete": true,
-          "latencyMs": 0.0008749999999935199
+          "mrr": 0,
+          "complete": false,
+          "latencyMs": 0.001125000000001819
+        },
+        {
+          "id": "DEV-006",
+          "domain": "Algebra",
+          "candidateRecall": 0,
+          "top200": 0,
+          "inspect30": 0,
+          "final20": 0,
+          "hit1": 0,
+          "hit5": 0,
+          "hit10": 0,
+          "mrr": 0,
+          "complete": false,
+          "latencyMs": 0.006084000000001311
         }
       ],
       "aggregate": {
         "cases": 6,
-        "completeCases": 6,
-        "candidateRecall": 1,
-        "top200": 1,
-        "inspect30": 1,
-        "final20": 1,
+        "completeCases": 3,
+        "candidateRecall": 0.5,
+        "top200": 0.5,
+        "inspect30": 0.5,
+        "final20": 0.5,
         "hit1": 0,
-        "hit5": 0,
-        "hit10": 0,
-        "mrr": 0.08333333333333333,
-        "latencyMs": 0.003138833333333461
+        "hit5": 0.5,
+        "hit10": 0.5,
+        "mrr": 0.2222222222222222,
+        "latencyMs": 0.0042430000000000705
       },
       "domains": {
         "Algebra": {
           "cases": 2,
-          "completeCases": 2,
-          "candidateRecall": 1,
-          "top200": 1,
-          "inspect30": 1,
-          "final20": 1,
+          "completeCases": 0,
+          "candidateRecall": 0,
+          "top200": 0,
+          "inspect30": 0,
+          "final20": 0,
           "hit1": 0,
           "hit5": 0,
           "hit10": 0,
-          "mrr": 0.08333333333333333,
-          "latencyMs": 0.006333000000005029
+          "mrr": 0,
+          "latencyMs": 0.003604500000001565
         },
         "Logic": {
           "cases": 2,
-          "completeCases": 2,
-          "candidateRecall": 1,
-          "top200": 1,
-          "inspect30": 1,
-          "final20": 1,
+          "completeCases": 1,
+          "candidateRecall": 0.5,
+          "top200": 0.5,
+          "inspect30": 0.5,
+          "final20": 0.5,
           "hit1": 0,
-          "hit5": 0,
-          "hit10": 0,
-          "mrr": 0.08333333333333333,
-          "latencyMs": 0.001624999999997101
+          "hit5": 0.5,
+          "hit10": 0.5,
+          "mrr": 0.16666666666666666,
+          "latencyMs": 0.0008330000000000837
         },
         "Nat": {
           "cases": 2,
@@ -152,10 +176,10 @@
           "inspect30": 1,
           "final20": 1,
           "hit1": 0,
-          "hit5": 0,
-          "hit10": 0,
-          "mrr": 0.08333333333333333,
-          "latencyMs": 0.0014584999999982529
+          "hit5": 1,
+          "hit10": 1,
+          "mrr": 0.5,
+          "latencyMs": 0.008291499999998564
         }
       }
     },
@@ -163,17 +187,17 @@
       "rows": [
         {
           "id": "DEV-001",
-          "domain": "Algebra",
+          "domain": "Nat",
           "candidateRecall": 1,
           "top200": 1,
           "inspect30": 1,
           "final20": 1,
-          "hit1": 1,
+          "hit1": 0,
           "hit5": 1,
           "hit10": 1,
-          "mrr": 1,
+          "mrr": 0.5,
           "complete": true,
-          "latencyMs": 0.07341600000000881
+          "latencyMs": 0.0430419999999998
         },
         {
           "id": "DEV-002",
@@ -182,109 +206,109 @@
           "top200": 1,
           "inspect30": 1,
           "final20": 1,
-          "hit1": 1,
+          "hit1": 0,
           "hit5": 1,
           "hit10": 1,
-          "mrr": 1,
+          "mrr": 0.5,
           "complete": true,
-          "latencyMs": 0.02429100000000517
+          "latencyMs": 0.011499999999998067
         },
         {
           "id": "DEV-003",
           "domain": "Logic",
-          "candidateRecall": 1,
-          "top200": 1,
-          "inspect30": 1,
-          "final20": 1,
-          "hit1": 1,
-          "hit5": 1,
-          "hit10": 1,
-          "mrr": 1,
-          "complete": true,
-          "latencyMs": 0.016749999999987608
+          "candidateRecall": 0,
+          "top200": 0,
+          "inspect30": 0,
+          "final20": 0,
+          "hit1": 0,
+          "hit5": 0,
+          "hit10": 0,
+          "mrr": 0,
+          "complete": false,
+          "latencyMs": 0.002083999999996422
         },
         {
           "id": "DEV-004",
-          "domain": "Algebra",
-          "candidateRecall": 1,
-          "top200": 1,
-          "inspect30": 1,
-          "final20": 1,
-          "hit1": 1,
-          "hit5": 1,
-          "hit10": 1,
-          "mrr": 1,
-          "complete": true,
-          "latencyMs": 0.028874999999999318
-        },
-        {
-          "id": "DEV-005",
-          "domain": "Nat",
-          "candidateRecall": 1,
-          "top200": 1,
-          "inspect30": 1,
-          "final20": 1,
-          "hit1": 1,
-          "hit5": 1,
-          "hit10": 1,
-          "mrr": 1,
-          "complete": true,
-          "latencyMs": 0.020291999999997756
-        },
-        {
-          "id": "DEV-006",
           "domain": "Logic",
           "candidateRecall": 1,
           "top200": 1,
           "inspect30": 1,
           "final20": 1,
-          "hit1": 1,
+          "hit1": 0,
           "hit5": 1,
           "hit10": 1,
-          "mrr": 1,
+          "mrr": 0.5,
           "complete": true,
-          "latencyMs": 0.01679099999999778
+          "latencyMs": 0.00779100000001165
+        },
+        {
+          "id": "DEV-005",
+          "domain": "Algebra",
+          "candidateRecall": 0,
+          "top200": 0,
+          "inspect30": 0,
+          "final20": 0,
+          "hit1": 0,
+          "hit5": 0,
+          "hit10": 0,
+          "mrr": 0,
+          "complete": false,
+          "latencyMs": 0.03433300000000372
+        },
+        {
+          "id": "DEV-006",
+          "domain": "Algebra",
+          "candidateRecall": 0,
+          "top200": 0,
+          "inspect30": 0,
+          "final20": 0,
+          "hit1": 0,
+          "hit5": 0,
+          "hit10": 0,
+          "mrr": 0,
+          "complete": false,
+          "latencyMs": 0.02729200000000276
         }
       ],
       "aggregate": {
         "cases": 6,
-        "completeCases": 6,
-        "candidateRecall": 1,
-        "top200": 1,
-        "inspect30": 1,
-        "final20": 1,
-        "hit1": 1,
-        "hit5": 1,
-        "hit10": 1,
-        "mrr": 1,
-        "latencyMs": 0.030069166666666074
+        "completeCases": 3,
+        "candidateRecall": 0.5,
+        "top200": 0.5,
+        "inspect30": 0.5,
+        "final20": 0.5,
+        "hit1": 0,
+        "hit5": 0.5,
+        "hit10": 0.5,
+        "mrr": 0.25,
+        "latencyMs": 0.02100700000000207
       },
       "domains": {
         "Algebra": {
           "cases": 2,
-          "completeCases": 2,
-          "candidateRecall": 1,
-          "top200": 1,
-          "inspect30": 1,
-          "final20": 1,
-          "hit1": 1,
-          "hit5": 1,
-          "hit10": 1,
-          "mrr": 1,
-          "latencyMs": 0.05114550000000406
+          "completeCases": 0,
+          "candidateRecall": 0,
+          "top200": 0,
+          "inspect30": 0,
+          "final20": 0,
+          "hit1": 0,
+          "hit5": 0,
+          "hit10": 0,
+          "mrr": 0,
+          "latencyMs": 0.03081250000000324
         },
         "Logic": {
           "cases": 2,
-          "completeCases": 2,
-          "candidateRecall": 1,
-          "top200": 1,
-          "inspect30": 1,
-          "final20": 1,
-          "hit1": 1,
-          "hit5": 1,
-          "hit10": 1,
-          "mrr": 1,
-          "latencyMs": 0.016770499999992694
+          "completeCases": 1,
+          "candidateRecall": 0.5,
+          "top200": 0.5,
+          "inspect30": 0.5,
+          "final20": 0.5,
+          "hit1": 0,
+          "hit5": 0.5,
+          "hit10": 0.5,
+          "mrr": 0.25,
+          "latencyMs": 0.004937500000004036
         },
         "Nat": {
           "cases": 2,
@@ -293,11 +317,11 @@
           "top200": 1,
           "inspect30": 1,
           "final20": 1,
-          "hit1": 1,
+          "hit1": 0,
           "hit5": 1,
           "hit10": 1,
-          "mrr": 1,
-          "latencyMs": 0.022291500000001463
+          "mrr": 0.5,
+          "latencyMs": 0.027270999999998935
         }
       }
     },
@@ -306,35 +330,33 @@
       "top200": 0,
       "inspect30": 0,
       "final20": 0,
-      "hit1": 1,
-      "hit5": 1,
-      "hit10": 1,
-      "mrr": 0.9166666666666666,
-      "latencyMs": 0.026930333333332612
+      "hit1": 0,
+      "hit5": 0,
+      "hit10": 0,
+      "mrr": 0.02777777777777779,
+      "latencyMs": 0.016764000000002
     },
     "completenessRegressions": [],
     "domainHit10Deltas": {
-      "Algebra": 1,
-      "Logic": 1,
-      "Nat": 1
+      "Algebra": 0,
+      "Logic": 0,
+      "Nat": 0
     }
   },
   "downstream": {
     "baseline": {
       "k": 10,
-      "attempted": 6,
+      "attempted": 0,
       "successes": 0,
-      "rate": 0
+      "rate": 0,
+      "valid": false
     },
     "candidate": {
       "k": 10,
-      "attempted": 6,
-      "successes": 6,
-      "rate": 1
+      "attempted": 0,
+      "successes": 0,
+      "rate": 0,
+      "valid": false
     }
-  },
-  "environment": {
-    "leanAvailable": false,
-    "note": "Lean unavailable; promotion is inconclusive"
   }
 }
