@@ -1953,6 +1953,7 @@ export class MathOS {
     } else if (decision.action === "RUN_EXPERIMENT") {
       const claimId = target ?? run.objectiveClaimId
       const created = await this.createExperiment({
+        origin: "MODEL_GENERATED",
         kind: String(decision.parameters.kind ?? "FINITE_VERIFICATION"),
         claimId: claimId ?? undefined,
         hypothesis: String(decision.parameters.hypothesis ?? decision.rationaleSummary ?? ""),
@@ -2825,6 +2826,7 @@ export class MathOS {
   }
 
   async createExperiment(input: {
+    origin?: import("@mathos/domain").ExperimentOrigin
     kind?: string
     claimId?: string
     hypothesis?: string
@@ -2854,6 +2856,7 @@ export class MathOS {
       adapterVersion: "v1",
     }
     const experiment: Experiment = {
+      origin: input.runId ? "MODEL_GENERATED" : input.origin ?? "USER_AUTHORED",
       id,
       workspaceId: workspace.id,
       branchId: branch.id,
@@ -2905,32 +2908,44 @@ export class MathOS {
     experiment.researchStepId = opts.stepId ?? experiment.researchStepId
     this.experimentStores().experiments.update(experiment)
     this.record("experiment_started", { target: experiment.id, metadata: { experimentId: experiment.id, branchId: experiment.branchId } })
-    const executed = await this.computationRuntime.execute({
-      executable: experiment.runtime.executable,
-      scriptPath: experiment.codeArtifactId,
-      cwd: dir,
-      timeoutMs: opts.timeoutMs ?? budget.maxWallClockMsPerExperiment,
-      maxOutputBytes: budget.maxOutputBytes,
-    })
+    let executed: Awaited<ReturnType<ComputationalRuntime["execute"]>>
+    try {
+      executed = await this.computationRuntime.execute({
+        executable: experiment.runtime.executable,
+        origin: experiment.origin,
+        scriptPath: experiment.codeArtifactId,
+        cwd: dir,
+        timeoutMs: opts.timeoutMs ?? budget.maxWallClockMsPerExperiment,
+        maxOutputBytes: budget.maxOutputBytes,
+      })
+    } catch {
+      executed = {
+        exitCode: null, timedOut: false, stdout: "", stderr: "", stdoutTruncated: false,
+        stderrTruncated: false, durationMs: 0, pid: null,
+        blockedReason: "EXPERIMENT_BLOCKED_SANDBOX_FAILURE",
+      }
+    }
     this.lastExperimentPid = executed.pid
     writeFileSync(join(dir, "stdout.txt"), executed.stdout, "utf8")
     writeFileSync(join(dir, "stderr.txt"), executed.stderr, "utf8")
     const structured = parseStructured(executed.stdout)
-    const outcome = executed.timedOut
+    const reportedOutcome = typeof structured.outcome === "string" && ["SUPPORTING_EVIDENCE", "COUNTEREXAMPLE_FOUND", "NO_COUNTEREXAMPLE_FOUND", "INCONCLUSIVE", "EXECUTION_FAILED"].includes(structured.outcome)
+      ? structured.outcome as ExperimentResult["outcome"] : null
+    const outcome = executed.blockedReason ? "INCONCLUSIVE" : executed.timedOut
       ? "EXECUTION_FAILED"
       : executed.exitCode === 0
-        ? ((structured.outcome as ExperimentResult["outcome"]) ?? (structured.witness ? "COUNTEREXAMPLE_FOUND" : "SUPPORTING_EVIDENCE"))
+        ? (reportedOutcome ?? (typeof structured.outcome === "string" ? "INCONCLUSIVE" : structured.witness ? "COUNTEREXAMPLE_FOUND" : Object.keys(structured).length === 1 && "raw" in structured ? "INCONCLUSIVE" : "SUPPORTING_EVIDENCE"))
         : "EXECUTION_FAILED"
     const result: ExperimentResult = {
       id: this.allocateId("ER"),
       experimentId: experiment.id,
       outcome: executed.timedOut ? "EXECUTION_FAILED" : outcome,
-      summary: executed.timedOut
+      summary: executed.blockedReason ?? (executed.timedOut
         ? "EXPERIMENT_TIMEOUT"
         : executed.exitCode === 0
           ? String(structured.outcome ?? "SUPPORTING_EVIDENCE")
-          : (executed.stderr || "EXECUTION_FAILED").slice(0, 400),
-      structuredOutput: { ...structured, epistemic: "COMPUTATIONAL EVIDENCE — NOT PROOF" },
+          : (executed.stderr || "EXECUTION_FAILED").slice(0, 400)),
+      structuredOutput: { ...structured, security: executed.securityReport ?? null, epistemic: "COMPUTATIONAL EVIDENCE — NOT PROOF" },
       stdoutArtifactId: join(dir, "stdout.txt"),
       stderrArtifactId: join(dir, "stderr.txt"),
       startedAt: experiment.startedAt ?? nowIso(),
@@ -2946,12 +2961,12 @@ export class MathOS {
     }
     if (executed.timedOut) result.outcome = "EXECUTION_FAILED"
     this.experimentStores().results.insert(result)
-    experiment.status = executed.timedOut ? "TIMED_OUT" : executed.exitCode === 0 ? "SUCCEEDED" : "FAILED"
+    experiment.status = executed.blockedReason ? "BLOCKED" : executed.timedOut ? "TIMED_OUT" : executed.exitCode === 0 ? "SUCCEEDED" : "FAILED"
     experiment.finishedAt = result.finishedAt
     this.experimentStores().experiments.update(experiment)
     this.record(executed.timedOut ? "experiment_timed_out" : executed.exitCode === 0 ? "experiment_completed" : "experiment_failed", { target: experiment.id, metadata: { experimentId: experiment.id, branchId: experiment.branchId, resultId: result.id } })
     this.record("experiment_result_recorded", { target: result.id, metadata: { experimentId: experiment.id, branchId: experiment.branchId } })
-    if (experiment.claimId) {
+    if (experiment.claimId && !executed.blockedReason) {
       const kind = result.outcome === "COUNTEREXAMPLE_FOUND" ? "counterexample" : "computation"
       this.addEvidence({
         claimId: experiment.claimId,

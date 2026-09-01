@@ -4,6 +4,10 @@ import type { Experiment, ExperimentResult } from "@mathos/domain"
 function mapExperiment(row: Record<string, unknown>): Experiment {
   return {
     id: String(row.id),
+    origin: row.origin as Experiment["origin"],
+    sandboxMode: row.sandbox_mode ? String(row.sandbox_mode) : null,
+    networkPolicy: row.network_policy ? String(row.network_policy) : null,
+    executionPolicyVersion: row.execution_policy_version ? String(row.execution_policy_version) : null,
     workspaceId: String(row.workspace_id),
     branchId: String(row.branch_id),
     claimId: row.claim_id ? String(row.claim_id) : null,
@@ -51,15 +55,15 @@ export class ExperimentRepository {
 
   insert(row: Experiment): void {
     this.db.query(
-      `INSERT INTO experiments (id, workspace_id, branch_id, claim_id, research_run_id, research_step_id, agent_id, kind, status, hypothesis, runtime_json, code_artifact_id, parameters_json, code_hash, input_hash, created_at, started_at, finished_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).run(row.id, row.workspaceId, row.branchId, row.claimId, row.researchRunId, row.researchStepId, row.agentId, row.kind, row.status, row.hypothesis, JSON.stringify(row.runtime), row.codeArtifactId, JSON.stringify(row.parameters), row.codeHash, row.inputHash, row.createdAt, row.startedAt, row.finishedAt)
+      `INSERT INTO experiments (id, workspace_id, branch_id, claim_id, research_run_id, research_step_id, agent_id, kind, status, hypothesis, runtime_json, code_artifact_id, parameters_json, code_hash, input_hash, created_at, started_at, finished_at, origin, sandbox_mode, network_policy, execution_policy_version)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ).run(row.id, row.workspaceId, row.branchId, row.claimId, row.researchRunId, row.researchStepId, row.agentId, row.kind, row.status, row.hypothesis, JSON.stringify(row.runtime), row.codeArtifactId, JSON.stringify(row.parameters), row.codeHash, row.inputHash, row.createdAt, row.startedAt, row.finishedAt, row.origin, row.sandboxMode ?? null, row.networkPolicy ?? null, row.executionPolicyVersion ?? null)
   }
 
   update(row: Experiment): void {
     this.db.query(
-      `UPDATE experiments SET status = ?, started_at = ?, finished_at = ?, research_step_id = ? WHERE id = ?`,
-    ).run(row.status, row.startedAt, row.finishedAt, row.researchStepId, row.id)
+      `UPDATE experiments SET status = ?, started_at = ?, finished_at = ?, research_step_id = ?, sandbox_mode = ?, network_policy = ?, execution_policy_version = ? WHERE id = ?`,
+    ).run(row.status, row.startedAt, row.finishedAt, row.researchStepId, row.sandboxMode ?? null, row.networkPolicy ?? null, row.executionPolicyVersion ?? null, row.id)
   }
 
   get(id: string): Experiment | null {

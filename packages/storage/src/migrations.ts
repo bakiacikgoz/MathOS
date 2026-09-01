@@ -635,6 +635,15 @@ export const MIGRATIONS: Migration[] = [
       );
     `,
   },
+  {
+    id: "017_experiment_security",
+    sql: `
+      ALTER TABLE experiments ADD COLUMN origin TEXT NOT NULL DEFAULT 'MODEL_GENERATED';
+      ALTER TABLE experiments ADD COLUMN sandbox_mode TEXT;
+      ALTER TABLE experiments ADD COLUMN network_policy TEXT;
+      ALTER TABLE experiments ADD COLUMN execution_policy_version TEXT;
+    `,
+  },
 ]
 
 export const SCHEMA_EPOCH = MIGRATIONS.length

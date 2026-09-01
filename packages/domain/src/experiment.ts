@@ -1,3 +1,5 @@
+export type ExperimentOrigin = "TRUSTED_BUILTIN" | "USER_AUTHORED" | "MODEL_GENERATED"
+
 export const EXPERIMENT_KINDS = [
   "COUNTEREXAMPLE_SEARCH",
   "FINITE_VERIFICATION",
@@ -9,7 +11,7 @@ export const EXPERIMENT_KINDS = [
 ] as const
 export type ExperimentKind = (typeof EXPERIMENT_KINDS)[number]
 
-export const EXPERIMENT_STATUSES = ["DRAFT", "READY", "RUNNING", "SUCCEEDED", "FAILED", "TIMED_OUT", "CANCELLED"] as const
+export const EXPERIMENT_STATUSES = ["DRAFT", "READY", "RUNNING", "SUCCEEDED", "FAILED", "TIMED_OUT", "CANCELLED", "BLOCKED"] as const
 export type ExperimentStatus = (typeof EXPERIMENT_STATUSES)[number]
 
 export const EXPERIMENT_OUTCOMES = [
@@ -31,6 +33,10 @@ export interface RuntimeDescriptor {
 }
 
 export interface Experiment {
+  origin: ExperimentOrigin
+  sandboxMode?: string | null
+  networkPolicy?: string | null
+  executionPolicyVersion?: string | null
   id: string
   workspaceId: string
   branchId: string

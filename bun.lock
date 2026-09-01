@@ -23,6 +23,7 @@
       "dependencies": {
         "@mathos/core": "workspace:*",
         "@mathos/domain": "workspace:*",
+        "@mathos/graph": "workspace:*",
         "@mathos/shared": "workspace:*",
         "@opentui/core": "^0.5.7",
         "@opentui/keymap": "^0.5.7",
@@ -30,17 +31,28 @@
         "solid-js": "1.9.12",
       },
     },
+    "packages/computation": {
+      "name": "@mathos/computation",
+      "version": "0.1.0",
+      "dependencies": {
+        "@mathos/domain": "workspace:*",
+      },
+    },
     "packages/core": {
       "name": "@mathos/core",
       "version": "0.1.0",
       "dependencies": {
+        "@mathos/computation": "workspace:*",
         "@mathos/domain": "workspace:*",
         "@mathos/events": "workspace:*",
+        "@mathos/graph": "workspace:*",
         "@mathos/lean": "workspace:*",
+        "@mathos/literature": "workspace:*",
         "@mathos/models": "workspace:*",
         "@mathos/retrieval": "workspace:*",
         "@mathos/shared": "workspace:*",
         "@mathos/storage": "workspace:*",
+        "@mathos/vcs": "workspace:*",
         "@mathos/workspace": "workspace:*",
       },
     },
@@ -59,12 +71,26 @@
         "@mathos/shared": "workspace:*",
       },
     },
+    "packages/graph": {
+      "name": "@mathos/graph",
+      "version": "0.1.0",
+      "dependencies": {
+        "@mathos/domain": "workspace:*",
+      },
+    },
     "packages/lean": {
       "name": "@mathos/lean",
       "version": "0.1.0",
       "dependencies": {
         "@mathos/domain": "workspace:*",
         "@mathos/shared": "workspace:*",
+      },
+    },
+    "packages/literature": {
+      "name": "@mathos/literature",
+      "version": "0.1.0",
+      "dependencies": {
+        "@mathos/domain": "workspace:*",
       },
     },
     "packages/models": {
@@ -93,6 +119,13 @@
       "version": "0.1.0",
       "dependencies": {
         "@mathos/domain": "workspace:*",
+        "@mathos/shared": "workspace:*",
+      },
+    },
+    "packages/vcs": {
+      "name": "@mathos/vcs",
+      "version": "0.1.0",
+      "dependencies": {
         "@mathos/shared": "workspace:*",
       },
     },
@@ -171,13 +204,19 @@
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
 
+    "@mathos/computation": ["@mathos/computation@workspace:packages/computation"],
+
     "@mathos/core": ["@mathos/core@workspace:packages/core"],
 
     "@mathos/domain": ["@mathos/domain@workspace:packages/domain"],
 
     "@mathos/events": ["@mathos/events@workspace:packages/events"],
 
+    "@mathos/graph": ["@mathos/graph@workspace:packages/graph"],
+
     "@mathos/lean": ["@mathos/lean@workspace:packages/lean"],
+
+    "@mathos/literature": ["@mathos/literature@workspace:packages/literature"],
 
     "@mathos/models": ["@mathos/models@workspace:packages/models"],
 
@@ -188,6 +227,8 @@
     "@mathos/storage": ["@mathos/storage@workspace:packages/storage"],
 
     "@mathos/tui": ["@mathos/tui@workspace:apps/tui"],
+
+    "@mathos/vcs": ["@mathos/vcs@workspace:packages/vcs"],
 
     "@mathos/workspace": ["@mathos/workspace@workspace:packages/workspace"],
 

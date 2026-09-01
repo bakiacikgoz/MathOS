@@ -11,3 +11,5 @@ demo/
 *.db-journal
 .env
 .env.*
+
+.tools/
