@@ -2740,6 +2740,7 @@ export class MathOS {
   }
 
   get lastLiteratureSearchId(): string | null { return this.literatureService.lastSearchId }
+  set lastLiteratureSearchId(value: string | null) { this.literatureService.lastSearchId = value }
 
   async searchLiterature(query: string, opts: { claimId?: string; runId?: string; stepId?: string; agentId?: string; maxResults?: number } = {}) {
     return this.literatureService.search(query, opts)
