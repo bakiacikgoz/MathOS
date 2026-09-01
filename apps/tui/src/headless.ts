@@ -652,22 +652,22 @@ export async function runHeadless(argv: string[]): Promise<number> {
         }
         if (command === "source" && sub === "import" && rest[1] && rest[2]) {
           const source = await app.importSearchResult(rest[1], Number(rest[2]))
-          process.stdout.write(json ? `${JSON.stringify(source, null, 2)}\n` : `Imported ${source.id}\n`)
+          process.stdout.write(json ? `${JSON.stringify(source, null, 2)}\n` : `EXTERNAL SOURCE\nNOT A PROOF\nImported ${source.id}\n`)
           return 0
         }
         if (command === "source" && sub === "add" && rest[1]) {
           const source = app.addLocalSource(rest[1])
-          process.stdout.write(json ? `${JSON.stringify(source, null, 2)}\n` : `Added ${source.id}\n`)
+          process.stdout.write(json ? `${JSON.stringify(source, null, 2)}\n` : `EXTERNAL SOURCE\nNOT A PROOF\nAdded ${source.id}\n`)
           return 0
         }
         if (command === "source" && sub === "excerpts" && rest[1]) {
           const rows = app.listExcerpts(rest[1])
-          process.stdout.write(json ? `${JSON.stringify(rows, null, 2)}\n` : `${rows.map((item) => `${item.id} ${item.textHash.slice(0, 8)}`).join("\n")}\n`)
+          process.stdout.write(json ? `${JSON.stringify(rows, null, 2)}\n` : `EXTERNAL SOURCE\nNOT A PROOF\n${rows.map((item) => `${item.id} ${item.textHash.slice(0, 8)}`).join("\n")}\n`)
           return 0
         }
         if (command === "source" && sub === "inspect" && rest[1]) {
           const source = app.inspectSource(rest[1])
-          process.stdout.write(json ? `${JSON.stringify(source, null, 2)}\n` : `${source.id} ${source.status}\n`)
+          process.stdout.write(json ? `${JSON.stringify(source, null, 2)}\n` : `EXTERNAL SOURCE\nNOT A PROOF\n${source.id} ${source.status}\n`)
           return 0
         }
         if (command === "citation" && sub === "list") {

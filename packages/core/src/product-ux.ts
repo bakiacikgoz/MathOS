@@ -131,16 +131,18 @@ function kernelCount(state: ProductState): number {
 
 export function workspaceHome(state: ProductState): string {
   const obj = objective(state)
-  const run = latestRun(state)
-  const graph = buildResearchGraph(state.snapshot, { branchId: state.snapshot.branches.find((item) => item.isCurrent)?.id })
+  const currentBranchId = state.snapshot.branches.find((item) => item.isCurrent)?.id
+  const run = state.snapshot.runs.filter((item) => item.branchId === currentBranchId && (!obj || item.objectiveClaimId === obj.id)).at(-1) ?? null
+  const graph = buildResearchGraph(state.snapshot, { branchId: currentBranchId })
   const frontier = unverifiedFrontier(graph, obj?.id)
-  const openBlockers = state.snapshot.blockers.filter((item) => item.status === "OPEN")
+  const objectiveScope = new Set([obj?.id, ...frontier].filter((item): item is string => Boolean(item)))
+  const openBlockers = state.snapshot.blockers.filter((item) => item.status === "OPEN" && item.branchId === currentBranchId && objectiveScope.has(item.claimId))
   const team = state.snapshot.sessions?.at(-1)
   const formal = obj ? state.snapshot.formals.find((item) => item.claimId === obj.id && item.isCurrent) : null
   const empty = !obj
-  const lastStep = [...state.steps].reverse().find((item) => item.status === "SUCCEEDED")
+  const lastStep = run ? [...state.steps].reverse().find((item) => item.researchRunId === run.id && item.status === "SUCCEEDED") : undefined
   const lastEvent = state.events.at(-1)
-  const progress = lastStep ? `${lastStep.action}${lastStep.summary ? ` · ${lastStep.summary}` : ""}` : lastEvent ? `${lastEvent.action} · ${lastEvent.target ?? "workspace"}` : "No recorded progress"
+  const progress = lastStep ? `${lastStep.action}${lastStep.summary ? ` · ${lastStep.summary}` : ""}` : lastEvent ? `Workspace event · ${lastEvent.action} · ${lastEvent.target ?? "workspace"}` : "No recorded progress"
   const host = inspectHostEnvironment()
   const readiness = `Lean ${host.lean.status} · Model ${host.model.status} · Python ${host.python.status}`
   return [
@@ -436,19 +438,36 @@ export function verificationDetail(state: ProductState, claimId: string): string
 export function whyVerified(state: ProductState, claimId: string): string {
   const claim = state.snapshot.claims.find((item) => item.id === claimId)
   const vr = state.snapshot.verifications.filter((item) => item.claimId === claimId && item.result === "KERNEL_ACCEPTED").at(-1)
-  if (claim?.status !== "KERNEL_VERIFIED" || !vr) {
-    return whyNotVerified(state, claimId)
-  }
   const checks = gateChecks(vr)
-  const evidence = checks.length ? checks.map((item) => `${item.status === "PASS" ? "✓" : "×"} ${item.name}${item.detail ? ` · ${item.detail}` : ""}`) : ["○ Gate check details unavailable in this legacy run"]
+  const formal = state.snapshot.formals.find((item) => item.claimId === claimId && item.isCurrent)
+  const proof = vr?.proofAttemptId ? state.snapshot.proofs.find((item) => item.id === vr.proofAttemptId) : undefined
+  const requiredChecks = ["current revision", "fidelity", "proof compiles", "forbidden constructs", "custom axioms", "Lean version", "toolchain pinned"]
+  const persistedGatePassed = checks.length > 0 && checks.every((item) => item.status === "PASS")
+    && requiredChecks.every((name) => checks.some((item) => item.name === name && item.status === "PASS"))
+  const forbidden = vr ? jsonArray(vr.forbiddenJson) : []
+  const consistent = claim?.status === "KERNEL_VERIFIED" && vr?.result === "KERNEL_ACCEPTED"
+    && persistedGatePassed && vr.fidelityStatus === "HUMAN_APPROVED" && forbidden.length === 0
+    && formal?.id === vr.formalStatementId && proof?.formalStatementId === formal.id && proof.status === "KERNEL_ACCEPTED"
+  if (!consistent || !vr) {
+    const reasons = [
+      ...(!checks.length ? ["× Persisted VerificationGate evidence missing or malformed"] : []),
+      ...(checks.some((item) => item.status !== "PASS") ? checks.filter((item) => item.status !== "PASS").map((item) => `× ${item.name}${item.detail ? ` · ${item.detail}` : ""}`) : []),
+      ...(!persistedGatePassed && checks.length && checks.every((item) => item.status === "PASS") ? ["× Persisted VerificationGate evidence incomplete"] : []),
+      ...(forbidden.length ? [`× Forbidden constructs ${JSON.stringify(forbidden)}`] : []),
+      ...(formal?.id !== vr?.formalStatementId || proof?.formalStatementId !== formal?.id ? ["× Accepted proof or verification is not current"] : []),
+    ]
+    return `${whyNotVerified(state, claimId)}${reasons.length ? `\n${reasons.join("\n")}` : ""}`
+  }
+  const evidence = checks.map((item) => `${item.status === "PASS" ? "✓" : "×"} ${item.name}${item.detail ? ` · ${item.detail}` : ""}`)
+  const axioms = jsonArray(vr.axiomsJson)
   return [
     "WHY VERIFIED",
     "",
     ...evidence,
     `✓ VerificationGate ${vr.result}`,
     `✓ Fidelity ${vr.fidelityStatus}`,
-    `✓ Forbidden constructs ${jsonArray(vr.forbiddenJson).length === 0 ? "none" : vr.forbiddenJson}`,
-    `✓ Axiom audit ${jsonArray(vr.axiomsJson).length === 0 ? "none" : vr.axiomsJson}`,
+    "✓ Forbidden constructs none",
+    axioms.length === 0 ? "✓ Axiom audit none" : `○ Axiom audit · used ${JSON.stringify(axioms)}`,
     "",
     `Provenance ${vr.id}`,
     "This is deterministic provenance. No generated reasoning.",
@@ -643,10 +662,12 @@ export function externalResultDetail(state: ProductState, id: string): string {
 }
 
 export function experimentTrustLabels(experiment: Experiment): string[] {
+  const completedUnderPolicy = experiment.status === "SUCCEEDED" && experiment.executionPolicyVersion === "sandbox-v1"
+  const safeSandbox = completedUnderPolicy && ["macos-sandbox-exec", "seatbelt", "sandbox-exec", "bwrap", "bubblewrap"].includes(experiment.sandboxMode ?? "")
   return [
     ...(experiment.origin === "MODEL_GENERATED" ? ["MODEL GENERATED CODE"] : []),
-    ...(experiment.sandboxMode ? ["SANDBOXED"] : []),
-    ...(experiment.networkPolicy === "NETWORK_DENY" ? ["NETWORK DENIED"] : []),
+    ...(safeSandbox ? ["SANDBOXED"] : []),
+    ...(completedUnderPolicy && experiment.networkPolicy === "NETWORK_DENY" ? ["NETWORK DENIED"] : []),
     "NOT A PROOF",
   ]
 }
