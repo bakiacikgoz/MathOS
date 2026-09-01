@@ -693,8 +693,8 @@ export class TeamResearchCoordinator {
           fidelityStatus: "HUMAN_APPROVED",
           verificationStatus: "ELABORATES",
         })
-        if (proof) this.d.storeAttempt(this.d.requireWorkspace().id, clone.id, this.d.formalStatements.currentForClaim(clone.id)!.id, 1, proof.proofSource, "KERNEL_ACCEPTED", proof.leanVersion, [])
       })
+      if (proof) this.d.storeAttempt(this.d.requireWorkspace().id, clone.id, this.d.formalStatements.currentForClaim(clone.id)!.id, 1, proof.proofSource, "KERNEL_ACCEPTED", proof.leanVersion, [])
       const targetFormal = this.d.formalStatements.currentForClaim(clone.id)!
       const worktree = this.d.getBranch(item.targetBranchId).worktreePath
       if (worktree) writeFileSync(join(worktree, `${clone.id}.lean`), `${targetFormal.sourceText}\n`, "utf8")

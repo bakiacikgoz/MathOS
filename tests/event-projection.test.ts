@@ -33,6 +33,18 @@ describe("canonical event projection", () => {
     db.close(); app.close()
   })
 
+  test("a later successful append cannot hide an earlier projection gap", async () => {
+    const created = await MathOS.init(tempDir(), "sticky-degraded")
+    let fail = true
+    const app = MathOS.open(created.root, { eventProjectionHook: (point) => {
+      if (point === "before_jsonl_append" && fail) { fail = false; throw new Error("first append lost") }
+    } })
+    app.createClaim({ kind: "lemma", title: "Missing", naturalStatement: "x" })
+    app.createClaim({ kind: "lemma", title: "Later", naturalStatement: "y" })
+    expect(app.eventProjectionHealth().status).toBe("EVENT_PROJECTION_DEGRADED")
+    app.close()
+  })
+
   test("rebuild atomically replaces drift with deterministic ordered JSONL without duplicates", async () => {
     const created = await MathOS.init(tempDir(), "rebuild")
     const app = MathOS.open(created.root)
@@ -86,6 +98,8 @@ test("hard process exits recover deterministically at every transaction/projecti
   const boundaries = [
     ["before_domain_mutation", false, false],
     ["after_domain_mutation", false, false],
+    ["before_db_event", false, false],
+    ["after_db_event", false, false],
     ["after_transaction", true, false],
     ["before_jsonl_append", true, false],
     ["after_jsonl_append", true, true],
@@ -108,6 +122,20 @@ test("hard process exits recover deterministically at every transaction/projecti
     expect(recovered.eventProjectionHealth().status).toBe("HEALTHY")
     recovered.close()
   }
+})
+
+test("rebuild serializes with a live cross-process writer", async () => {
+  const created = await MathOS.init(tempDir(), "concurrent-rebuild")
+  const app = MathOS.open(created.root)
+  const child = Bun.spawn([process.execPath, join(process.cwd(), "tests/fixtures/event-writer-child.ts"), created.root, "20"], { cwd: process.cwd(), stdout: "pipe", stderr: "pipe" })
+  for (let index = 0; index < 30; index += 1) app.rebuildEventProjection()
+  expect(await child.exited).toBe(0)
+  app.rebuildEventProjection()
+  const ids = readFileSync(eventLogPath(created.root), "utf8").trim().split("\n").map((line) => JSON.parse(line).event_id)
+  expect(new Set(ids).size).toBe(ids.length)
+  expect(app.eventProjectionHealth().status).toBe("HEALTHY")
+  expect(app.listClaims()).toHaveLength(20)
+  app.close()
 })
 
 test("events rebuild is available through the CLI", async () => {

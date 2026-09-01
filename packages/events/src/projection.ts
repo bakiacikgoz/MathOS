@@ -28,29 +28,43 @@ export class EventProjection {
   }
 
   mutateAndRecord<T>(event: ResearchEvent, mutation: () => T): T {
-    const result = this.unitOfWork(() => {
-      this.hook?.("before_domain_mutation", event)
-      const value = mutation()
-      this.hook?.("after_domain_mutation", event)
-      this.hook?.("before_db_event", event)
-      this.rows.insert(this.workspaceId, event)
-      this.hook?.("after_db_event", event)
-      return value
+    return this.log.synchronize(() => {
+      const result = this.unitOfWork(() => {
+        this.hook?.("before_domain_mutation", event)
+        const value = mutation()
+        this.hook?.("after_domain_mutation", event)
+        this.hook?.("before_db_event", event)
+        this.rows.insert(this.workspaceId, event)
+        this.hook?.("after_db_event", event)
+        return value
+      })
+      this.hook?.("after_transaction", event)
+      try {
+        this.hook?.("before_jsonl_append", event)
+        this.log.appendUnlocked(event)
+        this.hook?.("after_jsonl_append", event)
+        try { this.inspectUnlocked() } catch {}
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : String(error)
+        try { this.rows.setProjectionHealth(this.workspaceId, "EVENT_PROJECTION_DEGRADED", `JSONL append failed after durable DB event: ${detail}`, nowIso()) } catch {}
+      }
+      return result
     })
-    this.hook?.("after_transaction", event)
-    try {
-      this.hook?.("before_jsonl_append", event)
-      this.log.append(event)
-      this.hook?.("after_jsonl_append", event)
-      try { this.rows.setProjectionHealth(this.workspaceId, "HEALTHY", "JSONL matches canonical SQLite events", nowIso()) } catch {}
-    } catch (error) {
-      const detail = error instanceof Error ? error.message : String(error)
-      try { this.rows.setProjectionHealth(this.workspaceId, "EVENT_PROJECTION_DEGRADED", `JSONL append failed after durable DB event: ${detail}`, nowIso()) } catch {}
-    }
-    return result
   }
 
   inspect(): EventProjectionHealth {
+    return this.log.synchronize(() => this.inspectUnlocked())
+  }
+
+  rebuild(): EventProjectionHealth {
+    return this.log.synchronize(() => {
+      const events = this.rows.list(this.workspaceId)
+      this.log.replaceUnlocked(events)
+      return this.inspectUnlocked()
+    })
+  }
+
+  private inspectUnlocked(): EventProjectionHealth {
     const events = this.rows.list(this.workspaceId)
     const expected = events.map((event) => this.log.serialize(event)).join("\n") + (events.length ? "\n" : "")
     let actual = ""
@@ -59,20 +73,12 @@ export class EventProjection {
     if (actual !== expected) {
       const previous = this.rows.projectionHealth(this.workspaceId)
       const drift = `SQLite has ${events.length} events; JSONL has ${projectedCount} lines or differing content`
-      const detail = previous?.status === "EVENT_PROJECTION_DEGRADED" && previous.detail.includes("append failed")
-        ? `${previous.detail}; ${drift}`
-        : drift
+      const detail = previous?.status === "EVENT_PROJECTION_DEGRADED" && previous.detail.includes("append failed") ? `${previous.detail}; ${drift}` : drift
       this.rows.setProjectionHealth(this.workspaceId, "EVENT_PROJECTION_DEGRADED", detail, nowIso())
       return { status: "EVENT_PROJECTION_DEGRADED", detail, eventCount: events.length, projectedCount }
     }
     const detail = "JSONL matches canonical SQLite events"
     this.rows.setProjectionHealth(this.workspaceId, "HEALTHY", detail, nowIso())
     return { status: "HEALTHY", detail, eventCount: events.length, projectedCount }
-  }
-
-  rebuild(): EventProjectionHealth {
-    const events = this.rows.list(this.workspaceId)
-    this.log.replace(events)
-    return this.inspect()
   }
 }
