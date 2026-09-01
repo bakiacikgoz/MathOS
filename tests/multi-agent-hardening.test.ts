@@ -29,6 +29,16 @@ const prove = () => [d("ATTEMPT_PROOF", { parameters: { proofBody: "by\n  trivia
 const prove2 = () => [d("ATTEMPT_PROOF", { parameters: { proofBody: "by\n  trivial" } }), d("ATTEMPT_PROOF", { parameters: { proofBody: "by\n  trivial" } }), d("VERIFY")]
 const idle = () => [d("ANALYZE_GOAL"), d("ANALYZE_GOAL"), d("ANALYZE_GOAL"), d("STOP", { stop: { shouldStop: true, reason: "NO_PRODUCTIVE_ACTION" } })]
 
+class MutatingVerifyLean extends FakeLeanAdapter {
+  mutateDuringDetect: (() => void) | null = null
+  override async detect(root: string) {
+    const mutate = this.mutateDuringDetect
+    this.mutateDuringDetect = null
+    mutate?.()
+    return super.detect(root)
+  }
+}
+
 async function ready(extra: Record<string, unknown> = {}, lean: FakeLeanAdapter | NativeLeanAdapter = new FakeLeanAdapter()) {
   const created = await MathOS.init(tempDir(), "h")
   const model = new FakeModelProvider()
@@ -107,6 +117,10 @@ describe("multi-agent hardening", () => {
     expect(applied.targetClaimId).toBeTruthy()
     expect(app.getClaim(applied.targetClaimId!).status).toBe("KERNEL_VERIFIED")
     expect(app.getClaim(claim.id).status).not.toBe("KERNEL_VERIFIED")
+    app["client"].db.query("UPDATE research_agents SET branch_id = ? WHERE id = ?").run(source.branchId, agents[0]!.id)
+    const invalidated = await app.applyImport(applied.id)
+    expect(invalidated.status).toBe("FAILED")
+    expect(invalidated.failureCode).toBe("TARGET_NOT_COMPATIBLE")
     app.close()
   })
 
@@ -163,6 +177,20 @@ describe("multi-agent hardening", () => {
     const applied = await app.applyImport(proposed.id)
     expect(applied.status).toBe("FAILED")
     expect(applied.failureCode).toBe("TARGET_VERIFICATION_FAILED")
+    app.close()
+  })
+
+  test("post-verify invariant recheck blocks concurrent target mutation", async () => {
+    const lean = new MutatingVerifyLean()
+    const { app } = await ready({}, lean)
+    const session = await app.startTeam({ planners: [new FakeResearchPlanner(idle()), new FakeResearchPlanner(prove()), new FakeResearchPlanner(idle())] })
+    await app.runTeam(session.id)
+    const agents = app.teamAgents(session.id), source = agents[1]!, target = agents[0]!
+    const proposed = app.proposeImport(session.id, source.id, target.id, source.localClaimId)
+    lean.mutateDuringDetect = () => app["client"].db.query("UPDATE research_agents SET branch_id = ? WHERE id = ?").run(source.branchId, target.id)
+    const applied = await app.applyImport(proposed.id)
+    expect(applied.status).toBe("FAILED")
+    expect(applied.failureCode).toBe("TARGET_NOT_COMPATIBLE")
     app.close()
   })
 

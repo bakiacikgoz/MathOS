@@ -198,9 +198,24 @@ export function assignmentDiversity(plan: AgentAssignmentPlan): { ok: boolean; w
   return { ok: true }
 }
 
-export function approachFingerprint(assignment: Pick<PlannedAgentAssignment, "approach" | "goalSummary" | "targetClaimId">): string {
-  const goal = assignment.goalSummary.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().split(/\s+/).sort().join(" ")
-  return `${assignment.approach}|${assignment.targetClaimId ?? "objective"}|${goal}`
+const CANONICAL_WORDS: Record<string, string> = { demonstrate: "prove", show: "prove", establish: "prove", directly: "direct", objective: "goal", proposition: "goal", theorem: "goal", implies: "implication", equals: "eq", zero: "0" }
+export function canonicalApproachTokens(value: string): string[] {
+  const operators = value.replaceAll("∀", " forall ").replaceAll("∃", " exists ").replaceAll("→", " implication ").replaceAll("⇒", " implication ").replaceAll("↔", " iff ").replaceAll("≤", " le ").replaceAll("≥", " ge ").replaceAll("=", " eq ").replaceAll("+", " add ").replaceAll("*", " mul ")
+  return [...new Set(operators.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, " ").trim().split(/\s+/).filter(Boolean).map((token) => CANONICAL_WORDS[token] ?? token))].sort()
+}
+
+export function approachFingerprint(assignment: Pick<PlannedAgentAssignment, "approach" | "goalSummary" | "targetClaimId"> & { objectiveClaimId?: string }): string {
+  const target = assignment.objectiveClaimId ?? assignment.targetClaimId ?? "objective"
+  return `${assignment.approach}|${target}|${canonicalApproachTokens(assignment.goalSummary).join(" ")}`
+}
+
+export function approachSimilarity(left: Parameters<typeof approachFingerprint>[0], right: Parameters<typeof approachFingerprint>[0]): number {
+  if (left.approach !== right.approach) return 0
+  const leftTarget = left.objectiveClaimId ?? left.targetClaimId ?? "objective", rightTarget = right.objectiveClaimId ?? right.targetClaimId ?? "objective"
+  if (leftTarget !== rightTarget) return 0
+  const a = new Set(canonicalApproachTokens(left.goalSummary)), b = new Set(canonicalApproachTokens(right.goalSummary))
+  const union = new Set([...a, ...b]); if (!union.size) return 1
+  return [...a].filter((token) => b.has(token)).length / union.size
 }
 
 export function parseAssignmentPlan(value: unknown): AgentAssignmentPlan {

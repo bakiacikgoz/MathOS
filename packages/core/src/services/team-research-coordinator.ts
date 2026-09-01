@@ -6,6 +6,7 @@ import {
   HARD_MAX_PARALLEL_WORKERS,
   assignmentDiversity,
   approachFingerprint,
+  approachSimilarity,
   fallbackAssignmentPlan,
   nextPrefixedId,
   nextRoundId,
@@ -188,7 +189,7 @@ export class TeamResearchCoordinator {
       for (const assignment of plan.assignments.slice(0, input.limits?.maxAgents ?? DEFAULT_MULTI_AGENT_BUDGET.maxAgents)) {
         this.d.switchBranch(source.id)
         const agentId = nextPrefixedId(stores.agents.ids(), "A")
-        const branch = await this.d.createBranch(`${sessionId.toLowerCase()}-${assignment.approach.toLowerCase()}`, assignment.goalSummary)
+        const branch = await this.d.createBranch(`${sessionId.toLowerCase()}-${agentId.toLowerCase()}-${assignment.approach.toLowerCase()}`, assignment.goalSummary)
         this.d.switchBranch(branch.id)
         const local = this.cloneObjectiveForWorker(objectiveId, agentId)
         const localLimits = input.workerLimits?.[created.length] ?? {}
@@ -298,7 +299,7 @@ export class TeamResearchCoordinator {
         stores.agents.update(agent)
       })
       const local = this.d.getClaim(agent.localClaimId)
-      if (local.status === "KERNEL_VERIFIED" && !stores.solutions.list(session.id).some((item) => item.agentId === agent.id)) {
+      if (agent.role !== "INDEPENDENT_CHECKER" && local.status === "KERNEL_VERIFIED" && !stores.solutions.list(session.id).some((item) => item.agentId === agent.id)) {
         if (this.d.teamCrashAt === "before_sc") throw new Error("crash")
         try {
           this.d.recorder.mutate("solution_candidate_found", { target: agent.id, metadata: { sessionId: session.id, agentId: agent.id, branchId: agent.branchId } }, () => stores.solutions.insert({
@@ -544,14 +545,15 @@ export class TeamResearchCoordinator {
       if (claim.status === "KERNEL_VERIFIED") verified.push({ claimId: claim.id, branchId: agent.branchId, title: claim.title })
       else unverified.push({ claimId: claim.id, branchId: agent.branchId, status: claim.status })
       approachesTried.push({ agentId: agent.id, approach: agent.assignment.approach, summary: agent.assignment.goalSummary })
-      const fingerprint = approachFingerprint(agent.assignment)
+      const semanticAssignment = { ...agent.assignment, targetClaimId: session.objectiveClaimId, objectiveClaimId: session.objectiveClaimId }
+      const fingerprint = approachFingerprint(semanticAssignment)
       fingerprints.set(fingerprint, (fingerprints.get(fingerprint) ?? 0) + 1)
       const last = this.d.researchHistory(agent.researchRunId).at(-1)
       if (last?.status === "FAILED") failedApproaches.push({ agentId: agent.id, approach: agent.assignment.approach, summary: last.summary ?? last.action })
     }
     const solutions = this.teamStores().solutions.list(session.id)
     const checkers = agents.filter((agent) => agent.role === "INDEPENDENT_CHECKER")
-    const checkerReviews = checkers.flatMap((checker) => solutions.map((candidate) => {
+    const checkerReviews = checkers.flatMap((checker) => solutions.filter((candidate) => candidate.agentId !== checker.id).map((candidate) => {
       const critique: string[] = []
       const claim = this.d.getClaim(candidate.claimId)
       const formal = this.d.formalStatements.currentForClaim(candidate.claimId)
@@ -571,7 +573,13 @@ export class TeamResearchCoordinator {
       failedApproaches,
       solutionCandidates: solutions.map((item) => ({ id: item.id, agentId: item.agentId, claimId: item.claimId })),
       checkerReviews,
-      duplicateApproachFingerprints: [...fingerprints].filter(([, count]) => count > 1).map(([fingerprint]) => fingerprint),
+      duplicateApproachFingerprints: [
+        ...[...fingerprints].filter(([, count]) => count > 1).map(([fingerprint]) => fingerprint),
+        ...agents.flatMap((agent, index) => agents.slice(index + 1).filter((other) => approachSimilarity(
+          { ...agent.assignment, targetClaimId: session.objectiveClaimId, objectiveClaimId: session.objectiveClaimId },
+          { ...other.assignment, targetClaimId: session.objectiveClaimId, objectiveClaimId: session.objectiveClaimId },
+        ) >= 0.8).map((other) => `similar:${agent.id}:${other.id}`)),
+      ],
     }
   }
 
@@ -658,7 +666,13 @@ export class TeamResearchCoordinator {
 
   async applyImport(id: string): Promise<VerifiedArtifactImport> {
     const item = this.getImport(id)
-    if (item.status === "APPLIED") return item
+    if (item.status === "APPLIED") {
+      const failure = this.importInvariantFailure(item, true)
+      if (!failure) return item
+      item.status = "FAILED"; item.failureCode = failure
+      this.d.recorder.mutate("artifact_import_invalidated", { target: item.id, metadata: { sessionId: item.sessionId, code: failure } }, () => this.teamStores().imports.update(item))
+      return item
+    }
     const busy = this.d.client.db.query<{ n: number }, [string]>("SELECT COUNT(*) as n FROM execution_leases WHERE agent_id = ? AND status IN ('RESERVED','RUNNING')").get(item.targetAgentId)
     if (busy && busy.n > 0) throw new Error("TARGET_WORKER_BUSY")
     const source = this.d.getClaim(item.sourceClaimId)
@@ -734,23 +748,35 @@ export class TeamResearchCoordinator {
       const worktree = this.d.getBranch(item.targetBranchId).worktreePath
       if (worktree) writeFileSync(join(worktree, `${clone.id}.lean`), `${targetFormal.sourceText}\n`, "utf8")
       const report = await this.d.verify(clone.id)
-      const verifiedFormal = this.d.formalStatements.currentForClaim(clone.id)
-      const targetVerification = verifiedFormal ? this.d.verificationRuns.latestForFormal(verifiedFormal.id) : null
-      if (!report.passed || report.formalStatementId !== verifiedFormal?.id || report.claimStatus !== "KERNEL_VERIFIED" || targetVerification?.result !== "KERNEL_ACCEPTED") {
-        item.status = "FAILED"
-        item.failureCode = "TARGET_VERIFICATION_FAILED"
-        item.targetClaimId = clone.id
-        this.d.recorder.mutate("artifact_import_failed", { target: item.id, metadata: { sessionId: item.sessionId, code: item.failureCode } }, () => this.teamStores().imports.update(item))
-        return item
-      }
-      item.status = "APPLIED"
       item.targetClaimId = clone.id
-      item.appliedAt = nowIso()
-      this.d.recorder.mutate("artifact_import_applied", { target: item.id, metadata: { sessionId: item.sessionId, agentId: item.targetAgentId, branchId: item.targetBranchId } }, () => this.teamStores().imports.update(item))
+      this.d.recorder.mutate("artifact_import_finalized", { target: item.id, metadata: { sessionId: item.sessionId, agentId: item.targetAgentId, branchId: item.targetBranchId } }, () => {
+        const failure = !report.passed ? "TARGET_VERIFICATION_FAILED" : this.importInvariantFailure(item, true)
+        if (failure) { item.status = "FAILED"; item.failureCode = failure; item.appliedAt = null }
+        else { item.status = "APPLIED"; item.failureCode = null; item.appliedAt = nowIso() }
+        this.teamStores().imports.update(item)
+      })
+      this.d.recorder.record(item.status === "APPLIED" ? "artifact_import_applied" : "artifact_import_failed", { target: item.id, metadata: { sessionId: item.sessionId, code: item.failureCode } })
       return item
     } finally {
       if (previous.id !== this.d.requireCurrentBranch().id) this.d.switchBranch(previous.id)
     }
+  }
+
+  private importInvariantFailure(item: VerifiedArtifactImport, requireTarget: boolean): string | null {
+    const source = this.d.getClaim(item.sourceClaimId)
+    const sourceAgent = this.teamStores().agents.get(item.sourceAgentId), targetAgent = this.teamStores().agents.get(item.targetAgentId)
+    if (!sourceAgent || !targetAgent || sourceAgent.sessionId !== item.sessionId || targetAgent.sessionId !== item.sessionId || sourceAgent.branchId !== item.sourceBranchId || targetAgent.branchId !== item.targetBranchId || source.branchId !== item.sourceBranchId || item.sourceAgentId === item.targetAgentId) return "TARGET_NOT_COMPATIBLE"
+    if (source.status !== "KERNEL_VERIFIED") return "SOURCE_NOT_KERNEL_VERIFIED"
+    const sourceFormal = this.d.formalStatements.currentForClaim(source.id), sourceVerification = sourceFormal ? this.d.verificationRuns.latestForFormal(sourceFormal.id) : null
+    if (!sourceFormal || sourceFormal.id !== item.sourceFormalRevision || !sourceVerification || sourceVerification.id !== item.sourceVerificationRunId || sourceVerification.result !== "KERNEL_ACCEPTED") return "SOURCE_NOT_CURRENT"
+    if (this.dependencyClosure(source.id).some((dep) => this.d.getClaim(dep).status !== "KERNEL_VERIFIED")) return "DEPENDENCY_IMPORT_REQUIRED"
+    if (this.declarationConflicts(item.targetBranchId, source.id).length) return "DECLARATION_CONFLICT"
+    if (requireTarget) {
+      if (!item.targetClaimId) return "TARGET_VERIFICATION_FAILED"
+      const target = this.d.getClaim(item.targetClaimId), targetFormal = this.d.formalStatements.currentForClaim(target.id), targetVerification = targetFormal ? this.d.verificationRuns.latestForFormal(targetFormal.id) : null
+      if (target.branchId !== item.targetBranchId || target.status !== "KERNEL_VERIFIED" || !targetFormal || targetVerification?.result !== "KERNEL_ACCEPTED") return "TARGET_VERIFICATION_FAILED"
+    }
+    return null
   }
 
   private dependencyClosure(claimId: string): string[] {

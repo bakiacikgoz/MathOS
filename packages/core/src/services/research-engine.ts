@@ -137,6 +137,7 @@ export class ResearchEngine {
 
   async step(id: string): Promise<ResearchRun> {
     const run = this.get(id)
+    if (this.d.agents.getByRun(run.id)?.role === "INDEPENDENT_CHECKER") throw new Error("INDEPENDENT_CHECKER_CANNOT_EXECUTE_RESEARCH")
     if (run.status === "COMPLETED" || run.status === "CANCELLED") return run
     if (run.usage.steps >= run.limits.maxSteps) return this.stop(run, "STEP_BUDGET_EXHAUSTED")
     const worker = this.d.agents.getByRun(run.id)
@@ -194,6 +195,7 @@ export class ResearchEngine {
   }
 
   async run(id: string): Promise<ResearchRun> {
+    if (this.d.agents.getByRun(id.toUpperCase())?.role === "INDEPENDENT_CHECKER") throw new Error("INDEPENDENT_CHECKER_CANNOT_EXECUTE_RESEARCH")
     let run = this.get(id); run.status = "RUNNING"; run.startedAt = run.startedAt ?? nowIso()
     this.d.recorder.mutate("research_run_started", { target: id, metadata: { runId: id } }, () => this.d.runs.update(run))
     while (["READY", "RUNNING"].includes(this.get(id).status)) { run = await this.step(id); if (!['RUNNING','READY'].includes(run.status)) break }
