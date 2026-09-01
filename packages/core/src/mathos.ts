@@ -1,5 +1,4 @@
 import { basename, join, resolve } from "node:path"
-import { AsyncLocalStorage } from "node:async_hooks"
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs"
 import {
   type Blocker,
@@ -86,6 +85,7 @@ import { FormalizationService } from "./services/formalization-service.ts"
 import { VerificationService } from "./services/verification-service.ts"
 import { ExperimentService } from "./services/experiment-service.ts"
 import { LiteratureService } from "./services/literature-service.ts"
+import { ResearchEngine } from "./services/research-engine.ts"
 import {
   buildResearchGraph,
   formatClaimDetail,
@@ -213,6 +213,7 @@ export class MathOS {
   private verificationService!: VerificationService
   private experimentService!: ExperimentService
   private literatureService!: LiteratureService
+  private researchEngine!: ResearchEngine
   private constructor(
     readonly root: string,
     private readonly client: DatabaseClient,
@@ -249,22 +250,16 @@ export class MathOS {
     private readonly literatureProvider: LiteratureProvider,
   ) {}
 
-  private accounting: ResearchRun | null = null
   lastExperimentPid: number | null = null
-  private readonly runAccounting = new AsyncLocalStorage<ResearchRun>()
-  private readonly runPlanners = new Map<string, ResearchPlanner>()
   private teamPauseRequested = new Set<string>()
   private teamCancelRequested = new Set<string>()
-  private readonly stepAbort = new AsyncLocalStorage<AbortSignal>()
   readonly parallelTimings: Array<{ agentId: string; start: number; end: number }> = []
   peakConcurrency = 0
   private liveLeases = 0
-  lastPlannerContextByRun = new Map<string, import("./research-planner.ts").ResearchContextView>()
+  get lastPlannerContextByRun() { return this.researchEngine.lastPlannerContextByRun }
   private frozenDigestBySession = new Map<string, SharedResearchDigest | null>()
 
-  private currentAccounting(): ResearchRun | null {
-    return this.runAccounting.getStore() ?? this.accounting
-  }
+  private currentAccounting(): ResearchRun | null { return this.researchEngine?.currentAccounting() ?? null }
 
   static async init(cwd = process.cwd(), name?: string): Promise<{ root: string; name: string }> {
     const target = name ? resolve(cwd, name) : resolve(cwd)
@@ -383,6 +378,41 @@ export class MathOS {
       provider: instance.literatureProvider,
       allocateId: (prefix) => instance.allocateId(prefix),
       recordEvent: (action, event) => instance.record(action, event),
+    })
+    instance.researchEngine = new ResearchEngine({
+      runs: new ResearchRunRepository(client.db),
+      steps: new ResearchStepRepository(client.db),
+      blockers: new ResearchBlockerRepository(client.db),
+      decisions: new ResearchDecisionRepository(client.db),
+      planners: new RunPlannerRepository(client.db),
+      agents: new ResearchAgentRepository(client.db),
+      modelProvider: instance.modelProvider,
+      defaultPlanner: instance.researchPlanner,
+      requireWorkspace: () => instance.requireWorkspace(),
+      requireCurrentBranch: () => instance.requireCurrentBranch(),
+      switchBranch: (id) => instance.switchBranch(id),
+      getBranchName: (id) => instance.getBranch(id).name,
+      getClaim: (id) => instance.getClaim(id),
+      listVisibleClaims: (branchId) => instance.claims.listVisible(branchId),
+      currentFormal: (claimId) => instance.formalStatements.currentForClaim(claimId),
+      graphContext: (run, worker) => buildGraphContextSummary(instance.buildGraph({ branchId: run.branchId, includeImports: true }), {
+        focusClaimId: run.strategy.focusClaimId ?? run.objectiveClaimId ?? null,
+        digestClaimIds: worker ? (instance.frozenDigestBySession.get(worker.sessionId)?.verifiedFindings ?? []).map((item) => item.claimId) : [],
+      }),
+      digestVerifiedFindings: (worker) => instance.frozenDigestBySession.get(worker.sessionId)?.verifiedFindings ?? [],
+      consumeModelBudget: (kind) => instance.chargeModel(kind),
+      consumeProofBudget: () => instance.chargeProofAttempt(),
+      recordEvent: (action, event) => instance.record(action, event),
+      crashHook: instance.crashHook,
+      searchPremises: (claimId) => instance.premisesForClaim(claimId, { skipInspect: true }),
+      createSubclaim: (input) => instance.createClaim({ kind: "lemma", ...input }),
+      addDependency: (from, to) => instance.addDependency(from, to, "depends_on"),
+      attemptProof: (claimId, proofBody) => instance.prove(claimId, undefined, { maxAttempts: 1, proofBody, skipInspect: true, skipVerify: true }),
+      verify: (claimId) => instance.verify(claimId),
+      createExperiment: (input) => instance.createExperiment(input),
+      runExperiment: (id, options) => instance.runExperiment(id, options),
+      searchLiterature: (query, options) => instance.searchLiterature(query, options),
+      inspectSource: (id) => instance.inspectSource(id),
     })
     instance.restorePersistentPlanners()
     instance.reconcileInterrupted()
@@ -796,7 +826,7 @@ export class MathOS {
     const run = this.currentAccounting()
     const branch = run ? this.getBranch(run.branchId) : this.branches.current(this.requireWorkspace().id)
     const fsRoot = branch?.worktreePath && branch.id !== MAIN_BRANCH_ID ? branch.worktreePath : this.root
-    return { workspaceRoot: this.formalProjectRoot ?? fsRoot, tmpDir: join(fsRoot, ".mathos", "tmp"), signal: this.stepAbort.getStore() }
+    return { workspaceRoot: this.formalProjectRoot ?? fsRoot, tmpDir: join(fsRoot, ".mathos", "tmp"), signal: this.researchEngine?.currentAbortSignal() }
   }
 
   listBranches() {
@@ -1077,7 +1107,7 @@ export class MathOS {
         previousNames: attempts.map((item) => item.candidateNames).flat(),
         goalAware: config.goalAware,
         mode: unknown.length ? "DIAGNOSTIC_REPAIR" : "FORMAL_GOAL",
-        skipInspect: options?.skipInspect === true || Boolean(this.accounting),
+        skipInspect: options?.skipInspect === true || Boolean(this.currentAccounting()),
       })
       lastRetrieval = {
         localCount: retrieved.localCount,
@@ -1184,7 +1214,7 @@ export class MathOS {
           target: accepted.id,
           metadata: { claim_id: claim.id, formal_id: formal.id, n, lean: checked.leanVersion, premises: names.slice(0, 8) },
         })
-        const verification = options?.skipVerify || this.accounting ? null : await this.verify(claim.id)
+        const verification = options?.skipVerify || this.currentAccounting() ? null : await this.verify(claim.id)
         return { claimId: claim.id, formalStatement: formal, attempts, accepted, verification, proofAttempted: true, retrieval: lastRetrieval }
       }
 
@@ -1430,476 +1460,22 @@ export class MathOS {
   }
 
   private researchStores() {
-    return {
-      runs: new ResearchRunRepository(this.client.db),
-      steps: new ResearchStepRepository(this.client.db),
-      blockers: new ResearchBlockerRepository(this.client.db),
-      decisions: new ResearchDecisionRepository(this.client.db),
-    }
+    return { runs: new ResearchRunRepository(this.client.db), steps: new ResearchStepRepository(this.client.db), blockers: new ResearchBlockerRepository(this.client.db), decisions: new ResearchDecisionRepository(this.client.db) }
   }
-
-  private planner(): ResearchPlanner {
-    return this.researchPlanner ?? new ModelResearchPlanner(this.modelProvider)
-  }
-
-  startResearch(input: { objectiveClaimId?: string; limits?: Partial<ResearchBudget> } = {}): ResearchRun {
-    const workspace = this.requireWorkspace()
-    const branch = this.requireCurrentBranch()
-    const objectiveId = input.objectiveClaimId ?? workspace.mainObjectiveId
-    if (!objectiveId) throw new Error("Research requires an objective claim.")
-    const stores = this.researchStores()
-    const existing = stores.runs.activeOnBranch(workspace.id, branch.id, objectiveId)
-    if (existing && (existing.status === "RUNNING" || existing.status === "READY")) {
-      throw new Error("ACTIVE_RESEARCH_RUN_EXISTS")
-    }
-    const timestamp = nowIso()
-    const run: ResearchRun = {
-      id: nextPrefixedId(stores.runs.ids(workspace.id), "R"),
-      workspaceId: workspace.id,
-      branchId: branch.id,
-      objectiveClaimId: objectiveId,
-      status: "READY",
-      startedAt: null,
-      stoppedAt: null,
-      currentStep: 0,
-      limits: { ...DEFAULT_RESEARCH_BUDGET, ...input.limits },
-      usage: emptyResearchUsage(),
-      stopReason: null,
-      strategy: { focusClaimId: objectiveId, exhaustedApproaches: [], activeBlockerIds: [] },
-      agentId: null,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    }
-    stores.runs.insert(run)
-    this.record("research_run_created", { target: run.id, metadata: { runId: run.id, branchId: branch.id, objectiveClaimId: objectiveId } })
-    return run
-  }
-
-  getResearch(id: string): ResearchRun {
-    const run = this.researchStores().runs.get(id.toUpperCase())
-    if (!run) throw new Error(`Research run ${id} was not found.`)
-    return run
-  }
-
-  researchHistory(id: string) {
-    return this.researchStores().steps.list(this.getResearch(id).id)
-  }
-
-  researchSummary(id: string): string {
-    const run = this.getResearch(id)
-    const claims = this.claims.listVisible(run.branchId)
-    return deterministicResearchSummary({
-      run,
-      createdClaims: claims.filter((claim) => claim.createdAt >= run.createdAt).length,
-      verifiedLemmas: claims.filter((claim) => claim.status === "KERNEL_VERIFIED").length,
-      openBlockers: this.researchStores().blockers.open(run.branchId).length,
-      currentApproach: run.strategy.currentApproach,
-    })
-  }
-
-  researchTrace(id: string): string {
-    const run = this.getResearch(id)
-    const steps = this.researchHistory(id)
-    return [
-      run.id,
-      "",
-      ...steps.map((step) => `${step.id} ${step.action.padEnd(18)} ${step.status}`),
-      "",
-      "STOP",
-      run.stopReason ?? run.status,
-    ].join("\n")
-  }
-
-  answerResearch(runId: string, blockerId: string, text: string) {
-    const run = this.getResearch(runId)
-    const blocker = this.researchStores().blockers.get(blockerId.toUpperCase())
-    if (!blocker) throw new Error(`Blocker ${blockerId} was not found.`)
-    this.researchStores().blockers.answer(blocker.id, text, nowIso())
-    this.record("research_blocker_resolved", { target: blocker.id, metadata: { runId: run.id, branchId: run.branchId, human: true } })
-    return this.researchStores().blockers.get(blocker.id)
-  }
-
-  latestResearch(): ResearchRun | null {
-    const ids = this.researchStores().runs.ids(this.requireWorkspace().id)
-    const last = ids.at(-1)
-    return last ? this.getResearch(last) : null
-  }
-
-  pauseResearch(id: string): ResearchRun {
-    const stores = this.researchStores()
-    const run = this.getResearch(id)
-    run.status = "PAUSED"
-    run.stopReason = "USER_PAUSED"
-    run.stoppedAt = nowIso()
-    run.updatedAt = run.stoppedAt
-    stores.runs.update(run)
-    this.record("research_run_paused", { target: run.id, metadata: { runId: run.id, branchId: run.branchId } })
-    return run
-  }
-
-  resumeResearch(id: string): ResearchRun {
-    const stores = this.researchStores()
-    const run = this.getResearch(id)
-    for (const step of stores.steps.interrupted(run.id)) {
-      step.status = "INTERRUPTED"
-      step.finishedAt = nowIso()
-      stores.steps.update(step)
-    }
-    run.status = "READY"
-    run.stopReason = null
-    run.stoppedAt = null
-    run.updatedAt = nowIso()
-    stores.runs.update(run)
-    this.record("research_run_resumed", { target: run.id, metadata: { runId: run.id, branchId: run.branchId } })
-    return run
-  }
-
-  async stepResearch(id: string): Promise<ResearchRun> {
-    const stores = this.researchStores()
-    const run = this.getResearch(id)
-    if (run.status === "COMPLETED" || run.status === "CANCELLED") return run
-    if (run.usage.steps >= run.limits.maxSteps) return this.stopRun(run, "STEP_BUDGET_EXHAUSTED")
-    const worker = this.teamStores().agents.getByRun(run.id)
-    if (run.usage.modelCalls >= run.limits.maxModelCalls) return this.stopRun(run, worker ? "LOCAL_MODEL_BUDGET_EXHAUSTED" : "MODEL_CALL_BUDGET_EXHAUSTED")
-    if (run.usage.proofAttempts >= run.limits.maxProofAttempts) return this.stopRun(run, worker ? "LOCAL_PROOF_BUDGET_EXHAUSTED" : "PROOF_ATTEMPT_BUDGET_EXHAUSTED")
-    if (run.usage.leanCalls >= run.limits.maxLeanCalls) return this.stopRun(run, worker ? "LOCAL_LEAN_BUDGET_EXHAUSTED" : "LEAN_CALL_BUDGET_EXHAUSTED")
-
-    const previousBranch = this.requireCurrentBranch()
-    if (previousBranch.id !== run.branchId) this.switchBranch(run.branchId)
-    this.accounting = run
-    try {
-      return await this.runAccounting.run(run, async () => {
-        try {
-          const objective = run.objectiveClaimId ? this.getClaim(run.objectiveClaimId) : null
-          if (objective?.status === "KERNEL_VERIFIED") return this.stopRun(run, "OBJECTIVE_KERNEL_VERIFIED", "COMPLETED")
-          const formal = objective ? this.formalStatements.currentForClaim(objective.id) : null
-          const fidelityBlocked = formal?.fidelityStatus === "REJECTED" || formal?.fidelityStatus === "MISMATCH"
-          const steps = stores.steps.list(run.id)
-          const context = buildResearchContext({
-            run,
-            objective,
-            branchName: this.getBranch(run.branchId).name,
-            claims: this.claims.listVisible(run.branchId),
-            blockers: stores.blockers.open(run.branchId).map((item) => ({ id: item.id, summary: item.summary, type: item.type })),
-            steps,
-            lastFailure: steps.filter((step) => step.status === "FAILED").at(-1)?.summary ?? undefined,
-            fidelityBlocked,
-            digestVerifiedFindings: worker ? (this.frozenDigestBySession.get(worker.sessionId)?.verifiedFindings ?? []) : [],
-            graph: buildGraphContextSummary(this.buildGraph({ branchId: run.branchId, includeImports: true }), {
-              focusClaimId: run.strategy.focusClaimId ?? objective?.id ?? null,
-              digestClaimIds: worker ? (this.frozenDigestBySession.get(worker.sessionId)?.verifiedFindings ?? []).map((item) => item.claimId) : [],
-            }),
-          })
-          this.lastPlannerContextByRun.set(run.id, context)
-          if (!this.chargeModel("planner")) return this.stopRun(run, worker ? "LOCAL_MODEL_BUDGET_EXHAUSTED" : "MODEL_CALL_BUDGET_EXHAUSTED")
-          let decision: ResearchDecision
-          try {
-            const stored = this.plannerRepo().get(run.id)
-            if (stored && !this.runPlanners.has(run.id)) this.restoreOnePlanner(run.id, stored.descriptor, stored.cursor)
-            const active = this.runPlanners.get(run.id) ?? this.planner()
-            if (stored && !this.runPlanners.has(run.id)) return this.stopRun(run, "PLANNER_UNAVAILABLE")
-            decision = await active.decideNextAction(context)
-            decision.parameters = {
-              ...decision.parameters,
-              graphRevision: context.graph?.graphRevision,
-              graphContextHash: context.graph?.graphContextHash,
-            }
-          } catch (error) {
-            const message = error instanceof Error ? error.message : ""
-            if (message === "INVALID_PLANNER_DECISION") return this.stopRun(run, "INVALID_PLANNER_DECISION")
-            throw error
-          }
-          if (decision.stop?.shouldStop) {
-            const reason = (decision.stop.reason as ResearchStopReason) ?? "NO_PRODUCTIVE_ACTION"
-            if (reason === "OBJECTIVE_KERNEL_VERIFIED") {
-              const verified = run.objectiveClaimId ? this.getClaim(run.objectiveClaimId) : null
-              if (verified?.status !== "KERNEL_VERIFIED") return this.stopRun(run, "NO_PRODUCTIVE_ACTION")
-            }
-            return this.stopRun(run, reason)
-          }
-          const target = decision.targetClaimId ?? run.strategy.focusClaimId ?? run.objectiveClaimId ?? ""
-          const recentFail = steps.filter((step) => step.action === decision.action && step.status === "FAILED" && (step.inputArtifactIds[0] ?? "") === target)
-          if (recentFail.length >= 3) {
-            this.createResearchBlocker(run, "REPETITION", "REPETITION_DETECTED", decision.targetClaimId ?? run.objectiveClaimId)
-            return this.stopRun(run, "REPETITION_DETECTED")
-          }
-          return await this.executeResearchDecision(run, decision)
-        } catch (error) {
-          const message = error instanceof Error ? error.message : ""
-          if (message === "LEAN_CALL_BUDGET_EXHAUSTED") return this.stopRun(run, worker ? "LOCAL_LEAN_BUDGET_EXHAUSTED" : "LEAN_CALL_BUDGET_EXHAUSTED")
-          if (message === "PROOF_ATTEMPT_BUDGET_EXHAUSTED") return this.stopRun(run, worker ? "LOCAL_PROOF_BUDGET_EXHAUSTED" : "PROOF_ATTEMPT_BUDGET_EXHAUSTED")
-          if (message === "GLOBAL_PROOF_BUDGET_EXHAUSTED") {
-            run.updatedAt = nowIso()
-            this.researchStores().runs.update(run)
-            return run
-          }
-          if (message === "GLOBAL_LEAN_BUDGET_EXHAUSTED" || message === "GLOBAL_MODEL_BUDGET_EXHAUSTED" || message === "GLOBAL_PROOF_BUDGET_EXHAUSTED") {
-            run.updatedAt = nowIso()
-            this.researchStores().runs.update(run)
-            return run
-          }
-          throw error
-        }
-      })
-    } finally {
-      this.accounting = null
-      if (previousBranch.id !== this.requireCurrentBranch().id) this.switchBranch(previousBranch.id)
-    }
-  }
-
-  async runResearch(id: string): Promise<ResearchRun> {
-    this.record("research_run_started", { target: id, metadata: { runId: id } })
-    let run = this.getResearch(id)
-    run.status = "RUNNING"
-    run.startedAt = run.startedAt ?? nowIso()
-    this.researchStores().runs.update(run)
-    while (["READY", "RUNNING"].includes(this.getResearch(id).status)) {
-      run = await this.stepResearch(id)
-      if (run.status !== "RUNNING" && run.status !== "READY") break
-      run.status = "RUNNING"
-      this.researchStores().runs.update(run)
-    }
-    return this.getResearch(id)
-  }
-
-  private stopRun(run: ResearchRun, reason: ResearchStopReason, status: ResearchRun["status"] = "BLOCKED"): ResearchRun {
-    run.status = reason === "OBJECTIVE_KERNEL_VERIFIED" ? "COMPLETED" : status
-    if (reason === "OBJECTIVE_KERNEL_VERIFIED") run.status = "COMPLETED"
-    run.stopReason = reason
-    run.stoppedAt = nowIso()
-    run.updatedAt = run.stoppedAt
-    this.researchStores().runs.update(run)
-    this.record(run.status === "COMPLETED" ? "research_run_completed" : "research_run_blocked", { target: run.id, metadata: { runId: run.id, branchId: run.branchId, reason } })
-    return run
-  }
-
-  private createResearchBlocker(run: ResearchRun, type: import("@mathos/domain").ResearchBlockerType, summary: string, claimId: string | null, stepId?: string) {
-    const stores = this.researchStores()
-    const blocker = {
-      id: nextPrefixedId(stores.blockers.ids(), "BL"),
-      workspaceId: run.workspaceId,
-      branchId: run.branchId,
-      claimId,
-      type,
-      status: "OPEN" as const,
-      summary,
-      createdByStepId: stepId ?? null,
-      resolvedByStepId: null,
-      createdAt: nowIso(),
-    }
-    stores.blockers.insert(blocker)
-    this.record("research_blocker_created", { target: blocker.id, metadata: { runId: run.id, branchId: run.branchId } })
-    return blocker
-  }
-
-  private async executeResearchDecision(run: ResearchRun, decision: ResearchDecision): Promise<ResearchRun> {
-    const stores = this.researchStores()
-    const sequence = run.currentStep + 1
-    const key = `${run.id}:${sequence}`
-    const existing = stores.steps.getByKey(key)
-    if (existing && existing.status !== "RUNNING" && existing.status !== "INTERRUPTED") return run
-    const timestamp = nowIso()
-    const step = existing ?? {
-      id: nextPrefixedId(stores.steps.ids(), "RS"),
-      runId: run.id,
-      branchId: run.branchId,
-      sequence,
-      action: decision.action,
-      inputArtifactIds: [decision.targetClaimId ?? run.objectiveClaimId ?? ""],
-      resultArtifactIds: [],
-      status: "RUNNING" as const,
-      idempotencyKey: key,
-      startedAt: timestamp,
-      finishedAt: null,
-      summary: decision.rationaleSummary,
-      failureClass: null,
-      createdAt: timestamp,
-    }
-    if (!existing) stores.steps.insert(step)
-    else if (existing.status === "INTERRUPTED" && existing.resultArtifactIds.length) {
-      existing.status = "SUCCEEDED"
-      stores.steps.update(existing)
-      run.currentStep = sequence
-      stores.runs.update(run)
-      return run
-    }
-    this.record("research_step_started", { target: step.id, metadata: { runId: run.id, branchId: run.branchId, action: step.action } })
-    this.crashHook?.("after_event", decision.action)
-    const focus = decision.targetClaimId ?? run.strategy.focusClaimId ?? run.objectiveClaimId
-    if (focus && focus !== run.strategy.focusClaimId) {
-      run.strategy.focusClaimId = focus
-      this.record("research_focus_changed", { target: run.id, metadata: { runId: run.id, branchId: run.branchId, focus } })
-    }
-    try {
-      this.crashHook?.("before_mutation", decision.action)
-      const result = await this.dispatchResearchAction(run, step, decision)
-      step.resultArtifactIds = result.artifacts
-      stores.steps.update(step)
-      this.crashHook?.("after_mutation", decision.action)
-      step.status = result.failed ? "FAILED" : "SUCCEEDED"
-      step.summary = result.summary
-      step.failureClass = result.failureClass
-      step.finishedAt = nowIso()
-      stores.steps.update(step)
-      run.currentStep = sequence
-      run.usage = normalizeResearchUsage(run.usage)
-      run.usage.steps += 1
-      run.usage.proofAttempts += result.proofAttempts
-      run.updatedAt = nowIso()
-      if (decision.rationaleSummary && /abandon|switch/i.test(decision.rationaleSummary)) {
-        stores.decisions.insert({ id: nextPrefixedId(stores.decisions.ids(), "DEC"), runId: run.id, branchId: run.branchId, summary: decision.rationaleSummary, createdAt: nowIso() })
-      }
-      const objective = run.objectiveClaimId ? this.getClaim(run.objectiveClaimId) : null
-      if (objective?.status === "KERNEL_VERIFIED") return this.stopRun(run, "OBJECTIVE_KERNEL_VERIFIED", "COMPLETED")
-      if (decision.action === "STOP" || decision.action === "REQUEST_HUMAN") {
-        return this.stopRun(run, decision.action === "REQUEST_HUMAN" ? "BLOCKED_NEEDS_HUMAN" : "NO_PRODUCTIVE_ACTION")
-      }
-      run.status = "RUNNING"
-      stores.runs.update(run)
-      this.record("research_step_completed", { target: step.id, metadata: { runId: run.id, branchId: run.branchId } })
-      return run
-    } catch (error) {
-      if (error instanceof Error && error.message === "crash") {
-        stores.steps.update(step)
-        throw error
-      }
-      step.status = "FAILED"
-      step.summary = error instanceof Error ? error.message : "execution failure"
-      step.finishedAt = nowIso()
-      stores.steps.update(step)
-      run.currentStep = sequence
-      run.usage.steps += 1
-      this.record("research_step_failed", { target: step.id, metadata: { runId: run.id, branchId: run.branchId } })
-      return this.stopRun(run, "EXECUTION_FAILURE", "FAILED")
-    }
-  }
-
-  private async dispatchResearchAction(run: ResearchRun, step: import("@mathos/domain").ResearchStep, decision: ResearchDecision) {
-    const target = decision.targetClaimId ?? run.strategy.focusClaimId ?? run.objectiveClaimId
-    const artifacts: string[] = []
-    let proofAttempts = 0
-    let leanCalls = 0
-    let modelCalls = 0
-    let failed = false
-    let failureClass: import("@mathos/domain").FailureClass | null = null
-    let summary = decision.rationaleSummary
-    if (decision.action === "ANALYZE_GOAL") {
-      summary = target ? `Analyzed ${target}` : "Analyzed objective"
-    } else if (decision.action === "SEARCH_PREMISES" && target) {
-      const result = await this.premisesForClaim(target, { skipInspect: true })
-      artifacts.push(...result.candidates.slice(0, 8).map((item) => item.declaration.name))
-      summary = `Retrieved ${result.candidates.length} premises`
-    } else if (decision.action === "DECOMPOSE_GOAL") {
-      summary = `Decompose ${target}`
-    } else if (decision.action === "CREATE_SUBCLAIM") {
-      this.crashHook?.("before_mutation", "CREATE_SUBCLAIM")
-      const created = this.createClaim({
-        kind: "lemma",
-        title: String(decision.parameters.title ?? "Auxiliary lemma"),
-        statement: String(decision.parameters.statement ?? "Auxiliary obligation."),
-      })
-      if (run.objectiveClaimId) this.addDependency(created.id, run.objectiveClaimId, "depends_on")
-      artifacts.push(created.id)
-      run.strategy.focusClaimId = created.id
-      summary = `Created ${created.id}`
-    } else if (decision.action === "ATTEMPT_PROOF" && target) {
-      if (!this.chargeProofAttempt()) throw new Error("PROOF_ATTEMPT_BUDGET_EXHAUSTED")
-      if (!decision.parameters.proofBody && !this.chargeModel("proof")) throw new Error("MODEL_CALL_BUDGET_EXHAUSTED")
-      const session = await this.prove(target, undefined, { maxAttempts: 1, proofBody: decision.parameters.proofBody ? String(decision.parameters.proofBody) : undefined, skipInspect: true, skipVerify: true })
-      proofAttempts += session.attempts.length
-      const last = session.attempts.at(-1)
-      if (!session.accepted) {
-        failed = true
-        failureClass = classifyLeanFailure(last?.diagnostics.map((item) => item.message) ?? [])
-        summary = `Proof failed (${failureClass})`
-      } else {
-        artifacts.push(session.accepted.id)
-        summary = "Proof kernel accepted"
-      }
-    } else if (decision.action === "VERIFY" && target) {
-      leanCalls += 1
-      const report = await this.verify(target)
-      summary = report.passed ? "Verification PASS" : "Verification FAIL"
-      failed = !report.passed
-    } else if (decision.action === "INSPECT_FAILURE") {
-      const blocker = this.createResearchBlocker(run, "LEAN_ERROR", String(decision.parameters.summary ?? "Inspected proof failure"), target ?? null, step.id)
-      artifacts.push(blocker.id)
-      summary = `Blocker ${blocker.id}`
-    } else if (decision.action === "RECORD_BLOCKER") {
-      const blocker = this.createResearchBlocker(run, "UNKNOWN", String(decision.parameters.summary ?? "Recorded blocker"), target ?? null, step.id)
-      artifacts.push(blocker.id)
-    } else if (decision.action === "REQUEST_HUMAN") {
-      this.createResearchBlocker(run, "NEEDS_HUMAN_JUDGMENT", decision.rationaleSummary || "Needs human judgment", target ?? null, step.id)
-      summary = "REQUEST_HUMAN"
-    } else if (decision.action === "RUN_EXPERIMENT") {
-      const claimId = target ?? run.objectiveClaimId
-      const created = await this.createExperiment({
-        origin: "MODEL_GENERATED",
-        kind: String(decision.parameters.kind ?? "FINITE_VERIFICATION"),
-        claimId: claimId ?? undefined,
-        hypothesis: String(decision.parameters.hypothesis ?? decision.rationaleSummary ?? ""),
-        code: decision.parameters.code ? String(decision.parameters.code) : undefined,
-        parameters: decision.parameters,
-        runId: run.id,
-        agentId: run.agentId ?? undefined,
-      })
-      const er = await this.runExperiment(created.id, { stepId: step.id, timeoutMs: Number(decision.parameters.timeoutMs ?? DEFAULT_COMPUTATIONAL_BUDGET.maxWallClockMsPerExperiment) })
-      artifacts.push(created.id, er.id)
-      run.usage.experiments += 1
-      run.usage.computationCalls += 1
-      summary = `RUN_EXPERIMENT ${created.id} ${er.outcome}`
-      failed = er.outcome === "EXECUTION_FAILED"
-    } else if (decision.action === "SEARCH_LITERATURE") {
-      const query = String(decision.parameters.query ?? decision.parameters.text ?? "")
-      if (!query.trim()) throw new Error("LITERATURE_QUERY_REQUIRED")
-      const search = await this.searchLiterature(query, { claimId: target ?? run.objectiveClaimId ?? undefined, runId: run.id, stepId: step.id, agentId: run.agentId ?? undefined })
-      artifacts.push(search.id)
-      run.usage.literatureSearches += 1
-      summary = `SEARCH_LITERATURE ${search.id} ${search.resultCount} hits`
-    } else if (decision.action === "INSPECT_SOURCE") {
-      const sourceId = String(decision.parameters.sourceId ?? "")
-      this.inspectSource(sourceId)
-      run.usage.sourceInspections += 1
-      artifacts.push(sourceId)
-      summary = `INSPECT_SOURCE ${sourceId}`
-    } else if (decision.action === "STOP") {
-      summary = "STOP"
-    }
-    return { artifacts, proofAttempts, leanCalls, modelCalls, failed, failureClass, summary }
-  }
-
-  registerRunPlanner(runId: string, planner: ResearchPlanner): void {
-    const remaining = planner instanceof FakeResearchPlanner || planner instanceof PersistentScriptedPlanner ? planner.remaining() : []
-    const descriptor = plannerDescriptorFrom(planner)
-    if (descriptor.kind === "SCRIPTED") descriptor.config.steps = remaining
-    descriptor.config.cursor = 0
-    this.plannerRepo().upsert(runId, descriptor, 0, nowIso())
-    this.restoreOnePlanner(runId, descriptor, 0)
-  }
-
-  restorePersistentPlanners(): void {
-    try {
-      for (const row of this.plannerRepo().list()) this.restoreOnePlanner(row.runId, row.descriptor, row.cursor)
-    } catch {
-      /* migration may not exist on very old paths */
-    }
-  }
-
-  private plannerRepo() {
-    return new RunPlannerRepository(this.client.db)
-  }
-
-  private restoreOnePlanner(runId: string, descriptor: import("@mathos/domain").ResearchPlannerDescriptor, cursor: number) {
-    try {
-      const persist = (next: number) => {
-        const copy = { ...descriptor, config: { ...descriptor.config, cursor: next } }
-        this.plannerRepo().upsert(runId, copy, next, nowIso())
-      }
-      this.runPlanners.set(runId, createPlannerFromDescriptor({ ...descriptor, config: { ...descriptor.config, cursor } }, { modelProvider: this.modelProvider, persist }))
-    } catch {
-      this.runPlanners.delete(runId)
-    }
-  }
+  startResearch(input: { objectiveClaimId?: string; limits?: Partial<ResearchBudget> } = {}) { return this.researchEngine.start(input) }
+  getResearch(id: string) { return this.researchEngine.get(id) }
+  researchHistory(id: string) { return this.researchEngine.history(id) }
+  researchSummary(id: string) { return this.researchEngine.summary(id) }
+  researchTrace(id: string) { return this.researchEngine.trace(id) }
+  answerResearch(runId: string, blockerId: string, text: string) { return this.researchEngine.answer(runId, blockerId, text) }
+  latestResearch() { return this.researchEngine.latest() }
+  pauseResearch(id: string) { return this.researchEngine.pause(id) }
+  resumeResearch(id: string) { return this.researchEngine.resume(id) }
+  stepResearch(id: string) { return this.researchEngine.step(id) }
+  runResearch(id: string) { return this.researchEngine.run(id) }
+  private stopRun(run: ResearchRun, reason: ResearchStopReason, status: ResearchRun["status"] = "BLOCKED") { return this.researchEngine.stop(run, reason, status) }
+  registerRunPlanner(runId: string, planner: ResearchPlanner) { return this.researchEngine.registerPlanner(runId, planner) }
+  restorePersistentPlanners() { return this.researchEngine.restorePersistentPlanners() }
 
   private teamStores() {
     return {
@@ -2047,7 +1623,7 @@ export class MathOS {
     const ac = new AbortController()
     const timer = setTimeout(() => ac.abort(), this.maxStepWallClockMs)
     try {
-      const after = await this.stepAbort.run(ac.signal, async () => {
+      const after = await this.researchEngine.withAbortSignal(ac.signal, async () => {
         let done = false
         try {
           return await Promise.race([
