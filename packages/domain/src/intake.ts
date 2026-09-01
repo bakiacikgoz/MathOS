@@ -1,7 +1,7 @@
 import { defaultStatusForKind, isClaimKind, type ClaimKind, type ClaimStatus } from "./model.ts"
 import { InvalidClaimInput } from "@mathos/shared"
 
-export const VERIFIED_STATUSES = ["KERNEL_VERIFIED", "INDEPENDENTLY_CHECKED", "EXTERNAL_KNOWN"] as const
+const INTAKE_VERIFIED_STATUSES = ["KERNEL_VERIFIED", "INDEPENDENTLY_CHECKED", "EXTERNAL_KNOWN"] as const
 
 export interface ResearchObject {
   name: string
@@ -35,7 +35,7 @@ export interface ResearchDraft {
 }
 
 export function coerceIntakeStatus(kind: ClaimKind, suggested?: string): ClaimStatus {
-  if (suggested && (VERIFIED_STATUSES as readonly string[]).includes(suggested)) {
+  if (suggested && (INTAKE_VERIFIED_STATUSES as readonly string[]).includes(suggested)) {
     return defaultStatusForKind(kind)
   }
   if (kind === "conjecture") return "CONJECTURE"
@@ -84,7 +84,9 @@ function asNamedList(value: unknown, nameKey: string, descKey: string): Research
     .filter((item) => item.name)
 }
 
-function asIdTextList(value: unknown, prefix: string, textKey = "text"): Array<{ id: string; text?: string; question?: string }> {
+function asIdTextList(value: unknown, prefix: string, textKey?: "text"): AssumptionDraft[]
+function asIdTextList(value: unknown, prefix: string, textKey: "question"): AmbiguityDraft[]
+function asIdTextList(value: unknown, prefix: string, textKey: "text" | "question" = "text"): Array<AssumptionDraft | AmbiguityDraft> {
   if (!Array.isArray(value)) return []
   return value
     .filter((item) => item && typeof item === "object")

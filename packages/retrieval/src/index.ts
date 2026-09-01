@@ -14,7 +14,6 @@ export type {
   RetrievalMode,
   RetrievalScoreBreakdown,
   FusionMethod,
-  InspectionSelectionReason,
 } from "./types.ts"
 export { ALLOWED_LOCAL_STATUSES, DEFAULT_RETRIEVAL_CONFIG, FORBIDDEN_LOCAL_STATUSES } from "./types.ts"
 export { extractUnknownIdentifiers, parseLeanDeclarations, tokenize } from "./parse.ts"

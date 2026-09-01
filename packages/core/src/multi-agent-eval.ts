@@ -412,7 +412,7 @@ export async function runMultiAgentScenario(id: string, mode: "fake" | "native" 
           app.addDependency(source.localClaimId, extra.id)
         }
         if (id === "import-rollback" && "nextProof" in bootstrapped.lean) {
-          bootstrapped.lean.nextProof = { result: "KERNEL_REJECTED", diagnostics: [{ severity: "error", message: "fail" }], leanVersion: "fake-4.33.1", toolchain: "leanprover/lean4:v4.33.1" }
+          bootstrapped.lean.nextProof = { result: "ERROR", diagnostics: [{ severity: "error", message: "fail" }], leanVersion: "fake-4.33.1", toolchain: "leanprover/lean4:v4.33.1" }
         }
         const applied = await app.applyImport(proposed.id)
         const targetStatus = applied.targetClaimId ? app.getClaim(applied.targetClaimId).status : null
@@ -497,7 +497,7 @@ async function runRealParallel(): Promise<MultiAgentEvalRow> {
   const starts: number[] = []
   const ends: number[] = []
   class TimingLean extends NativeLeanAdapter {
-    async checkProof(source: string, context: Parameters<NativeLeanAdapter["checkProof"]>[1]) {
+    override async checkProof(source: string, context: Parameters<NativeLeanAdapter["checkProof"]>[1]) {
       starts.push(Date.now())
       try {
         return await super.checkProof(source, context)

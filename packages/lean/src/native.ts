@@ -116,7 +116,7 @@ export function parseAxioms(text: string): string[] {
   if (none) return []
   const bracket = text.match(/depends on axioms:\s*\[([^\]]*)\]/i)
   if (bracket) {
-    return bracket[1]
+    return bracket[1]!
       .split(",")
       .map((item) => item.trim())
       .filter(Boolean)

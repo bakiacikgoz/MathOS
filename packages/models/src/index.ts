@@ -1,5 +1,6 @@
 import { OpenAICompatibleProvider } from "./openai.ts"
-import { resolveModelConfig, type ModelConfig } from "./config.ts"
+import { resolveModelConfig } from "./config.ts"
+import type { ModelConfig } from "./types.ts"
 import type { ModelProvider } from "./types.ts"
 
 export function createModelProvider(config: ModelConfig, fetchImpl?: typeof fetch): ModelProvider {

@@ -25,7 +25,7 @@ export class PersistentScriptedPlanner implements ResearchPlanner {
     if (!next) {
       return { action: "STOP", rationaleSummary: "script exhausted", parameters: {}, researchDecisionVersion: "v1", stop: { shouldStop: true, reason: "NO_PRODUCTIVE_ACTION" } }
     }
-    return { researchDecisionVersion: "v1", parameters: {}, ...next }
+    return next
   }
 }
 

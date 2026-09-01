@@ -3,11 +3,11 @@ import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { MathOS, FakeResearchPlanner } from "@mathos/core"
-import { FakeComputationalRuntime } from "@mathos/computation"
+import { FakeComputationalRuntime, type ComputationalRuntime } from "@mathos/computation"
 import { FakeVcs } from "@mathos/vcs"
 const roots: string[] = []
 afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true }) })
-async function boot(runtime = new FakeComputationalRuntime(), planner?: FakeResearchPlanner) {
+async function boot(runtime: ComputationalRuntime = new FakeComputationalRuntime(), planner?: FakeResearchPlanner) {
   const root = mkdtempSync(join(tmpdir(), "mathos-policy-")); roots.push(root)
   const created = await MathOS.init(root, "workspace")
   return MathOS.open(created.root, { computationRuntime: runtime, vcs: new FakeVcs(), researchPlanner: planner })

@@ -314,7 +314,7 @@ async function runLiteratureResearchCase(id: string): Promise<ResearchEvalRow> {
       const ext = app.extractExternalResult({ sourceId: source.id, excerptId: excerpt.id, statementSummary: "Theorem 2.3 known uniqueness." })
       app.reviewExternalResult(ext.id)
       const linked = app.linkExternalKnown(claim.id, ext.id)
-      pass = linked.status === "EXTERNAL_KNOWN" && linked.status !== "KERNEL_VERIFIED"
+      pass = linked.status === "EXTERNAL_KNOWN"
     } else {
       const source = app.importSource({ title: "Shared", authors: ["Y"], isbn: "1234567890" })
       const child = await app.createBranch("lit")

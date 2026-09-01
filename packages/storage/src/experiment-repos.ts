@@ -46,7 +46,7 @@ function mapResult(row: Record<string, unknown>): ExperimentResult {
     deterministic: Number(row.deterministic) === 1,
     stdoutTruncated: Number(row.stdout_truncated) === 1,
     stderrTruncated: Number(row.stderr_truncated) === 1,
-    randomSeed: row.random_seed ?? null,
+    randomSeed: typeof row.random_seed === "string" || typeof row.random_seed === "number" ? row.random_seed : null,
   }
 }
 

@@ -755,7 +755,8 @@ export class TeamResearchCoordinator {
         else { item.status = "APPLIED"; item.failureCode = null; item.appliedAt = nowIso() }
         this.teamStores().imports.update(item)
       })
-      this.d.recorder.record(item.status === "APPLIED" ? "artifact_import_applied" : "artifact_import_failed", { target: item.id, metadata: { sessionId: item.sessionId, code: item.failureCode } })
+      const finalized = this.teamStores().imports.get(item.id)!
+      this.d.recorder.record(finalized.status === "APPLIED" ? "artifact_import_applied" : "artifact_import_failed", { target: finalized.id, metadata: { sessionId: finalized.sessionId, code: finalized.failureCode } })
       return item
     } finally {
       if (previous.id !== this.d.requireCurrentBranch().id) this.d.switchBranch(previous.id)

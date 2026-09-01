@@ -318,7 +318,8 @@ export function selectFixtures(opts: { tier?: string; domain?: string; fixture?:
     const want = opts.tier.length === 1 ? `TIER_${opts.tier}_` : opts.tier.toUpperCase()
     rows = rows.filter((item) => item.difficulty.includes(want) || item.difficulty === opts.tier)
   }
-  if (opts.domain) rows = rows.filter((item) => item.domain === opts.domain.toUpperCase())
+  const domain = opts.domain
+  if (domain) rows = rows.filter((item) => item.domain === domain.toUpperCase())
   if (opts.team) rows = rows.filter((item) => (RESEARCH_BENCHMARK_TEAM_SUBSET as readonly string[]).includes(item.id))
   return rows
 }

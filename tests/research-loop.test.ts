@@ -38,7 +38,7 @@ const fidelityMatch = {
 describe("research loop", () => {
   test("budget exhausts before extra steps", async () => {
     const created = await MathOS.init(tempDir(), "budget")
-    const planner = new FakeResearchPlanner(Array.from({ length: 8 }, () => ({ action: "ANALYZE_GOAL" as const, rationaleSummary: "look", parameters: {} })))
+    const planner = new FakeResearchPlanner(Array.from({ length: 8 }, () => ({ researchDecisionVersion: "v1", action: "ANALYZE_GOAL" as const, rationaleSummary: "look", parameters: {} })))
     const app = MathOS.open(created.root, { researchPlanner: planner, vcs: new FakeVcs() })
     app.createClaim({ kind: "theorem", title: "T", statement: "True", asMainObjective: true })
     const run = app.startResearch({ limits: { maxSteps: 3, maxProofAttempts: 6, maxModelCalls: 20, maxLeanCalls: 10 } })
@@ -56,10 +56,10 @@ describe("research loop", () => {
     model.enqueue(formalDraft)
     model.enqueue(fidelityMatch)
     const planner = new FakeResearchPlanner([
-      { action: "ATTEMPT_PROOF", rationaleSummary: "try", parameters: { proofBody: "by\n  sorry" } },
-      { action: "ATTEMPT_PROOF", rationaleSummary: "try", parameters: { proofBody: "by\n  sorry" } },
-      { action: "ATTEMPT_PROOF", rationaleSummary: "try", parameters: { proofBody: "by\n  sorry" } },
-      { action: "ATTEMPT_PROOF", rationaleSummary: "try", parameters: { proofBody: "by\n  sorry" } },
+      { researchDecisionVersion: "v1", action: "ATTEMPT_PROOF", rationaleSummary: "try", parameters: { proofBody: "by\n  sorry" } },
+      { researchDecisionVersion: "v1", action: "ATTEMPT_PROOF", rationaleSummary: "try", parameters: { proofBody: "by\n  sorry" } },
+      { researchDecisionVersion: "v1", action: "ATTEMPT_PROOF", rationaleSummary: "try", parameters: { proofBody: "by\n  sorry" } },
+      { researchDecisionVersion: "v1", action: "ATTEMPT_PROOF", rationaleSummary: "try", parameters: { proofBody: "by\n  sorry" } },
     ])
     const app = MathOS.open(created.root, { modelProvider: model, auditorProvider: model, leanAdapter: new FakeLeanAdapter(), researchPlanner: planner, vcs: new FakeVcs(), premiseRetriever: new InMemoryPremiseRetriever() })
     const claim = app.createClaim({ kind: "conjecture", title: "T", statement: "True", asMainObjective: true })
@@ -67,14 +67,14 @@ describe("research loop", () => {
     app.approveFormal(session.formalStatement.id)
     const run = app.startResearch({ limits: { maxSteps: 10, maxProofAttempts: 20, maxModelCalls: 20, maxLeanCalls: 20 } })
     await app.runResearch(run.id)
-    expect(["REPETITION_DETECTED", "PROOF_ATTEMPT_BUDGET_EXHAUSTED", "EXECUTION_FAILURE", "STEP_BUDGET_EXHAUSTED"]).toContain(app.getResearch(run.id).stopReason)
+    expect(["REPETITION_DETECTED", "PROOF_ATTEMPT_BUDGET_EXHAUSTED", "EXECUTION_FAILURE", "STEP_BUDGET_EXHAUSTED"]).toContain(app.getResearch(run.id).stopReason ?? "")
     app.close()
   })
 
   test("planner cannot mark KERNEL_VERIFIED", async () => {
     const created = await MathOS.init(tempDir(), "trust")
     const planner = new FakeResearchPlanner([
-      { action: "ANALYZE_GOAL", rationaleSummary: "done", parameters: {}, stop: { shouldStop: true, reason: "OBJECTIVE_KERNEL_VERIFIED" } },
+      { researchDecisionVersion: "v1", action: "ANALYZE_GOAL", rationaleSummary: "done", parameters: {}, stop: { shouldStop: true, reason: "OBJECTIVE_KERNEL_VERIFIED" } },
     ])
     const app = MathOS.open(created.root, { researchPlanner: planner, vcs: new FakeVcs() })
     app.createClaim({ kind: "theorem", title: "T", statement: "True", asMainObjective: true })
@@ -88,8 +88,8 @@ describe("research loop", () => {
   test("branch-local subclaim stays off MAIN", async () => {
     const created = await MathOS.init(tempDir(), "iso")
     const planner = new FakeResearchPlanner([
-      { action: "CREATE_SUBCLAIM", rationaleSummary: "split", parameters: { title: "Helper", statement: "A useful fact." } },
-      { action: "STOP", rationaleSummary: "stop", parameters: {}, stop: { shouldStop: true, reason: "NO_PRODUCTIVE_ACTION" } },
+      { researchDecisionVersion: "v1", action: "CREATE_SUBCLAIM", rationaleSummary: "split", parameters: { title: "Helper", statement: "A useful fact." } },
+      { researchDecisionVersion: "v1", action: "STOP", rationaleSummary: "stop", parameters: {}, stop: { shouldStop: true, reason: "NO_PRODUCTIVE_ACTION" } },
     ])
     const app = MathOS.open(created.root, { researchPlanner: planner, vcs: new FakeVcs() })
     app.createClaim({ kind: "theorem", title: "Main", statement: "Goal", asMainObjective: true })
@@ -106,10 +106,10 @@ describe("research loop", () => {
   test("pause reopen resume preserves counters", async () => {
     const created = await MathOS.init(tempDir(), "resume")
     const planner = new FakeResearchPlanner([
-      { action: "ANALYZE_GOAL", rationaleSummary: "a", parameters: {} },
-      { action: "RECORD_BLOCKER", rationaleSummary: "blocked", parameters: { summary: "need lemma" } },
-      { action: "ANALYZE_GOAL", rationaleSummary: "resume", parameters: {} },
-      { action: "STOP", rationaleSummary: "stop", parameters: {}, stop: { shouldStop: true, reason: "NO_PRODUCTIVE_ACTION" } },
+      { researchDecisionVersion: "v1", action: "ANALYZE_GOAL", rationaleSummary: "a", parameters: {} },
+      { researchDecisionVersion: "v1", action: "RECORD_BLOCKER", rationaleSummary: "blocked", parameters: { summary: "need lemma" } },
+      { researchDecisionVersion: "v1", action: "ANALYZE_GOAL", rationaleSummary: "resume", parameters: {} },
+      { researchDecisionVersion: "v1", action: "STOP", rationaleSummary: "stop", parameters: {}, stop: { shouldStop: true, reason: "NO_PRODUCTIVE_ACTION" } },
     ])
     let app = MathOS.open(created.root, { researchPlanner: planner, vcs: new FakeVcs() })
     app.createClaim({ kind: "theorem", title: "T", statement: "True", asMainObjective: true })
@@ -132,8 +132,8 @@ describe("research loop", () => {
     model.enqueue(formalDraft)
     model.enqueue(fidelityMatch)
     const planner = new FakeResearchPlanner([
-      { action: "ATTEMPT_PROOF", rationaleSummary: "prove", parameters: { proofBody: "by\n  trivial" } },
-      { action: "VERIFY", rationaleSummary: "verify", parameters: {} },
+      { researchDecisionVersion: "v1", action: "ATTEMPT_PROOF", rationaleSummary: "prove", parameters: { proofBody: "by\n  trivial" } },
+      { researchDecisionVersion: "v1", action: "VERIFY", rationaleSummary: "verify", parameters: {} },
     ])
     const lean = new FakeLeanAdapter()
     const app = MathOS.open(created.root, { modelProvider: model, auditorProvider: model, leanAdapter: lean, researchPlanner: planner, vcs: new FakeVcs(), premiseRetriever: new InMemoryPremiseRetriever() })

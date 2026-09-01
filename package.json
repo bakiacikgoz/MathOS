@@ -5,22 +5,27 @@
   "type": "module",
   "license": "MIT",
   "description": "Agentic mathematical research environment",
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "bin": {
     "mathos": "./apps/tui/src/cli.ts"
   },
   "scripts": {
     "mathos": "bun run apps/tui/src/cli.ts",
     "test": "bun test",
-    "typecheck": "bunx tsc --noEmit -p tsconfig.json",
-    "build": "bun -e 'console.log(\"mathos build ok\")'",
-    "release-check": "bun scripts/release-check.ts"
+    "typecheck": "$npm_execpath x tsc --noEmit -p tsconfig.json",
+    "build": "$npm_execpath scripts/build.ts",
+    "release-check": "bun scripts/release-check.ts",
+    "package-smoke": "$npm_execpath dist/cli.js --help"
   },
   "engines": {
     "bun": ">=1.2.0"
   },
   "devDependencies": {
-    "bun-types": "^1.4.0"
+    "bun-types": "^1.4.0",
+    "typescript": "5.9.3"
   },
   "dependencies": {
     "@opentui/core": "^0.5.7",

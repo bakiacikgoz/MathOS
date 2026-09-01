@@ -3,6 +3,7 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
@@ -31,5 +32,5 @@
       "@mathos/literature": ["./packages/literature/src/index.ts"]
     }
   },
-  "include": ["apps/**/*", "packages/**/*", "tests/**/*"]
+  "include": ["apps/**/*", "packages/**/*", "scripts/**/*", "tests/**/*"]
 }

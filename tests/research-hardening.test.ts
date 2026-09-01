@@ -172,7 +172,7 @@ describe("research hardening", () => {
     const run = app.startResearch({ limits: { maxSteps: 10, maxProofAttempts: 10, maxModelCalls: 20, maxLeanCalls: 1 } })
     await app.runResearch(run.id)
     expect(app.getResearch(run.id).usage.leanCalls).toBeLessThanOrEqual(1)
-    expect(["LEAN_CALL_BUDGET_EXHAUSTED", "OBJECTIVE_KERNEL_VERIFIED"]).toContain(app.getResearch(run.id).stopReason)
+    expect(["LEAN_CALL_BUDGET_EXHAUSTED", "OBJECTIVE_KERNEL_VERIFIED"]).toContain(app.getResearch(run.id).stopReason ?? "")
     app.close()
   })
 })

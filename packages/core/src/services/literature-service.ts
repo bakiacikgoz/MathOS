@@ -202,7 +202,8 @@ export class LiteratureService {
       }
       this.dependencies.citations.insert(citation)
     })
-    if (evidence) this.dependencies.recorder.record("evidence_created", { target: evidence.id, metadata: { claimId: evidence.claimId, kind: evidence.kind } })
+    const createdEvidence = evidence as Evidence | null
+    if (createdEvidence) this.dependencies.recorder.record("evidence_created", { target: createdEvidence.id, metadata: { claimId: createdEvidence.claimId, kind: createdEvidence.kind } })
     return citation
   }
 

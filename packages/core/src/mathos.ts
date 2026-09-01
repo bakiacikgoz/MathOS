@@ -136,6 +136,7 @@ import { backupWorkspace, restoreWorkspace, exportDiagnostics } from "./release.
 import { SCHEMA_EPOCH } from "@mathos/storage"
 import { FakeResearchPlanner, ModelResearchPlanner, type ResearchPlanner } from "./research-planner.ts"
 import { buildResearchContext } from "./research-context.ts"
+import type { MutationEvent, MutationRecorder } from "./mutation-recorder.ts"
 import { FakeMultiAgentPlanner, type MultiAgentPlanner } from "./multi-agent-planner.ts"
 import { createPlannerFromDescriptor, plannerDescriptorFrom, PersistentScriptedPlanner } from "./planner-factory.ts"
 import { PythonRuntime, sha256Text, type ComputationalRuntime } from "@mathos/computation"
@@ -567,7 +568,7 @@ export class MathOS {
     return new EventProjection(workspace.id, this.eventRows, this.events).rebuild()
   }
 
-  private requireWorkspace() {
+  requireWorkspace() {
     const workspace = this.workspaces.get()
     if (!workspace) {
       throw new Error("Workspace row is missing after open")
@@ -644,7 +645,7 @@ export class MathOS {
       status: probe.ok ? "PASS" as const : env.leanAvailable ? "FAIL" as const : "WARN" as const,
       detail: probe.detail,
     }
-    let inspectCheck = { name: "Declaration inspect", status: "WARN" as const, detail: "skipped" }
+    let inspectCheck: { name: string; status: "PASS" | "WARN" | "FAIL"; detail: string } = { name: "Declaration inspect", status: "WARN", detail: "skipped" }
     if (env.leanAvailable) {
       const inspected = await this.leanAdapter.inspectDeclarations(["Eq.refl"], { workspaceRoot: this.root }, { timeoutMs: 20_000 })
       const eq = inspected.inspections.find((item) => item.name === "Eq.refl")
@@ -792,7 +793,7 @@ export class MathOS {
     return this.client.db.transaction(() => {
       const row = this.client.db.query<{ next_value: number }, [string]>("SELECT next_value FROM id_allocators WHERE prefix = ?").get(prefix)
       if (!row) {
-        const existing = this.client.db.query<{ id: string }, [string]>(
+        const existing = this.client.db.query<{ id: string }, [string, string, string, string]>(
           "SELECT id FROM claims WHERE id LIKE ? UNION ALL SELECT id FROM proof_attempts WHERE id LIKE ? UNION ALL SELECT id FROM research_steps WHERE id LIKE ? UNION ALL SELECT id FROM formal_statements WHERE id LIKE ?",
         ).all(`${prefix}-%`, `${prefix}-%`, `${prefix}-%`, `${prefix}-%`)
         let max = 0

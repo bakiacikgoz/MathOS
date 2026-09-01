@@ -35,7 +35,7 @@ export class FakeResearchPlanner implements ResearchPlanner {
     const next = this.script[this.cursor]
     this.cursor += 1
     if (!next) return { action: "STOP", rationaleSummary: "script exhausted", parameters: {}, researchDecisionVersion: "v1", stop: { shouldStop: true, reason: "NO_PRODUCTIVE_ACTION" } }
-    return { researchDecisionVersion: "v1", parameters: {}, ...next }
+    return next
   }
 }
 

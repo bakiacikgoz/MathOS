@@ -51,10 +51,10 @@ mkdirSync(RESULTS_DIR, { recursive: true })
 const runId = resumeId ?? `BENCH-${Date.now()}`
 const out = join(RESULTS_DIR, `${runId}.json`)
 let completed = new Set<string>()
-let results = []
+let results: Awaited<ReturnType<typeof runBenchmarkFixture>>[] = []
 if (resumeId && existsSync(out)) {
   const prev = JSON.parse(readFileSync(out, "utf8")) as { results: Array<{ id: string }> }
-  results = prev.results as typeof results
+  results = prev.results as Awaited<ReturnType<typeof runBenchmarkFixture>>[]
   completed = new Set(prev.results.map((row) => row.id))
 }
 

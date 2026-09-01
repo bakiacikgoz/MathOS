@@ -136,11 +136,11 @@ export function workspaceHome(state: ProductState): string {
   const graph = buildResearchGraph(state.snapshot, { branchId: currentBranchId })
   const frontier = unverifiedFrontier(graph, obj?.id)
   const objectiveScope = new Set([obj?.id, ...frontier].filter((item): item is string => Boolean(item)))
-  const openBlockers = state.snapshot.blockers.filter((item) => item.status === "OPEN" && item.branchId === currentBranchId && objectiveScope.has(item.claimId))
+  const openBlockers = state.snapshot.blockers.filter((item) => item.status === "OPEN" && item.branchId === currentBranchId && item.claimId !== null && objectiveScope.has(item.claimId))
   const team = state.snapshot.sessions?.at(-1)
   const formal = obj ? state.snapshot.formals.find((item) => item.claimId === obj.id && item.isCurrent) : null
   const empty = !obj
-  const lastStep = run ? [...state.steps].reverse().find((item) => item.researchRunId === run.id && item.status === "SUCCEEDED") : undefined
+  const lastStep = run ? [...state.steps].reverse().find((item) => item.runId === run.id && item.status === "SUCCEEDED") : undefined
   const lastEvent = state.events.at(-1)
   const progress = lastStep ? `${lastStep.action}${lastStep.summary ? ` · ${lastStep.summary}` : ""}` : lastEvent ? `Workspace event · ${lastEvent.action} · ${lastEvent.target ?? "workspace"}` : "No recorded progress"
   const host = inspectHostEnvironment()
@@ -515,7 +515,7 @@ export function epistemicLedger(state: ProductState, entityId: string): Epistemi
       : event.action.includes("experiment") ? "EXPERIMENT" as const
       : event.action.includes("source") || event.action.includes("citation") || event.action.includes("literature") ? "LITERATURE" as const
       : event.action.includes("import") ? "IMPORT" as const
-      : event.actor.type === "model" ? "MODEL" as const
+      : event.actor.type === "agent" ? "MODEL" as const
       : event.actor.type === "user" ? "USER" as const
       : "SYSTEM" as const
     const toStatus =

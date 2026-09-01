@@ -64,7 +64,7 @@ export function loadRetrievalV3Fixtures(split: Split, purpose: Purpose): Loaded 
     if (!label) throw new Error(`RETRIEVAL_V3_GOLD_MISSING:${item.id}`)
     const result = retrieveFromDeclarations(item.declarations, { query: item.goal, goal: item.goal, candidatePool: 200, maxPremises: 200 }, "retrieval-v3", buildChannelIndex(item.declarations))
     corpusSizes[item.id] = item.declarations.length
-    pipelineStageSizes[item.id] = result.candidatePoolSize
+    pipelineStageSizes[item.id] = result.candidatePoolSize ?? result.candidates.length
     return { id: item.id, domain: item.domain, goal: item.goal, gold: label.expectedPremises, candidates: result.candidates.map((candidate) => ({ name: candidate.declaration.name, baselineScore: candidate.score })) }
   })
   return { fixtures, labels: gold.labels, corpusSizes, pipelineStageSizes }

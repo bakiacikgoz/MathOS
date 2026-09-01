@@ -66,7 +66,7 @@ export async function runLiteratureScenario(id: string): Promise<{ id: string; r
       const ext = app.extractExternalResult({ sourceId: source.id, excerptId: excerpt.id, statementSummary: "Theorem 1 known result text." })
       app.reviewExternalResult(ext.id)
       const linked = app.linkExternalKnown(claim.id, ext.id)
-      pass = linked.status === "EXTERNAL_KNOWN" && linked.status !== "KERNEL_VERIFIED"
+      pass = linked.status === "EXTERNAL_KNOWN"
     } else if (id === "search-repetition") {
       await app.searchLiterature("arithmetic")
       let thrown = false

@@ -141,17 +141,17 @@ export function runGraphScenario(id: string): { id: string; result: "PASS" | "FA
     if (id === "experiment-projection" || id === "computational-evidence" || id === "counterexample-edge" || id === "experiment-branch-isolation" || id === "experiment-provenance") {
       const snap = canonicalGraphFixture()
       snap.experiments = [{
-        id: "EXP-001", workspaceId: snap.workspaceId, branchId: "B-000", claimId: "T-001", researchRunId: null, researchStepId: null, agentId: null,
+        id: "EXP-001", origin: "MODEL_GENERATED", workspaceId: snap.workspaceId, branchId: "B-000", claimId: "T-001", researchRunId: null, researchStepId: null, agentId: null,
         kind: "FINITE_VERIFICATION", status: "SUCCEEDED", hypothesis: null,
         runtime: { adapter: "python", executable: "python3", version: "3", sympyVersion: null, platform: "test", adapterVersion: "v1" },
         codeArtifactId: "main.py", parameters: {}, codeHash: "aa", inputHash: "bb", createdAt: "t", startedAt: "t", finishedAt: "t",
       }, {
-        id: "EXP-002", workspaceId: snap.workspaceId, branchId: "B-000", claimId: "T-001", researchRunId: null, researchStepId: null, agentId: null,
+        id: "EXP-002", origin: "MODEL_GENERATED", workspaceId: snap.workspaceId, branchId: "B-000", claimId: "T-001", researchRunId: null, researchStepId: null, agentId: null,
         kind: "COUNTEREXAMPLE_SEARCH", status: "SUCCEEDED", hypothesis: null,
         runtime: { adapter: "python", executable: "python3", version: "3", sympyVersion: null, platform: "test", adapterVersion: "v1" },
         codeArtifactId: "main.py", parameters: {}, codeHash: "cc", inputHash: "dd", createdAt: "t", startedAt: "t", finishedAt: "t",
       }, {
-        id: "EXP-003", workspaceId: snap.workspaceId, branchId: "B-004", claimId: "T-001", researchRunId: null, researchStepId: null, agentId: null,
+        id: "EXP-003", origin: "MODEL_GENERATED", workspaceId: snap.workspaceId, branchId: "B-004", claimId: "T-001", researchRunId: null, researchStepId: null, agentId: null,
         kind: "SANITY_CHECK", status: "SUCCEEDED", hypothesis: null,
         runtime: { adapter: "python", executable: "python3", version: "3", sympyVersion: null, platform: "test", adapterVersion: "v1" },
         codeArtifactId: "main.py", parameters: {}, codeHash: "ee", inputHash: "ff", createdAt: "t", startedAt: "t", finishedAt: "t",

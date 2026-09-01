@@ -9,15 +9,15 @@ export function hashText(text: string): string {
 export function fingerprintFiles(root: string, relativeDirs: string[]): string {
   const parts: string[] = []
   for (const dir of relativeDirs) {
-    walk(join(root, dir), (file, stat) => {
+    walk(join(root, dir), (file, fileStat) => {
       if (!file.endsWith(".lean")) return
-      parts.push(`${file}:${stat.size}:${Math.floor(stat.mtimeMs)}`)
+      parts.push(`${file}:${Number(fileStat.size)}:${Math.floor(Number(fileStat.mtimeMs))}`)
     })
   }
   return hashText(parts.sort().join("|"))
 }
 
-export function walk(dir: string, visit: (file: string, stat: ReturnType<typeof statSync>) => void): void {
+export function walk(dir: string, visit: (file: string, stat: NonNullable<ReturnType<typeof statSync>>) => void): void {
   if (!existsSync(dir)) return
   const entries = readdirSync(dir, { withFileTypes: true })
   for (const entry of entries) {

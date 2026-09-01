@@ -1,10 +1,10 @@
-import { Show } from "solid-js"
+import { Show, type JSX } from "solid-js"
 import { theme } from "../theme.ts"
 
 export function Modal(props: {
   open: boolean
   title: string
-  children: unknown
+  children: JSX.Element
   onClose?: () => void
 }) {
   return (
