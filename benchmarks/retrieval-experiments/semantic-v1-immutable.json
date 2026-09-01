@@ -1,0 +1,16 @@
+{
+  "semanticOperatorProfileV1": {
+    "path": "benchmarks/retrieval-experiments/semantic-operator-profile-v1.json",
+    "sha256": "cdc817eb6eaa650066b59b89d9a050046a3aab8699ee5019a2c3cc489c236790"
+  },
+  "retrievalHoldoutV1Dataset": {
+    "path": "packages/retrieval/src/holdout-fixtures.ts",
+    "sha256": "82328c87696e141175e7b10f22e0a1f5ede659a3b96cbc56a5578e4f61103fe4"
+  },
+  "retrievalHoldoutV1Results": {
+    "path": "benchmarks/retrieval-holdout-v1-results.json",
+    "sha256": "bb757c7f91a4922b297125938ec845f35f405885488d4cb831f318d7ffcd1c5d"
+  },
+  "closedAt": "2026-08-24",
+  "immutable": true
+}

@@ -1,0 +1,292 @@
+[
+  {
+    "fixtureId": "relation_comp_eq",
+    "domain": "relations",
+    "expectedAnyOf": [
+      "Relation.comp_eq"
+    ],
+    "stage": "OUTSIDE_INSPECT30",
+    "goal": "theorem validation (r : α → β → Prop) : r ∘r (· = ·) = r",
+    "diagnostics": {
+      "unionRank": 111,
+      "top200Rank": 41,
+      "channelRanks": {
+        "overallRank": 41,
+        "nameRank": 31,
+        "structureRank": 22,
+        "typeRank": null,
+        "symbolRank": 63,
+        "operatorRank": null,
+        "localRank": null,
+        "dependencyRank": null
+      },
+      "matchedTokens": [
+        "r",
+        "r",
+        "r",
+        "r"
+      ],
+      "missingTokens": [],
+      "goalProfile": {
+        "rawTarget": "r ∘r (· = ·) = r",
+        "propositionHead": "Eq",
+        "constants": [
+          "goal",
+          "validation",
+          "prop"
+        ],
+        "namespaces": [],
+        "typeConstructors": [
+          "prop"
+        ],
+        "operators": [],
+        "localTypes": [
+          "prop"
+        ],
+        "conclusionTokens": [],
+        "isEquality": true,
+        "isIff": false,
+        "isImplication": false,
+        "isExistential": false,
+        "isUniversal": false,
+        "operatorMultiplicity": {
+          "neg": 0,
+          "eq": 2,
+          "iff": 0,
+          "union": 0,
+          "inter": 0,
+          "subset": 0,
+          "le": 0
+        },
+        "known": true
+      },
+      "goldNameTokens": [
+        "relation",
+        "comp",
+        "eq"
+      ],
+      "goldSignatureTokens": [
+        "simp",
+        "theorem",
+        "comp",
+        "eq",
+        "r",
+        "r",
+        "r",
+        "comp",
+        "eq",
+        "fun"
+      ],
+      "goldNamespace": "Relation",
+      "goldConclusionShape": "Eq",
+      "goalGoldOverlap": 1,
+      "goldCheapScore": 0.691,
+      "top200Cutoff": 0,
+      "scoreDelta": 0.691,
+      "higherRankedCandidateCount": 40,
+      "consensus": "LOW",
+      "informationScore": 14.25,
+      "marginalValue": 6.645676382613069,
+      "selectionCutoff": 6.777141651856967,
+      "primaryCluster": "selector quota pressure",
+      "secondaryClusters": [
+        "missing type evidence",
+        "low cross-channel consensus"
+      ]
+    }
+  },
+  {
+    "fixtureId": "relation_eq_comp",
+    "domain": "relations",
+    "expectedAnyOf": [
+      "Relation.eq_comp"
+    ],
+    "stage": "OUTSIDE_INSPECT30",
+    "goal": "theorem validation (r : α → β → Prop) : (· = ·) ∘r r = r",
+    "diagnostics": {
+      "unionRank": 113,
+      "top200Rank": 45,
+      "channelRanks": {
+        "overallRank": 45,
+        "nameRank": 33,
+        "structureRank": 23,
+        "typeRank": null,
+        "symbolRank": 65,
+        "operatorRank": null,
+        "localRank": null,
+        "dependencyRank": null
+      },
+      "matchedTokens": [
+        "r",
+        "r",
+        "r",
+        "r"
+      ],
+      "missingTokens": [],
+      "goalProfile": {
+        "rawTarget": "(· = ·) ∘r r = r",
+        "propositionHead": "Eq",
+        "constants": [
+          "goal",
+          "validation",
+          "prop"
+        ],
+        "namespaces": [],
+        "typeConstructors": [
+          "prop"
+        ],
+        "operators": [],
+        "localTypes": [
+          "prop"
+        ],
+        "conclusionTokens": [],
+        "isEquality": true,
+        "isIff": false,
+        "isImplication": false,
+        "isExistential": false,
+        "isUniversal": false,
+        "operatorMultiplicity": {
+          "neg": 0,
+          "eq": 2,
+          "iff": 0,
+          "union": 0,
+          "inter": 0,
+          "subset": 0,
+          "le": 0
+        },
+        "known": true
+      },
+      "goldNameTokens": [
+        "relation",
+        "eq",
+        "comp"
+      ],
+      "goldSignatureTokens": [
+        "simp",
+        "theorem",
+        "eq",
+        "comp",
+        "r",
+        "r",
+        "r",
+        "fun",
+        "eq",
+        "comp"
+      ],
+      "goldNamespace": "Relation",
+      "goldConclusionShape": "Eq",
+      "goalGoldOverlap": 1,
+      "goldCheapScore": 0.691,
+      "top200Cutoff": 0,
+      "scoreDelta": 0.691,
+      "higherRankedCandidateCount": 41,
+      "consensus": "LOW",
+      "informationScore": 14.25,
+      "marginalValue": 6.729791112783862,
+      "selectionCutoff": 6.787574033704282,
+      "primaryCluster": "selector quota pressure",
+      "secondaryClusters": [
+        "missing type evidence",
+        "low cross-channel consensus"
+      ]
+    }
+  },
+  {
+    "fixtureId": "relation_comp_assoc",
+    "domain": "relations",
+    "expectedAnyOf": [
+      "Relation.comp_assoc"
+    ],
+    "stage": "NOT_GENERATED",
+    "goal": "theorem validation (r : γ → δ → Prop) (p : β → γ → Prop) (q : α → β → Prop) : (r ∘r p) ∘r q = r ∘r p ∘r q",
+    "diagnostics": {
+      "matchedTokens": [
+        "r",
+        "p",
+        "q",
+        "r",
+        "r",
+        "p",
+        "r",
+        "q",
+        "r",
+        "r",
+        "p",
+        "r",
+        "q"
+      ],
+      "missingTokens": [
+        "γ",
+        "δ",
+        "γ"
+      ],
+      "goalProfile": {
+        "rawTarget": "(r ∘r p) ∘r q = r ∘r p ∘r q",
+        "propositionHead": "Eq",
+        "constants": [
+          "goal",
+          "validation",
+          "prop"
+        ],
+        "namespaces": [],
+        "typeConstructors": [
+          "prop"
+        ],
+        "operators": [],
+        "localTypes": [
+          "prop"
+        ],
+        "conclusionTokens": [],
+        "isEquality": true,
+        "isIff": false,
+        "isImplication": false,
+        "isExistential": false,
+        "isUniversal": false,
+        "operatorMultiplicity": {
+          "neg": 0,
+          "eq": 1,
+          "iff": 0,
+          "union": 0,
+          "inter": 0,
+          "subset": 0,
+          "le": 0
+        },
+        "known": true
+      },
+      "goldNameTokens": [
+        "relation",
+        "comp",
+        "assoc"
+      ],
+      "goldSignatureTokens": [
+        "theorem",
+        "comp",
+        "assoc",
+        "r",
+        "r",
+        "p",
+        "r",
+        "q",
+        "r",
+        "r",
+        "p",
+        "r",
+        "q",
+        "by"
+      ],
+      "goldNamespace": "Relation",
+      "goldConclusionShape": "Eq",
+      "goalGoldOverlap": 0.8125,
+      "goldCheapScore": 0.037,
+      "top200Cutoff": 0,
+      "scoreDelta": 0.037,
+      "higherRankedCandidateCount": 92,
+      "selectionCutoff": 8.304831604354977,
+      "primaryCluster": "missing generator vocabulary",
+      "secondaryClusters": [
+        "missing type evidence",
+        "missing structure evidence"
+      ]
+    }
+  }
+]

@@ -1,0 +1,2800 @@
+{
+  "baseline": {
+    "union": 0.8833333333333333,
+    "top200": 0.7666666666666667,
+    "inspect30": 0.6166666666666667,
+    "final20": 0.6166666666666667,
+    "hit10": 0.5666666666666667,
+    "mrr": 0.2420941241993873
+  },
+  "fixtureCount": 60,
+  "preparationMs": 51951.098487999996,
+  "failures": [
+    {
+      "fixtureId": "eq_comm",
+      "domain": "Eq/logical",
+      "expectedAnyOf": [
+        "Eq.comm"
+      ],
+      "stage": "OUTSIDE_INSPECT30",
+      "goal": "theorem validation {α : Sort u} {a b : α} : a = b ↔ b = a",
+      "diagnostics": {
+        "unionRank": 259,
+        "top200Rank": 71,
+        "channelRanks": {
+          "overallRank": 71,
+          "nameRank": null,
+          "structureRank": 76,
+          "typeRank": null,
+          "symbolRank": null,
+          "operatorRank": 8,
+          "localRank": null,
+          "dependencyRank": null
+        },
+        "matchedTokens": [],
+        "missingTokens": [
+          "sort",
+          "u"
+        ],
+        "goalProfile": {
+          "rawTarget": "a = b ↔ b = a",
+          "propositionHead": "Eq",
+          "constants": [
+            "goal",
+            "validation",
+            "sort"
+          ],
+          "namespaces": [],
+          "typeConstructors": [],
+          "operators": [],
+          "localTypes": [],
+          "conclusionTokens": [],
+          "isEquality": true,
+          "isIff": true,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 0,
+            "eq": 2,
+            "iff": 1,
+            "union": 0,
+            "inter": 0,
+            "subset": 0,
+            "le": 0
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "eq",
+          "comm"
+        ],
+        "goldSignatureTokens": [
+          "theorem",
+          "eq",
+          "comm",
+          "a",
+          "b",
+          "α",
+          "a",
+          "b",
+          "b",
+          "a",
+          "iff",
+          "intro",
+          "eq",
+          "symm",
+          "eq",
+          "symm"
+        ],
+        "goldNamespace": "Eq",
+        "goldConclusionShape": "Eq",
+        "goalGoldOverlap": 0,
+        "goldCheapScore": 0.706,
+        "top200Cutoff": 0,
+        "scoreDelta": 0.706,
+        "higherRankedCandidateCount": 72,
+        "consensus": "LOW",
+        "informationScore": 7.85,
+        "marginalValue": 4.203812212216278,
+        "selectionCutoff": 8.629915691887994,
+        "primaryCluster": "selector quota pressure",
+        "secondaryClusters": [
+          "low cross-channel consensus"
+        ]
+      }
+    },
+    {
+      "fixtureId": "eq_mpr_not",
+      "domain": "Eq/logical",
+      "expectedAnyOf": [
+        "Eq.mpr_not"
+      ],
+      "stage": "NOT_GENERATED",
+      "goal": "theorem validation {p q : Prop} (h₁ : p = q) (h₂ : ¬q) : ¬p",
+      "diagnostics": {
+        "matchedTokens": [
+          "p",
+          "q",
+          "h",
+          "p",
+          "q",
+          "h",
+          "q",
+          "p"
+        ],
+        "missingTokens": [],
+        "goalProfile": {
+          "rawTarget": "¬p",
+          "constants": [
+            "goal",
+            "validation",
+            "prop"
+          ],
+          "namespaces": [],
+          "typeConstructors": [
+            "prop"
+          ],
+          "operators": [],
+          "localTypes": [
+            "prop"
+          ],
+          "conclusionTokens": [],
+          "isEquality": false,
+          "isIff": false,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 0,
+            "eq": 0,
+            "iff": 0,
+            "union": 0,
+            "inter": 0,
+            "subset": 0,
+            "le": 0
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "eq",
+          "mpr",
+          "not"
+        ],
+        "goldSignatureTokens": [
+          "theorem",
+          "eq",
+          "mpr",
+          "not",
+          "p",
+          "q",
+          "prop",
+          "h",
+          "p",
+          "q",
+          "h",
+          "q",
+          "p",
+          "h",
+          "h"
+        ],
+        "goldNamespace": "Eq",
+        "goalGoldOverlap": 1,
+        "goldCheapScore": 0.073,
+        "top200Cutoff": 0,
+        "scoreDelta": 0.073,
+        "higherRankedCandidateCount": 104,
+        "selectionCutoff": 4.959098736847166,
+        "primaryCluster": "missing generator vocabulary",
+        "secondaryClusters": [
+          "missing structure evidence"
+        ]
+      }
+    },
+    {
+      "fixtureId": "nat_zero_add",
+      "domain": "Nat/Int",
+      "expectedAnyOf": [
+        "Nat.zero_add"
+      ],
+      "stage": "OUTSIDE_TOP200",
+      "goal": "theorem validation (n : Nat) : 0 + n = n",
+      "diagnostics": {
+        "unionRank": 206,
+        "matchedTokens": [
+          "nat",
+          "0"
+        ],
+        "missingTokens": [],
+        "goalProfile": {
+          "rawTarget": "0 + n = n",
+          "propositionHead": "Eq",
+          "constants": [
+            "goal",
+            "validation",
+            "nat"
+          ],
+          "namespaces": [],
+          "typeConstructors": [
+            "nat"
+          ],
+          "operators": [],
+          "localTypes": [
+            "nat"
+          ],
+          "conclusionTokens": [],
+          "isEquality": true,
+          "isIff": false,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 0,
+            "eq": 1,
+            "iff": 0,
+            "union": 0,
+            "inter": 0,
+            "subset": 0,
+            "le": 0
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "nat",
+          "zero",
+          "add"
+        ],
+        "goldSignatureTokens": [
+          "theorem",
+          "nat",
+          "zero",
+          "add",
+          "n",
+          "nat",
+          "0",
+          "n",
+          "n"
+        ],
+        "goldNamespace": "Nat",
+        "goldConclusionShape": "Eq",
+        "goalGoldOverlap": 1,
+        "goldCheapScore": 0.144,
+        "top200Cutoff": 0.21,
+        "scoreDelta": -0.066,
+        "higherRankedCandidateCount": 93,
+        "falsePositiveGroups": {
+          "genericNatDeclarations": 1,
+          "sameOperatorWrongConclusion": 0,
+          "sameSuffixWrongType": 15,
+          "namespaceOnlyMatches": 0,
+          "commonTokenNoise": 7
+        },
+        "selectionCutoff": 7.7200457379041545,
+        "primaryCluster": "wrong conclusion structure",
+        "secondaryClusters": [
+          "missing structure evidence"
+        ]
+      }
+    },
+    {
+      "fixtureId": "nat_add_assoc",
+      "domain": "Nat/Int",
+      "expectedAnyOf": [
+        "Nat.add_assoc"
+      ],
+      "stage": "OUTSIDE_TOP200",
+      "goal": "theorem validation (n m k : Nat) : n + m + k = n + (m + k)",
+      "diagnostics": {
+        "unionRank": 204,
+        "matchedTokens": [
+          "k",
+          "nat",
+          "k",
+          "k"
+        ],
+        "missingTokens": [],
+        "goalProfile": {
+          "rawTarget": "n + m + k = n + (m + k)",
+          "propositionHead": "Eq",
+          "constants": [
+            "goal",
+            "validation",
+            "nat"
+          ],
+          "namespaces": [],
+          "typeConstructors": [
+            "nat"
+          ],
+          "operators": [],
+          "localTypes": [
+            "nat"
+          ],
+          "conclusionTokens": [],
+          "isEquality": true,
+          "isIff": false,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 0,
+            "eq": 1,
+            "iff": 0,
+            "union": 0,
+            "inter": 0,
+            "subset": 0,
+            "le": 0
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "nat",
+          "add",
+          "assoc"
+        ],
+        "goldSignatureTokens": [
+          "theorem",
+          "nat",
+          "add",
+          "assoc",
+          "n",
+          "m",
+          "k",
+          "nat",
+          "n",
+          "m",
+          "k",
+          "n",
+          "m",
+          "k"
+        ],
+        "goldNamespace": "Nat",
+        "goldConclusionShape": "Eq",
+        "goalGoldOverlap": 1,
+        "goldCheapScore": 0.144,
+        "top200Cutoff": 0.185,
+        "scoreDelta": -0.04100000000000001,
+        "higherRankedCandidateCount": 92,
+        "falsePositiveGroups": {
+          "genericNatDeclarations": 0,
+          "sameOperatorWrongConclusion": 0,
+          "sameSuffixWrongType": 0,
+          "namespaceOnlyMatches": 0,
+          "commonTokenNoise": 7
+        },
+        "selectionCutoff": 7.969942417413673,
+        "primaryCluster": "wrong conclusion structure",
+        "secondaryClusters": [
+          "missing structure evidence"
+        ]
+      }
+    },
+    {
+      "fixtureId": "int_shift_right_zero",
+      "domain": "Nat/Int",
+      "expectedAnyOf": [
+        "Int.shiftRight_zero"
+      ],
+      "stage": "OUTSIDE_TOP200",
+      "goal": "theorem validation (n : Int) : n >>> 0 = n",
+      "diagnostics": {
+        "unionRank": 587,
+        "matchedTokens": [
+          "int",
+          "0"
+        ],
+        "missingTokens": [],
+        "goalProfile": {
+          "rawTarget": "n >>> 0 = n",
+          "propositionHead": "Eq",
+          "constants": [
+            "goal",
+            "validation",
+            "int"
+          ],
+          "namespaces": [],
+          "typeConstructors": [
+            "int"
+          ],
+          "operators": [],
+          "localTypes": [
+            "int"
+          ],
+          "conclusionTokens": [],
+          "isEquality": true,
+          "isIff": false,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 0,
+            "eq": 1,
+            "iff": 0,
+            "union": 0,
+            "inter": 0,
+            "subset": 0,
+            "le": 0
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "int",
+          "shiftright",
+          "zero"
+        ],
+        "goldSignatureTokens": [
+          "simp",
+          "grind",
+          "theorem",
+          "shiftright",
+          "zero",
+          "n",
+          "int",
+          "n",
+          "0",
+          "n",
+          "by"
+        ],
+        "goldNamespace": "Int",
+        "goldConclusionShape": "Eq",
+        "goalGoldOverlap": 1,
+        "goldCheapScore": 0.191,
+        "top200Cutoff": 0.492,
+        "scoreDelta": -0.301,
+        "higherRankedCandidateCount": 100,
+        "falsePositiveGroups": {
+          "genericNatDeclarations": 0,
+          "sameOperatorWrongConclusion": 0,
+          "sameSuffixWrongType": 2,
+          "namespaceOnlyMatches": 0,
+          "commonTokenNoise": 0
+        },
+        "selectionCutoff": 5.452226310575586,
+        "primaryCluster": "wrong conclusion structure",
+        "secondaryClusters": [
+          "missing structure evidence"
+        ]
+      }
+    },
+    {
+      "fixtureId": "int_zero_shift_right",
+      "domain": "Nat/Int",
+      "expectedAnyOf": [
+        "Int.zero_shiftRight"
+      ],
+      "stage": "OUTSIDE_TOP200",
+      "goal": "theorem validation (n : Nat) : (0 : Int) >>> n = 0",
+      "diagnostics": {
+        "unionRank": 291,
+        "matchedTokens": [
+          "nat",
+          "0",
+          "int",
+          "0"
+        ],
+        "missingTokens": [],
+        "goalProfile": {
+          "rawTarget": "(0 : Int) >>> n = 0",
+          "propositionHead": "Eq",
+          "constants": [
+            "goal",
+            "validation",
+            "nat",
+            "int"
+          ],
+          "namespaces": [],
+          "typeConstructors": [
+            "nat",
+            "int"
+          ],
+          "operators": [],
+          "localTypes": [
+            "nat"
+          ],
+          "conclusionTokens": [
+            "int"
+          ],
+          "isEquality": true,
+          "isIff": false,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 0,
+            "eq": 1,
+            "iff": 0,
+            "union": 0,
+            "inter": 0,
+            "subset": 0,
+            "le": 0
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "int",
+          "zero",
+          "shiftright"
+        ],
+        "goldSignatureTokens": [
+          "simp",
+          "grind",
+          "theorem",
+          "zero",
+          "shiftright",
+          "n",
+          "nat",
+          "0",
+          "int",
+          "n",
+          "0",
+          "by"
+        ],
+        "goldNamespace": "Int",
+        "goldConclusionShape": "Eq",
+        "goalGoldOverlap": 1,
+        "goldCheapScore": 0.89,
+        "top200Cutoff": 0.208,
+        "scoreDelta": 0.682,
+        "higherRankedCandidateCount": 124,
+        "falsePositiveGroups": {
+          "genericNatDeclarations": 0,
+          "sameOperatorWrongConclusion": 0,
+          "sameSuffixWrongType": 0,
+          "namespaceOnlyMatches": 0,
+          "commonTokenNoise": 8
+        },
+        "selectionCutoff": 6.868122786049112,
+        "primaryCluster": "wrong conclusion structure",
+        "secondaryClusters": [
+          "missing structure evidence"
+        ]
+      }
+    },
+    {
+      "fixtureId": "finset_card_singleton",
+      "domain": "Finset",
+      "expectedAnyOf": [
+        "Finset.card_singleton"
+      ],
+      "stage": "OUTSIDE_INSPECT30",
+      "goal": "theorem validation (a : α) : Finset.card {a} = 1",
+      "diagnostics": {
+        "unionRank": 169,
+        "top200Rank": 79,
+        "channelRanks": {
+          "overallRank": 79,
+          "nameRank": 141,
+          "structureRank": 68,
+          "typeRank": 122,
+          "symbolRank": 96,
+          "operatorRank": 131,
+          "localRank": null,
+          "dependencyRank": null
+        },
+        "matchedTokens": [
+          "finset",
+          "card",
+          "1"
+        ],
+        "missingTokens": [],
+        "goalProfile": {
+          "rawTarget": "Finset.card {a} = 1",
+          "propositionHead": "Eq",
+          "constants": [
+            "goal",
+            "validation",
+            "finset",
+            "card"
+          ],
+          "namespaces": [],
+          "typeConstructors": [
+            "finset"
+          ],
+          "operators": [
+            "card"
+          ],
+          "localTypes": [],
+          "conclusionTokens": [
+            "finset",
+            "card"
+          ],
+          "isEquality": true,
+          "isIff": false,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 0,
+            "eq": 1,
+            "iff": 0,
+            "union": 0,
+            "inter": 0,
+            "subset": 0,
+            "le": 0
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "finset",
+          "card",
+          "singleton"
+        ],
+        "goldSignatureTokens": [
+          "simp",
+          "grind",
+          "theorem",
+          "card",
+          "singleton",
+          "a",
+          "α",
+          "a",
+          "1"
+        ],
+        "goldNamespace": "Finset",
+        "goldConclusionShape": "Eq",
+        "goalGoldOverlap": 1,
+        "goldCheapScore": 1,
+        "top200Cutoff": 0.455,
+        "scoreDelta": 0.5449999999999999,
+        "higherRankedCandidateCount": 77,
+        "consensus": "LOW",
+        "informationScore": 15.3,
+        "marginalValue": 6.742095917535933,
+        "selectionCutoff": 10.721694106125057,
+        "primaryCluster": "selector quota pressure",
+        "secondaryClusters": [
+          "missing type evidence",
+          "low cross-channel consensus"
+        ]
+      }
+    },
+    {
+      "fixtureId": "finset_mem_insert",
+      "domain": "Finset",
+      "expectedAnyOf": [
+        "Finset.mem_insert"
+      ],
+      "stage": "OUTSIDE_INSPECT30",
+      "goal": "theorem validation [DecidableEq α] (a b : α) (s : Finset α) : a ∈ insert b s ↔ a = b ∨ a ∈ s",
+      "diagnostics": {
+        "unionRank": 98,
+        "top200Rank": 45,
+        "channelRanks": {
+          "overallRank": 45,
+          "nameRank": 47,
+          "structureRank": 53,
+          "typeRank": 50,
+          "symbolRank": 13,
+          "operatorRank": 47,
+          "localRank": null,
+          "dependencyRank": null
+        },
+        "matchedTokens": [
+          "s",
+          "finset",
+          "insert",
+          "s",
+          "s"
+        ],
+        "missingTokens": [
+          "decidableeq"
+        ],
+        "goalProfile": {
+          "rawTarget": "a ∈ insert b s ↔ a = b ∨ a ∈ s",
+          "propositionHead": "Eq",
+          "constants": [
+            "goal",
+            "validation",
+            "decidableeq",
+            "finset",
+            "insert"
+          ],
+          "namespaces": [],
+          "typeConstructors": [
+            "finset"
+          ],
+          "operators": [],
+          "localTypes": [
+            "finset"
+          ],
+          "conclusionTokens": [
+            "insert"
+          ],
+          "isEquality": true,
+          "isIff": true,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 0,
+            "eq": 1,
+            "iff": 1,
+            "union": 0,
+            "inter": 0,
+            "subset": 0,
+            "le": 0
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "finset",
+          "mem",
+          "insert"
+        ],
+        "goldSignatureTokens": [
+          "simp",
+          "grind",
+          "theorem",
+          "mem",
+          "insert",
+          "a",
+          "insert",
+          "b",
+          "s",
+          "a",
+          "b",
+          "a",
+          "s"
+        ],
+        "goldNamespace": "Finset",
+        "goldConclusionShape": "Eq",
+        "goalGoldOverlap": 0.8333333333333334,
+        "goldCheapScore": 1,
+        "top200Cutoff": 0.065,
+        "scoreDelta": 0.935,
+        "higherRankedCandidateCount": 59,
+        "consensus": "LOW",
+        "informationScore": 17.049999999999997,
+        "marginalValue": 8.191647747599665,
+        "selectionCutoff": 10.050153698887254,
+        "primaryCluster": "selector quota pressure",
+        "secondaryClusters": [
+          "missing type evidence",
+          "low cross-channel consensus"
+        ]
+      }
+    },
+    {
+      "fixtureId": "set_union_self",
+      "domain": "Set",
+      "expectedAnyOf": [
+        "Set.union_self"
+      ],
+      "stage": "NOT_GENERATED",
+      "goal": "theorem validation (a : Set α) : a ∪ a = a",
+      "diagnostics": {
+        "matchedTokens": [
+          "set"
+        ],
+        "missingTokens": [],
+        "goalProfile": {
+          "rawTarget": "a ∪ a = a",
+          "propositionHead": "Eq",
+          "constants": [
+            "goal",
+            "validation",
+            "set"
+          ],
+          "namespaces": [],
+          "typeConstructors": [
+            "set"
+          ],
+          "operators": [
+            "union"
+          ],
+          "localTypes": [
+            "set"
+          ],
+          "conclusionTokens": [],
+          "isEquality": true,
+          "isIff": false,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 0,
+            "eq": 1,
+            "iff": 0,
+            "union": 1,
+            "inter": 0,
+            "subset": 0,
+            "le": 0
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "set",
+          "union",
+          "self"
+        ],
+        "goldSignatureTokens": [
+          "simp",
+          "theorem",
+          "union",
+          "self",
+          "a",
+          "set",
+          "α",
+          "a",
+          "a",
+          "a"
+        ],
+        "goldNamespace": "Set",
+        "goldConclusionShape": "Eq",
+        "goalGoldOverlap": 1,
+        "goldCheapScore": 0.209,
+        "top200Cutoff": 0.33,
+        "scoreDelta": -0.12100000000000002,
+        "higherRankedCandidateCount": 122,
+        "selectionCutoff": 7.453991486030154,
+        "primaryCluster": "missing generator vocabulary",
+        "secondaryClusters": [
+          "missing structure evidence"
+        ]
+      }
+    },
+    {
+      "fixtureId": "set_inter_self",
+      "domain": "Set",
+      "expectedAnyOf": [
+        "Set.inter_self"
+      ],
+      "stage": "OUTSIDE_INSPECT30",
+      "goal": "theorem validation (a : Set α) : a ∩ a = a",
+      "diagnostics": {
+        "unionRank": 186,
+        "top200Rank": 68,
+        "channelRanks": {
+          "overallRank": 68,
+          "nameRank": 94,
+          "structureRank": 78,
+          "typeRank": 97,
+          "symbolRank": 31,
+          "operatorRank": 93,
+          "localRank": null,
+          "dependencyRank": null
+        },
+        "matchedTokens": [
+          "set"
+        ],
+        "missingTokens": [],
+        "goalProfile": {
+          "rawTarget": "a ∩ a = a",
+          "propositionHead": "Eq",
+          "constants": [
+            "goal",
+            "validation",
+            "set"
+          ],
+          "namespaces": [],
+          "typeConstructors": [
+            "set"
+          ],
+          "operators": [
+            "inter"
+          ],
+          "localTypes": [
+            "set"
+          ],
+          "conclusionTokens": [],
+          "isEquality": true,
+          "isIff": false,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 0,
+            "eq": 1,
+            "iff": 0,
+            "union": 0,
+            "inter": 1,
+            "subset": 0,
+            "le": 0
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "set",
+          "inter",
+          "self"
+        ],
+        "goldSignatureTokens": [
+          "simp",
+          "theorem",
+          "inter",
+          "self",
+          "a",
+          "set",
+          "α",
+          "a",
+          "a",
+          "a"
+        ],
+        "goldNamespace": "Set",
+        "goldConclusionShape": "Eq",
+        "goalGoldOverlap": 1,
+        "goldCheapScore": 0.996,
+        "top200Cutoff": 0.253,
+        "scoreDelta": 0.743,
+        "higherRankedCandidateCount": 67,
+        "consensus": "LOW",
+        "informationScore": 9.25,
+        "marginalValue": 4.743640622930348,
+        "selectionCutoff": 7.829758369573297,
+        "primaryCluster": "selector quota pressure",
+        "secondaryClusters": [
+          "low cross-channel consensus"
+        ]
+      }
+    },
+    {
+      "fixtureId": "list_byte_array_append",
+      "domain": "List",
+      "expectedAnyOf": [
+        "List.toByteArray_append'"
+      ],
+      "stage": "OUTSIDE_TOP200",
+      "goal": "theorem validation {l l' : List UInt8} : (l ++ l').toByteArray = l.toByteArray ++ l'.toByteArray",
+      "diagnostics": {
+        "unionRank": 5,
+        "matchedTokens": [
+          "l",
+          "l",
+          "list",
+          "uint8",
+          "l",
+          "l",
+          "tobytearray",
+          "l",
+          "tobytearray",
+          "l",
+          "tobytearray"
+        ],
+        "missingTokens": [],
+        "goalProfile": {
+          "rawTarget": "(l ++ l').toByteArray = l.toByteArray ++ l'.toByteArray",
+          "propositionHead": "Eq",
+          "constants": [
+            "goal",
+            "validation",
+            "list",
+            "uint8",
+            "tobytearray"
+          ],
+          "namespaces": [],
+          "typeConstructors": [
+            "list"
+          ],
+          "operators": [],
+          "localTypes": [
+            "list"
+          ],
+          "conclusionTokens": [
+            "tobytearray",
+            "tobytearray",
+            "tobytearray"
+          ],
+          "isEquality": true,
+          "isIff": false,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 0,
+            "eq": 1,
+            "iff": 0,
+            "union": 0,
+            "inter": 0,
+            "subset": 0,
+            "le": 0
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "list",
+          "tobytearray",
+          "append"
+        ],
+        "goldSignatureTokens": [
+          "theorem",
+          "list",
+          "tobytearray",
+          "append",
+          "l",
+          "l",
+          "list",
+          "uint8"
+        ],
+        "goldNamespace": "List",
+        "goalGoldOverlap": 1,
+        "goldCheapScore": 1,
+        "top200Cutoff": 0.157,
+        "scoreDelta": 0.843,
+        "higherRankedCandidateCount": 11,
+        "falsePositiveGroups": {
+          "genericNatDeclarations": 0,
+          "sameOperatorWrongConclusion": 6,
+          "sameSuffixWrongType": 7,
+          "namespaceOnlyMatches": 0,
+          "commonTokenNoise": 10
+        },
+        "selectionCutoff": 10.148036179879368,
+        "primaryCluster": "wrong conclusion structure",
+        "secondaryClusters": [
+          "missing structure evidence"
+        ]
+      }
+    },
+    {
+      "fixtureId": "function_comp_assoc",
+      "domain": "Function",
+      "expectedAnyOf": [
+        "Function.comp_assoc"
+      ],
+      "stage": "NOT_GENERATED",
+      "goal": "theorem validation (f : φ → δ) (g : β → φ) (h : α → β) : (f ∘ g) ∘ h = f ∘ g ∘ h",
+      "diagnostics": {
+        "matchedTokens": [
+          "f",
+          "φ",
+          "δ",
+          "g",
+          "φ",
+          "h",
+          "f",
+          "g",
+          "h",
+          "f",
+          "g",
+          "h"
+        ],
+        "missingTokens": [],
+        "goalProfile": {
+          "rawTarget": "(f ∘ g) ∘ h = f ∘ g ∘ h",
+          "propositionHead": "Eq",
+          "constants": [
+            "goal",
+            "validation"
+          ],
+          "namespaces": [],
+          "typeConstructors": [],
+          "operators": [],
+          "localTypes": [],
+          "conclusionTokens": [],
+          "isEquality": true,
+          "isIff": false,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 0,
+            "eq": 1,
+            "iff": 0,
+            "union": 0,
+            "inter": 0,
+            "subset": 0,
+            "le": 0
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "function",
+          "comp",
+          "assoc"
+        ],
+        "goldSignatureTokens": [
+          "theorem",
+          "comp",
+          "assoc",
+          "f",
+          "φ",
+          "δ",
+          "g",
+          "β",
+          "φ",
+          "h",
+          "α",
+          "β",
+          "f",
+          "g",
+          "h",
+          "f",
+          "g",
+          "h"
+        ],
+        "goldNamespace": "Function",
+        "goldConclusionShape": "Eq",
+        "goalGoldOverlap": 1,
+        "goldCheapScore": 0.055,
+        "top200Cutoff": 0,
+        "scoreDelta": 0.055,
+        "higherRankedCandidateCount": 162,
+        "selectionCutoff": 8.417436554184063,
+        "primaryCluster": "missing generator vocabulary",
+        "secondaryClusters": [
+          "missing structure evidence"
+        ]
+      }
+    },
+    {
+      "fixtureId": "prod_eta",
+      "domain": "Prod/Sum",
+      "expectedAnyOf": [
+        "Prod.eta"
+      ],
+      "stage": "OUTSIDE_TOP200",
+      "goal": "theorem validation (p : α × β) : (p.1, p.2) = p",
+      "diagnostics": {
+        "unionRank": 278,
+        "matchedTokens": [
+          "p",
+          "p",
+          "1",
+          "p",
+          "2",
+          "p"
+        ],
+        "missingTokens": [],
+        "goalProfile": {
+          "rawTarget": "(p.1, p.2) = p",
+          "propositionHead": "Eq",
+          "constants": [
+            "goal",
+            "validation"
+          ],
+          "namespaces": [],
+          "typeConstructors": [],
+          "operators": [],
+          "localTypes": [],
+          "conclusionTokens": [],
+          "isEquality": true,
+          "isIff": false,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 0,
+            "eq": 1,
+            "iff": 0,
+            "union": 0,
+            "inter": 0,
+            "subset": 0,
+            "le": 0
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "prod",
+          "eta"
+        ],
+        "goldSignatureTokens": [
+          "theorem",
+          "prod",
+          "eta",
+          "p",
+          "α",
+          "β",
+          "p",
+          "1",
+          "p",
+          "2",
+          "p",
+          "rfl"
+        ],
+        "goldNamespace": "Prod",
+        "goldConclusionShape": "Eq",
+        "goalGoldOverlap": 1,
+        "goldCheapScore": 0.404,
+        "top200Cutoff": 0,
+        "scoreDelta": 0.404,
+        "higherRankedCandidateCount": 67,
+        "falsePositiveGroups": {
+          "genericNatDeclarations": 0,
+          "sameOperatorWrongConclusion": 1,
+          "sameSuffixWrongType": 0,
+          "namespaceOnlyMatches": 0,
+          "commonTokenNoise": 1
+        },
+        "selectionCutoff": 6.2778068604872335,
+        "primaryCluster": "wrong conclusion structure",
+        "secondaryClusters": [
+          "missing structure evidence"
+        ]
+      }
+    },
+    {
+      "fixtureId": "algebra_int_mul_assoc",
+      "domain": "algebra",
+      "expectedAnyOf": [
+        "Int.mul_assoc"
+      ],
+      "stage": "NOT_GENERATED",
+      "goal": "theorem validation (a b c : Int) : a * b * c = a * (b * c)",
+      "diagnostics": {
+        "matchedTokens": [
+          "int"
+        ],
+        "missingTokens": [],
+        "goalProfile": {
+          "rawTarget": "a * b * c = a * (b * c)",
+          "propositionHead": "Eq",
+          "constants": [
+            "goal",
+            "validation",
+            "int"
+          ],
+          "namespaces": [],
+          "typeConstructors": [
+            "int"
+          ],
+          "operators": [],
+          "localTypes": [
+            "int"
+          ],
+          "conclusionTokens": [],
+          "isEquality": true,
+          "isIff": false,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 0,
+            "eq": 1,
+            "iff": 0,
+            "union": 0,
+            "inter": 0,
+            "subset": 0,
+            "le": 0
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "int",
+          "mul",
+          "assoc"
+        ],
+        "goldSignatureTokens": [
+          "protected",
+          "theorem",
+          "mul",
+          "assoc",
+          "a",
+          "b",
+          "c",
+          "int",
+          "a",
+          "b",
+          "c",
+          "a",
+          "b",
+          "c",
+          "by"
+        ],
+        "goldNamespace": "Int",
+        "goldConclusionShape": "Eq",
+        "goalGoldOverlap": 1,
+        "goldCheapScore": 0.199,
+        "top200Cutoff": 0.479,
+        "scoreDelta": -0.27999999999999997,
+        "higherRankedCandidateCount": 92,
+        "selectionCutoff": 8.313784238819101,
+        "primaryCluster": "missing generator vocabulary",
+        "secondaryClusters": [
+          "missing structure evidence"
+        ]
+      }
+    },
+    {
+      "fixtureId": "algebra_nat_pow_two",
+      "domain": "algebra",
+      "expectedAnyOf": [
+        "Nat.pow_two"
+      ],
+      "stage": "NOT_GENERATED",
+      "goal": "theorem validation (a : Nat) : a ^ 2 = a * a",
+      "diagnostics": {
+        "matchedTokens": [
+          "nat",
+          "2"
+        ],
+        "missingTokens": [],
+        "goalProfile": {
+          "rawTarget": "a ^ 2 = a * a",
+          "propositionHead": "Eq",
+          "constants": [
+            "goal",
+            "validation",
+            "nat"
+          ],
+          "namespaces": [],
+          "typeConstructors": [
+            "nat"
+          ],
+          "operators": [],
+          "localTypes": [
+            "nat"
+          ],
+          "conclusionTokens": [],
+          "isEquality": true,
+          "isIff": false,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 0,
+            "eq": 1,
+            "iff": 0,
+            "union": 0,
+            "inter": 0,
+            "subset": 0,
+            "le": 0
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "nat",
+          "pow",
+          "two"
+        ],
+        "goldSignatureTokens": [
+          "protected",
+          "theorem",
+          "pow",
+          "two",
+          "a",
+          "nat",
+          "a",
+          "2",
+          "a",
+          "a",
+          "by",
+          "rw",
+          "nat",
+          "pow",
+          "succ",
+          "nat",
+          "pow",
+          "one"
+        ],
+        "goldNamespace": "Nat",
+        "goldConclusionShape": "Eq",
+        "goalGoldOverlap": 1,
+        "goldCheapScore": 0.18,
+        "top200Cutoff": 0.413,
+        "scoreDelta": -0.23299999999999998,
+        "higherRankedCandidateCount": 104,
+        "selectionCutoff": 7.930319694431757,
+        "primaryCluster": "missing generator vocabulary",
+        "secondaryClusters": [
+          "missing structure evidence"
+        ]
+      }
+    },
+    {
+      "fixtureId": "algebra_rat_add_zero",
+      "domain": "algebra",
+      "expectedAnyOf": [
+        "Rat.add_zero"
+      ],
+      "stage": "OUTSIDE_INSPECT30",
+      "goal": "theorem validation (a : Rat) : a + 0 = a",
+      "diagnostics": {
+        "unionRank": 276,
+        "top200Rank": 34,
+        "channelRanks": {
+          "overallRank": 34,
+          "nameRank": 40,
+          "structureRank": 29,
+          "typeRank": 13,
+          "symbolRank": 40,
+          "operatorRank": 20,
+          "localRank": null,
+          "dependencyRank": null
+        },
+        "matchedTokens": [
+          "rat",
+          "0"
+        ],
+        "missingTokens": [],
+        "goalProfile": {
+          "rawTarget": "a + 0 = a",
+          "propositionHead": "Eq",
+          "constants": [
+            "goal",
+            "validation",
+            "rat"
+          ],
+          "namespaces": [],
+          "typeConstructors": [
+            "rat"
+          ],
+          "operators": [],
+          "localTypes": [
+            "rat"
+          ],
+          "conclusionTokens": [],
+          "isEquality": true,
+          "isIff": false,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 0,
+            "eq": 1,
+            "iff": 0,
+            "union": 0,
+            "inter": 0,
+            "subset": 0,
+            "le": 0
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "rat",
+          "add",
+          "zero"
+        ],
+        "goldSignatureTokens": [
+          "local",
+          "simp",
+          "protected",
+          "theorem",
+          "add",
+          "zero",
+          "a",
+          "rat",
+          "a",
+          "0",
+          "a",
+          "by",
+          "simp",
+          "add",
+          "def",
+          "mkrat",
+          "self"
+        ],
+        "goldNamespace": "Rat",
+        "goldConclusionShape": "Eq",
+        "goalGoldOverlap": 1,
+        "goldCheapScore": 0.851,
+        "top200Cutoff": 0.21,
+        "scoreDelta": 0.641,
+        "higherRankedCandidateCount": 32,
+        "consensus": "LOW",
+        "informationScore": 4.05,
+        "marginalValue": 4.3960682365794215,
+        "selectionCutoff": 6.888969077773215,
+        "primaryCluster": "selector quota pressure",
+        "secondaryClusters": [
+          "low cross-channel consensus"
+        ]
+      }
+    },
+    {
+      "fixtureId": "algebra_rat_sub_self",
+      "domain": "algebra",
+      "expectedAnyOf": [
+        "Rat.sub_self"
+      ],
+      "stage": "OUTSIDE_INSPECT30",
+      "goal": "theorem validation (a : Rat) : a - a = 0",
+      "diagnostics": {
+        "unionRank": 116,
+        "top200Rank": 23,
+        "channelRanks": {
+          "overallRank": 23,
+          "nameRank": 26,
+          "structureRank": 30,
+          "typeRank": 11,
+          "symbolRank": 17,
+          "operatorRank": 25,
+          "localRank": null,
+          "dependencyRank": null
+        },
+        "matchedTokens": [
+          "rat",
+          "0"
+        ],
+        "missingTokens": [],
+        "goalProfile": {
+          "rawTarget": "a - a = 0",
+          "propositionHead": "Eq",
+          "constants": [
+            "goal",
+            "validation",
+            "rat"
+          ],
+          "namespaces": [],
+          "typeConstructors": [
+            "rat"
+          ],
+          "operators": [],
+          "localTypes": [
+            "rat"
+          ],
+          "conclusionTokens": [],
+          "isEquality": true,
+          "isIff": false,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 1,
+            "eq": 1,
+            "iff": 0,
+            "union": 0,
+            "inter": 0,
+            "subset": 0,
+            "le": 0
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "rat",
+          "sub",
+          "self"
+        ],
+        "goldSignatureTokens": [
+          "protected",
+          "theorem",
+          "sub",
+          "self",
+          "a",
+          "rat",
+          "a",
+          "a",
+          "0",
+          "by"
+        ],
+        "goldNamespace": "Rat",
+        "goldConclusionShape": "Eq",
+        "goalGoldOverlap": 1,
+        "goldCheapScore": 0.877,
+        "top200Cutoff": 0.452,
+        "scoreDelta": 0.425,
+        "higherRankedCandidateCount": 20,
+        "consensus": "LOW",
+        "informationScore": 9.6,
+        "marginalValue": 6.633336295591971,
+        "selectionCutoff": 6.729221243707803,
+        "primaryCluster": "selector quota pressure",
+        "secondaryClusters": [
+          "low cross-channel consensus"
+        ]
+      }
+    },
+    {
+      "fixtureId": "algebra_rat_inv_inv",
+      "domain": "algebra",
+      "expectedAnyOf": [
+        "Rat.inv_inv"
+      ],
+      "stage": "OUTSIDE_TOP200",
+      "goal": "theorem validation (a : Rat) : a⁻¹⁻¹ = a",
+      "diagnostics": {
+        "unionRank": 311,
+        "matchedTokens": [
+          "rat",
+          "a¹¹"
+        ],
+        "missingTokens": [],
+        "goalProfile": {
+          "rawTarget": "a⁻¹⁻¹ = a",
+          "propositionHead": "Eq",
+          "constants": [
+            "goal",
+            "validation",
+            "rat"
+          ],
+          "namespaces": [],
+          "typeConstructors": [
+            "rat"
+          ],
+          "operators": [],
+          "localTypes": [
+            "rat"
+          ],
+          "conclusionTokens": [],
+          "isEquality": true,
+          "isIff": false,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 0,
+            "eq": 1,
+            "iff": 0,
+            "union": 0,
+            "inter": 0,
+            "subset": 0,
+            "le": 0
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "rat",
+          "inv",
+          "inv"
+        ],
+        "goldSignatureTokens": [
+          "protected",
+          "theorem",
+          "inv",
+          "inv",
+          "a",
+          "rat",
+          "a¹¹",
+          "a"
+        ],
+        "goldNamespace": "Rat",
+        "goldConclusionShape": "Eq",
+        "goalGoldOverlap": 1,
+        "goldCheapScore": 0.858,
+        "top200Cutoff": 0.45,
+        "scoreDelta": 0.408,
+        "higherRankedCandidateCount": 61,
+        "falsePositiveGroups": {
+          "genericNatDeclarations": 0,
+          "sameOperatorWrongConclusion": 0,
+          "sameSuffixWrongType": 0,
+          "namespaceOnlyMatches": 0,
+          "commonTokenNoise": 0
+        },
+        "selectionCutoff": 6.418960610639012,
+        "primaryCluster": "wrong conclusion structure",
+        "secondaryClusters": [
+          "missing structure evidence"
+        ]
+      }
+    },
+    {
+      "fixtureId": "order_nat_lt_irrefl",
+      "domain": "order",
+      "expectedAnyOf": [
+        "Nat.lt_irrefl"
+      ],
+      "stage": "NOT_GENERATED",
+      "goal": "theorem validation (n : Nat) : ¬ n < n",
+      "diagnostics": {
+        "matchedTokens": [
+          "nat"
+        ],
+        "missingTokens": [],
+        "goalProfile": {
+          "rawTarget": "¬ n < n",
+          "constants": [
+            "goal",
+            "validation",
+            "nat"
+          ],
+          "namespaces": [],
+          "typeConstructors": [
+            "nat"
+          ],
+          "operators": [],
+          "localTypes": [
+            "nat"
+          ],
+          "conclusionTokens": [],
+          "isEquality": false,
+          "isIff": false,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 0,
+            "eq": 0,
+            "iff": 0,
+            "union": 0,
+            "inter": 0,
+            "subset": 0,
+            "le": 0
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "nat",
+          "lt",
+          "irrefl"
+        ],
+        "goldSignatureTokens": [
+          "protected",
+          "theorem",
+          "nat",
+          "lt",
+          "irrefl",
+          "n",
+          "nat",
+          "not",
+          "lt",
+          "lt",
+          "n",
+          "n"
+        ],
+        "goldNamespace": "Nat",
+        "goldConclusionShape": "not",
+        "goalGoldOverlap": 1,
+        "goldCheapScore": 0.119,
+        "top200Cutoff": 0.363,
+        "scoreDelta": -0.244,
+        "higherRankedCandidateCount": 31,
+        "selectionCutoff": 3.9181668374280374,
+        "primaryCluster": "missing generator vocabulary",
+        "secondaryClusters": [
+          "missing structure evidence"
+        ]
+      }
+    },
+    {
+      "fixtureId": "order_int_le_trans",
+      "domain": "order",
+      "expectedAnyOf": [
+        "Int.le_trans"
+      ],
+      "stage": "OUTSIDE_INSPECT30",
+      "goal": "theorem validation {a b c : Int} (h₁ : a ≤ b) (h₂ : b ≤ c) : a ≤ c",
+      "diagnostics": {
+        "unionRank": 168,
+        "top200Rank": 49,
+        "channelRanks": {
+          "overallRank": 49,
+          "nameRank": 72,
+          "structureRank": 58,
+          "typeRank": 58,
+          "symbolRank": 72,
+          "operatorRank": 58,
+          "localRank": null,
+          "dependencyRank": null
+        },
+        "matchedTokens": [
+          "int",
+          "h",
+          "h"
+        ],
+        "missingTokens": [],
+        "goalProfile": {
+          "rawTarget": "a ≤ c",
+          "propositionHead": "LE",
+          "constants": [
+            "goal",
+            "validation",
+            "int"
+          ],
+          "namespaces": [],
+          "typeConstructors": [
+            "int"
+          ],
+          "operators": [
+            "le"
+          ],
+          "localTypes": [
+            "int"
+          ],
+          "conclusionTokens": [],
+          "isEquality": false,
+          "isIff": false,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 0,
+            "eq": 0,
+            "iff": 0,
+            "union": 0,
+            "inter": 0,
+            "subset": 0,
+            "le": 1
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "int",
+          "le",
+          "trans"
+        ],
+        "goldSignatureTokens": [
+          "protected",
+          "theorem",
+          "le",
+          "trans",
+          "a",
+          "b",
+          "c",
+          "int",
+          "h",
+          "a",
+          "b",
+          "h",
+          "b",
+          "c",
+          "a",
+          "c"
+        ],
+        "goldNamespace": "Int",
+        "goldConclusionShape": "LE",
+        "goalGoldOverlap": 1,
+        "goldCheapScore": 1,
+        "top200Cutoff": 0.746,
+        "scoreDelta": 0.254,
+        "higherRankedCandidateCount": 5,
+        "consensus": "LOW",
+        "informationScore": 8.25,
+        "marginalValue": 4.203517637766226,
+        "selectionCutoff": 4.966515878347117,
+        "primaryCluster": "selector quota pressure",
+        "secondaryClusters": [
+          "low cross-channel consensus"
+        ]
+      }
+    },
+    {
+      "fixtureId": "relation_comp_eq",
+      "domain": "relations",
+      "expectedAnyOf": [
+        "Relation.comp_eq"
+      ],
+      "stage": "OUTSIDE_INSPECT30",
+      "goal": "theorem validation (r : α → β → Prop) : r ∘r (· = ·) = r",
+      "diagnostics": {
+        "unionRank": 111,
+        "top200Rank": 41,
+        "channelRanks": {
+          "overallRank": 41,
+          "nameRank": 31,
+          "structureRank": 22,
+          "typeRank": null,
+          "symbolRank": 63,
+          "operatorRank": null,
+          "localRank": null,
+          "dependencyRank": null
+        },
+        "matchedTokens": [
+          "r",
+          "r",
+          "r",
+          "r"
+        ],
+        "missingTokens": [],
+        "goalProfile": {
+          "rawTarget": "r ∘r (· = ·) = r",
+          "propositionHead": "Eq",
+          "constants": [
+            "goal",
+            "validation",
+            "prop"
+          ],
+          "namespaces": [],
+          "typeConstructors": [
+            "prop"
+          ],
+          "operators": [],
+          "localTypes": [
+            "prop"
+          ],
+          "conclusionTokens": [],
+          "isEquality": true,
+          "isIff": false,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 0,
+            "eq": 2,
+            "iff": 0,
+            "union": 0,
+            "inter": 0,
+            "subset": 0,
+            "le": 0
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "relation",
+          "comp",
+          "eq"
+        ],
+        "goldSignatureTokens": [
+          "simp",
+          "theorem",
+          "comp",
+          "eq",
+          "r",
+          "r",
+          "r",
+          "comp",
+          "eq",
+          "fun"
+        ],
+        "goldNamespace": "Relation",
+        "goldConclusionShape": "Eq",
+        "goalGoldOverlap": 1,
+        "goldCheapScore": 0.691,
+        "top200Cutoff": 0,
+        "scoreDelta": 0.691,
+        "higherRankedCandidateCount": 40,
+        "consensus": "LOW",
+        "informationScore": 14.25,
+        "marginalValue": 6.645676382613069,
+        "selectionCutoff": 6.777141651856967,
+        "primaryCluster": "selector quota pressure",
+        "secondaryClusters": [
+          "missing type evidence",
+          "low cross-channel consensus"
+        ]
+      }
+    },
+    {
+      "fixtureId": "relation_eq_comp",
+      "domain": "relations",
+      "expectedAnyOf": [
+        "Relation.eq_comp"
+      ],
+      "stage": "OUTSIDE_INSPECT30",
+      "goal": "theorem validation (r : α → β → Prop) : (· = ·) ∘r r = r",
+      "diagnostics": {
+        "unionRank": 113,
+        "top200Rank": 45,
+        "channelRanks": {
+          "overallRank": 45,
+          "nameRank": 33,
+          "structureRank": 23,
+          "typeRank": null,
+          "symbolRank": 65,
+          "operatorRank": null,
+          "localRank": null,
+          "dependencyRank": null
+        },
+        "matchedTokens": [
+          "r",
+          "r",
+          "r",
+          "r"
+        ],
+        "missingTokens": [],
+        "goalProfile": {
+          "rawTarget": "(· = ·) ∘r r = r",
+          "propositionHead": "Eq",
+          "constants": [
+            "goal",
+            "validation",
+            "prop"
+          ],
+          "namespaces": [],
+          "typeConstructors": [
+            "prop"
+          ],
+          "operators": [],
+          "localTypes": [
+            "prop"
+          ],
+          "conclusionTokens": [],
+          "isEquality": true,
+          "isIff": false,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 0,
+            "eq": 2,
+            "iff": 0,
+            "union": 0,
+            "inter": 0,
+            "subset": 0,
+            "le": 0
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "relation",
+          "eq",
+          "comp"
+        ],
+        "goldSignatureTokens": [
+          "simp",
+          "theorem",
+          "eq",
+          "comp",
+          "r",
+          "r",
+          "r",
+          "fun",
+          "eq",
+          "comp"
+        ],
+        "goldNamespace": "Relation",
+        "goldConclusionShape": "Eq",
+        "goalGoldOverlap": 1,
+        "goldCheapScore": 0.691,
+        "top200Cutoff": 0,
+        "scoreDelta": 0.691,
+        "higherRankedCandidateCount": 41,
+        "consensus": "LOW",
+        "informationScore": 14.25,
+        "marginalValue": 6.729791112783862,
+        "selectionCutoff": 6.787574033704282,
+        "primaryCluster": "selector quota pressure",
+        "secondaryClusters": [
+          "missing type evidence",
+          "low cross-channel consensus"
+        ]
+      }
+    },
+    {
+      "fixtureId": "relation_comp_assoc",
+      "domain": "relations",
+      "expectedAnyOf": [
+        "Relation.comp_assoc"
+      ],
+      "stage": "NOT_GENERATED",
+      "goal": "theorem validation (r : γ → δ → Prop) (p : β → γ → Prop) (q : α → β → Prop) : (r ∘r p) ∘r q = r ∘r p ∘r q",
+      "diagnostics": {
+        "matchedTokens": [
+          "r",
+          "p",
+          "q",
+          "r",
+          "r",
+          "p",
+          "r",
+          "q",
+          "r",
+          "r",
+          "p",
+          "r",
+          "q"
+        ],
+        "missingTokens": [
+          "γ",
+          "δ",
+          "γ"
+        ],
+        "goalProfile": {
+          "rawTarget": "(r ∘r p) ∘r q = r ∘r p ∘r q",
+          "propositionHead": "Eq",
+          "constants": [
+            "goal",
+            "validation",
+            "prop"
+          ],
+          "namespaces": [],
+          "typeConstructors": [
+            "prop"
+          ],
+          "operators": [],
+          "localTypes": [
+            "prop"
+          ],
+          "conclusionTokens": [],
+          "isEquality": true,
+          "isIff": false,
+          "isImplication": false,
+          "isExistential": false,
+          "isUniversal": false,
+          "operatorMultiplicity": {
+            "neg": 0,
+            "eq": 1,
+            "iff": 0,
+            "union": 0,
+            "inter": 0,
+            "subset": 0,
+            "le": 0
+          },
+          "known": true
+        },
+        "goldNameTokens": [
+          "relation",
+          "comp",
+          "assoc"
+        ],
+        "goldSignatureTokens": [
+          "theorem",
+          "comp",
+          "assoc",
+          "r",
+          "r",
+          "p",
+          "r",
+          "q",
+          "r",
+          "r",
+          "p",
+          "r",
+          "q",
+          "by"
+        ],
+        "goldNamespace": "Relation",
+        "goldConclusionShape": "Eq",
+        "goalGoldOverlap": 0.8125,
+        "goldCheapScore": 0.037,
+        "top200Cutoff": 0,
+        "scoreDelta": 0.037,
+        "higherRankedCandidateCount": 92,
+        "selectionCutoff": 8.304831604354977,
+        "primaryCluster": "missing generator vocabulary",
+        "secondaryClusters": [
+          "missing type evidence",
+          "missing structure evidence"
+        ]
+      }
+    }
+  ],
+  "clusters": {
+    "selector quota pressure": {
+      "primary": 9,
+      "secondary": 0
+    },
+    "low cross-channel consensus": {
+      "primary": 0,
+      "secondary": 9
+    },
+    "missing generator vocabulary": {
+      "primary": 7,
+      "secondary": 0
+    },
+    "missing structure evidence": {
+      "primary": 0,
+      "secondary": 14
+    },
+    "wrong conclusion structure": {
+      "primary": 7,
+      "secondary": 0
+    },
+    "missing type evidence": {
+      "primary": 0,
+      "secondary": 5
+    }
+  },
+  "experiments": [
+    {
+      "experimentId": "ALG-A",
+      "description": "Typeclass-aware token overlap",
+      "affectedDomain": "algebra",
+      "baseline": {
+        "union": 0.8833333333333333,
+        "top200": 0.7666666666666667,
+        "inspect30": 0.6166666666666667,
+        "final20": 0.6166666666666667,
+        "hit10": 0.5666666666666667,
+        "mrr": 0.2420941241993873
+      },
+      "experiment": {
+        "union": 0.8833333333333333,
+        "top200": 0.7666666666666667,
+        "inspect30": 0.6166666666666667,
+        "final20": 0.6166666666666667,
+        "hit10": 0.5666666666666667,
+        "mrr": 0.2420941241993873
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit10": 0,
+        "mrr": 0
+      },
+      "targetBaseline": {
+        "union": 0.6,
+        "top200": 0.4,
+        "inspect30": 0,
+        "final20": 0,
+        "hit10": 0,
+        "mrr": 0
+      },
+      "targetExperiment": {
+        "union": 0.6,
+        "top200": 0.4,
+        "inspect30": 0,
+        "final20": 0,
+        "hit10": 0,
+        "mrr": 0
+      },
+      "targetDelta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit10": 0,
+        "mrr": 0
+      },
+      "failuresFixed": [],
+      "regressionsIntroduced": [],
+      "classification": "NEUTRAL",
+      "runtimeMs": 34.94332199999917
+    },
+    {
+      "experimentId": "ALG-B",
+      "description": "Operator plus type-constructor interaction",
+      "affectedDomain": "algebra",
+      "baseline": {
+        "union": 0.8833333333333333,
+        "top200": 0.7666666666666667,
+        "inspect30": 0.6166666666666667,
+        "final20": 0.6166666666666667,
+        "hit10": 0.5666666666666667,
+        "mrr": 0.2420941241993873
+      },
+      "experiment": {
+        "union": 0.8833333333333333,
+        "top200": 0.8,
+        "inspect30": 0.6333333333333333,
+        "final20": 0.6333333333333333,
+        "hit10": 0.5833333333333334,
+        "mrr": 0.2515385686438318
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0.03333333,
+        "inspect30": 0.01666667,
+        "final20": 0.01666667,
+        "hit10": 0.01666667,
+        "mrr": 0.00944444
+      },
+      "targetBaseline": {
+        "union": 0.6,
+        "top200": 0.4,
+        "inspect30": 0,
+        "final20": 0,
+        "hit10": 0,
+        "mrr": 0
+      },
+      "targetExperiment": {
+        "union": 0.6,
+        "top200": 0.6,
+        "inspect30": 0.2,
+        "final20": 0.2,
+        "hit10": 0.2,
+        "mrr": 0.025
+      },
+      "targetDelta": {
+        "union": 0,
+        "top200": 0.2,
+        "inspect30": 0.2,
+        "final20": 0.2,
+        "hit10": 0.2,
+        "mrr": 0.025
+      },
+      "failuresFixed": [
+        "algebra_rat_sub_self"
+      ],
+      "regressionsIntroduced": [],
+      "classification": "PROMISING",
+      "runtimeMs": 32.79403099999945
+    },
+    {
+      "experimentId": "ALG-C",
+      "description": "Goal type to declaration namespace affinity",
+      "affectedDomain": "algebra",
+      "baseline": {
+        "union": 0.8833333333333333,
+        "top200": 0.7666666666666667,
+        "inspect30": 0.6166666666666667,
+        "final20": 0.6166666666666667,
+        "hit10": 0.5666666666666667,
+        "mrr": 0.2420941241993873
+      },
+      "experiment": {
+        "union": 0.8833333333333333,
+        "top200": 0.8,
+        "inspect30": 0.6166666666666667,
+        "final20": 0.6166666666666667,
+        "hit10": 0.6,
+        "mrr": 0.23644841269841269
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0.03333333,
+        "inspect30": 0,
+        "final20": 0,
+        "hit10": 0.03333333,
+        "mrr": -0.00564571
+      },
+      "targetBaseline": {
+        "union": 0.6,
+        "top200": 0.4,
+        "inspect30": 0,
+        "final20": 0,
+        "hit10": 0,
+        "mrr": 0
+      },
+      "targetExperiment": {
+        "union": 0.6,
+        "top200": 0.6,
+        "inspect30": 0,
+        "final20": 0,
+        "hit10": 0,
+        "mrr": 0
+      },
+      "targetDelta": {
+        "union": 0,
+        "top200": 0.2,
+        "inspect30": 0,
+        "final20": 0,
+        "hit10": 0,
+        "mrr": 0
+      },
+      "failuresFixed": [
+        "list_byte_array_append"
+      ],
+      "regressionsIntroduced": [
+        "sum_inl_ne_inr"
+      ],
+      "classification": "REJECTED",
+      "runtimeMs": 30.078985999996803
+    },
+    {
+      "experimentId": "ALG-D",
+      "description": "Compound lemma-name morphology",
+      "affectedDomain": "algebra",
+      "baseline": {
+        "union": 0.8833333333333333,
+        "top200": 0.7666666666666667,
+        "inspect30": 0.6166666666666667,
+        "final20": 0.6166666666666667,
+        "hit10": 0.5666666666666667,
+        "mrr": 0.2420941241993873
+      },
+      "experiment": {
+        "union": 0.8833333333333333,
+        "top200": 0.8166666666666667,
+        "inspect30": 0.6666666666666666,
+        "final20": 0.6666666666666666,
+        "hit10": 0.6166666666666667,
+        "mrr": 0.27306634642160954
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0.05,
+        "inspect30": 0.05,
+        "final20": 0.05,
+        "hit10": 0.05,
+        "mrr": 0.03097222
+      },
+      "targetBaseline": {
+        "union": 0.6,
+        "top200": 0.4,
+        "inspect30": 0,
+        "final20": 0,
+        "hit10": 0,
+        "mrr": 0
+      },
+      "targetExperiment": {
+        "union": 0.6,
+        "top200": 0.6,
+        "inspect30": 0.4,
+        "final20": 0.4,
+        "hit10": 0.4,
+        "mrr": 0.05833333333333333
+      },
+      "targetDelta": {
+        "union": 0,
+        "top200": 0.2,
+        "inspect30": 0.4,
+        "final20": 0.4,
+        "hit10": 0.4,
+        "mrr": 0.05833333
+      },
+      "failuresFixed": [
+        "list_byte_array_append",
+        "algebra_rat_add_zero",
+        "algebra_rat_sub_self"
+      ],
+      "regressionsIntroduced": [],
+      "classification": "PROMISING",
+      "runtimeMs": 32.088442000000214
+    },
+    {
+      "experimentId": "NAT-A",
+      "description": "Conclusion-shape compatibility",
+      "affectedDomain": "Nat/Int",
+      "baseline": {
+        "union": 0.8833333333333333,
+        "top200": 0.7666666666666667,
+        "inspect30": 0.6166666666666667,
+        "final20": 0.6166666666666667,
+        "hit10": 0.5666666666666667,
+        "mrr": 0.2420941241993873
+      },
+      "experiment": {
+        "union": 0.8833333333333333,
+        "top200": 0.8166666666666667,
+        "inspect30": 0.6166666666666667,
+        "final20": 0.6166666666666667,
+        "hit10": 0.6,
+        "mrr": 0.26140542328042327
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0.05,
+        "inspect30": 0,
+        "final20": 0,
+        "hit10": 0.03333333,
+        "mrr": 0.0193113
+      },
+      "targetBaseline": {
+        "union": 1,
+        "top200": 0.2,
+        "inspect30": 0.2,
+        "final20": 0.2,
+        "hit10": 0,
+        "mrr": 0.01
+      },
+      "targetExperiment": {
+        "union": 1,
+        "top200": 0.4,
+        "inspect30": 0.2,
+        "final20": 0.2,
+        "hit10": 0.2,
+        "mrr": 0.04
+      },
+      "targetDelta": {
+        "union": 0,
+        "top200": 0.2,
+        "inspect30": 0,
+        "final20": 0,
+        "hit10": 0.2,
+        "mrr": 0.03
+      },
+      "failuresFixed": [
+        "list_byte_array_append"
+      ],
+      "regressionsIntroduced": [
+        "sum_inl_ne_inr"
+      ],
+      "classification": "REJECTED",
+      "runtimeMs": 28.792248000001564
+    },
+    {
+      "experimentId": "NAT-B",
+      "description": "Operator sequence and multiplicity",
+      "affectedDomain": "Nat/Int",
+      "baseline": {
+        "union": 0.8833333333333333,
+        "top200": 0.7666666666666667,
+        "inspect30": 0.6166666666666667,
+        "final20": 0.6166666666666667,
+        "hit10": 0.5666666666666667,
+        "mrr": 0.2420941241993873
+      },
+      "experiment": {
+        "union": 0.8833333333333333,
+        "top200": 0.8166666666666667,
+        "inspect30": 0.6333333333333333,
+        "final20": 0.6333333333333333,
+        "hit10": 0.5833333333333334,
+        "mrr": 0.27167745753272066
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0.05,
+        "inspect30": 0.01666667,
+        "final20": 0.01666667,
+        "hit10": 0.01666667,
+        "mrr": 0.02958333
+      },
+      "targetBaseline": {
+        "union": 1,
+        "top200": 0.2,
+        "inspect30": 0.2,
+        "final20": 0.2,
+        "hit10": 0,
+        "mrr": 0.01
+      },
+      "targetExperiment": {
+        "union": 1,
+        "top200": 0.4,
+        "inspect30": 0.2,
+        "final20": 0.2,
+        "hit10": 0,
+        "mrr": 0.01
+      },
+      "targetDelta": {
+        "union": 0,
+        "top200": 0.2,
+        "inspect30": 0,
+        "final20": 0,
+        "hit10": 0,
+        "mrr": 0
+      },
+      "failuresFixed": [
+        "list_byte_array_append"
+      ],
+      "regressionsIntroduced": [],
+      "classification": "PROMISING",
+      "runtimeMs": 31.599052999998094
+    },
+    {
+      "experimentId": "NAT-C",
+      "description": "Exact Nat/Int type evidence",
+      "affectedDomain": "Nat/Int",
+      "baseline": {
+        "union": 0.8833333333333333,
+        "top200": 0.7666666666666667,
+        "inspect30": 0.6166666666666667,
+        "final20": 0.6166666666666667,
+        "hit10": 0.5666666666666667,
+        "mrr": 0.2420941241993873
+      },
+      "experiment": {
+        "union": 0.8833333333333333,
+        "top200": 0.7833333333333333,
+        "inspect30": 0.6,
+        "final20": 0.6,
+        "hit10": 0.5666666666666667,
+        "mrr": 0.24639967975494287
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0.01666667,
+        "inspect30": -0.01666667,
+        "final20": -0.01666667,
+        "hit10": 0,
+        "mrr": 0.00430556
+      },
+      "targetBaseline": {
+        "union": 1,
+        "top200": 0.2,
+        "inspect30": 0.2,
+        "final20": 0.2,
+        "hit10": 0,
+        "mrr": 0.01
+      },
+      "targetExperiment": {
+        "union": 1,
+        "top200": 0.4,
+        "inspect30": 0,
+        "final20": 0,
+        "hit10": 0,
+        "mrr": 0
+      },
+      "targetDelta": {
+        "union": 0,
+        "top200": 0.2,
+        "inspect30": -0.2,
+        "final20": -0.2,
+        "hit10": 0,
+        "mrr": -0.01
+      },
+      "failuresFixed": [],
+      "regressionsIntroduced": [
+        "nat_succ_inj"
+      ],
+      "classification": "REJECTED",
+      "runtimeMs": 33.60923800000455
+    },
+    {
+      "experimentId": "NAT-D",
+      "description": "Rare compound name signal",
+      "affectedDomain": "Nat/Int",
+      "baseline": {
+        "union": 0.8833333333333333,
+        "top200": 0.7666666666666667,
+        "inspect30": 0.6166666666666667,
+        "final20": 0.6166666666666667,
+        "hit10": 0.5666666666666667,
+        "mrr": 0.2420941241993873
+      },
+      "experiment": {
+        "union": 0.8833333333333333,
+        "top200": 0.8166666666666667,
+        "inspect30": 0.6666666666666666,
+        "final20": 0.6666666666666666,
+        "hit10": 0.6166666666666667,
+        "mrr": 0.2816972988025619
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0.05,
+        "inspect30": 0.05,
+        "final20": 0.05,
+        "hit10": 0.05,
+        "mrr": 0.03960317
+      },
+      "targetBaseline": {
+        "union": 1,
+        "top200": 0.2,
+        "inspect30": 0.2,
+        "final20": 0.2,
+        "hit10": 0,
+        "mrr": 0.01
+      },
+      "targetExperiment": {
+        "union": 1,
+        "top200": 0.4,
+        "inspect30": 0.2,
+        "final20": 0.2,
+        "hit10": 0,
+        "mrr": 0.01
+      },
+      "targetDelta": {
+        "union": 0,
+        "top200": 0.2,
+        "inspect30": 0,
+        "final20": 0,
+        "hit10": 0,
+        "mrr": 0
+      },
+      "failuresFixed": [
+        "list_byte_array_append",
+        "algebra_rat_add_zero",
+        "algebra_rat_sub_self"
+      ],
+      "regressionsIntroduced": [],
+      "classification": "PROMISING",
+      "runtimeMs": 31.734745000001567
+    },
+    {
+      "experimentId": "REL-A",
+      "description": "Relation-property structural vocabulary",
+      "affectedDomain": "relations",
+      "baseline": {
+        "union": 0.8833333333333333,
+        "top200": 0.7666666666666667,
+        "inspect30": 0.6166666666666667,
+        "final20": 0.6166666666666667,
+        "hit10": 0.5666666666666667,
+        "mrr": 0.2420941241993873
+      },
+      "experiment": {
+        "union": 0.8833333333333333,
+        "top200": 0.7666666666666667,
+        "inspect30": 0.65,
+        "final20": 0.65,
+        "hit10": 0.6,
+        "mrr": 0.259058409913673
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0.03333333,
+        "final20": 0.03333333,
+        "hit10": 0.03333333,
+        "mrr": 0.01696429
+      },
+      "targetBaseline": {
+        "union": 0.8,
+        "top200": 0.8,
+        "inspect30": 0.4,
+        "final20": 0.4,
+        "hit10": 0.4,
+        "mrr": 0.25
+      },
+      "targetExperiment": {
+        "union": 0.8,
+        "top200": 0.8,
+        "inspect30": 0.8,
+        "final20": 0.8,
+        "hit10": 0.8,
+        "mrr": 0.45357142857142857
+      },
+      "targetDelta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0.4,
+        "final20": 0.4,
+        "hit10": 0.4,
+        "mrr": 0.20357143
+      },
+      "failuresFixed": [
+        "relation_comp_eq",
+        "relation_eq_comp"
+      ],
+      "regressionsIntroduced": [],
+      "classification": "PROMISING",
+      "runtimeMs": 33.87266599999566
+    },
+    {
+      "experimentId": "REL-B",
+      "description": "Signature argument-role overlap",
+      "affectedDomain": "relations",
+      "baseline": {
+        "union": 0.8833333333333333,
+        "top200": 0.7666666666666667,
+        "inspect30": 0.6166666666666667,
+        "final20": 0.6166666666666667,
+        "hit10": 0.5666666666666667,
+        "mrr": 0.2420941241993873
+      },
+      "experiment": {
+        "union": 0.8833333333333333,
+        "top200": 0.7666666666666667,
+        "inspect30": 0.6166666666666667,
+        "final20": 0.6166666666666667,
+        "hit10": 0.5666666666666667,
+        "mrr": 0.2545941241993873
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit10": 0,
+        "mrr": 0.0125
+      },
+      "targetBaseline": {
+        "union": 0.8,
+        "top200": 0.8,
+        "inspect30": 0.4,
+        "final20": 0.4,
+        "hit10": 0.4,
+        "mrr": 0.25
+      },
+      "targetExperiment": {
+        "union": 0.8,
+        "top200": 0.8,
+        "inspect30": 0.4,
+        "final20": 0.4,
+        "hit10": 0.4,
+        "mrr": 0.4
+      },
+      "targetDelta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit10": 0,
+        "mrr": 0.15
+      },
+      "failuresFixed": [],
+      "regressionsIntroduced": [],
+      "classification": "NEUTRAL",
+      "runtimeMs": 34.4234540000034
+    },
+    {
+      "experimentId": "REL-C",
+      "description": "Increased selector structural authority",
+      "affectedDomain": "relations",
+      "baseline": {
+        "union": 0.8833333333333333,
+        "top200": 0.7666666666666667,
+        "inspect30": 0.6166666666666667,
+        "final20": 0.6166666666666667,
+        "hit10": 0.5666666666666667,
+        "mrr": 0.2420941241993873
+      },
+      "experiment": {
+        "union": 0.8833333333333333,
+        "top200": 0.7666666666666667,
+        "inspect30": 0.6166666666666667,
+        "final20": 0.6166666666666667,
+        "hit10": 0.5666666666666667,
+        "mrr": 0.2420941241993873
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit10": 0,
+        "mrr": 0
+      },
+      "targetBaseline": {
+        "union": 0.8,
+        "top200": 0.8,
+        "inspect30": 0.4,
+        "final20": 0.4,
+        "hit10": 0.4,
+        "mrr": 0.25
+      },
+      "targetExperiment": {
+        "union": 0.8,
+        "top200": 0.8,
+        "inspect30": 0.4,
+        "final20": 0.4,
+        "hit10": 0.4,
+        "mrr": 0.25
+      },
+      "targetDelta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit10": 0,
+        "mrr": 0
+      },
+      "failuresFixed": [],
+      "regressionsIntroduced": [],
+      "classification": "NEUTRAL",
+      "runtimeMs": 33.631007999996655
+    }
+  ]
+}

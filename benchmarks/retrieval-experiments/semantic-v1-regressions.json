@@ -1,0 +1,3069 @@
+{
+  "featureVersion": "SEMANTIC_OPERATOR_PROFILE_V1",
+  "holdoutStatus": "CLOSED_FORENSICS_ONLY",
+  "formula": {
+    "materialPromotion": "non-gold candidate moves upward by >=20 Top200 rank positions (absent=201)",
+    "usefulPromotion": "gold Final20 reciprocal rank improves on an activated fixture",
+    "utilityPrecision": "usefulPromotions / (usefulPromotions + falsePositiveMaterialPromotions); retrieval utility only, not confidence"
+  },
+  "corpus": [
+    {
+      "fixtureId": "holdout_algebra_11",
+      "domain": "Algebra",
+      "baselineRank": 5,
+      "featureRank": 6,
+      "baselineStage": "FINAL20",
+      "featureStage": "FINAL20",
+      "addedSemanticTokens": [
+        "add"
+      ],
+      "baseline": {
+        "unionRank": 3,
+        "top200Rank": 4,
+        "goldChannels": [
+          "NAME",
+          "SYMBOL"
+        ],
+        "goldScore": 1,
+        "top200Cutoff": 0,
+        "inspectSelected": true,
+        "inspectReason": null,
+        "selectorDiagnostic": {
+          "ranks": {
+            "overallRank": 4,
+            "nameRank": 1,
+            "structureRank": 9,
+            "typeRank": null,
+            "symbolRank": 2,
+            "operatorRank": 6,
+            "localRank": null,
+            "dependencyRank": null
+          },
+          "scores": {
+            "OVERALL": 0.5,
+            "NAME": 33.33003971021873,
+            "STRUCTURE": 3.4000000000000004,
+            "TYPE": 0,
+            "SYMBOL": 4.709401076758503,
+            "OPERATOR": 1,
+            "LOCAL": 0,
+            "DEPENDENCY": 0
+          },
+          "informationScore": 78.35,
+          "crossChannelStrength": 2.2482759904605505,
+          "top10Consensus": 4,
+          "consensus": "HIGH",
+          "matchedTokens": [
+            "eq",
+            "equality",
+            "refl",
+            "add",
+            "implies",
+            "forall",
+            "holdout",
+            "algebra",
+            "11",
+            "r",
+            "type",
+            "u",
+            "1",
+            "l",
+            "2",
+            "inst",
+            "comm",
+            "ring",
+            "lie",
+            "k",
+            "i",
+            "j",
+            "ideal",
+            "derived",
+            "series",
+            "eq_equality",
+            "equality_refl",
+            "refl_add",
+            "add_implies",
+            "implies_forall",
+            "forall_holdout",
+            "holdout_algebra",
+            "algebra_11",
+            "11_r",
+            "r_type",
+            "type_u",
+            "u_1",
+            "1_l",
+            "l_2",
+            "2_inst",
+            "inst_comm",
+            "comm_ring",
+            "ring_lie",
+            "lie_k",
+            "k_i",
+            "i_j",
+            "j_ideal",
+            "ideal_derived",
+            "derived_series",
+            "eq_equality_refl",
+            "equality_refl_add",
+            "refl_add_implies",
+            "add_implies_forall",
+            "implies_forall_holdout",
+            "forall_holdout_algebra",
+            "holdout_algebra_11",
+            "algebra_11_r",
+            "11_r_type",
+            "r_type_u",
+            "type_u_1",
+            "u_1_l",
+            "1_l_2",
+            "l_2_inst",
+            "2_inst_comm",
+            "inst_comm_ring",
+            "comm_ring_lie",
+            "ring_lie_k",
+            "lie_k_i",
+            "k_i_j",
+            "i_j_ideal",
+            "j_ideal_derived",
+            "ideal_derived_series"
+          ],
+          "eligibleChannels": [
+            "OVERALL",
+            "NAME",
+            "STRUCTURE",
+            "SYMBOL",
+            "OPERATOR"
+          ],
+          "selected": true,
+          "selectionReason": "OVERALL"
+        },
+        "finalRank": 5
+      },
+      "feature": {
+        "unionRank": 3,
+        "top200Rank": 5,
+        "goldChannels": [
+          "NAME",
+          "SYMBOL"
+        ],
+        "goldScore": 1,
+        "top200Cutoff": 0,
+        "inspectSelected": true,
+        "inspectReason": null,
+        "selectorDiagnostic": {
+          "ranks": {
+            "overallRank": 5,
+            "nameRank": 1,
+            "structureRank": 8,
+            "typeRank": null,
+            "symbolRank": 2,
+            "operatorRank": 6,
+            "localRank": null,
+            "dependencyRank": null
+          },
+          "scores": {
+            "OVERALL": 0.4472135954999579,
+            "NAME": 33.231857892036906,
+            "STRUCTURE": 3.4000000000000004,
+            "TYPE": 0,
+            "SYMBOL": 5.4094010767585035,
+            "OPERATOR": 1,
+            "LOCAL": 0,
+            "DEPENDENCY": 0
+          },
+          "informationScore": 84.65,
+          "crossChannelStrength": 2.268496047720491,
+          "top10Consensus": 4,
+          "consensus": "HIGH",
+          "matchedTokens": [
+            "eq",
+            "equality",
+            "refl",
+            "add",
+            "implies",
+            "forall",
+            "holdout",
+            "algebra",
+            "11",
+            "r",
+            "type",
+            "u",
+            "1",
+            "l",
+            "2",
+            "inst",
+            "comm",
+            "ring",
+            "lie",
+            "k",
+            "i",
+            "j",
+            "ideal",
+            "derived",
+            "series",
+            "semantic",
+            "operator",
+            "profile",
+            "eq_equality",
+            "equality_refl",
+            "refl_add",
+            "add_implies",
+            "implies_forall",
+            "forall_holdout",
+            "holdout_algebra",
+            "algebra_11",
+            "11_r",
+            "r_type",
+            "type_u",
+            "u_1",
+            "1_l",
+            "l_2",
+            "2_inst",
+            "inst_comm",
+            "comm_ring",
+            "ring_lie",
+            "lie_k",
+            "k_i",
+            "i_j",
+            "j_ideal",
+            "ideal_derived",
+            "derived_series",
+            "series_semantic",
+            "semantic_operator",
+            "operator_profile",
+            "eq_equality_refl",
+            "equality_refl_add",
+            "refl_add_implies",
+            "add_implies_forall",
+            "implies_forall_holdout",
+            "forall_holdout_algebra",
+            "holdout_algebra_11",
+            "algebra_11_r",
+            "11_r_type",
+            "r_type_u",
+            "type_u_1",
+            "u_1_l",
+            "1_l_2",
+            "l_2_inst",
+            "2_inst_comm",
+            "inst_comm_ring",
+            "comm_ring_lie",
+            "ring_lie_k",
+            "lie_k_i",
+            "k_i_j",
+            "i_j_ideal",
+            "j_ideal_derived",
+            "ideal_derived_series",
+            "derived_series_semantic",
+            "series_semantic_operator",
+            "semantic_operator_profile"
+          ],
+          "eligibleChannels": [
+            "OVERALL",
+            "NAME",
+            "STRUCTURE",
+            "SYMBOL",
+            "OPERATOR"
+          ],
+          "selected": true,
+          "selectionReason": "OVERALL"
+        },
+        "finalRank": 6
+      },
+      "affectedCandidates": [
+        {
+          "name": "LieAlgebra.IsKilling.chainLength_of_eq_zsmul_add",
+          "baselineRank": 7,
+          "featureRank": 4,
+          "rankDelta": 3,
+          "baselineFinalRank": 7,
+          "featureFinalRank": 5,
+          "finalRankDelta": 2,
+          "semanticMatches": [
+            "add"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": true
+        },
+        {
+          "name": "UInt16.neg_eq_not_add",
+          "baselineRank": 201,
+          "featureRank": 42,
+          "rankDelta": 159,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "add"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "UInt32.neg_eq_not_add",
+          "baselineRank": 201,
+          "featureRank": 43,
+          "rankDelta": 158,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "add"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "UInt64.neg_eq_not_add",
+          "baselineRank": 201,
+          "featureRank": 44,
+          "rankDelta": 157,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "add"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "UInt8.neg_eq_not_add",
+          "baselineRank": 201,
+          "featureRank": 45,
+          "rankDelta": 156,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "add"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "USize.neg_eq_not_add",
+          "baselineRank": 201,
+          "featureRank": 46,
+          "rankDelta": 155,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "add"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "ISize.neg_eq_not_add",
+          "baselineRank": 201,
+          "featureRank": 58,
+          "rankDelta": 143,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "add"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "AddCommGroup.modEq_iff_natModEq",
+          "baselineRank": 201,
+          "featureRank": 87,
+          "rankDelta": 114,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        }
+      ],
+      "likelyCause": "semantic token collision dominated by add"
+    },
+    {
+      "fixtureId": "holdout_nat_02",
+      "domain": "Nat",
+      "baselineRank": 11,
+      "featureRank": 12,
+      "baselineStage": "FINAL20",
+      "featureStage": "FINAL20",
+      "addedSemanticTokens": [
+        "lt",
+        "pow"
+      ],
+      "baseline": {
+        "unionRank": 1,
+        "top200Rank": 54,
+        "goldChannels": [
+          "NAME",
+          "SYMBOL"
+        ],
+        "goldScore": 1,
+        "top200Cutoff": 0.057,
+        "inspectSelected": true,
+        "inspectReason": null,
+        "selectorDiagnostic": {
+          "ranks": {
+            "overallRank": 54,
+            "nameRank": 1,
+            "structureRank": 8,
+            "typeRank": 1,
+            "symbolRank": 1,
+            "operatorRank": 1,
+            "localRank": null,
+            "dependencyRank": null
+          },
+          "scores": {
+            "OVERALL": 0.13608276348795434,
+            "NAME": 20.68067691552868,
+            "STRUCTURE": 3.4000000000000004,
+            "TYPE": 1.4000000000000001,
+            "SYMBOL": 7.1,
+            "OPERATOR": 1,
+            "LOCAL": 0,
+            "DEPENDENCY": 0
+          },
+          "informationScore": 39.95,
+          "crossChannelStrength": 4.1235533905932735,
+          "top10Consensus": 5,
+          "consensus": "HIGH",
+          "matchedTokens": [
+            "eq",
+            "equality",
+            "refl",
+            "lt",
+            "implies",
+            "forall",
+            "holdout",
+            "nat",
+            "02",
+            "n",
+            "i",
+            "2",
+            "test",
+            "bit",
+            "false",
+            "eq_equality",
+            "equality_refl",
+            "refl_lt",
+            "lt_implies",
+            "implies_forall",
+            "forall_holdout",
+            "holdout_nat",
+            "nat_02",
+            "02_n",
+            "n_i",
+            "i_2",
+            "2_test",
+            "test_bit",
+            "bit_false"
+          ],
+          "eligibleChannels": [
+            "OVERALL",
+            "NAME",
+            "STRUCTURE",
+            "TYPE",
+            "SYMBOL",
+            "OPERATOR"
+          ],
+          "selected": true,
+          "selectionReason": "NAME"
+        },
+        "finalRank": 11
+      },
+      "feature": {
+        "unionRank": 1,
+        "top200Rank": 27,
+        "goldChannels": [
+          "NAME",
+          "SYMBOL"
+        ],
+        "goldScore": 1,
+        "top200Cutoff": 0.039,
+        "inspectSelected": true,
+        "inspectReason": null,
+        "selectorDiagnostic": {
+          "ranks": {
+            "overallRank": 27,
+            "nameRank": 5,
+            "structureRank": 8,
+            "typeRank": 1,
+            "symbolRank": 1,
+            "operatorRank": 1,
+            "localRank": null,
+            "dependencyRank": null
+          },
+          "scores": {
+            "OVERALL": 0.19245008972987526,
+            "NAME": 20.38976782461959,
+            "STRUCTURE": 3.4000000000000004,
+            "TYPE": 1.4000000000000001,
+            "SYMBOL": 7.1,
+            "OPERATOR": 1,
+            "LOCAL": 0,
+            "DEPENDENCY": 0
+          },
+          "informationScore": 45.55,
+          "crossChannelStrength": 3.6702685389032395,
+          "top10Consensus": 5,
+          "consensus": "HIGH",
+          "matchedTokens": [
+            "eq",
+            "equality",
+            "refl",
+            "lt",
+            "implies",
+            "forall",
+            "holdout",
+            "nat",
+            "02",
+            "n",
+            "i",
+            "2",
+            "test",
+            "bit",
+            "false",
+            "semantic",
+            "operator",
+            "profile",
+            "pow",
+            "eq_equality",
+            "equality_refl",
+            "refl_lt",
+            "lt_implies",
+            "implies_forall",
+            "forall_holdout",
+            "holdout_nat",
+            "nat_02",
+            "02_n",
+            "n_i",
+            "i_2",
+            "2_test",
+            "test_bit",
+            "bit_false",
+            "false_semantic",
+            "semantic_operator",
+            "operator_profile",
+            "profile_pow"
+          ],
+          "eligibleChannels": [
+            "OVERALL",
+            "NAME",
+            "STRUCTURE",
+            "TYPE",
+            "SYMBOL",
+            "OPERATOR"
+          ],
+          "selected": true,
+          "selectionReason": "TYPE"
+        },
+        "finalRank": 12
+      },
+      "affectedCandidates": [
+        {
+          "name": "Nat.testBit_two_pow_add_eq",
+          "baselineRank": 64,
+          "featureRank": 34,
+          "rankDelta": 30,
+          "baselineFinalRank": 20,
+          "featureFinalRank": 11,
+          "finalRankDelta": 9,
+          "semanticMatches": [
+            "pow"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": true
+        },
+        {
+          "name": "Nat.testBit_lt_two_pow",
+          "baselineRank": 59,
+          "featureRank": 31,
+          "rankDelta": 28,
+          "baselineFinalRank": 16,
+          "featureFinalRank": 10,
+          "finalRankDelta": 6,
+          "semanticMatches": [
+            "lt",
+            "pow"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": true
+        },
+        {
+          "name": "BitVec.zero_sle_iff_msb_eq_false",
+          "baselineRank": 9,
+          "featureRank": 6,
+          "rankDelta": 3,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 9,
+          "finalRankDelta": 12,
+          "semanticMatches": [],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": true
+        },
+        {
+          "name": "Nat.gcd_pow_left_of_gcd_eq_one",
+          "baselineRank": 201,
+          "featureRank": 12,
+          "rankDelta": 189,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "pow"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.shiftRight_eq_div_pow",
+          "baselineRank": 201,
+          "featureRank": 18,
+          "rankDelta": 183,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "pow"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "BitVec.twoPow_eq",
+          "baselineRank": 201,
+          "featureRank": 61,
+          "rankDelta": 140,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "BitVec.twoPow_mul_twoPow_eq",
+          "baselineRank": 201,
+          "featureRank": 62,
+          "rankDelta": 139,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.lt_pow_two_of_testBit",
+          "baselineRank": 201,
+          "featureRank": 77,
+          "rankDelta": 124,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "lt",
+            "pow"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.and_two_pow_sub_one_of_lt_two_pow",
+          "baselineRank": 201,
+          "featureRank": 78,
+          "rankDelta": 123,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "lt",
+            "pow"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Subtype.eq",
+          "baselineRank": 68,
+          "featureRank": 37,
+          "rankDelta": 31,
+          "baselineFinalRank": 4,
+          "featureFinalRank": 4,
+          "finalRankDelta": 0,
+          "semanticMatches": [],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.testBit_two_pow",
+          "baselineRank": 63,
+          "featureRank": 33,
+          "rankDelta": 30,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 19,
+          "finalRankDelta": 2,
+          "semanticMatches": [
+            "pow"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.testBit_two_pow_of_ne",
+          "baselineRank": 65,
+          "featureRank": 35,
+          "rankDelta": 30,
+          "baselineFinalRank": 17,
+          "featureFinalRank": 13,
+          "finalRankDelta": 4,
+          "semanticMatches": [
+            "pow"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.testBit_two_pow_self",
+          "baselineRank": 66,
+          "featureRank": 36,
+          "rankDelta": 30,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "pow"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.testBit_succ",
+          "baselineRank": 61,
+          "featureRank": 32,
+          "rankDelta": 29,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.testBit_log2",
+          "baselineRank": 57,
+          "featureRank": 29,
+          "rankDelta": 28,
+          "baselineFinalRank": 19,
+          "featureFinalRank": 20,
+          "finalRankDelta": -1,
+          "semanticMatches": [],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.testBit_lor",
+          "baselineRank": 58,
+          "featureRank": 30,
+          "rankDelta": 28,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.testBit_add",
+          "baselineRank": 46,
+          "featureRank": 19,
+          "rankDelta": 27,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.testBit_add_one",
+          "baselineRank": 47,
+          "featureRank": 20,
+          "rankDelta": 27,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.testBit_bit_succ",
+          "baselineRank": 48,
+          "featureRank": 21,
+          "rankDelta": 27,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.testBit_bit_zero",
+          "baselineRank": 49,
+          "featureRank": 22,
+          "rankDelta": 27,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.testBit_bitwise",
+          "baselineRank": 50,
+          "featureRank": 23,
+          "rankDelta": 27,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.testBit_div_two",
+          "baselineRank": 51,
+          "featureRank": 24,
+          "rankDelta": 27,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.testBit_div_two_pow",
+          "baselineRank": 52,
+          "featureRank": 25,
+          "rankDelta": 27,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 17,
+          "finalRankDelta": 4,
+          "semanticMatches": [
+            "pow"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.testBit_eq_decide_div_mod_eq",
+          "baselineRank": 53,
+          "featureRank": 26,
+          "rankDelta": 27,
+          "baselineFinalRank": 14,
+          "featureFinalRank": 18,
+          "finalRankDelta": -4,
+          "semanticMatches": [],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.testBit_eq_false_of_lt",
+          "baselineRank": 54,
+          "featureRank": 27,
+          "rankDelta": 27,
+          "baselineFinalRank": 11,
+          "featureFinalRank": 12,
+          "finalRankDelta": -1,
+          "semanticMatches": [
+            "lt"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.testBit_land",
+          "baselineRank": 55,
+          "featureRank": 28,
+          "rankDelta": 27,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.or_two_pow_eq_add_of_lt",
+          "baselineRank": 43,
+          "featureRank": 17,
+          "rankDelta": 26,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "lt",
+            "pow"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.testBit_mul_two_pow_add_eq",
+          "baselineRank": 86,
+          "featureRank": 60,
+          "rankDelta": 26,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "pow"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.mod_two_eq_one_iff_testBit_zero",
+          "baselineRank": 40,
+          "featureRank": 15,
+          "rankDelta": 25,
+          "baselineFinalRank": 12,
+          "featureFinalRank": 16,
+          "finalRankDelta": -4,
+          "semanticMatches": [],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.mod_two_eq_zero_iff_testBit_zero",
+          "baselineRank": 41,
+          "featureRank": 16,
+          "rankDelta": 25,
+          "baselineFinalRank": 13,
+          "featureFinalRank": 14,
+          "finalRankDelta": -1,
+          "semanticMatches": [],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.testBit_succ_zero",
+          "baselineRank": 62,
+          "featureRank": 40,
+          "rankDelta": 22,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.lt_of_lt_of_eq",
+          "baselineRank": 33,
+          "featureRank": 14,
+          "rankDelta": 19,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "lt"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Nat.hasNotBit_eq",
+          "baselineRank": 27,
+          "featureRank": 13,
+          "rankDelta": 14,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        }
+      ],
+      "likelyCause": "semantic token collision dominated by pow"
+    },
+    {
+      "fixtureId": "holdout_int_07",
+      "domain": "Int",
+      "baselineRank": 13,
+      "featureRank": 17,
+      "baselineStage": "FINAL20",
+      "featureStage": "FINAL20",
+      "addedSemanticTokens": [
+        "zero"
+      ],
+      "baseline": {
+        "unionRank": 88,
+        "top200Rank": 24,
+        "goldChannels": [
+          "NAME",
+          "SYMBOL"
+        ],
+        "goldScore": 1,
+        "top200Cutoff": 0.145,
+        "inspectSelected": true,
+        "inspectReason": null,
+        "selectorDiagnostic": {
+          "ranks": {
+            "overallRank": 24,
+            "nameRank": 17,
+            "structureRank": 8,
+            "typeRank": 6,
+            "symbolRank": 2,
+            "operatorRank": 7,
+            "localRank": null,
+            "dependencyRank": null
+          },
+          "scores": {
+            "OVERALL": 0.20412414523193154,
+            "NAME": 10.02640143271122,
+            "STRUCTURE": 3.4000000000000004,
+            "TYPE": 1.4000000000000001,
+            "SYMBOL": 3.526401432711221,
+            "OPERATOR": 1,
+            "LOCAL": 0,
+            "DEPENDENCY": 0
+          },
+          "informationScore": 18.75,
+          "crossChannelStrength": 2.026853924132243,
+          "top10Consensus": 4,
+          "consensus": "HIGH",
+          "matchedTokens": [
+            "eq",
+            "equality",
+            "refl",
+            "forall",
+            "holdout",
+            "int",
+            "07",
+            "b",
+            "bool",
+            "n",
+            "bit",
+            "test",
+            "0"
+          ],
+          "eligibleChannels": [
+            "OVERALL",
+            "NAME",
+            "STRUCTURE",
+            "TYPE",
+            "SYMBOL",
+            "OPERATOR"
+          ],
+          "selected": true,
+          "selectionReason": "SYMBOL"
+        },
+        "finalRank": 13
+      },
+      "feature": {
+        "unionRank": 8,
+        "top200Rank": 65,
+        "goldChannels": [
+          "NAME",
+          "SYMBOL"
+        ],
+        "goldScore": 1,
+        "top200Cutoff": 0.135,
+        "inspectSelected": true,
+        "inspectReason": null,
+        "selectorDiagnostic": {
+          "ranks": {
+            "overallRank": 65,
+            "nameRank": 2,
+            "structureRank": 3,
+            "typeRank": 4,
+            "symbolRank": 1,
+            "operatorRank": 4,
+            "localRank": null,
+            "dependencyRank": null
+          },
+          "scores": {
+            "OVERALL": 0.12403473458920847,
+            "NAME": 15.057070705230238,
+            "STRUCTURE": 3.4000000000000004,
+            "TYPE": 1.4000000000000001,
+            "SYMBOL": 5.214213562373095,
+            "OPERATOR": 1,
+            "LOCAL": 0,
+            "DEPENDENCY": 0
+          },
+          "informationScore": 26.549999999999997,
+          "crossChannelStrength": 3.1321778297625946,
+          "top10Consensus": 5,
+          "consensus": "HIGH",
+          "matchedTokens": [
+            "eq",
+            "equality",
+            "refl",
+            "forall",
+            "holdout",
+            "int",
+            "07",
+            "b",
+            "bool",
+            "n",
+            "bit",
+            "test",
+            "0",
+            "semantic",
+            "operator",
+            "profile",
+            "zero"
+          ],
+          "eligibleChannels": [
+            "OVERALL",
+            "NAME",
+            "STRUCTURE",
+            "TYPE",
+            "SYMBOL",
+            "OPERATOR"
+          ],
+          "selected": true,
+          "selectionReason": "NAME"
+        },
+        "finalRank": 17
+      },
+      "affectedCandidates": [
+        {
+          "name": "Int.bmod_eq_bmod_iff_bmod_sub_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 22,
+          "rankDelta": 179,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 6,
+          "finalRankDelta": 15,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": true
+        },
+        {
+          "name": "Int.dvd_iff_emod_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 27,
+          "rankDelta": 174,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 4,
+          "finalRankDelta": 17,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": true
+        },
+        {
+          "name": "Int.ediv_mul_cancel_of_emod_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 31,
+          "rankDelta": 170,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 5,
+          "finalRankDelta": 16,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": true
+        },
+        {
+          "name": "Int.emod_eq_emod_iff_emod_sub_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 32,
+          "rankDelta": 169,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 7,
+          "finalRankDelta": 14,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": true
+        },
+        {
+          "name": "Int.mul_ediv_cancel_of_emod_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 52,
+          "rankDelta": 149,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 8,
+          "finalRankDelta": 13,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": true
+        },
+        {
+          "name": "Bool.eq_false_imp_eq_true",
+          "baselineRank": 8,
+          "featureRank": 7,
+          "rankDelta": 1,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 16,
+          "finalRankDelta": 5,
+          "semanticMatches": [],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": true
+        },
+        {
+          "name": "Int.bmod_eq_zero_of_dvd",
+          "baselineRank": 201,
+          "featureRank": 23,
+          "rankDelta": 178,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 19,
+          "finalRankDelta": 2,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.dvd_eq_false_of_mod_ne_zero",
+          "baselineRank": 201,
+          "featureRank": 24,
+          "rankDelta": 177,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.dvd_eq_true_of_mod_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 25,
+          "rankDelta": 176,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.dvd_iff_bmod_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 26,
+          "rankDelta": 175,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.dvd_iff_fmod_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 28,
+          "rankDelta": 173,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.dvd_iff_tmod_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 29,
+          "rankDelta": 172,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.ediv_eq_zero_of_lt",
+          "baselineRank": 201,
+          "featureRank": 30,
+          "rankDelta": 171,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 20,
+          "finalRankDelta": 1,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.emod_eq_zero_of_dvd",
+          "baselineRank": 201,
+          "featureRank": 33,
+          "rankDelta": 168,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.eq_of_sub_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 34,
+          "rankDelta": 167,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.eq_ofNat_of_zero_le",
+          "baselineRank": 201,
+          "featureRank": 35,
+          "rankDelta": 166,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.eq_succ_of_zero_lt",
+          "baselineRank": 201,
+          "featureRank": 36,
+          "rankDelta": 165,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.eq_zero_of_ediv_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 37,
+          "rankDelta": 164,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.eq_zero_of_fdiv_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 38,
+          "rankDelta": 163,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.eq_zero_of_gcd_eq_zero_left",
+          "baselineRank": 201,
+          "featureRank": 39,
+          "rankDelta": 162,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.eq_zero_of_gcd_eq_zero_right",
+          "baselineRank": 201,
+          "featureRank": 40,
+          "rankDelta": 161,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.eq_zero_of_lcm_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 41,
+          "rankDelta": 160,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.eq_zero_of_tdiv_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 42,
+          "rankDelta": 159,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.fdiv_eq_zero_of_lt",
+          "baselineRank": 201,
+          "featureRank": 43,
+          "rankDelta": 158,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.fmod_eq_fmod_iff_fmod_sub_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 44,
+          "rankDelta": 157,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.fmod_eq_zero_of_dvd",
+          "baselineRank": 201,
+          "featureRank": 45,
+          "rankDelta": 156,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.Internal.Linear.cmod_eq_zero_iff_emod_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 46,
+          "rankDelta": 155,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.Internal.Linear.eq_of_zero_dvd",
+          "baselineRank": 201,
+          "featureRank": 47,
+          "rankDelta": 154,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.Internal.Linear.mul_eq_zero_iff",
+          "baselineRank": 201,
+          "featureRank": 48,
+          "rankDelta": 153,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.Internal.Linear.mul_eq_zero_left",
+          "baselineRank": 201,
+          "featureRank": 49,
+          "rankDelta": 152,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.Internal.Linear.mul_eq_zero_right",
+          "baselineRank": 201,
+          "featureRank": 50,
+          "rankDelta": 151,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.Internal.Linear.poly_eq_zero_eq_false",
+          "baselineRank": 201,
+          "featureRank": 51,
+          "rankDelta": 150,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.mul_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 53,
+          "rankDelta": 148,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.mul_fdiv_cancel_of_fmod_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 54,
+          "rankDelta": 147,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.mul_tdiv_cancel_of_tmod_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 55,
+          "rankDelta": 146,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.neg_eq_of_add_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 56,
+          "rankDelta": 145,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.negOfNat_eq_subNatNat_zero",
+          "baselineRank": 201,
+          "featureRank": 57,
+          "rankDelta": 144,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.ofNat_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 58,
+          "rankDelta": 143,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.sub_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 60,
+          "rankDelta": 141,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.sub_eq_zero_of_eq",
+          "baselineRank": 201,
+          "featureRank": 61,
+          "rankDelta": 140,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.subNatNat_of_sub_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 62,
+          "rankDelta": 139,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.tdiv_eq_zero_of_lt",
+          "baselineRank": 201,
+          "featureRank": 63,
+          "rankDelta": 138,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.tdiv_mul_cancel_of_tmod_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 64,
+          "rankDelta": 137,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Int.tmod_eq_zero_of_dvd",
+          "baselineRank": 201,
+          "featureRank": 66,
+          "rankDelta": 135,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Lean.Meta.Grind.Int.eq_negSucc_of_lt_zero",
+          "baselineRank": 201,
+          "featureRank": 68,
+          "rankDelta": 133,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Lean.Meta.Grind.Int.eq_zero_of_sign_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 69,
+          "rankDelta": 132,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Lean.Meta.Grind.Int.natAbs_eq_iff_mul_eq_zero",
+          "baselineRank": 201,
+          "featureRank": 70,
+          "rankDelta": 131,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Lean.Meta.Grind.Int.toNat_sub_eq_zero_iff",
+          "baselineRank": 201,
+          "featureRank": 71,
+          "rankDelta": 130,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "Lean.Meta.Grind.Int.zero_eq_toNat_sub_iff",
+          "baselineRank": 201,
+          "featureRank": 72,
+          "rankDelta": 129,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "BitVec.getElem_ofBool_zero",
+          "baselineRank": 201,
+          "featureRank": 76,
+          "rankDelta": 125,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "zero"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        }
+      ],
+      "likelyCause": "semantic token collision dominated by zero"
+    },
+    {
+      "fixtureId": "holdout_list_03",
+      "domain": "List",
+      "baselineRank": 10,
+      "featureRank": 11,
+      "baselineStage": "FINAL20",
+      "featureStage": "FINAL20",
+      "addedSemanticTokens": [
+        "mem"
+      ],
+      "baseline": {
+        "unionRank": 2,
+        "top200Rank": 15,
+        "goldChannels": [
+          "NAME",
+          "SYMBOL"
+        ],
+        "goldScore": 1,
+        "top200Cutoff": 0.012,
+        "inspectSelected": true,
+        "inspectReason": null,
+        "selectorDiagnostic": {
+          "ranks": {
+            "overallRank": 15,
+            "nameRank": 2,
+            "structureRank": 33,
+            "typeRank": 5,
+            "symbolRank": 1,
+            "operatorRank": 6,
+            "localRank": null,
+            "dependencyRank": null
+          },
+          "scores": {
+            "OVERALL": 0.2581988897471611,
+            "NAME": 24.66176045807952,
+            "STRUCTURE": 5.8,
+            "TYPE": 1.4000000000000001,
+            "SYMBOL": 5.9284271247461895,
+            "OPERATOR": 1,
+            "LOCAL": 0,
+            "DEPENDENCY": 0
+          },
+          "informationScore": 38.35,
+          "crossChannelStrength": 2.5889546879692946,
+          "top10Consensus": 4,
+          "consensus": "HIGH",
+          "matchedTokens": [
+            "eq",
+            "equality",
+            "refl",
+            "mem",
+            "iff",
+            "implies",
+            "forall",
+            "holdout",
+            "list",
+            "03",
+            "type",
+            "u",
+            "1",
+            "2",
+            "l",
+            "f",
+            "b",
+            "map",
+            "replicate",
+            "length",
+            "x"
+          ],
+          "eligibleChannels": [
+            "OVERALL",
+            "NAME",
+            "STRUCTURE",
+            "TYPE",
+            "SYMBOL",
+            "OPERATOR"
+          ],
+          "selected": true,
+          "selectionReason": "NAME"
+        },
+        "finalRank": 10
+      },
+      "feature": {
+        "unionRank": 2,
+        "top200Rank": 15,
+        "goldChannels": [
+          "NAME",
+          "SYMBOL"
+        ],
+        "goldScore": 1,
+        "top200Cutoff": 0.067,
+        "inspectSelected": true,
+        "inspectReason": null,
+        "selectorDiagnostic": {
+          "ranks": {
+            "overallRank": 15,
+            "nameRank": 2,
+            "structureRank": 33,
+            "typeRank": 5,
+            "symbolRank": 2,
+            "operatorRank": 7,
+            "localRank": null,
+            "dependencyRank": null
+          },
+          "scores": {
+            "OVERALL": 0.2581988897471611,
+            "NAME": 24.542712839031907,
+            "STRUCTURE": 5.8,
+            "TYPE": 1.4000000000000001,
+            "SYMBOL": 5.9284271247461895,
+            "OPERATOR": 1,
+            "LOCAL": 0,
+            "DEPENDENCY": 0
+          },
+          "informationScore": 40.45,
+          "crossChannelStrength": 2.267291842573938,
+          "top10Consensus": 4,
+          "consensus": "HIGH",
+          "matchedTokens": [
+            "eq",
+            "equality",
+            "refl",
+            "mem",
+            "iff",
+            "implies",
+            "forall",
+            "holdout",
+            "list",
+            "03",
+            "type",
+            "u",
+            "1",
+            "2",
+            "l",
+            "f",
+            "b",
+            "map",
+            "replicate",
+            "length",
+            "x",
+            "semantic",
+            "operator",
+            "profile"
+          ],
+          "eligibleChannels": [
+            "OVERALL",
+            "NAME",
+            "STRUCTURE",
+            "TYPE",
+            "SYMBOL",
+            "OPERATOR"
+          ],
+          "selected": true,
+          "selectionReason": "NAME"
+        },
+        "finalRank": 11
+      },
+      "affectedCandidates": [
+        {
+          "name": "Array.eq_empty_iff_forall_not_mem",
+          "baselineRank": 42,
+          "featureRank": 29,
+          "rankDelta": 13,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 6,
+          "finalRankDelta": 15,
+          "semanticMatches": [
+            "mem"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": true
+        },
+        {
+          "name": "List.eq_replicate_of_mem",
+          "baselineRank": 201,
+          "featureRank": 39,
+          "rankDelta": 162,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "mem"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "LinearMap.exists_mem_center_apply_eq_smul_of_forall_notLinearIndependent_of_basis",
+          "baselineRank": 89,
+          "featureRank": 69,
+          "rankDelta": 20,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "mem"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        }
+      ],
+      "likelyCause": "semantic token collision dominated by mem"
+    },
+    {
+      "fixtureId": "holdout_list_04",
+      "domain": "List",
+      "baselineRank": 15,
+      "featureRank": 17,
+      "baselineStage": "FINAL20",
+      "featureStage": "FINAL20",
+      "addedSemanticTokens": [
+        "mul",
+        "gt"
+      ],
+      "baseline": {
+        "unionRank": 1,
+        "top200Rank": 28,
+        "goldChannels": [
+          "NAME",
+          "SYMBOL",
+          "TYPE"
+        ],
+        "goldScore": 1,
+        "top200Cutoff": 0.048,
+        "inspectSelected": true,
+        "inspectReason": null,
+        "selectorDiagnostic": {
+          "ranks": {
+            "overallRank": 28,
+            "nameRank": 1,
+            "structureRank": 16,
+            "typeRank": 17,
+            "symbolRank": 1,
+            "operatorRank": 9,
+            "localRank": null,
+            "dependencyRank": null
+          },
+          "scores": {
+            "OVERALL": 0.1889822365046136,
+            "NAME": 29.857142857142858,
+            "STRUCTURE": 3.4000000000000004,
+            "TYPE": 2.7866945956182656,
+            "SYMBOL": 7.800000000000001,
+            "OPERATOR": 1,
+            "LOCAL": 0,
+            "DEPENDENCY": 0
+          },
+          "informationScore": 45.099999999999994,
+          "crossChannelStrength": 2.629202291703,
+          "top10Consensus": 3,
+          "consensus": "HIGH",
+          "matchedTokens": [
+            "eq",
+            "equality",
+            "refl",
+            "gt",
+            "mul",
+            "implies",
+            "forall",
+            "holdout",
+            "list",
+            "04",
+            "m",
+            "type",
+            "u",
+            "1",
+            "inst",
+            "comm",
+            "monoid",
+            "l",
+            "length",
+            "prod",
+            "zip",
+            "fun",
+            "x",
+            "2"
+          ],
+          "eligibleChannels": [
+            "OVERALL",
+            "NAME",
+            "STRUCTURE",
+            "TYPE",
+            "SYMBOL",
+            "OPERATOR"
+          ],
+          "selected": true,
+          "selectionReason": "NAME"
+        },
+        "finalRank": 15
+      },
+      "feature": {
+        "unionRank": 1,
+        "top200Rank": 26,
+        "goldChannels": [
+          "NAME",
+          "SYMBOL",
+          "TYPE"
+        ],
+        "goldScore": 1,
+        "top200Cutoff": 0.042,
+        "inspectSelected": true,
+        "inspectReason": null,
+        "selectorDiagnostic": {
+          "ranks": {
+            "overallRank": 26,
+            "nameRank": 1,
+            "structureRank": 17,
+            "typeRank": 11,
+            "symbolRank": 1,
+            "operatorRank": 9,
+            "localRank": null,
+            "dependencyRank": null
+          },
+          "scores": {
+            "OVERALL": 0.19611613513818404,
+            "NAME": 29.75,
+            "STRUCTURE": 3.4000000000000004,
+            "TYPE": 2.7866945956182656,
+            "SYMBOL": 7.800000000000001,
+            "OPERATOR": 1,
+            "LOCAL": 0,
+            "DEPENDENCY": 0
+          },
+          "informationScore": 47.2,
+          "crossChannelStrength": 2.680713636280763,
+          "top10Consensus": 3,
+          "consensus": "HIGH",
+          "matchedTokens": [
+            "eq",
+            "equality",
+            "refl",
+            "gt",
+            "mul",
+            "implies",
+            "forall",
+            "holdout",
+            "list",
+            "04",
+            "m",
+            "type",
+            "u",
+            "1",
+            "inst",
+            "comm",
+            "monoid",
+            "l",
+            "length",
+            "prod",
+            "zip",
+            "fun",
+            "x",
+            "2",
+            "semantic",
+            "operator",
+            "profile"
+          ],
+          "eligibleChannels": [
+            "OVERALL",
+            "NAME",
+            "STRUCTURE",
+            "TYPE",
+            "SYMBOL",
+            "OPERATOR"
+          ],
+          "selected": true,
+          "selectionReason": "NAME"
+        },
+        "finalRank": 17
+      },
+      "affectedCandidates": [
+        {
+          "name": "List.eq_getElem_of_length_eq_two",
+          "baselineRank": 11,
+          "featureRank": 10,
+          "rankDelta": 1,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 7,
+          "finalRankDelta": 14,
+          "semanticMatches": [],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": true
+        },
+        {
+          "name": "List.eq_nil_iff_length_eq_zero",
+          "baselineRank": 13,
+          "featureRank": 12,
+          "rankDelta": 1,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 8,
+          "finalRankDelta": 13,
+          "semanticMatches": [],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": true
+        },
+        {
+          "name": "List.filterMapM_loop_eq",
+          "baselineRank": 15,
+          "featureRank": 14,
+          "rankDelta": 1,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 13,
+          "finalRankDelta": 8,
+          "semanticMatches": [],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": true
+        },
+        {
+          "name": "Subtype.ext",
+          "baselineRank": 201,
+          "featureRank": 62,
+          "rankDelta": 139,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "List.prod_eq_pow_single",
+          "baselineRank": 26,
+          "featureRank": 24,
+          "rankDelta": 2,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "List.prod_eq_zero_iff_exists_zero_nat",
+          "baselineRank": 27,
+          "featureRank": 25,
+          "rankDelta": 2,
+          "baselineFinalRank": 16,
+          "featureFinalRank": 18,
+          "finalRankDelta": -2,
+          "semanticMatches": [],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        }
+      ],
+      "likelyCause": "rank normalization/selector displacement without a single material token-matching promoter"
+    },
+    {
+      "fixtureId": "holdout_option_01",
+      "domain": "Option",
+      "baselineRank": 18,
+      "featureRank": null,
+      "baselineStage": "FINAL20",
+      "featureStage": "INSPECT30",
+      "addedSemanticTokens": [
+        "div"
+      ],
+      "baseline": {
+        "unionRank": 7,
+        "top200Rank": 23,
+        "goldChannels": [
+          "NAME",
+          "SYMBOL",
+          "TYPE",
+          "NAMESPACE"
+        ],
+        "goldScore": 0.994,
+        "top200Cutoff": 0.345,
+        "inspectSelected": true,
+        "inspectReason": null,
+        "selectorDiagnostic": {
+          "ranks": {
+            "overallRank": 23,
+            "nameRank": 7,
+            "structureRank": 44,
+            "typeRank": 12,
+            "symbolRank": 1,
+            "operatorRank": 6,
+            "localRank": null,
+            "dependencyRank": null
+          },
+          "scores": {
+            "OVERALL": 0.20851441405707477,
+            "NAME": 20.125515383508464,
+            "STRUCTURE": 0.8,
+            "TYPE": 3.27287156094397,
+            "SYMBOL": 5.311857892036909,
+            "OPERATOR": 1,
+            "LOCAL": 0,
+            "DEPENDENCY": 0
+          },
+          "informationScore": 45.25,
+          "crossChannelStrength": 2.1371975506919307,
+          "top10Consensus": 3,
+          "consensus": "HIGH",
+          "matchedTokens": [
+            "eq",
+            "equality",
+            "refl",
+            "div",
+            "implies",
+            "forall",
+            "holdout",
+            "option",
+            "01",
+            "type",
+            "u",
+            "1",
+            "p",
+            "prop",
+            "o",
+            "x",
+            "unattach",
+            "to",
+            "array",
+            "eq_equality",
+            "equality_refl",
+            "refl_div",
+            "div_implies",
+            "implies_forall",
+            "forall_holdout",
+            "holdout_option",
+            "option_01",
+            "01_type",
+            "type_u",
+            "u_1",
+            "1_p",
+            "p_prop",
+            "prop_o",
+            "o_x",
+            "x_unattach",
+            "unattach_to",
+            "to_array"
+          ],
+          "eligibleChannels": [
+            "OVERALL",
+            "NAME",
+            "STRUCTURE",
+            "TYPE",
+            "SYMBOL",
+            "OPERATOR"
+          ],
+          "selected": true,
+          "selectionReason": "SYMBOL"
+        },
+        "finalRank": 18
+      },
+      "feature": {
+        "unionRank": 7,
+        "top200Rank": 30,
+        "goldChannels": [
+          "NAME",
+          "SYMBOL",
+          "TYPE",
+          "NAMESPACE"
+        ],
+        "goldScore": 0.96,
+        "top200Cutoff": 0.331,
+        "inspectSelected": true,
+        "inspectReason": null,
+        "selectorDiagnostic": {
+          "ranks": {
+            "overallRank": 30,
+            "nameRank": 7,
+            "structureRank": 38,
+            "typeRank": 10,
+            "symbolRank": 1,
+            "operatorRank": 6,
+            "localRank": null,
+            "dependencyRank": null
+          },
+          "scores": {
+            "OVERALL": 0.18257418583505536,
+            "NAME": 19.99218205017513,
+            "STRUCTURE": 0.8,
+            "TYPE": 3.27287156094397,
+            "SYMBOL": 5.311857892036909,
+            "OPERATOR": 1,
+            "LOCAL": 0,
+            "DEPENDENCY": 0
+          },
+          "informationScore": 49.45,
+          "crossChannelStrength": 2.1762159309558364,
+          "top10Consensus": 4,
+          "consensus": "HIGH",
+          "matchedTokens": [
+            "eq",
+            "equality",
+            "refl",
+            "div",
+            "implies",
+            "forall",
+            "holdout",
+            "option",
+            "01",
+            "type",
+            "u",
+            "1",
+            "p",
+            "prop",
+            "o",
+            "x",
+            "unattach",
+            "to",
+            "array",
+            "semantic",
+            "operator",
+            "profile",
+            "eq_equality",
+            "equality_refl",
+            "refl_div",
+            "div_implies",
+            "implies_forall",
+            "forall_holdout",
+            "holdout_option",
+            "option_01",
+            "01_type",
+            "type_u",
+            "u_1",
+            "1_p",
+            "p_prop",
+            "prop_o",
+            "o_x",
+            "x_unattach",
+            "unattach_to",
+            "to_array",
+            "array_semantic",
+            "semantic_operator",
+            "operator_profile"
+          ],
+          "eligibleChannels": [
+            "OVERALL",
+            "NAME",
+            "STRUCTURE",
+            "TYPE",
+            "SYMBOL",
+            "OPERATOR"
+          ],
+          "selected": true,
+          "selectionReason": "SYMBOL"
+        },
+        "finalRank": null
+      },
+      "affectedCandidates": [
+        {
+          "name": "Option.map_attach_eq_pmap",
+          "baselineRank": 8,
+          "featureRank": 6,
+          "rankDelta": 2,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 4,
+          "finalRankDelta": 17,
+          "semanticMatches": [],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": true
+        },
+        {
+          "name": "Option.map_attachWith_eq_pmap",
+          "baselineRank": 9,
+          "featureRank": 7,
+          "rankDelta": 2,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 13,
+          "finalRankDelta": 8,
+          "semanticMatches": [],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": true
+        },
+        {
+          "name": "Option.attachWith_map_val",
+          "baselineRank": 28,
+          "featureRank": 26,
+          "rankDelta": 2,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 18,
+          "finalRankDelta": 3,
+          "semanticMatches": [],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": true
+        },
+        {
+          "name": "Option.any_attachWith",
+          "baselineRank": 30,
+          "featureRank": 25,
+          "rankDelta": 5,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": false
+        }
+      ],
+      "likelyCause": "rank normalization/selector displacement without a single material token-matching promoter"
+    },
+    {
+      "fixtureId": "holdout_topology_03",
+      "domain": "Topology",
+      "baselineRank": 8,
+      "featureRank": 10,
+      "baselineStage": "FINAL20",
+      "featureStage": "FINAL20",
+      "addedSemanticTokens": [
+        "le",
+        "mem"
+      ],
+      "baseline": {
+        "unionRank": 5,
+        "top200Rank": 12,
+        "goldChannels": [
+          "NAME",
+          "SYMBOL"
+        ],
+        "goldScore": 0.822,
+        "top200Cutoff": 0,
+        "inspectSelected": true,
+        "inspectReason": null,
+        "selectorDiagnostic": {
+          "ranks": {
+            "overallRank": 12,
+            "nameRank": 1,
+            "structureRank": 24,
+            "typeRank": null,
+            "symbolRank": 1,
+            "operatorRank": 55,
+            "localRank": null,
+            "dependencyRank": null
+          },
+          "scores": {
+            "OVERALL": 0.2886751345948129,
+            "NAME": 38.346993916883555,
+            "STRUCTURE": 5,
+            "TYPE": 0,
+            "SYMBOL": 5.588854381999832,
+            "OPERATOR": 1,
+            "LOCAL": 0,
+            "DEPENDENCY": 0
+          },
+          "informationScore": 71.55,
+          "crossChannelStrength": 2.1522221190999473,
+          "top10Consensus": 2,
+          "consensus": "MEDIUM",
+          "matchedTokens": [
+            "le",
+            "mem",
+            "iff",
+            "implies",
+            "forall",
+            "holdout",
+            "topology",
+            "03",
+            "r",
+            "type",
+            "u",
+            "1",
+            "a",
+            "2",
+            "inst",
+            "comm",
+            "semiring",
+            "star",
+            "ring",
+            "non",
+            "unital",
+            "3",
+            "4",
+            "module",
+            "5",
+            "is",
+            "scalar",
+            "tower",
+            "6",
+            "s",
+            "mul",
+            "class",
+            "7",
+            "8",
+            "topological",
+            "space",
+            "9",
+            "semitopological",
+            "10",
+            "continuous",
+            "const",
+            "11",
+            "x",
+            "subalgebra",
+            "closed",
+            "algebra",
+            "elemental"
+          ],
+          "eligibleChannels": [
+            "OVERALL",
+            "NAME",
+            "STRUCTURE",
+            "SYMBOL",
+            "OPERATOR"
+          ],
+          "selected": true,
+          "selectionReason": "NAME"
+        },
+        "finalRank": 8
+      },
+      "feature": {
+        "unionRank": 5,
+        "top200Rank": 14,
+        "goldChannels": [
+          "NAME",
+          "SYMBOL"
+        ],
+        "goldScore": 0.814,
+        "top200Cutoff": 0,
+        "inspectSelected": true,
+        "inspectReason": null,
+        "selectorDiagnostic": {
+          "ranks": {
+            "overallRank": 14,
+            "nameRank": 1,
+            "structureRank": 24,
+            "typeRank": null,
+            "symbolRank": 1,
+            "operatorRank": 56,
+            "localRank": null,
+            "dependencyRank": null
+          },
+          "scores": {
+            "OVERALL": 0.2672612419124244,
+            "NAME": 38.310593512434615,
+            "STRUCTURE": 5,
+            "TYPE": 0,
+            "SYMBOL": 5.588854381999832,
+            "OPERATOR": 1,
+            "LOCAL": 0,
+            "DEPENDENCY": 0
+          },
+          "informationScore": 73.65,
+          "crossChannelStrength": 2.151073235140333,
+          "top10Consensus": 2,
+          "consensus": "MEDIUM",
+          "matchedTokens": [
+            "le",
+            "mem",
+            "iff",
+            "implies",
+            "forall",
+            "holdout",
+            "topology",
+            "03",
+            "r",
+            "type",
+            "u",
+            "1",
+            "a",
+            "2",
+            "inst",
+            "comm",
+            "semiring",
+            "star",
+            "ring",
+            "non",
+            "unital",
+            "3",
+            "4",
+            "module",
+            "5",
+            "is",
+            "scalar",
+            "tower",
+            "6",
+            "s",
+            "mul",
+            "class",
+            "7",
+            "8",
+            "topological",
+            "space",
+            "9",
+            "semitopological",
+            "10",
+            "continuous",
+            "const",
+            "11",
+            "x",
+            "subalgebra",
+            "closed",
+            "algebra",
+            "elemental",
+            "semantic",
+            "operator",
+            "profile"
+          ],
+          "eligibleChannels": [
+            "OVERALL",
+            "NAME",
+            "STRUCTURE",
+            "SYMBOL",
+            "OPERATOR"
+          ],
+          "selected": true,
+          "selectionReason": "NAME"
+        },
+        "finalRank": 10
+      },
+      "affectedCandidates": [
+        {
+          "name": "NonUnitalStarAlgebra.mem_sInf",
+          "baselineRank": 18,
+          "featureRank": 7,
+          "rankDelta": 11,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 7,
+          "finalRankDelta": 14,
+          "semanticMatches": [
+            "mem"
+          ],
+          "promotedAboveGold": true,
+          "promotedAboveGoldFinal": true
+        },
+        {
+          "name": "NonUnitalSubalgebra.mem_star_iff",
+          "baselineRank": 13,
+          "featureRank": 5,
+          "rankDelta": 8,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 5,
+          "finalRankDelta": 16,
+          "semanticMatches": [
+            "mem"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": true
+        },
+        {
+          "name": "Lean.Meta.Grind.Int.add_nonneg_iff_neg_le",
+          "baselineRank": 201,
+          "featureRank": 47,
+          "rankDelta": 154,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "le"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "NonUnitalStarAlgebra.mul_mem_sup",
+          "baselineRank": 201,
+          "featureRank": 74,
+          "rankDelta": 127,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "mem"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "NonUnitalAlgebra.mul_mem_sup",
+          "baselineRank": 201,
+          "featureRank": 109,
+          "rankDelta": 92,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "mem"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "IsSl2Triple.mem_toLieSubalgebra_iff",
+          "baselineRank": 102,
+          "featureRank": 77,
+          "rankDelta": 25,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "mem"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        },
+        {
+          "name": "LieAlgebra.mem_sl2SubalgebraOfRoot_iff",
+          "baselineRank": 103,
+          "featureRank": 78,
+          "rankDelta": 25,
+          "baselineFinalRank": 21,
+          "featureFinalRank": 21,
+          "finalRankDelta": 0,
+          "semanticMatches": [
+            "mem"
+          ],
+          "promotedAboveGold": false,
+          "promotedAboveGoldFinal": false
+        }
+      ],
+      "likelyCause": "semantic token collision dominated by mem"
+    }
+  ],
+  "tokenAttribution": {
+    "add": {
+      "fixturesActivated": 8,
+      "improvements": 1,
+      "hurts": 1,
+      "neutral": 6,
+      "goldPromotions": 1,
+      "falsePositivePromotions": 99,
+      "utilityPrecision": 0.01
+    },
+    "sub": {
+      "fixturesActivated": 7,
+      "improvements": 2,
+      "hurts": 0,
+      "neutral": 5,
+      "goldPromotions": 2,
+      "falsePositivePromotions": 82,
+      "utilityPrecision": 0.023809523809523808
+    },
+    "mul": {
+      "fixturesActivated": 8,
+      "improvements": 1,
+      "hurts": 1,
+      "neutral": 6,
+      "goldPromotions": 1,
+      "falsePositivePromotions": 99,
+      "utilityPrecision": 0.01
+    },
+    "div": {
+      "fixturesActivated": 6,
+      "improvements": 2,
+      "hurts": 1,
+      "neutral": 3,
+      "goldPromotions": 2,
+      "falsePositivePromotions": 38,
+      "utilityPrecision": 0.05
+    },
+    "pow": {
+      "fixturesActivated": 8,
+      "improvements": 2,
+      "hurts": 1,
+      "neutral": 5,
+      "goldPromotions": 2,
+      "falsePositivePromotions": 153,
+      "utilityPrecision": 0.012903225806451613
+    },
+    "inv": {
+      "fixturesActivated": 2,
+      "improvements": 2,
+      "hurts": 0,
+      "neutral": 0,
+      "goldPromotions": 2,
+      "falsePositivePromotions": 18,
+      "utilityPrecision": 0.1
+    },
+    "neg": {
+      "fixturesActivated": 0,
+      "improvements": 0,
+      "hurts": 0,
+      "neutral": 0,
+      "goldPromotions": 0,
+      "falsePositivePromotions": 0,
+      "utilityPrecision": null
+    },
+    "le": {
+      "fixturesActivated": 15,
+      "improvements": 1,
+      "hurts": 1,
+      "neutral": 13,
+      "goldPromotions": 1,
+      "falsePositivePromotions": 74,
+      "utilityPrecision": 0.013333333333333334
+    },
+    "lt": {
+      "fixturesActivated": 9,
+      "improvements": 1,
+      "hurts": 1,
+      "neutral": 7,
+      "goldPromotions": 1,
+      "falsePositivePromotions": 41,
+      "utilityPrecision": 0.023809523809523808
+    },
+    "union": {
+      "fixturesActivated": 1,
+      "improvements": 0,
+      "hurts": 0,
+      "neutral": 1,
+      "goldPromotions": 0,
+      "falsePositivePromotions": 0,
+      "utilityPrecision": null
+    },
+    "inter": {
+      "fixturesActivated": 1,
+      "improvements": 0,
+      "hurts": 0,
+      "neutral": 1,
+      "goldPromotions": 0,
+      "falsePositivePromotions": 1,
+      "utilityPrecision": 0
+    },
+    "subset": {
+      "fixturesActivated": 2,
+      "improvements": 0,
+      "hurts": 0,
+      "neutral": 2,
+      "goldPromotions": 0,
+      "falsePositivePromotions": 6,
+      "utilityPrecision": 0
+    },
+    "mem": {
+      "fixturesActivated": 12,
+      "improvements": 1,
+      "hurts": 2,
+      "neutral": 9,
+      "goldPromotions": 1,
+      "falsePositivePromotions": 53,
+      "utilityPrecision": 0.018518518518518517
+    },
+    "card": {
+      "fixturesActivated": 0,
+      "improvements": 0,
+      "hurts": 0,
+      "neutral": 0,
+      "goldPromotions": 0,
+      "falsePositivePromotions": 0,
+      "utilityPrecision": null
+    },
+    "comp": {
+      "fixturesActivated": 1,
+      "improvements": 1,
+      "hurts": 0,
+      "neutral": 0,
+      "goldPromotions": 1,
+      "falsePositivePromotions": 1,
+      "utilityPrecision": 0.5
+    },
+    "relation_comp": {
+      "fixturesActivated": 0,
+      "improvements": 0,
+      "hurts": 0,
+      "neutral": 0,
+      "goldPromotions": 0,
+      "falsePositivePromotions": 0,
+      "utilityPrecision": null
+    },
+    "zero": {
+      "fixturesActivated": 12,
+      "improvements": 2,
+      "hurts": 1,
+      "neutral": 9,
+      "goldPromotions": 2,
+      "falsePositivePromotions": 438,
+      "utilityPrecision": 0.004545454545454545
+    },
+    "one": {
+      "fixturesActivated": 14,
+      "improvements": 3,
+      "hurts": 0,
+      "neutral": 11,
+      "goldPromotions": 3,
+      "falsePositivePromotions": 245,
+      "utilityPrecision": 0.012096774193548387
+    },
+    "assoc": {
+      "fixturesActivated": 1,
+      "improvements": 0,
+      "hurts": 0,
+      "neutral": 1,
+      "goldPromotions": 0,
+      "falsePositivePromotions": 5,
+      "utilityPrecision": 0
+    },
+    "comm": {
+      "fixturesActivated": 0,
+      "improvements": 0,
+      "hurts": 0,
+      "neutral": 0,
+      "goldPromotions": 0,
+      "falsePositivePromotions": 0,
+      "utilityPrecision": null
+    },
+    "self": {
+      "fixturesActivated": 0,
+      "improvements": 0,
+      "hurts": 0,
+      "neutral": 0,
+      "goldPromotions": 0,
+      "falsePositivePromotions": 0,
+      "utilityPrecision": null
+    }
+  },
+  "exactVsMorphology": {
+    "exact": {
+      "fixturesActivated": 50,
+      "improved": 10,
+      "hurt": 6,
+      "unchanged": 34
+    },
+    "morphology": {
+      "fixturesActivated": 26,
+      "improved": 5,
+      "hurt": 1,
+      "unchanged": 20
+    }
+  },
+  "displacementHistogram": {
+    "gold": {
+      "promoted100Plus": 2,
+      "promoted50To99": 0,
+      "promoted20To49": 1,
+      "promoted1To19": 12,
+      "unchanged": 37,
+      "demoted": 8
+    },
+    "nonGold": {
+      "promoted100Plus": 870,
+      "promoted50To99": 123,
+      "promoted20To49": 186,
+      "promoted1To19": 1819,
+      "unchanged": 4920,
+      "demoted": 2871
+    }
+  }
+}

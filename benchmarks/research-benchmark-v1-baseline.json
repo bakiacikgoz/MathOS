@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "research-benchmark-v1",
+  "kind": "research-benchmark-architecture-baseline",
+  "role": "HARNESS_CORRECTNESS",
+  "tuningAllowed": false,
+  "datasetHash": "b57c006e88f6ca285778c3b353c0dfa6d4948402e201a1739d962c18fd1f53df",
+  "fixtureCount": 40,
+  "notes": "Do not treat fake KernelVerifiedRate as model quality. FakeLean accepts scripted proofs. Real-model scores are not a CI gate."
+}

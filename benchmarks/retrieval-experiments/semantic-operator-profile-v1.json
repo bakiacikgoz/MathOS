@@ -1,0 +1,73 @@
+{
+  "featureVersion": "SEMANTIC_OPERATOR_PROFILE_V1",
+  "selectedFromExperiments": ["ALG-D", "NAT-B", "REL-A"],
+  "allowedOperators": {
+    "ARITHMETIC": {
+      "+": "add",
+      "-binary": "sub",
+      "-unary": "neg",
+      "*": "mul",
+      "/": "div",
+      "^": "pow",
+      "⁻¹": "inv"
+    },
+    "ORDER": {
+      "≤": "le",
+      "<": "lt",
+      "≥": "ge",
+      ">": "gt"
+    },
+    "SET_COLLECTION": {
+      "∪": "union",
+      "∩": "inter",
+      "⊆": "subset",
+      "∈": "mem",
+      "#": "card"
+    },
+    "FUNCTION": {
+      "∘": "comp"
+    },
+    "RELATION": {
+      "∘r": "relation_comp"
+    }
+  },
+  "normalizationRules": {
+    "source": "formal theorem target only; no natural-language expansion",
+    "matching": "longest notation first, left-to-right deterministic scan",
+    "multiplicity": "count every notation occurrence before deduplication",
+    "sequence": "preserve left-to-right notation order",
+    "minus": "unary after start or one of ( , : = →; binary otherwise",
+    "relationComposition": "match ∘r before ∘"
+  },
+  "morphologyRules": {
+    "operatorTokens": ["add", "sub", "neg", "mul", "div", "pow", "inv"],
+    "zero": "emit only for a standalone formal numeral 0",
+    "one": "emit only for a standalone formal numeral 1",
+    "assoc": "emit only in an equality when add/mul/comp/relation_comp occurs at least three times",
+    "comm": "emit only for exact two-variable swapped equality under + or *",
+    "self": "emit only for exact x - x = 0 shape"
+  },
+  "relationRules": {
+    "composition": "∘r yields hasComposition and exact compositionCount",
+    "properties": {
+      "Reflexive": "REFLEXIVE",
+      "Symmetric": "SYMMETRIC",
+      "Transitive": "TRANSITIVE",
+      "Antisymmetric": "ANTISYMMETRIC",
+      "Irreflexive": "IRREFLEXIVE",
+      "Total": "TOTAL",
+      "Equivalence|Equivalence.IsEquiv": "EQUIVALENCE"
+    },
+    "inference": "exact formal identifiers only; never infer a property from prose or theorem name"
+  },
+  "benchmarkApplication": {
+    "candidateGeneration": "ephemeral union augmentation from existing declaration metadata matching semantic tokens",
+    "stage1Ranking": "single frozen semantic overlap adjustment",
+    "selectorEvidence": "semantic overlap contributes one experimental structural evidence signal",
+    "productionWeightsChanged": false,
+    "selectorQuotasChanged": false,
+    "fusionChanged": false
+  },
+  "createdAt": "2026-08-24",
+  "frozen": true
+}

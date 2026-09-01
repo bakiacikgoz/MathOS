@@ -1,0 +1,447 @@
+[
+  {
+    "fixtureId": "algebra_int_mul_assoc",
+    "domain": "algebra",
+    "expectedAnyOf": [
+      "Int.mul_assoc"
+    ],
+    "stage": "NOT_GENERATED",
+    "goal": "theorem validation (a b c : Int) : a * b * c = a * (b * c)",
+    "diagnostics": {
+      "matchedTokens": [
+        "int"
+      ],
+      "missingTokens": [],
+      "goalProfile": {
+        "rawTarget": "a * b * c = a * (b * c)",
+        "propositionHead": "Eq",
+        "constants": [
+          "goal",
+          "validation",
+          "int"
+        ],
+        "namespaces": [],
+        "typeConstructors": [
+          "int"
+        ],
+        "operators": [],
+        "localTypes": [
+          "int"
+        ],
+        "conclusionTokens": [],
+        "isEquality": true,
+        "isIff": false,
+        "isImplication": false,
+        "isExistential": false,
+        "isUniversal": false,
+        "operatorMultiplicity": {
+          "neg": 0,
+          "eq": 1,
+          "iff": 0,
+          "union": 0,
+          "inter": 0,
+          "subset": 0,
+          "le": 0
+        },
+        "known": true
+      },
+      "goldNameTokens": [
+        "int",
+        "mul",
+        "assoc"
+      ],
+      "goldSignatureTokens": [
+        "protected",
+        "theorem",
+        "mul",
+        "assoc",
+        "a",
+        "b",
+        "c",
+        "int",
+        "a",
+        "b",
+        "c",
+        "a",
+        "b",
+        "c",
+        "by"
+      ],
+      "goldNamespace": "Int",
+      "goldConclusionShape": "Eq",
+      "goalGoldOverlap": 1,
+      "goldCheapScore": 0.199,
+      "top200Cutoff": 0.479,
+      "scoreDelta": -0.27999999999999997,
+      "higherRankedCandidateCount": 92,
+      "selectionCutoff": 8.313784238819101,
+      "primaryCluster": "missing generator vocabulary",
+      "secondaryClusters": [
+        "missing structure evidence"
+      ]
+    }
+  },
+  {
+    "fixtureId": "algebra_nat_pow_two",
+    "domain": "algebra",
+    "expectedAnyOf": [
+      "Nat.pow_two"
+    ],
+    "stage": "NOT_GENERATED",
+    "goal": "theorem validation (a : Nat) : a ^ 2 = a * a",
+    "diagnostics": {
+      "matchedTokens": [
+        "nat",
+        "2"
+      ],
+      "missingTokens": [],
+      "goalProfile": {
+        "rawTarget": "a ^ 2 = a * a",
+        "propositionHead": "Eq",
+        "constants": [
+          "goal",
+          "validation",
+          "nat"
+        ],
+        "namespaces": [],
+        "typeConstructors": [
+          "nat"
+        ],
+        "operators": [],
+        "localTypes": [
+          "nat"
+        ],
+        "conclusionTokens": [],
+        "isEquality": true,
+        "isIff": false,
+        "isImplication": false,
+        "isExistential": false,
+        "isUniversal": false,
+        "operatorMultiplicity": {
+          "neg": 0,
+          "eq": 1,
+          "iff": 0,
+          "union": 0,
+          "inter": 0,
+          "subset": 0,
+          "le": 0
+        },
+        "known": true
+      },
+      "goldNameTokens": [
+        "nat",
+        "pow",
+        "two"
+      ],
+      "goldSignatureTokens": [
+        "protected",
+        "theorem",
+        "pow",
+        "two",
+        "a",
+        "nat",
+        "a",
+        "2",
+        "a",
+        "a",
+        "by",
+        "rw",
+        "nat",
+        "pow",
+        "succ",
+        "nat",
+        "pow",
+        "one"
+      ],
+      "goldNamespace": "Nat",
+      "goldConclusionShape": "Eq",
+      "goalGoldOverlap": 1,
+      "goldCheapScore": 0.18,
+      "top200Cutoff": 0.413,
+      "scoreDelta": -0.23299999999999998,
+      "higherRankedCandidateCount": 104,
+      "selectionCutoff": 7.930319694431757,
+      "primaryCluster": "missing generator vocabulary",
+      "secondaryClusters": [
+        "missing structure evidence"
+      ]
+    }
+  },
+  {
+    "fixtureId": "algebra_rat_add_zero",
+    "domain": "algebra",
+    "expectedAnyOf": [
+      "Rat.add_zero"
+    ],
+    "stage": "OUTSIDE_INSPECT30",
+    "goal": "theorem validation (a : Rat) : a + 0 = a",
+    "diagnostics": {
+      "unionRank": 276,
+      "top200Rank": 34,
+      "channelRanks": {
+        "overallRank": 34,
+        "nameRank": 40,
+        "structureRank": 29,
+        "typeRank": 13,
+        "symbolRank": 40,
+        "operatorRank": 20,
+        "localRank": null,
+        "dependencyRank": null
+      },
+      "matchedTokens": [
+        "rat",
+        "0"
+      ],
+      "missingTokens": [],
+      "goalProfile": {
+        "rawTarget": "a + 0 = a",
+        "propositionHead": "Eq",
+        "constants": [
+          "goal",
+          "validation",
+          "rat"
+        ],
+        "namespaces": [],
+        "typeConstructors": [
+          "rat"
+        ],
+        "operators": [],
+        "localTypes": [
+          "rat"
+        ],
+        "conclusionTokens": [],
+        "isEquality": true,
+        "isIff": false,
+        "isImplication": false,
+        "isExistential": false,
+        "isUniversal": false,
+        "operatorMultiplicity": {
+          "neg": 0,
+          "eq": 1,
+          "iff": 0,
+          "union": 0,
+          "inter": 0,
+          "subset": 0,
+          "le": 0
+        },
+        "known": true
+      },
+      "goldNameTokens": [
+        "rat",
+        "add",
+        "zero"
+      ],
+      "goldSignatureTokens": [
+        "local",
+        "simp",
+        "protected",
+        "theorem",
+        "add",
+        "zero",
+        "a",
+        "rat",
+        "a",
+        "0",
+        "a",
+        "by",
+        "simp",
+        "add",
+        "def",
+        "mkrat",
+        "self"
+      ],
+      "goldNamespace": "Rat",
+      "goldConclusionShape": "Eq",
+      "goalGoldOverlap": 1,
+      "goldCheapScore": 0.851,
+      "top200Cutoff": 0.21,
+      "scoreDelta": 0.641,
+      "higherRankedCandidateCount": 32,
+      "consensus": "LOW",
+      "informationScore": 4.05,
+      "marginalValue": 4.3960682365794215,
+      "selectionCutoff": 6.888969077773215,
+      "primaryCluster": "selector quota pressure",
+      "secondaryClusters": [
+        "low cross-channel consensus"
+      ]
+    }
+  },
+  {
+    "fixtureId": "algebra_rat_sub_self",
+    "domain": "algebra",
+    "expectedAnyOf": [
+      "Rat.sub_self"
+    ],
+    "stage": "OUTSIDE_INSPECT30",
+    "goal": "theorem validation (a : Rat) : a - a = 0",
+    "diagnostics": {
+      "unionRank": 116,
+      "top200Rank": 23,
+      "channelRanks": {
+        "overallRank": 23,
+        "nameRank": 26,
+        "structureRank": 30,
+        "typeRank": 11,
+        "symbolRank": 17,
+        "operatorRank": 25,
+        "localRank": null,
+        "dependencyRank": null
+      },
+      "matchedTokens": [
+        "rat",
+        "0"
+      ],
+      "missingTokens": [],
+      "goalProfile": {
+        "rawTarget": "a - a = 0",
+        "propositionHead": "Eq",
+        "constants": [
+          "goal",
+          "validation",
+          "rat"
+        ],
+        "namespaces": [],
+        "typeConstructors": [
+          "rat"
+        ],
+        "operators": [],
+        "localTypes": [
+          "rat"
+        ],
+        "conclusionTokens": [],
+        "isEquality": true,
+        "isIff": false,
+        "isImplication": false,
+        "isExistential": false,
+        "isUniversal": false,
+        "operatorMultiplicity": {
+          "neg": 1,
+          "eq": 1,
+          "iff": 0,
+          "union": 0,
+          "inter": 0,
+          "subset": 0,
+          "le": 0
+        },
+        "known": true
+      },
+      "goldNameTokens": [
+        "rat",
+        "sub",
+        "self"
+      ],
+      "goldSignatureTokens": [
+        "protected",
+        "theorem",
+        "sub",
+        "self",
+        "a",
+        "rat",
+        "a",
+        "a",
+        "0",
+        "by"
+      ],
+      "goldNamespace": "Rat",
+      "goldConclusionShape": "Eq",
+      "goalGoldOverlap": 1,
+      "goldCheapScore": 0.877,
+      "top200Cutoff": 0.452,
+      "scoreDelta": 0.425,
+      "higherRankedCandidateCount": 20,
+      "consensus": "LOW",
+      "informationScore": 9.6,
+      "marginalValue": 6.633336295591971,
+      "selectionCutoff": 6.729221243707803,
+      "primaryCluster": "selector quota pressure",
+      "secondaryClusters": [
+        "low cross-channel consensus"
+      ]
+    }
+  },
+  {
+    "fixtureId": "algebra_rat_inv_inv",
+    "domain": "algebra",
+    "expectedAnyOf": [
+      "Rat.inv_inv"
+    ],
+    "stage": "OUTSIDE_TOP200",
+    "goal": "theorem validation (a : Rat) : a⁻¹⁻¹ = a",
+    "diagnostics": {
+      "unionRank": 311,
+      "matchedTokens": [
+        "rat",
+        "a¹¹"
+      ],
+      "missingTokens": [],
+      "goalProfile": {
+        "rawTarget": "a⁻¹⁻¹ = a",
+        "propositionHead": "Eq",
+        "constants": [
+          "goal",
+          "validation",
+          "rat"
+        ],
+        "namespaces": [],
+        "typeConstructors": [
+          "rat"
+        ],
+        "operators": [],
+        "localTypes": [
+          "rat"
+        ],
+        "conclusionTokens": [],
+        "isEquality": true,
+        "isIff": false,
+        "isImplication": false,
+        "isExistential": false,
+        "isUniversal": false,
+        "operatorMultiplicity": {
+          "neg": 0,
+          "eq": 1,
+          "iff": 0,
+          "union": 0,
+          "inter": 0,
+          "subset": 0,
+          "le": 0
+        },
+        "known": true
+      },
+      "goldNameTokens": [
+        "rat",
+        "inv",
+        "inv"
+      ],
+      "goldSignatureTokens": [
+        "protected",
+        "theorem",
+        "inv",
+        "inv",
+        "a",
+        "rat",
+        "a¹¹",
+        "a"
+      ],
+      "goldNamespace": "Rat",
+      "goldConclusionShape": "Eq",
+      "goalGoldOverlap": 1,
+      "goldCheapScore": 0.858,
+      "top200Cutoff": 0.45,
+      "scoreDelta": 0.408,
+      "higherRankedCandidateCount": 61,
+      "falsePositiveGroups": {
+        "genericNatDeclarations": 0,
+        "sameOperatorWrongConclusion": 0,
+        "sameSuffixWrongType": 0,
+        "namespaceOnlyMatches": 0,
+        "commonTokenNoise": 0
+      },
+      "selectionCutoff": 6.418960610639012,
+      "primaryCluster": "wrong conclusion structure",
+      "secondaryClusters": [
+        "missing structure evidence"
+      ]
+    }
+  }
+]

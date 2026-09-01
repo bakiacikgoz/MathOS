@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "exactOptionalPropertyTypes": false,
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "types": ["bun-types"],
+    "jsx": "preserve",
+    "jsxImportSource": "@opentui/solid",
+    "paths": {
+      "@mathos/shared": ["./packages/shared/src/index.ts"],
+      "@mathos/domain": ["./packages/domain/src/index.ts"],
+      "@mathos/events": ["./packages/events/src/index.ts"],
+      "@mathos/storage": ["./packages/storage/src/index.ts"],
+      "@mathos/workspace": ["./packages/workspace/src/index.ts"],
+      "@mathos/models": ["./packages/models/src/index.ts"],
+      "@mathos/lean": ["./packages/lean/src/index.ts"],
+      "@mathos/retrieval": ["./packages/retrieval/src/index.ts"],
+      "@mathos/vcs": ["./packages/vcs/src/index.ts"],
+      "@mathos/core": ["./packages/core/src/index.ts"],
+      "@mathos/graph": ["./packages/graph/src/index.ts"],
+      "@mathos/computation": ["./packages/computation/src/index.ts"],
+      "@mathos/literature": ["./packages/literature/src/index.ts"]
+    }
+  },
+  "include": ["apps/**/*", "packages/**/*", "tests/**/*"]
+}

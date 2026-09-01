@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "literature-runtime-v1",
+  "kind": "literature-runtime-baseline",
+  "createdAt": "2026-08-25",
+  "scenarios": [
+    "provider-search",
+    "source-dedup",
+    "source-import",
+    "local-source",
+    "excerpt",
+    "citation",
+    "external-result",
+    "unsupported-extraction",
+    "branch-citation-isolation",
+    "external-known-not-verified",
+    "search-repetition",
+    "graph-projection",
+    "graph-context"
+  ]
+}

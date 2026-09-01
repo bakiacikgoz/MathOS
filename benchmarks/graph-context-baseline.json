@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "graph-context-v1",
+  "kind": "graph-context-baseline",
+  "createdAt": "2026-08-25",
+  "checks": {
+    "frontier": "L-003",
+    "verifiedSupport": "L-001",
+    "blocker": "BL-002",
+    "failedRoute": "TYPE_MISMATCH",
+    "importTarget": "L-044",
+    "sourceNotLocalSupport": "L-021"
+  }
+}

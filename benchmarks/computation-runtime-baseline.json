@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "computation-runtime-v1",
+  "kind": "computation-runtime-baseline",
+  "createdAt": "2026-08-25",
+  "scenarios": [
+    "python-smoke",
+    "finite-verification",
+    "counterexample-found",
+    "no-counterexample-found",
+    "python-failure",
+    "timeout",
+    "output-limit",
+    "reproducible-rerun",
+    "branch-isolation",
+    "secret-env-isolation",
+    "research-status-safety",
+    "graph-projection"
+  ]
+}

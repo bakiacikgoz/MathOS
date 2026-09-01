@@ -1,0 +1,7144 @@
+{
+  "dataset": {
+    "datasetVersion": "retrieval-holdout-v2",
+    "createdAt": "2026-08-24",
+    "leanVersion": "v4.33.1",
+    "mathlibVersion": "v4.33.1",
+    "frozen": true,
+    "samplingSeed": "mathos-retrieval-holdout-v2-2026-08-24-independent-sample",
+    "fixtureCount": 180,
+    "domainDistribution": {
+      "Logic / Eq": 9,
+      "Nat": 15,
+      "Int": 15,
+      "Algebra": 20,
+      "Order": 9,
+      "Finset": 9,
+      "Set": 9,
+      "List": 9,
+      "Function": 9,
+      "Relations": 10,
+      "Option": 8,
+      "Prod / Sum": 8,
+      "Maps": 8,
+      "Sequences": 8,
+      "Topology": 9,
+      "Analysis": 9,
+      "Number theory": 8,
+      "Combinatorics": 8
+    },
+    "weakDomainCount": 60,
+    "weakDomainShare": 0.3333333333333333,
+    "sourceIndexRevision": "827dabf4588cc464",
+    "sourceIndexFormatVersion": 3,
+    "sourceDeclarationCount": 234537,
+    "samplingMethod": "domain-stratified canonical theorem filtering followed by SHA-256 ordering; frozen semantic feature was not consulted"
+  },
+  "feature": "SEMANTIC_OPERATOR_PROFILE_V2",
+  "comparisonOnly": true,
+  "productionIntegration": false,
+  "policies": {
+    "baseline": {
+      "union": 0.9833333333333333,
+      "top200": 0.8111111111111111,
+      "inspect30": 0.7888888888888889,
+      "final20": 0.7722222222222223,
+      "hit1": 0.08333333333333333,
+      "hit5": 0.3333333333333333,
+      "hit10": 0.5666666666666667,
+      "mrr": 0.2167081643894079,
+      "top200ToInspect30": 0.9726027397260274,
+      "inspect30ToFinal20": 0.9788732394366197
+    },
+    "frozenV2": {
+      "union": 0.9833333333333333,
+      "top200": 0.8111111111111111,
+      "inspect30": 0.7833333333333333,
+      "final20": 0.7666666666666667,
+      "hit1": 0.08333333333333333,
+      "hit5": 0.3388888888888889,
+      "hit10": 0.5666666666666667,
+      "mrr": 0.21682480700605053,
+      "top200ToInspect30": 0.9657534246575342,
+      "inspect30ToFinal20": 0.9787234042553191
+    },
+    "delta": {
+      "union": 0,
+      "top200": 0,
+      "inspect30": -0.0055555556,
+      "final20": -0.0055555556,
+      "hit1": 0,
+      "hit5": 0.0055555556,
+      "hit10": 0,
+      "mrr": 0.0001166426,
+      "top200ToInspect30": -0.0068493151,
+      "inspect30ToFinal20": -0.0001498352
+    }
+  },
+  "paired": {
+    "improved": 2,
+    "unchanged": 177,
+    "hurt": 1,
+    "completeFixes": [],
+    "completeRegressions": [
+      "holdout_v2_nat_04"
+    ],
+    "fixtures": [
+      {
+        "id": "holdout_v2_logic_eq_01",
+        "domain": "Logic / Eq",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            201,
+            201
+          ],
+          "top200": [
+            106,
+            106
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_logic_eq_02",
+        "domain": "Logic / Eq",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            null,
+            null
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_logic_eq_03",
+        "domain": "Logic / Eq",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            209,
+            209
+          ],
+          "top200": [
+            6,
+            6
+          ],
+          "inspect30": [
+            6,
+            6
+          ],
+          "final20": [
+            6,
+            6
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_logic_eq_04",
+        "domain": "Logic / Eq",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            42,
+            42
+          ],
+          "top200": [
+            1,
+            1
+          ],
+          "inspect30": [
+            1,
+            1
+          ],
+          "final20": [
+            1,
+            1
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_logic_eq_05",
+        "domain": "Logic / Eq",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            4,
+            4
+          ],
+          "inspect30": [
+            4,
+            4
+          ],
+          "final20": [
+            4,
+            4
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_logic_eq_06",
+        "domain": "Logic / Eq",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            24,
+            24
+          ],
+          "inspect30": [
+            9,
+            9
+          ],
+          "final20": [
+            17,
+            17
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_logic_eq_07",
+        "domain": "Logic / Eq",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            3,
+            3
+          ],
+          "top200": [
+            3,
+            3
+          ],
+          "inspect30": [
+            3,
+            3
+          ],
+          "final20": [
+            3,
+            3
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_logic_eq_08",
+        "domain": "Logic / Eq",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            4,
+            4
+          ],
+          "inspect30": [
+            4,
+            4
+          ],
+          "final20": [
+            5,
+            5
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_logic_eq_09",
+        "domain": "Logic / Eq",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            null,
+            null
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_nat_01",
+        "domain": "Nat",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            3,
+            3
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_nat_02",
+        "domain": "Nat",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            11,
+            11
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            8,
+            8
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_nat_03",
+        "domain": "Nat",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            7,
+            7
+          ],
+          "inspect30": [
+            7,
+            7
+          ],
+          "final20": [
+            11,
+            11
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_nat_04",
+        "domain": "Nat",
+        "classification": "HURT",
+        "completeFix": false,
+        "completeRegression": true,
+        "ranks": {
+          "union": [
+            117,
+            117
+          ],
+          "top200": [
+            30,
+            30
+          ],
+          "inspect30": [
+            30,
+            null
+          ],
+          "final20": [
+            11,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_nat_05",
+        "domain": "Nat",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            9,
+            8
+          ],
+          "inspect30": [
+            15,
+            15
+          ],
+          "final20": [
+            12,
+            12
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_nat_06",
+        "domain": "Nat",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            3,
+            3
+          ],
+          "inspect30": [
+            3,
+            3
+          ],
+          "final20": [
+            3,
+            3
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_nat_07",
+        "domain": "Nat",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            168,
+            168
+          ],
+          "top200": [
+            23,
+            23
+          ],
+          "inspect30": [
+            15,
+            15
+          ],
+          "final20": [
+            18,
+            18
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_nat_08",
+        "domain": "Nat",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            37,
+            37
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            13,
+            13
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_nat_09",
+        "domain": "Nat",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            5,
+            5
+          ],
+          "top200": [
+            14,
+            16
+          ],
+          "inspect30": [
+            9,
+            9
+          ],
+          "final20": [
+            10,
+            10
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_nat_10",
+        "domain": "Nat",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            26,
+            26
+          ],
+          "inspect30": [
+            9,
+            9
+          ],
+          "final20": [
+            9,
+            9
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_nat_11",
+        "domain": "Nat",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            7,
+            7
+          ],
+          "top200": [
+            41,
+            41
+          ],
+          "inspect30": [
+            18,
+            18
+          ],
+          "final20": [
+            18,
+            18
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_nat_12",
+        "domain": "Nat",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            4,
+            4
+          ],
+          "inspect30": [
+            4,
+            4
+          ],
+          "final20": [
+            4,
+            4
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_nat_13",
+        "domain": "Nat",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            12,
+            12
+          ],
+          "top200": [
+            23,
+            23
+          ],
+          "inspect30": [
+            13,
+            13
+          ],
+          "final20": [
+            14,
+            14
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_nat_14",
+        "domain": "Nat",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            56,
+            56
+          ],
+          "inspect30": [
+            11,
+            11
+          ],
+          "final20": [
+            12,
+            12
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_nat_15",
+        "domain": "Nat",
+        "classification": "IMPROVED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            24,
+            24
+          ],
+          "top200": [
+            8,
+            8
+          ],
+          "inspect30": [
+            13,
+            13
+          ],
+          "final20": [
+            15,
+            14
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_int_01",
+        "domain": "Int",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            null,
+            null
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_int_02",
+        "domain": "Int",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            17,
+            17
+          ],
+          "top200": [
+            17,
+            17
+          ],
+          "inspect30": [
+            17,
+            17
+          ],
+          "final20": [
+            10,
+            10
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_int_03",
+        "domain": "Int",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            118,
+            118
+          ],
+          "top200": [
+            7,
+            6
+          ],
+          "inspect30": [
+            7,
+            6
+          ],
+          "final20": [
+            11,
+            11
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_int_04",
+        "domain": "Int",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            66,
+            66
+          ],
+          "top200": [
+            27,
+            27
+          ],
+          "inspect30": [
+            18,
+            18
+          ],
+          "final20": [
+            18,
+            18
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_int_05",
+        "domain": "Int",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            1,
+            1
+          ],
+          "inspect30": [
+            1,
+            1
+          ],
+          "final20": [
+            1,
+            1
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_int_06",
+        "domain": "Int",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            132,
+            132
+          ],
+          "top200": [
+            5,
+            5
+          ],
+          "inspect30": [
+            5,
+            5
+          ],
+          "final20": [
+            12,
+            12
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_int_07",
+        "domain": "Int",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            39,
+            39
+          ],
+          "top200": [
+            2,
+            2
+          ],
+          "inspect30": [
+            2,
+            2
+          ],
+          "final20": [
+            2,
+            2
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_int_08",
+        "domain": "Int",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            32,
+            32
+          ],
+          "top200": [
+            3,
+            3
+          ],
+          "inspect30": [
+            3,
+            3
+          ],
+          "final20": [
+            13,
+            13
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_int_09",
+        "domain": "Int",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            73,
+            73
+          ],
+          "top200": [
+            74,
+            74
+          ],
+          "inspect30": [
+            13,
+            13
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_int_10",
+        "domain": "Int",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            1,
+            1
+          ],
+          "inspect30": [
+            1,
+            1
+          ],
+          "final20": [
+            1,
+            1
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_int_11",
+        "domain": "Int",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            7,
+            7
+          ],
+          "inspect30": [
+            7,
+            7
+          ],
+          "final20": [
+            8,
+            8
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_int_12",
+        "domain": "Int",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            9,
+            9
+          ],
+          "top200": [
+            3,
+            3
+          ],
+          "inspect30": [
+            3,
+            3
+          ],
+          "final20": [
+            8,
+            8
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_int_13",
+        "domain": "Int",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            202,
+            202
+          ],
+          "top200": [
+            6,
+            6
+          ],
+          "inspect30": [
+            6,
+            6
+          ],
+          "final20": [
+            10,
+            10
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_int_14",
+        "domain": "Int",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            5,
+            5
+          ],
+          "inspect30": [
+            5,
+            5
+          ],
+          "final20": [
+            8,
+            8
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_int_15",
+        "domain": "Int",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            177,
+            177
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_algebra_01",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            4,
+            4
+          ],
+          "inspect30": [
+            4,
+            4
+          ],
+          "final20": [
+            4,
+            4
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_algebra_02",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_algebra_03",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            56,
+            56
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_algebra_04",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            31,
+            31
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            9,
+            9
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_algebra_05",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            8,
+            8
+          ],
+          "top200": [
+            5,
+            5
+          ],
+          "inspect30": [
+            5,
+            5
+          ],
+          "final20": [
+            5,
+            5
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_algebra_06",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            9,
+            9
+          ],
+          "top200": [
+            8,
+            8
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            8,
+            8
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_algebra_07",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            5,
+            5
+          ],
+          "top200": [
+            4,
+            4
+          ],
+          "inspect30": [
+            4,
+            4
+          ],
+          "final20": [
+            4,
+            4
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_algebra_08",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            27,
+            27
+          ],
+          "top200": [
+            28,
+            26
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_algebra_09",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            2,
+            2
+          ],
+          "inspect30": [
+            2,
+            2
+          ],
+          "final20": [
+            3,
+            3
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_algebra_10",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_algebra_11",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            51,
+            51
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_algebra_12",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            7,
+            7
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_algebra_13",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            3,
+            3
+          ],
+          "top200": [
+            4,
+            4
+          ],
+          "inspect30": [
+            4,
+            4
+          ],
+          "final20": [
+            4,
+            4
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_algebra_14",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            4,
+            4
+          ],
+          "top200": [
+            2,
+            2
+          ],
+          "inspect30": [
+            2,
+            2
+          ],
+          "final20": [
+            2,
+            2
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_algebra_15",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            4,
+            4
+          ],
+          "top200": [
+            1,
+            1
+          ],
+          "inspect30": [
+            1,
+            1
+          ],
+          "final20": [
+            1,
+            1
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_algebra_16",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            88,
+            88
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_algebra_17",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            6,
+            6
+          ],
+          "inspect30": [
+            6,
+            6
+          ],
+          "final20": [
+            6,
+            6
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_algebra_18",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_algebra_19",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            4,
+            4
+          ],
+          "inspect30": [
+            4,
+            4
+          ],
+          "final20": [
+            3,
+            3
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_algebra_20",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            8,
+            8
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            8,
+            8
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_order_01",
+        "domain": "Order",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            42,
+            42
+          ],
+          "top200": [
+            2,
+            2
+          ],
+          "inspect30": [
+            2,
+            2
+          ],
+          "final20": [
+            1,
+            1
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_order_02",
+        "domain": "Order",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            6,
+            6
+          ],
+          "top200": [
+            30,
+            30
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            13,
+            13
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_order_03",
+        "domain": "Order",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            126,
+            126
+          ],
+          "top200": [
+            6,
+            6
+          ],
+          "inspect30": [
+            6,
+            6
+          ],
+          "final20": [
+            6,
+            6
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_order_04",
+        "domain": "Order",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            28,
+            28
+          ],
+          "top200": [
+            34,
+            33
+          ],
+          "inspect30": [
+            13,
+            13
+          ],
+          "final20": [
+            19,
+            19
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_order_05",
+        "domain": "Order",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            15,
+            15
+          ],
+          "top200": [
+            12,
+            13
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            12,
+            12
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_order_06",
+        "domain": "Order",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_order_07",
+        "domain": "Order",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            8,
+            8
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_order_08",
+        "domain": "Order",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            7,
+            7
+          ],
+          "inspect30": [
+            7,
+            7
+          ],
+          "final20": [
+            7,
+            7
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_order_09",
+        "domain": "Order",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            6,
+            6
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_finset_01",
+        "domain": "Finset",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            34,
+            34
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_finset_02",
+        "domain": "Finset",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_finset_03",
+        "domain": "Finset",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            16,
+            16
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            7,
+            7
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_finset_04",
+        "domain": "Finset",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            3,
+            3
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_finset_05",
+        "domain": "Finset",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            14,
+            14
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            13,
+            13
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_finset_06",
+        "domain": "Finset",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            2,
+            2
+          ],
+          "inspect30": [
+            2,
+            2
+          ],
+          "final20": [
+            2,
+            2
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_finset_07",
+        "domain": "Finset",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            18,
+            18
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            8,
+            8
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_finset_08",
+        "domain": "Finset",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            7,
+            7
+          ],
+          "top200": [
+            2,
+            2
+          ],
+          "inspect30": [
+            2,
+            2
+          ],
+          "final20": [
+            3,
+            3
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_finset_09",
+        "domain": "Finset",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            37,
+            37
+          ],
+          "top200": [
+            25,
+            25
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            15,
+            15
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_set_01",
+        "domain": "Set",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            43,
+            43
+          ],
+          "top200": [
+            46,
+            43
+          ],
+          "inspect30": [
+            13,
+            13
+          ],
+          "final20": [
+            15,
+            15
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_set_02",
+        "domain": "Set",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            50,
+            50
+          ],
+          "top200": [
+            60,
+            60
+          ],
+          "inspect30": [
+            18,
+            18
+          ],
+          "final20": [
+            18,
+            18
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_set_03",
+        "domain": "Set",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            7,
+            7
+          ],
+          "top200": [
+            74,
+            73
+          ],
+          "inspect30": [
+            23,
+            23
+          ],
+          "final20": [
+            20,
+            20
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_set_04",
+        "domain": "Set",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            13,
+            13
+          ],
+          "inspect30": [
+            17,
+            17
+          ],
+          "final20": [
+            16,
+            16
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_set_05",
+        "domain": "Set",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            4,
+            4
+          ],
+          "top200": [
+            3,
+            3
+          ],
+          "inspect30": [
+            3,
+            3
+          ],
+          "final20": [
+            3,
+            3
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_set_06",
+        "domain": "Set",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            15,
+            15
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            8,
+            8
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_set_07",
+        "domain": "Set",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            34,
+            34
+          ],
+          "top200": [
+            8,
+            8
+          ],
+          "inspect30": [
+            13,
+            13
+          ],
+          "final20": [
+            11,
+            11
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_set_08",
+        "domain": "Set",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            9,
+            9
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            8,
+            8
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_set_09",
+        "domain": "Set",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            27,
+            27
+          ],
+          "top200": [
+            15,
+            15
+          ],
+          "inspect30": [
+            13,
+            13
+          ],
+          "final20": [
+            12,
+            12
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_list_01",
+        "domain": "List",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            6,
+            6
+          ],
+          "top200": [
+            16,
+            15
+          ],
+          "inspect30": [
+            18,
+            18
+          ],
+          "final20": [
+            15,
+            15
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_list_02",
+        "domain": "List",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            3,
+            3
+          ],
+          "top200": [
+            11,
+            11
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            9,
+            9
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_list_03",
+        "domain": "List",
+        "classification": "IMPROVED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            7,
+            4
+          ],
+          "inspect30": [
+            7,
+            4
+          ],
+          "final20": [
+            7,
+            4
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_list_04",
+        "domain": "List",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            2,
+            2
+          ],
+          "inspect30": [
+            2,
+            2
+          ],
+          "final20": [
+            2,
+            2
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_list_05",
+        "domain": "List",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            10,
+            10
+          ],
+          "top200": [
+            30,
+            31
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_list_06",
+        "domain": "List",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            2,
+            2
+          ],
+          "inspect30": [
+            2,
+            2
+          ],
+          "final20": [
+            2,
+            2
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_list_07",
+        "domain": "List",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            21,
+            21
+          ],
+          "top200": [
+            61,
+            61
+          ],
+          "inspect30": [
+            9,
+            9
+          ],
+          "final20": [
+            19,
+            19
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_list_08",
+        "domain": "List",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            3,
+            3
+          ],
+          "top200": [
+            5,
+            5
+          ],
+          "inspect30": [
+            5,
+            5
+          ],
+          "final20": [
+            5,
+            5
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_list_09",
+        "domain": "List",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            37,
+            37
+          ],
+          "top200": [
+            43,
+            43
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_function_01",
+        "domain": "Function",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            13,
+            13
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            11,
+            11
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_function_02",
+        "domain": "Function",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            3,
+            3
+          ],
+          "top200": [
+            6,
+            6
+          ],
+          "inspect30": [
+            6,
+            6
+          ],
+          "final20": [
+            6,
+            6
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_function_03",
+        "domain": "Function",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            8,
+            8
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            8,
+            8
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_function_04",
+        "domain": "Function",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            6,
+            6
+          ],
+          "inspect30": [
+            6,
+            6
+          ],
+          "final20": [
+            11,
+            11
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_function_05",
+        "domain": "Function",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            22,
+            22
+          ],
+          "top200": [
+            22,
+            22
+          ],
+          "inspect30": [
+            20,
+            20
+          ],
+          "final20": [
+            14,
+            14
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_function_06",
+        "domain": "Function",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            11,
+            11
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            8,
+            8
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_function_07",
+        "domain": "Function",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            16,
+            16
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_function_08",
+        "domain": "Function",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            6,
+            6
+          ],
+          "inspect30": [
+            6,
+            6
+          ],
+          "final20": [
+            5,
+            5
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_function_09",
+        "domain": "Function",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            2,
+            2
+          ],
+          "inspect30": [
+            2,
+            2
+          ],
+          "final20": [
+            2,
+            2
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_relations_01",
+        "domain": "Relations",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            4,
+            4
+          ],
+          "inspect30": [
+            4,
+            4
+          ],
+          "final20": [
+            4,
+            4
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_relations_02",
+        "domain": "Relations",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            3,
+            3
+          ],
+          "inspect30": [
+            3,
+            3
+          ],
+          "final20": [
+            3,
+            3
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_relations_03",
+        "domain": "Relations",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            15,
+            15
+          ],
+          "inspect30": [
+            10,
+            10
+          ],
+          "final20": [
+            12,
+            12
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_relations_04",
+        "domain": "Relations",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            12,
+            12
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            8,
+            8
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_relations_05",
+        "domain": "Relations",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            3,
+            3
+          ],
+          "top200": [
+            3,
+            3
+          ],
+          "inspect30": [
+            3,
+            3
+          ],
+          "final20": [
+            3,
+            3
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_relations_06",
+        "domain": "Relations",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            4,
+            4
+          ],
+          "inspect30": [
+            4,
+            4
+          ],
+          "final20": [
+            4,
+            4
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_relations_07",
+        "domain": "Relations",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            12,
+            12
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            8,
+            8
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_relations_08",
+        "domain": "Relations",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            1,
+            1
+          ],
+          "inspect30": [
+            1,
+            1
+          ],
+          "final20": [
+            1,
+            1
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_relations_09",
+        "domain": "Relations",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_relations_10",
+        "domain": "Relations",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            3,
+            3
+          ],
+          "inspect30": [
+            3,
+            3
+          ],
+          "final20": [
+            3,
+            3
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_option_01",
+        "domain": "Option",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            5,
+            5
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_option_02",
+        "domain": "Option",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            8,
+            8
+          ],
+          "top200": [
+            27,
+            27
+          ],
+          "inspect30": [
+            18,
+            18
+          ],
+          "final20": [
+            13,
+            13
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_option_03",
+        "domain": "Option",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            14,
+            14
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            3,
+            3
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_option_04",
+        "domain": "Option",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            140,
+            140
+          ],
+          "top200": [
+            37,
+            34
+          ],
+          "inspect30": [
+            19,
+            19
+          ],
+          "final20": [
+            14,
+            14
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_option_05",
+        "domain": "Option",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            90,
+            90
+          ],
+          "top200": [
+            25,
+            25
+          ],
+          "inspect30": [
+            21,
+            21
+          ],
+          "final20": [
+            19,
+            19
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_option_06",
+        "domain": "Option",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            220,
+            220
+          ],
+          "top200": [
+            23,
+            23
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_option_07",
+        "domain": "Option",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            10,
+            10
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            9,
+            9
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_option_08",
+        "domain": "Option",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            186,
+            186
+          ],
+          "top200": [
+            7,
+            7
+          ],
+          "inspect30": [
+            7,
+            7
+          ],
+          "final20": [
+            11,
+            11
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_prod_sum_01",
+        "domain": "Prod / Sum",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            13,
+            13
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            11,
+            11
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_prod_sum_02",
+        "domain": "Prod / Sum",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            87,
+            87
+          ],
+          "top200": [
+            14,
+            14
+          ],
+          "inspect30": [
+            9,
+            9
+          ],
+          "final20": [
+            10,
+            10
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_prod_sum_03",
+        "domain": "Prod / Sum",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            3,
+            3
+          ],
+          "inspect30": [
+            3,
+            3
+          ],
+          "final20": [
+            3,
+            3
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_prod_sum_04",
+        "domain": "Prod / Sum",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            87,
+            87
+          ],
+          "top200": [
+            13,
+            13
+          ],
+          "inspect30": [
+            9,
+            9
+          ],
+          "final20": [
+            10,
+            10
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_prod_sum_05",
+        "domain": "Prod / Sum",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            9,
+            9
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            8,
+            8
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_prod_sum_06",
+        "domain": "Prod / Sum",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            4,
+            4
+          ],
+          "top200": [
+            16,
+            16
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            9,
+            9
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_prod_sum_07",
+        "domain": "Prod / Sum",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            10,
+            10
+          ],
+          "top200": [
+            3,
+            3
+          ],
+          "inspect30": [
+            3,
+            3
+          ],
+          "final20": [
+            2,
+            2
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_prod_sum_08",
+        "domain": "Prod / Sum",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            11,
+            11
+          ],
+          "top200": [
+            2,
+            2
+          ],
+          "inspect30": [
+            2,
+            2
+          ],
+          "final20": [
+            3,
+            3
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_maps_01",
+        "domain": "Maps",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_maps_02",
+        "domain": "Maps",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            7,
+            7
+          ],
+          "inspect30": [
+            7,
+            7
+          ],
+          "final20": [
+            7,
+            7
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_maps_03",
+        "domain": "Maps",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            1,
+            1
+          ],
+          "inspect30": [
+            1,
+            1
+          ],
+          "final20": [
+            1,
+            1
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_maps_04",
+        "domain": "Maps",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            4,
+            4
+          ],
+          "top200": [
+            2,
+            2
+          ],
+          "inspect30": [
+            2,
+            2
+          ],
+          "final20": [
+            2,
+            2
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_maps_05",
+        "domain": "Maps",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            3,
+            3
+          ],
+          "inspect30": [
+            3,
+            3
+          ],
+          "final20": [
+            3,
+            3
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_maps_06",
+        "domain": "Maps",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            1,
+            1
+          ],
+          "inspect30": [
+            1,
+            1
+          ],
+          "final20": [
+            1,
+            1
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_maps_07",
+        "domain": "Maps",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_maps_08",
+        "domain": "Maps",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            18,
+            18
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_sequences_01",
+        "domain": "Sequences",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            1,
+            1
+          ],
+          "inspect30": [
+            1,
+            1
+          ],
+          "final20": [
+            1,
+            1
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_sequences_02",
+        "domain": "Sequences",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            4,
+            4
+          ],
+          "inspect30": [
+            4,
+            4
+          ],
+          "final20": [
+            4,
+            4
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_sequences_03",
+        "domain": "Sequences",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            8,
+            8
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            8,
+            8
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_sequences_04",
+        "domain": "Sequences",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            31,
+            31
+          ],
+          "inspect30": [
+            17,
+            17
+          ],
+          "final20": [
+            17,
+            17
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_sequences_05",
+        "domain": "Sequences",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            8,
+            8
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            8,
+            8
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_sequences_06",
+        "domain": "Sequences",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            3,
+            3
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_sequences_07",
+        "domain": "Sequences",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_sequences_08",
+        "domain": "Sequences",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            5,
+            5
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_topology_01",
+        "domain": "Topology",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            18,
+            18
+          ],
+          "top200": [
+            2,
+            2
+          ],
+          "inspect30": [
+            2,
+            2
+          ],
+          "final20": [
+            2,
+            2
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_topology_02",
+        "domain": "Topology",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            201,
+            201
+          ],
+          "top200": [
+            2,
+            2
+          ],
+          "inspect30": [
+            2,
+            2
+          ],
+          "final20": [
+            2,
+            2
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_topology_03",
+        "domain": "Topology",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            161,
+            161
+          ],
+          "top200": [
+            2,
+            2
+          ],
+          "inspect30": [
+            2,
+            2
+          ],
+          "final20": [
+            2,
+            2
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_topology_04",
+        "domain": "Topology",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            4,
+            4
+          ],
+          "top200": [
+            3,
+            3
+          ],
+          "inspect30": [
+            3,
+            3
+          ],
+          "final20": [
+            3,
+            3
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_topology_05",
+        "domain": "Topology",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            3,
+            3
+          ],
+          "inspect30": [
+            3,
+            3
+          ],
+          "final20": [
+            3,
+            3
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_topology_06",
+        "domain": "Topology",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            9,
+            9
+          ],
+          "top200": [
+            36,
+            36
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            8,
+            8
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_topology_07",
+        "domain": "Topology",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            3,
+            3
+          ],
+          "inspect30": [
+            3,
+            3
+          ],
+          "final20": [
+            3,
+            3
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_topology_08",
+        "domain": "Topology",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            5,
+            5
+          ],
+          "top200": [
+            7,
+            7
+          ],
+          "inspect30": [
+            7,
+            7
+          ],
+          "final20": [
+            7,
+            7
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_topology_09",
+        "domain": "Topology",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            3,
+            3
+          ],
+          "inspect30": [
+            3,
+            3
+          ],
+          "final20": [
+            3,
+            3
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_analysis_01",
+        "domain": "Analysis",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            6,
+            6
+          ],
+          "inspect30": [
+            6,
+            6
+          ],
+          "final20": [
+            6,
+            6
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_analysis_02",
+        "domain": "Analysis",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            18,
+            18
+          ],
+          "top200": [
+            15,
+            15
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            9,
+            9
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_analysis_03",
+        "domain": "Analysis",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            12,
+            12
+          ],
+          "top200": [
+            5,
+            5
+          ],
+          "inspect30": [
+            5,
+            5
+          ],
+          "final20": [
+            5,
+            5
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_analysis_04",
+        "domain": "Analysis",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            2,
+            2
+          ],
+          "inspect30": [
+            2,
+            2
+          ],
+          "final20": [
+            2,
+            2
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_analysis_05",
+        "domain": "Analysis",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            10,
+            10
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            9,
+            9
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_analysis_06",
+        "domain": "Analysis",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            7,
+            7
+          ],
+          "top200": [
+            10,
+            10
+          ],
+          "inspect30": [
+            10,
+            10
+          ],
+          "final20": [
+            10,
+            10
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_analysis_07",
+        "domain": "Analysis",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            16,
+            16
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_analysis_08",
+        "domain": "Analysis",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_analysis_09",
+        "domain": "Analysis",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            11,
+            11
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            9,
+            9
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_number_theory_01",
+        "domain": "Number theory",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            8,
+            8
+          ],
+          "top200": [
+            1,
+            1
+          ],
+          "inspect30": [
+            1,
+            1
+          ],
+          "final20": [
+            1,
+            1
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_number_theory_02",
+        "domain": "Number theory",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            1,
+            1
+          ],
+          "inspect30": [
+            1,
+            1
+          ],
+          "final20": [
+            1,
+            1
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_number_theory_03",
+        "domain": "Number theory",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            2,
+            2
+          ],
+          "inspect30": [
+            2,
+            2
+          ],
+          "final20": [
+            2,
+            2
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_number_theory_04",
+        "domain": "Number theory",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            36,
+            36
+          ],
+          "top200": [
+            1,
+            1
+          ],
+          "inspect30": [
+            1,
+            1
+          ],
+          "final20": [
+            1,
+            1
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_number_theory_05",
+        "domain": "Number theory",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            7,
+            7
+          ],
+          "inspect30": [
+            7,
+            7
+          ],
+          "final20": [
+            7,
+            7
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_number_theory_06",
+        "domain": "Number theory",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            1,
+            1
+          ],
+          "inspect30": [
+            1,
+            1
+          ],
+          "final20": [
+            1,
+            1
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_number_theory_07",
+        "domain": "Number theory",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            1,
+            1
+          ],
+          "inspect30": [
+            1,
+            1
+          ],
+          "final20": [
+            1,
+            1
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_number_theory_08",
+        "domain": "Number theory",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            2,
+            2
+          ],
+          "inspect30": [
+            2,
+            2
+          ],
+          "final20": [
+            2,
+            2
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_combinatorics_01",
+        "domain": "Combinatorics",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_combinatorics_02",
+        "domain": "Combinatorics",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_combinatorics_03",
+        "domain": "Combinatorics",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            5,
+            5
+          ],
+          "top200": [
+            93,
+            93
+          ],
+          "inspect30": [
+            8,
+            8
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_combinatorics_04",
+        "domain": "Combinatorics",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            3,
+            3
+          ],
+          "inspect30": [
+            3,
+            3
+          ],
+          "final20": [
+            3,
+            3
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_combinatorics_05",
+        "domain": "Combinatorics",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            2,
+            2
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_combinatorics_06",
+        "domain": "Combinatorics",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            1,
+            1
+          ],
+          "inspect30": [
+            1,
+            1
+          ],
+          "final20": [
+            1,
+            1
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_combinatorics_07",
+        "domain": "Combinatorics",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      },
+      {
+        "id": "holdout_v2_combinatorics_08",
+        "domain": "Combinatorics",
+        "classification": "UNCHANGED",
+        "completeFix": false,
+        "completeRegression": false,
+        "ranks": {
+          "union": [
+            1,
+            1
+          ],
+          "top200": [
+            null,
+            null
+          ],
+          "inspect30": [
+            null,
+            null
+          ],
+          "final20": [
+            null,
+            null
+          ]
+        }
+      }
+    ]
+  },
+  "failures": {
+    "baseline": {
+      "NOT_INDEXED": 0,
+      "NOT_GENERATED": 3,
+      "OUTSIDE_TOP200": 31,
+      "OUTSIDE_INSPECT30": 4,
+      "LEAN_INSPECTION_FAILED": 3,
+      "OUTSIDE_FINAL20": 0
+    },
+    "frozenV2": {
+      "NOT_INDEXED": 0,
+      "NOT_GENERATED": 3,
+      "OUTSIDE_TOP200": 31,
+      "OUTSIDE_INSPECT30": 5,
+      "LEAN_INSPECTION_FAILED": 3,
+      "OUTSIDE_FINAL20": 0
+    }
+  },
+  "weakDomains": {
+    "baseline": {
+      "union": 0.9833333333333333,
+      "top200": 0.8166666666666667,
+      "inspect30": 0.8,
+      "final20": 0.7833333333333333,
+      "hit1": 0.06666666666666667,
+      "hit5": 0.31666666666666665,
+      "hit10": 0.55,
+      "mrr": 0.19089262589262593,
+      "top200ToInspect30": 0.9795918367346939,
+      "inspect30ToFinal20": 0.9791666666666666
+    },
+    "frozenV2": {
+      "union": 0.9833333333333333,
+      "top200": 0.8166666666666667,
+      "inspect30": 0.7833333333333333,
+      "final20": 0.7666666666666667,
+      "hit1": 0.06666666666666667,
+      "hit5": 0.31666666666666665,
+      "hit10": 0.55,
+      "mrr": 0.1894568394568395,
+      "top200ToInspect30": 0.9591836734693877,
+      "inspect30ToFinal20": 0.9787234042553191
+    },
+    "delta": {
+      "union": 0,
+      "top200": 0,
+      "inspect30": -0.0166666667,
+      "final20": -0.0166666667,
+      "hit1": 0,
+      "hit5": 0,
+      "hit10": 0,
+      "mrr": -0.0014357864,
+      "top200ToInspect30": -0.0204081633,
+      "inspect30ToFinal20": -0.0004432624
+    },
+    "improvements": 1,
+    "hurts": 1
+  },
+  "unrelatedDomainSafety": {
+    "improvements": 1,
+    "hurts": 0,
+    "completeRegressions": 0,
+    "improvedIds": [
+      "holdout_v2_list_03"
+    ],
+    "hurtIds": []
+  },
+  "domains": {
+    "Algebra": {
+      "count": 20,
+      "baseline": {
+        "union": 1,
+        "top200": 0.65,
+        "inspect30": 0.6,
+        "final20": 0.6,
+        "hit1": 0.05,
+        "hit5": 0.4,
+        "hit10": 0.6,
+        "mrr": 0.18222222222222223,
+        "top200ToInspect30": 0.9230769230769231,
+        "inspect30ToFinal20": 1
+      },
+      "frozenV2": {
+        "union": 1,
+        "top200": 0.65,
+        "inspect30": 0.6,
+        "final20": 0.6,
+        "hit1": 0.05,
+        "hit5": 0.4,
+        "hit10": 0.6,
+        "mrr": 0.18222222222222223,
+        "top200ToInspect30": 0.9230769230769231,
+        "inspect30ToFinal20": 1
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0,
+        "top200ToInspect30": 0,
+        "inspect30ToFinal20": 0
+      }
+    },
+    "Analysis": {
+      "count": 9,
+      "baseline": {
+        "union": 1,
+        "top200": 0.7777777777777778,
+        "inspect30": 0.7777777777777778,
+        "final20": 0.7777777777777778,
+        "hit1": 0,
+        "hit5": 0.2222222222222222,
+        "hit10": 0.7777777777777778,
+        "mrr": 0.1444444444444445,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "frozenV2": {
+        "union": 1,
+        "top200": 0.7777777777777778,
+        "inspect30": 0.7777777777777778,
+        "final20": 0.7777777777777778,
+        "hit1": 0,
+        "hit5": 0.2222222222222222,
+        "hit10": 0.7777777777777778,
+        "mrr": 0.1444444444444445,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0,
+        "top200ToInspect30": 0,
+        "inspect30ToFinal20": 0
+      }
+    },
+    "Combinatorics": {
+      "count": 8,
+      "baseline": {
+        "union": 1,
+        "top200": 0.375,
+        "inspect30": 0.375,
+        "final20": 0.25,
+        "hit1": 0.125,
+        "hit5": 0.25,
+        "hit10": 0.25,
+        "mrr": 0.16666666666666666,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 0.6666666666666666
+      },
+      "frozenV2": {
+        "union": 1,
+        "top200": 0.375,
+        "inspect30": 0.375,
+        "final20": 0.25,
+        "hit1": 0.125,
+        "hit5": 0.25,
+        "hit10": 0.25,
+        "mrr": 0.16666666666666666,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 0.6666666666666666
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0,
+        "top200ToInspect30": 0,
+        "inspect30ToFinal20": 0
+      }
+    },
+    "Finset": {
+      "count": 9,
+      "baseline": {
+        "union": 1,
+        "top200": 0.6666666666666666,
+        "inspect30": 0.6666666666666666,
+        "final20": 0.6666666666666666,
+        "hit1": 0,
+        "hit5": 0.2222222222222222,
+        "hit10": 0.4444444444444444,
+        "mrr": 0.13830891330891332,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "frozenV2": {
+        "union": 1,
+        "top200": 0.6666666666666666,
+        "inspect30": 0.6666666666666666,
+        "final20": 0.6666666666666666,
+        "hit1": 0,
+        "hit5": 0.2222222222222222,
+        "hit10": 0.4444444444444444,
+        "mrr": 0.13830891330891332,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0,
+        "top200ToInspect30": 0,
+        "inspect30ToFinal20": 0
+      }
+    },
+    "Function": {
+      "count": 9,
+      "baseline": {
+        "union": 1,
+        "top200": 0.8888888888888888,
+        "inspect30": 0.8888888888888888,
+        "final20": 0.8888888888888888,
+        "hit1": 0,
+        "hit5": 0.2222222222222222,
+        "hit10": 0.5555555555555556,
+        "mrr": 0.15221260221260222,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "frozenV2": {
+        "union": 1,
+        "top200": 0.8888888888888888,
+        "inspect30": 0.8888888888888888,
+        "final20": 0.8888888888888888,
+        "hit1": 0,
+        "hit5": 0.2222222222222222,
+        "hit10": 0.5555555555555556,
+        "mrr": 0.15221260221260222,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0,
+        "top200ToInspect30": 0,
+        "inspect30ToFinal20": 0
+      }
+    },
+    "Int": {
+      "count": 15,
+      "baseline": {
+        "union": 0.9333333333333333,
+        "top200": 0.8666666666666667,
+        "inspect30": 0.8666666666666667,
+        "final20": 0.8,
+        "hit1": 0.13333333333333333,
+        "hit5": 0.2,
+        "hit10": 0.5333333333333333,
+        "mrr": 0.22544807044807044,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 0.9230769230769231
+      },
+      "frozenV2": {
+        "union": 0.9333333333333333,
+        "top200": 0.8666666666666667,
+        "inspect30": 0.8666666666666667,
+        "final20": 0.8,
+        "hit1": 0.13333333333333333,
+        "hit5": 0.2,
+        "hit10": 0.5333333333333333,
+        "mrr": 0.22544807044807044,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 0.9230769230769231
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0,
+        "top200ToInspect30": 0,
+        "inspect30ToFinal20": 0
+      }
+    },
+    "List": {
+      "count": 9,
+      "baseline": {
+        "union": 1,
+        "top200": 1,
+        "inspect30": 0.8888888888888888,
+        "final20": 0.7777777777777778,
+        "hit1": 0,
+        "hit5": 0.3333333333333333,
+        "hit10": 0.5555555555555556,
+        "mrr": 0.17480738884247654,
+        "top200ToInspect30": 0.8888888888888888,
+        "inspect30ToFinal20": 0.875
+      },
+      "frozenV2": {
+        "union": 1,
+        "top200": 1,
+        "inspect30": 0.8888888888888888,
+        "final20": 0.7777777777777778,
+        "hit1": 0,
+        "hit5": 0.4444444444444444,
+        "hit10": 0.5555555555555556,
+        "mrr": 0.18671215074723846,
+        "top200ToInspect30": 0.8888888888888888,
+        "inspect30ToFinal20": 0.875
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit1": 0,
+        "hit5": 0.1111111111,
+        "hit10": 0,
+        "mrr": 0.0119047619,
+        "top200ToInspect30": 0,
+        "inspect30ToFinal20": 0
+      }
+    },
+    "Logic / Eq": {
+      "count": 9,
+      "baseline": {
+        "union": 0.7777777777777778,
+        "top200": 0.7777777777777778,
+        "inspect30": 0.6666666666666666,
+        "final20": 0.6666666666666666,
+        "hit1": 0.1111111111111111,
+        "hit5": 0.4444444444444444,
+        "hit10": 0.5555555555555556,
+        "mrr": 0.22320261437908495,
+        "top200ToInspect30": 0.8571428571428571,
+        "inspect30ToFinal20": 1
+      },
+      "frozenV2": {
+        "union": 0.7777777777777778,
+        "top200": 0.7777777777777778,
+        "inspect30": 0.6666666666666666,
+        "final20": 0.6666666666666666,
+        "hit1": 0.1111111111111111,
+        "hit5": 0.4444444444444444,
+        "hit10": 0.5555555555555556,
+        "mrr": 0.22320261437908495,
+        "top200ToInspect30": 0.8571428571428571,
+        "inspect30ToFinal20": 1
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0,
+        "top200ToInspect30": 0,
+        "inspect30ToFinal20": 0
+      }
+    },
+    "Maps": {
+      "count": 8,
+      "baseline": {
+        "union": 1,
+        "top200": 0.625,
+        "inspect30": 0.625,
+        "final20": 0.625,
+        "hit1": 0.25,
+        "hit5": 0.5,
+        "hit10": 0.625,
+        "mrr": 0.37202380952380953,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "frozenV2": {
+        "union": 1,
+        "top200": 0.625,
+        "inspect30": 0.625,
+        "final20": 0.625,
+        "hit1": 0.25,
+        "hit5": 0.5,
+        "hit10": 0.625,
+        "mrr": 0.37202380952380953,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0,
+        "top200ToInspect30": 0,
+        "inspect30ToFinal20": 0
+      }
+    },
+    "Nat": {
+      "count": 15,
+      "baseline": {
+        "union": 1,
+        "top200": 0.9333333333333333,
+        "inspect30": 0.9333333333333333,
+        "final20": 0.9333333333333333,
+        "hit1": 0,
+        "hit5": 0.13333333333333333,
+        "hit10": 0.3333333333333333,
+        "mrr": 0.10627058127058125,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "frozenV2": {
+        "union": 1,
+        "top200": 0.9333333333333333,
+        "inspect30": 0.8666666666666667,
+        "final20": 0.8666666666666667,
+        "hit1": 0,
+        "hit5": 0.13333333333333333,
+        "hit10": 0.3333333333333333,
+        "mrr": 0.10052743552743551,
+        "top200ToInspect30": 0.9285714285714286,
+        "inspect30ToFinal20": 1
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": -0.0666666667,
+        "final20": -0.0666666667,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": -0.0057431457,
+        "top200ToInspect30": -0.0714285714,
+        "inspect30ToFinal20": 0
+      }
+    },
+    "Number theory": {
+      "count": 8,
+      "baseline": {
+        "union": 1,
+        "top200": 1,
+        "inspect30": 1,
+        "final20": 1,
+        "hit1": 0.625,
+        "hit5": 0.875,
+        "hit10": 1,
+        "mrr": 0.7678571428571428,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "frozenV2": {
+        "union": 1,
+        "top200": 1,
+        "inspect30": 1,
+        "final20": 1,
+        "hit1": 0.625,
+        "hit5": 0.875,
+        "hit10": 1,
+        "mrr": 0.7678571428571428,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0,
+        "top200ToInspect30": 0,
+        "inspect30ToFinal20": 0
+      }
+    },
+    "Option": {
+      "count": 8,
+      "baseline": {
+        "union": 1,
+        "top200": 0.875,
+        "inspect30": 0.75,
+        "final20": 0.75,
+        "hit1": 0,
+        "hit5": 0.125,
+        "hit10": 0.25,
+        "mrr": 0.09204209533156903,
+        "top200ToInspect30": 0.8571428571428571,
+        "inspect30ToFinal20": 1
+      },
+      "frozenV2": {
+        "union": 1,
+        "top200": 0.875,
+        "inspect30": 0.75,
+        "final20": 0.75,
+        "hit1": 0,
+        "hit5": 0.125,
+        "hit10": 0.25,
+        "mrr": 0.09204209533156903,
+        "top200ToInspect30": 0.8571428571428571,
+        "inspect30ToFinal20": 1
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0,
+        "top200ToInspect30": 0,
+        "inspect30ToFinal20": 0
+      }
+    },
+    "Order": {
+      "count": 9,
+      "baseline": {
+        "union": 1,
+        "top200": 0.6666666666666666,
+        "inspect30": 0.6666666666666666,
+        "final20": 0.6666666666666666,
+        "hit1": 0.1111111111111111,
+        "hit5": 0.1111111111111111,
+        "hit10": 0.3333333333333333,
+        "mrr": 0.16915686652528755,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "frozenV2": {
+        "union": 1,
+        "top200": 0.6666666666666666,
+        "inspect30": 0.6666666666666666,
+        "final20": 0.6666666666666666,
+        "hit1": 0.1111111111111111,
+        "hit5": 0.1111111111111111,
+        "hit10": 0.3333333333333333,
+        "mrr": 0.16915686652528755,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0,
+        "top200ToInspect30": 0,
+        "inspect30ToFinal20": 0
+      }
+    },
+    "Prod / Sum": {
+      "count": 8,
+      "baseline": {
+        "union": 1,
+        "top200": 1,
+        "inspect30": 1,
+        "final20": 1,
+        "hit1": 0,
+        "hit5": 0.375,
+        "hit10": 0.875,
+        "mrr": 0.21171085858585856,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "frozenV2": {
+        "union": 1,
+        "top200": 1,
+        "inspect30": 1,
+        "final20": 1,
+        "hit1": 0,
+        "hit5": 0.375,
+        "hit10": 0.875,
+        "mrr": 0.21171085858585856,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0,
+        "top200ToInspect30": 0,
+        "inspect30ToFinal20": 0
+      }
+    },
+    "Relations": {
+      "count": 10,
+      "baseline": {
+        "union": 1,
+        "top200": 0.9,
+        "inspect30": 0.9,
+        "final20": 0.9,
+        "hit1": 0.1,
+        "hit5": 0.6,
+        "hit10": 0.8,
+        "mrr": 0.2833333333333333,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "frozenV2": {
+        "union": 1,
+        "top200": 0.9,
+        "inspect30": 0.9,
+        "final20": 0.9,
+        "hit1": 0.1,
+        "hit5": 0.6,
+        "hit10": 0.8,
+        "mrr": 0.2833333333333333,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0,
+        "top200ToInspect30": 0,
+        "inspect30ToFinal20": 0
+      }
+    },
+    "Sequences": {
+      "count": 8,
+      "baseline": {
+        "union": 1,
+        "top200": 0.625,
+        "inspect30": 0.625,
+        "final20": 0.625,
+        "hit1": 0.125,
+        "hit5": 0.25,
+        "hit10": 0.5,
+        "mrr": 0.1948529411764706,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "frozenV2": {
+        "union": 1,
+        "top200": 0.625,
+        "inspect30": 0.625,
+        "final20": 0.625,
+        "hit1": 0.125,
+        "hit5": 0.25,
+        "hit10": 0.5,
+        "mrr": 0.1948529411764706,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0,
+        "top200ToInspect30": 0,
+        "inspect30ToFinal20": 0
+      }
+    },
+    "Set": {
+      "count": 9,
+      "baseline": {
+        "union": 1,
+        "top200": 1,
+        "inspect30": 1,
+        "final20": 1,
+        "hit1": 0,
+        "hit5": 0.1111111111111111,
+        "hit10": 0.3333333333333333,
+        "mrr": 0.11025533108866442,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "frozenV2": {
+        "union": 1,
+        "top200": 1,
+        "inspect30": 1,
+        "final20": 1,
+        "hit1": 0,
+        "hit5": 0.1111111111111111,
+        "hit10": 0.3333333333333333,
+        "mrr": 0.11025533108866442,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0,
+        "top200ToInspect30": 0,
+        "inspect30ToFinal20": 0
+      }
+    },
+    "Topology": {
+      "count": 9,
+      "baseline": {
+        "union": 1,
+        "top200": 1,
+        "inspect30": 1,
+        "final20": 1,
+        "hit1": 0,
+        "hit5": 0.7777777777777778,
+        "hit10": 1,
+        "mrr": 0.3445767195767196,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "frozenV2": {
+        "union": 1,
+        "top200": 1,
+        "inspect30": 1,
+        "final20": 1,
+        "hit1": 0,
+        "hit5": 0.7777777777777778,
+        "hit10": 1,
+        "mrr": 0.3445767195767196,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "delta": {
+        "union": 0,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0,
+        "top200ToInspect30": 0,
+        "inspect30ToFinal20": 0
+      }
+    }
+  },
+  "activation": {
+    "activeQueries": 38,
+    "activeQueryRate": 0.2111111111111111,
+    "median": 0,
+    "p95": 36,
+    "max": 118
+  },
+  "displacement": {
+    "nonGold": {
+      "promoted100Plus": 0,
+      "promoted50To99": 0,
+      "promoted20To49": 0,
+      "promoted1To19": 362
+    },
+    "goldPromoted": 9,
+    "goldDemoted": 3
+  },
+  "confidenceIntervals95": {
+    "top200": {
+      "estimate": 0,
+      "low": 0,
+      "high": 0,
+      "iterations": 10000,
+      "seed": 1835103337,
+      "containsZero": true
+    },
+    "final20": {
+      "estimate": -0.005555555555555556,
+      "low": -0.016666666666666666,
+      "high": 0,
+      "iterations": 10000,
+      "seed": 1835103338,
+      "containsZero": true
+    },
+    "hit10": {
+      "estimate": 0,
+      "low": 0,
+      "high": 0,
+      "iterations": 10000,
+      "seed": 1835103339,
+      "containsZero": true
+    },
+    "mrr": {
+      "estimate": 0.00011664261664261612,
+      "low": -0.0014622414622414623,
+      "high": 0.0018121693121693123,
+      "iterations": 10000,
+      "seed": 1835103340,
+      "containsZero": true
+    }
+  },
+  "rankDeltaSummary": {
+    "union": {
+      "median": 0,
+      "p95": 0,
+      "min": 0,
+      "max": 0
+    },
+    "top200": {
+      "median": 0,
+      "p95": 1,
+      "min": -2,
+      "max": 3
+    },
+    "inspect30": {
+      "median": 0,
+      "p95": 0,
+      "min": -171,
+      "max": 3
+    },
+    "final20": {
+      "median": 0,
+      "p95": 0,
+      "min": -190,
+      "max": 3
+    }
+  },
+  "performance": {
+    "baseline": {
+      "stage1MedianMs": 52.00943499999994,
+      "stage1P95Ms": 88.49457699999948,
+      "semanticMedianMs": 0,
+      "semanticP95Ms": 0,
+      "compatibilityMedianMs": 0,
+      "compatibilityP95Ms": 0,
+      "fullMedianMs": 100.47197500000038,
+      "fullP95Ms": 174.20387699999992
+    },
+    "feature": {
+      "stage1MedianMs": 56.125247999996645,
+      "stage1P95Ms": 145.3127609999974,
+      "semanticMedianMs": 0.018387999999958993,
+      "semanticP95Ms": 0.05851199999983692,
+      "compatibilityMedianMs": 2.956529999999475,
+      "compatibilityP95Ms": 5.413016999998945,
+      "fullMedianMs": 114.45120499999757,
+      "fullP95Ms": 207.4245829999927
+    },
+    "featureOverhead": {
+      "stage1MedianMs": 4.115812999996706,
+      "stage1P95Ms": 56.81818399999793,
+      "fullMedianMs": 13.979229999997187,
+      "fullP95Ms": 33.22070599999279
+    },
+    "newLeanInvocations": 0,
+    "indexBytesBefore": 90279951,
+    "indexBytesAfter": 90279951,
+    "persistentSizeDelta": 0
+  },
+  "semanticTraces": [
+    {
+      "id": "holdout_v2_nat_01",
+      "domain": "Nat",
+      "semanticTokens": [
+        "div",
+        "pow"
+      ],
+      "eligibleCandidates": 20,
+      "boostedCandidates": 17,
+      "goldAffected": false,
+      "goldRankDelta": 0,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "Nat.coe_properDivisors_eq_prod_pow_lt_factorization",
+          "delta": 4
+        },
+        {
+          "name": "Nat.dvd_prod_pow_of_factorization_le",
+          "delta": 4
+        },
+        {
+          "name": "Nat.eq_pow_of_factorization_eq_single",
+          "delta": 4
+        },
+        {
+          "name": "Nat.factorization_choose_prime_pow",
+          "delta": 4
+        },
+        {
+          "name": "Nat.factorization_choose_prime_pow_add_factorization",
+          "delta": 4
+        },
+        {
+          "name": "Nat.factorization_eq_card_pow_dvd",
+          "delta": 4
+        },
+        {
+          "name": "Nat.factorization_eq_card_pow_dvd_of_lt",
+          "delta": 4
+        },
+        {
+          "name": "Nat.Icc_factorization_eq_pow_dvd",
+          "delta": 4
+        },
+        {
+          "name": "Nat.Iic_factorization_prod_pow_injective",
+          "delta": 4
+        },
+        {
+          "name": "Nat.Iio_factorization_prod_pow_injective",
+          "delta": 4
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_nat_03",
+      "domain": "Nat",
+      "semanticTokens": [
+        "mul",
+        "add",
+        "sub"
+      ],
+      "eligibleCandidates": 122,
+      "boostedCandidates": 38,
+      "goldAffected": false,
+      "goldRankDelta": 0,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "Fin.sub_eq_add_neg",
+          "delta": 4
+        },
+        {
+          "name": "Lean.Grind.IntModule.OfNatModule.sub_eq_add_neg",
+          "delta": 4
+        },
+        {
+          "name": "Nat.add_choose_eq",
+          "delta": 4
+        },
+        {
+          "name": "Nat.add_left_cancel",
+          "delta": 4
+        },
+        {
+          "name": "Nat.add_left_comm",
+          "delta": 4
+        },
+        {
+          "name": "Nat.add_one",
+          "delta": 4
+        },
+        {
+          "name": "Nat.add_right_cancel",
+          "delta": 4
+        },
+        {
+          "name": "Nat.add_right_comm",
+          "delta": 4
+        },
+        {
+          "name": "Nat.add_sub_add_left",
+          "delta": 4
+        },
+        {
+          "name": "Nat.add_sub_add_right",
+          "delta": 4
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_nat_04",
+      "domain": "Nat",
+      "semanticTokens": [
+        "mul",
+        "pow",
+        "add"
+      ],
+      "eligibleCandidates": 174,
+      "boostedCandidates": 118,
+      "goldAffected": true,
+      "goldRankDelta": 4,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "_root_.Fintype.sum_pow_mul_eq_add_pow",
+          "delta": 4
+        },
+        {
+          "name": "_root_.Nat.Prime.exists_orderOf_eq_pow_factorization_exponent",
+          "delta": 4
+        },
+        {
+          "name": "AlgebraicGeometry.exists_eq_pow_mul_of_is_compact_of_quasi_separated_space_aux",
+          "delta": 4
+        },
+        {
+          "name": "AlgebraicGeometry.exists_eq_pow_mul_of_is_compact_of_quasi_separated_space_aux_aux",
+          "delta": 4
+        },
+        {
+          "name": "AlgebraicGeometry.exists_eq_pow_mul_of_isAffineOpen",
+          "delta": 4
+        },
+        {
+          "name": "AlgebraicGeometry.exists_eq_pow_mul_of_isCompact_of_isQuasiSeparated",
+          "delta": 4
+        },
+        {
+          "name": "AlgebraicGeometry.exists_pow_mul_eq_zero_of_res_basicOpen_eq_zero_of_isAffineOpen",
+          "delta": 4
+        },
+        {
+          "name": "AlgebraicGeometry.exists_pow_mul_eq_zero_of_res_basicOpen_eq_zero_of_isCompact",
+          "delta": 4
+        },
+        {
+          "name": "AnalyticAt.exists_eq_sum_add_pow_mul",
+          "delta": 4
+        },
+        {
+          "name": "AnalyticAt.exists_eventuallyEq_sum_add_pow_mul",
+          "delta": 4
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_nat_05",
+      "domain": "Nat",
+      "semanticTokens": [
+        "add"
+      ],
+      "eligibleCandidates": 33,
+      "boostedCandidates": 29,
+      "goldAffected": true,
+      "goldRankDelta": 3,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "Nat.and_forall_add_one",
+          "delta": 4
+        },
+        {
+          "name": "Nat.add_coprime_iff_left",
+          "delta": 3
+        },
+        {
+          "name": "Nat.add_modEq_right_iff",
+          "delta": 3
+        },
+        {
+          "name": "Nat.add_modulus_modEq_iff",
+          "delta": 3
+        },
+        {
+          "name": "Nat.add_modulus_mul_modEq_iff",
+          "delta": 3
+        },
+        {
+          "name": "Nat.add_mul_modulus_modEq_iff",
+          "delta": 3
+        },
+        {
+          "name": "Nat.coprime_add_iff_left",
+          "delta": 3
+        },
+        {
+          "name": "Nat.coprime_add_iff_right",
+          "delta": 3
+        },
+        {
+          "name": "Nat.dvd_add_iff_left",
+          "delta": 3
+        },
+        {
+          "name": "Nat.dvd_add_iff_right",
+          "delta": 3
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_nat_07",
+      "domain": "Nat",
+      "semanticTokens": [
+        "add"
+      ],
+      "eligibleCandidates": 82,
+      "boostedCandidates": 11,
+      "goldAffected": false,
+      "goldRankDelta": 0,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "Nat.add_mul",
+          "delta": 4
+        },
+        {
+          "name": "Nat.add_one",
+          "delta": 4
+        },
+        {
+          "name": "Nat.choose_eq_choose_pred_add",
+          "delta": 4
+        },
+        {
+          "name": "Nat.mul_add",
+          "delta": 4
+        },
+        {
+          "name": "Nat.mul_add_one",
+          "delta": 4
+        },
+        {
+          "name": "Nat.succ_add_sub_one",
+          "delta": 4
+        },
+        {
+          "name": "Nat.add_left_cancel",
+          "delta": 3
+        },
+        {
+          "name": "Nat.add_one_mul",
+          "delta": 3
+        },
+        {
+          "name": "Nat.add_left_comm",
+          "delta": 2
+        },
+        {
+          "name": "Nat.add_choose_eq",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_nat_08",
+      "domain": "Nat",
+      "semanticTokens": [
+        "mul"
+      ],
+      "eligibleCandidates": 48,
+      "boostedCandidates": 10,
+      "goldAffected": false,
+      "goldRankDelta": 0,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "Lean.Grind.NoNatZeroDivisors.eq_zero_of_mul_eq_zero",
+          "delta": 4
+        },
+        {
+          "name": "Nat.add_mul",
+          "delta": 2
+        },
+        {
+          "name": "Nat.add_one_mul",
+          "delta": 2
+        },
+        {
+          "name": "Nat.mul_add",
+          "delta": 2
+        },
+        {
+          "name": "Nat.mul_add_one",
+          "delta": 2
+        },
+        {
+          "name": "Nat.mul_assoc",
+          "delta": 2
+        },
+        {
+          "name": "Nat.mul_left_comm",
+          "delta": 2
+        },
+        {
+          "name": "Nat.succ_mul",
+          "delta": 2
+        },
+        {
+          "name": "Nat.ofNat_nsmul_eq_mul",
+          "delta": 1
+        },
+        {
+          "name": "Nat.prime_mul_iff",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_nat_09",
+      "domain": "Nat",
+      "semanticTokens": [
+        "mul"
+      ],
+      "eligibleCandidates": 53,
+      "boostedCandidates": 32,
+      "goldAffected": false,
+      "goldRankDelta": 0,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "Nat.div_mul_self_eq_mod_sub_self",
+          "delta": 4
+        },
+        {
+          "name": "Nat.divMaxPow_base_pow_mul",
+          "delta": 4
+        },
+        {
+          "name": "Nat.divMaxPow_mul_pow_padicValNat",
+          "delta": 4
+        },
+        {
+          "name": "Nat.dvd_iff_div_mul_eq",
+          "delta": 4
+        },
+        {
+          "name": "Nat.eq_div_iff_mul_eq_left",
+          "delta": 4
+        },
+        {
+          "name": "Nat.eq_div_of_mul_eq_left",
+          "delta": 4
+        },
+        {
+          "name": "Nat.eq_div_of_mul_eq_right",
+          "delta": 4
+        },
+        {
+          "name": "Nat.eq_mul_of_div_eq_left",
+          "delta": 4
+        },
+        {
+          "name": "Nat.eq_mul_of_div_eq_right",
+          "delta": 4
+        },
+        {
+          "name": "Nat.eq_of_mul_eq_mul_left",
+          "delta": 4
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_nat_10",
+      "domain": "Nat",
+      "semanticTokens": [
+        "mul"
+      ],
+      "eligibleCandidates": 29,
+      "boostedCandidates": 10,
+      "goldAffected": true,
+      "goldRankDelta": 1,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "Coprime.gcd_mul_left_cancel_right",
+          "delta": 4
+        },
+        {
+          "name": "Nat.mul_ne_zero_iff",
+          "delta": 3
+        },
+        {
+          "name": "Nat.one_lt_mul_iff",
+          "delta": 3
+        },
+        {
+          "name": "Nat.modulus_mul_add_modEq_iff",
+          "delta": 2
+        },
+        {
+          "name": "Nat.mul_dvd_mul_iff_left",
+          "delta": 2
+        },
+        {
+          "name": "Nat.mul_le_mul_left_iff",
+          "delta": 2
+        },
+        {
+          "name": "Nat.mul_modulus_add_modEq_iff",
+          "delta": 2
+        },
+        {
+          "name": "Nat.modEq_modulus_mul_add_iff",
+          "delta": 1
+        },
+        {
+          "name": "Nat.modEq_mul_modulus_add_iff",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_nat_14",
+      "domain": "Nat",
+      "semanticTokens": [
+        "lt",
+        "le"
+      ],
+      "eligibleCandidates": 102,
+      "boostedCandidates": 71,
+      "goldAffected": true,
+      "goldRankDelta": 4,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "ENat.WithBot.add_one_le_iff",
+          "delta": 4
+        },
+        {
+          "name": "ENat.WithBot.add_one_le_natCast_iff",
+          "delta": 4
+        },
+        {
+          "name": "ENat.WithBot.lt_add_one_iff",
+          "delta": 4
+        },
+        {
+          "name": "Field.le_iff_forall_one_lt_le_mul",
+          "delta": 4
+        },
+        {
+          "name": "Fin.castSucc_lt_iff_succ_le",
+          "delta": 4
+        },
+        {
+          "name": "Fin.subsingleton_iff_le_one",
+          "delta": 4
+        },
+        {
+          "name": "Finset.one_lt_prod_iff_of_one_le",
+          "delta": 4
+        },
+        {
+          "name": "Finset.prod_lt_one_iff_of_le_one",
+          "delta": 4
+        },
+        {
+          "name": "GroupWithZero.zpow_le_zpow_iff_right_of_lt_one",
+          "delta": 4
+        },
+        {
+          "name": "Int16.zero_le_ofNat_of_lt",
+          "delta": 4
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_nat_15",
+      "domain": "Nat",
+      "semanticTokens": [
+        "le",
+        "mul",
+        "sub"
+      ],
+      "eligibleCandidates": 101,
+      "boostedCandidates": 72,
+      "goldAffected": false,
+      "goldRankDelta": 0,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "Nat.add_one_mul",
+          "delta": 4
+        },
+        {
+          "name": "Nat.add_sub_of_le",
+          "delta": 4
+        },
+        {
+          "name": "Nat.mul_sub",
+          "delta": 4
+        },
+        {
+          "name": "Nat.mul_sub_div",
+          "delta": 4
+        },
+        {
+          "name": "Nat.mul_sub_left_distrib",
+          "delta": 4
+        },
+        {
+          "name": "Nat.mul_sub_one",
+          "delta": 4
+        },
+        {
+          "name": "Nat.mul_sub_right_distrib",
+          "delta": 4
+        },
+        {
+          "name": "Nat.sub_mul_div",
+          "delta": 4
+        },
+        {
+          "name": "Nat.sub_mul_eq_mod_of_lt_of_le",
+          "delta": 4
+        },
+        {
+          "name": "Nat.sub_mul_mod",
+          "delta": 4
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_int_01",
+      "domain": "Int",
+      "semanticTokens": [
+        "le"
+      ],
+      "eligibleCandidates": 39,
+      "boostedCandidates": 35,
+      "goldAffected": false,
+      "goldRankDelta": 0,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "Int.ediv_le_iff_le_mul",
+          "delta": 4
+        },
+        {
+          "name": "Int.floor_le_iff",
+          "delta": 4
+        },
+        {
+          "name": "Int.Internal.Linear.mul_add_cmod_le_iff",
+          "delta": 4
+        },
+        {
+          "name": "Int.Internal.Linear.mul_le_zero_iff",
+          "delta": 4
+        },
+        {
+          "name": "Int.le_def",
+          "delta": 4
+        },
+        {
+          "name": "Int.le_ediv_iff_mul_le",
+          "delta": 4
+        },
+        {
+          "name": "Int.le_emod_self_add_one_iff",
+          "delta": 4
+        },
+        {
+          "name": "Int.le_iff_lt_add_one",
+          "delta": 4
+        },
+        {
+          "name": "Int.le_neg_iff",
+          "delta": 4
+        },
+        {
+          "name": "Int.lt_iff_add_one_le",
+          "delta": 4
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_int_03",
+      "domain": "Int",
+      "semanticTokens": [
+        "add",
+        "pow"
+      ],
+      "eligibleCandidates": 74,
+      "boostedCandidates": 61,
+      "goldAffected": true,
+      "goldRankDelta": 2,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "Antiperiodic.add_int_mul_eq",
+          "delta": 4
+        },
+        {
+          "name": "BigOperators.sum_pow_mul_eq_add_pow",
+          "delta": 4
+        },
+        {
+          "name": "CharP.add_pow_prime_eq",
+          "delta": 4
+        },
+        {
+          "name": "CharP.add_pow_prime_eq'",
+          "delta": 4
+        },
+        {
+          "name": "CharP.add_pow_prime_pow_eq",
+          "delta": 4
+        },
+        {
+          "name": "CharP.add_pow_prime_pow_eq'",
+          "delta": 4
+        },
+        {
+          "name": "CharP.exists_add_pow_prime_eq",
+          "delta": 4
+        },
+        {
+          "name": "CharP.exists_add_pow_prime_pow_eq",
+          "delta": 4
+        },
+        {
+          "name": "Commute.add_pow_prime_eq",
+          "delta": 4
+        },
+        {
+          "name": "Commute.add_pow_prime_eq'",
+          "delta": 4
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_int_04",
+      "domain": "Int",
+      "semanticTokens": [
+        "add",
+        "sub"
+      ],
+      "eligibleCandidates": 78,
+      "boostedCandidates": 59,
+      "goldAffected": true,
+      "goldRankDelta": 1,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "BitVec.not_sub_one_eq_not_add_one",
+          "delta": 4
+        },
+        {
+          "name": "CategoryTheory.Subobject.factorThru_add_sub_factorThru_left",
+          "delta": 4
+        },
+        {
+          "name": "CategoryTheory.Subobject.factorThru_add_sub_factorThru_right",
+          "delta": 4
+        },
+        {
+          "name": "Complex.eq_mul_div_one_add_of_eq_div_sub",
+          "delta": 4
+        },
+        {
+          "name": "Complex.tan_eq_one_sub_tan_half_sq_div_one_add_tan_half_sq",
+          "delta": 4
+        },
+        {
+          "name": "Extremal.sum_ne_add_mod_eq_sub_one",
+          "delta": 4
+        },
+        {
+          "name": "Field.one_div_mul_sub_mul_one_div_eq_one_div_add_one_div",
+          "delta": 4
+        },
+        {
+          "name": "Finset.Icc_add_one_sub_one_eq_Ioo",
+          "delta": 4
+        },
+        {
+          "name": "Finsupp.add_sub_single_one",
+          "delta": 4
+        },
+        {
+          "name": "Floor.fract_eq_zero_or_add_one_sub_ceil",
+          "delta": 4
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_algebra_01",
+      "domain": "Algebra",
+      "semanticTokens": [
+        "lt"
+      ],
+      "eligibleCandidates": 22,
+      "boostedCandidates": 4,
+      "goldAffected": false,
+      "goldRankDelta": 0,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "Finset.prod_erase_lt_of_one_lt",
+          "delta": 4
+        },
+        {
+          "name": "Group.exists_one_lt_of_prod_one_of_exists_ne_one'",
+          "delta": 4
+        },
+        {
+          "name": "List.exists_cons_of_length_pos",
+          "delta": 4
+        },
+        {
+          "name": "Sublist.prod_dvd_prod",
+          "delta": 4
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_algebra_03",
+      "domain": "Algebra",
+      "semanticTokens": [
+        "inv"
+      ],
+      "eligibleCandidates": 3,
+      "boostedCandidates": 3,
+      "goldAffected": false,
+      "goldRankDelta": 0,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "Finset.invMulSubgroup_eq_inv_mul",
+          "delta": 3
+        },
+        {
+          "name": "Finset.invMulSubgroup_eq_mul_inv",
+          "delta": 3
+        },
+        {
+          "name": "Finset.mul_inv_eq_inv_mul_of_doubling_lt_two",
+          "delta": 3
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_algebra_08",
+      "domain": "Algebra",
+      "semanticTokens": [
+        "inv",
+        "mul",
+        "le"
+      ],
+      "eligibleCandidates": 83,
+      "boostedCandidates": 59,
+      "goldAffected": true,
+      "goldRankDelta": 4,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "_root_.map_units_inv",
+          "delta": 4
+        },
+        {
+          "name": "Algebra.mul_one_div_le_one",
+          "delta": 4
+        },
+        {
+          "name": "CStarAlgebra.inv_le_one_iff_one_le",
+          "delta": 4
+        },
+        {
+          "name": "CStarAlgebra.one_le_inv_iff_le_one",
+          "delta": 4
+        },
+        {
+          "name": "Field.le_iff_forall_one_lt_le_mul",
+          "delta": 4
+        },
+        {
+          "name": "GroupWithZero.inv_le_one_iff",
+          "delta": 4
+        },
+        {
+          "name": "GroupWithZero.inv_mul_le_iff",
+          "delta": 4
+        },
+        {
+          "name": "GroupWithZero.mul_inv_le_iff",
+          "delta": 4
+        },
+        {
+          "name": "GroupWithZero.one_le_inv_iff",
+          "delta": 4
+        },
+        {
+          "name": "Int.Cooper.le_mul_resolve_left_inv",
+          "delta": 4
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_algebra_15",
+      "domain": "Algebra",
+      "semanticTokens": [
+        "add",
+        "mul"
+      ],
+      "eligibleCandidates": 66,
+      "boostedCandidates": 47,
+      "goldAffected": false,
+      "goldRankDelta": 0,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "BitVec.add_mul",
+          "delta": 4
+        },
+        {
+          "name": "Calculus.tendsto_apply_add_mul_sq_div_sub",
+          "delta": 4
+        },
+        {
+          "name": "CharP.add_pow_eq_mul_pow_add_pow_div_char",
+          "delta": 4
+        },
+        {
+          "name": "CharP.add_pow_eq_mul_pow_add_pow_div_char_of_commute",
+          "delta": 4
+        },
+        {
+          "name": "CharP.add_pow_eq_mul_pow_add_pow_div_expChar",
+          "delta": 4
+        },
+        {
+          "name": "CharP.add_pow_eq_mul_pow_add_pow_div_expChar_of_commute",
+          "delta": 4
+        },
+        {
+          "name": "CStarAlgebra.add_mul",
+          "delta": 4
+        },
+        {
+          "name": "InnerProductSpace.norm_add_mul_self",
+          "delta": 4
+        },
+        {
+          "name": "InnerProductSpace.re_inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two",
+          "delta": 4
+        },
+        {
+          "name": "InnerProductSpace.re_inner_eq_norm_add_mul_self_sub_norm_sub_mul_self_div_four",
+          "delta": 4
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_order_02",
+      "domain": "Order",
+      "semanticTokens": [
+        "lt"
+      ],
+      "eligibleCandidates": 6,
+      "boostedCandidates": 6,
+      "goldAffected": true,
+      "goldRankDelta": 1,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "Array.set",
+          "delta": 2
+        },
+        {
+          "name": "Set.Icc_eq_empty_of_lt",
+          "delta": 1
+        },
+        {
+          "name": "Set.Ico",
+          "delta": 1
+        },
+        {
+          "name": "Set.Ioo_eq_empty_iff",
+          "delta": 1
+        },
+        {
+          "name": "Set.lt_eq_ssubset",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_order_04",
+      "domain": "Order",
+      "semanticTokens": [
+        "mem",
+        "div"
+      ],
+      "eligibleCandidates": 19,
+      "boostedCandidates": 13,
+      "goldAffected": true,
+      "goldRankDelta": 4,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "Filter.set_eventuallyLE_iff_mem_inf_principal",
+          "delta": 4
+        },
+        {
+          "name": "Filter.smul_set_mem_smul_filter",
+          "delta": 4
+        },
+        {
+          "name": "Finset.coe_mem",
+          "delta": 4
+        },
+        {
+          "name": "FirstOrder.Substructure.mem_sSup_of_directedOn",
+          "delta": 4
+        },
+        {
+          "name": "MonomialOrder.div_set",
+          "delta": 4
+        },
+        {
+          "name": "Set.div_mem_div",
+          "delta": 4
+        },
+        {
+          "name": "Set.exists_mem_image2",
+          "delta": 4
+        },
+        {
+          "name": "Set.forall_mem_image2",
+          "delta": 4
+        },
+        {
+          "name": "Set.mem_of_eq_of_mem",
+          "delta": 4
+        },
+        {
+          "name": "Set.mem_of_mem_of_subset",
+          "delta": 4
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_order_05",
+      "domain": "Order",
+      "semanticTokens": [
+        "le"
+      ],
+      "eligibleCandidates": 21,
+      "boostedCandidates": 1,
+      "goldAffected": false,
+      "goldRankDelta": 0,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "Ordinal.type_set_le",
+          "delta": 2
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_finset_05",
+      "domain": "Finset",
+      "semanticTokens": [
+        "add"
+      ],
+      "eligibleCandidates": 16,
+      "boostedCandidates": 6,
+      "goldAffected": false,
+      "goldRankDelta": 0,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "_root_.Finset.prod_range_add_one_eq_factorial",
+          "delta": 4
+        },
+        {
+          "name": "Finset.insert_Icc_right_eq_Icc_add_one",
+          "delta": 4
+        },
+        {
+          "name": "Finset.sum_centroidWeights_eq_one_of_card_eq_add_one",
+          "delta": 4
+        },
+        {
+          "name": "Finset.sum_centroidWeightsIndicator_eq_one_of_card_eq_add_one",
+          "delta": 4
+        },
+        {
+          "name": "SimplexCategory.II.finset",
+          "delta": 1
+        },
+        {
+          "name": "SSet.prodStdSimplex.pairingCore.finset",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_finset_08",
+      "domain": "Finset",
+      "semanticTokens": [
+        "le"
+      ],
+      "eligibleCandidates": 8,
+      "boostedCandidates": 1,
+      "goldAffected": true,
+      "goldRankDelta": 1,
+      "largestNonGoldRankMovements": []
+    },
+    {
+      "id": "holdout_v2_set_01",
+      "domain": "Set",
+      "semanticTokens": [
+        "inv"
+      ],
+      "eligibleCandidates": 8,
+      "boostedCandidates": 8,
+      "goldAffected": true,
+      "goldRankDelta": 4,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "Set.mk_preimage_prod_left_eq_empty",
+          "delta": 4
+        },
+        {
+          "name": "Set.mk_preimage_prod_right_eq_empty",
+          "delta": 4
+        },
+        {
+          "name": "Set.prod_eq",
+          "delta": 4
+        },
+        {
+          "name": "Set.prod_univ",
+          "delta": 4
+        },
+        {
+          "name": "Set.mk_preimage_prod_left",
+          "delta": 1
+        },
+        {
+          "name": "Set.mk_preimage_prod_right",
+          "delta": 1
+        },
+        {
+          "name": "Set.preimage_swap_prod",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_set_02",
+      "domain": "Set",
+      "semanticTokens": [
+        "union"
+      ],
+      "eligibleCandidates": 28,
+      "boostedCandidates": 23,
+      "goldAffected": true,
+      "goldRankDelta": 4,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "Set.image_val_union_self_left_eq",
+          "delta": 4
+        },
+        {
+          "name": "Set.image_val_union_self_right_eq",
+          "delta": 4
+        },
+        {
+          "name": "Set.image2_inter_union_subset",
+          "delta": 4
+        },
+        {
+          "name": "Set.image2_union_inter_subset",
+          "delta": 4
+        },
+        {
+          "name": "Set.image2_union_left",
+          "delta": 4
+        },
+        {
+          "name": "Set.image2_union_right",
+          "delta": 4
+        },
+        {
+          "name": "Set.inter_eq_compl_compl_union_compl",
+          "delta": 4
+        },
+        {
+          "name": "Set.sdiff_sdiff_eq_sdiff_union",
+          "delta": 4
+        },
+        {
+          "name": "Set.sup_eq_union",
+          "delta": 4
+        },
+        {
+          "name": "Set.union_eq_compl_compl_inter_compl",
+          "delta": 4
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_set_03",
+      "domain": "Set",
+      "semanticTokens": [
+        "le"
+      ],
+      "eligibleCandidates": 27,
+      "boostedCandidates": 19,
+      "goldAffected": true,
+      "goldRankDelta": 4,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "Finset.injOn_of_surjOn_of_card_le",
+          "delta": 4
+        },
+        {
+          "name": "Finset.set_encard_biUnion_le",
+          "delta": 4
+        },
+        {
+          "name": "Finset.set_ncard_biUnion_le",
+          "delta": 4
+        },
+        {
+          "name": "Finset.surjOn_of_injOn_of_card_le",
+          "delta": 4
+        },
+        {
+          "name": "IsLowerSet.card_inter_le_finset",
+          "delta": 4
+        },
+        {
+          "name": "IsLowerSet.le_card_inter_finset",
+          "delta": 4
+        },
+        {
+          "name": "IsLowerSet.le_card_inter_finset'",
+          "delta": 4
+        },
+        {
+          "name": "IsUpperSet.card_inter_le_finset",
+          "delta": 4
+        },
+        {
+          "name": "IsUpperSet.le_card_inter_finset",
+          "delta": 4
+        },
+        {
+          "name": "Set.encard_le_card",
+          "delta": 4
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_set_09",
+      "domain": "Set",
+      "semanticTokens": [
+        "inter"
+      ],
+      "eligibleCandidates": 22,
+      "boostedCandidates": 8,
+      "goldAffected": false,
+      "goldRankDelta": 0,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "Set.union_eq_sdiff_union_sdiff_union_inter",
+          "delta": 4
+        },
+        {
+          "name": "Set.union_inter_cancel_left",
+          "delta": 4
+        },
+        {
+          "name": "Set.union_inter_cancel_right",
+          "delta": 4
+        },
+        {
+          "name": "Set.union_inter_distrib_left",
+          "delta": 4
+        },
+        {
+          "name": "Set.union_inter_distrib_right",
+          "delta": 4
+        },
+        {
+          "name": "Set.union_eq_compl_compl_inter_compl",
+          "delta": 3
+        },
+        {
+          "name": "Set.ofPred_inter_eq_sep",
+          "delta": 2
+        },
+        {
+          "name": "Set.preimage_val_sInter_eq_sInter",
+          "delta": 2
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_list_01",
+      "domain": "List",
+      "semanticTokens": [
+        "inter",
+        "subset"
+      ],
+      "eligibleCandidates": 48,
+      "boostedCandidates": 24,
+      "goldAffected": true,
+      "goldRankDelta": 4,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "List.drop_subset",
+          "delta": 4
+        },
+        {
+          "name": "List.dropLast_subset",
+          "delta": 4
+        },
+        {
+          "name": "List.dropWhile_subset",
+          "delta": 4
+        },
+        {
+          "name": "List.erase_subset",
+          "delta": 4
+        },
+        {
+          "name": "List.eraseIdx_subset",
+          "delta": 4
+        },
+        {
+          "name": "List.eraseP_subset",
+          "delta": 4
+        },
+        {
+          "name": "List.filter_subset",
+          "delta": 4
+        },
+        {
+          "name": "List.filterMap_subset",
+          "delta": 4
+        },
+        {
+          "name": "List.inter_subset_right",
+          "delta": 4
+        },
+        {
+          "name": "List.map_subset",
+          "delta": 4
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_list_03",
+      "domain": "List",
+      "semanticTokens": [
+        "mem"
+      ],
+      "eligibleCandidates": 5,
+      "boostedCandidates": 3,
+      "goldAffected": true,
+      "goldRankDelta": 4,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "_root_.Std.Internal.List.not_of_countP_eq_zero_of_mem",
+          "delta": 4
+        },
+        {
+          "name": "Set.ofPred_mem_list_eq_singleton_of_nodup",
+          "delta": 2
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_list_05",
+      "domain": "List",
+      "semanticTokens": [
+        "le"
+      ],
+      "eligibleCandidates": 28,
+      "boostedCandidates": 6,
+      "goldAffected": false,
+      "goldRankDelta": 0,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "List.idxOf_le_length",
+          "delta": 4
+        },
+        {
+          "name": "List.length_destutter_ne_le_length_destutter_cons",
+          "delta": 4
+        },
+        {
+          "name": "List.length_filter_le",
+          "delta": 4
+        },
+        {
+          "name": "List.length_filterMap_le",
+          "delta": 4
+        },
+        {
+          "name": "List.length_insertIdx_le_succ",
+          "delta": 4
+        },
+        {
+          "name": "List.length_le_length_insertIdx",
+          "delta": 4
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_list_07",
+      "domain": "List",
+      "semanticTokens": [
+        "add"
+      ],
+      "eligibleCandidates": 25,
+      "boostedCandidates": 7,
+      "goldAffected": false,
+      "goldRankDelta": 0,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "List.drop_length_add_append",
+          "delta": 4
+        },
+        {
+          "name": "List.length_add_eq_lengthTRAux",
+          "delta": 4
+        },
+        {
+          "name": "List.toFinsupp_concat_eq_toFinsupp_add_single",
+          "delta": 4
+        },
+        {
+          "name": "List.append_nil",
+          "delta": 2
+        },
+        {
+          "name": "List.range'_1_concat",
+          "delta": 2
+        },
+        {
+          "name": "List.drop_add_one_eq_tail_drop",
+          "delta": 1
+        },
+        {
+          "name": "List.dropLast_append_cons",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_list_09",
+      "domain": "List",
+      "semanticTokens": [
+        "subset"
+      ],
+      "eligibleCandidates": 4,
+      "boostedCandidates": 4,
+      "goldAffected": true,
+      "goldRankDelta": 2,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "List.replicate_subset",
+          "delta": 2
+        },
+        {
+          "name": "List.subset_replicate",
+          "delta": 2
+        },
+        {
+          "name": "List.eq_nil_of_subset_nil",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_option_02",
+      "domain": "Option",
+      "semanticTokens": [
+        "lt"
+      ],
+      "eligibleCandidates": 2,
+      "boostedCandidates": 1,
+      "goldAffected": true,
+      "goldRankDelta": 1,
+      "largestNonGoldRankMovements": []
+    },
+    {
+      "id": "holdout_v2_option_04",
+      "domain": "Option",
+      "semanticTokens": [
+        "lt",
+        "mul"
+      ],
+      "eligibleCandidates": 17,
+      "boostedCandidates": 13,
+      "goldAffected": true,
+      "goldRankDelta": 4,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "_root_.Nat.mod_eq_sub_of_lt_two_mul",
+          "delta": 4
+        },
+        {
+          "name": "BitVec.msb_eq_false_iff_two_mul_lt",
+          "delta": 4
+        },
+        {
+          "name": "Group.ball_eq_norm_inv_mul_lt",
+          "delta": 4
+        },
+        {
+          "name": "Int.lt_of_sum_four_squares_eq_mul",
+          "delta": 4
+        },
+        {
+          "name": "Integral.lintegral_comp_eq_lintegral_meas_lt_mul",
+          "delta": 4
+        },
+        {
+          "name": "IsUltrametricDist.nnnorm_eq_of_mul_nnnorm_lt_max",
+          "delta": 4
+        },
+        {
+          "name": "IsUltrametricDist.norm_eq_of_mul_norm_lt_max",
+          "delta": 4
+        },
+        {
+          "name": "Nat.factorization_centralBinom_eq_zero_of_two_mul_lt",
+          "delta": 4
+        },
+        {
+          "name": "Nat.lt_iff_lt_of_mul_eq_mul",
+          "delta": 4
+        },
+        {
+          "name": "Nat.sub_mul_eq_mod_of_lt_of_le",
+          "delta": 4
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_prod_sum_03",
+      "domain": "Prod / Sum",
+      "semanticTokens": [
+        "add"
+      ],
+      "eligibleCandidates": 1,
+      "boostedCandidates": 1,
+      "goldAffected": false,
+      "goldRankDelta": 0,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "Real.prod_one_add_le_exp_sum",
+          "delta": 4
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_prod_sum_06",
+      "domain": "Prod / Sum",
+      "semanticTokens": [
+        "comp"
+      ],
+      "eligibleCandidates": 19,
+      "boostedCandidates": 5,
+      "goldAffected": false,
+      "goldRankDelta": 0,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "RingHom.snd_comp_prod",
+          "delta": 4
+        },
+        {
+          "name": "IteratedDeriv.iteratedDeriv_comp_eq_sum_orderedFinpartition",
+          "delta": 2
+        },
+        {
+          "name": "IteratedDeriv.iteratedDerivWithin_comp_eq_sum_orderedFinpartition",
+          "delta": 2
+        },
+        {
+          "name": "Prod.swap_swap_eq",
+          "delta": 2
+        },
+        {
+          "name": "prod.lift_fst_comp_snd_comp",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_maps_07",
+      "domain": "Maps",
+      "semanticTokens": [
+        "add",
+        "mul"
+      ],
+      "eligibleCandidates": 41,
+      "boostedCandidates": 36,
+      "goldAffected": false,
+      "goldRankDelta": 0,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "AnalyticOnNhd.eq_const_add_im_mul_I_of_re_eq_const",
+          "delta": 4
+        },
+        {
+          "name": "AnalyticOnNhd.eq_re_add_const_mul_I_of_re_eq_const",
+          "delta": 4
+        },
+        {
+          "name": "BitVec.neg_add_mul_eq_mul_not",
+          "delta": 4
+        },
+        {
+          "name": "BitVec.udiv_eq_of_mul_add_toNat",
+          "delta": 4
+        },
+        {
+          "name": "BitVec.umod_eq_of_mul_add_toNat",
+          "delta": 4
+        },
+        {
+          "name": "CharP.add_pow_eq_mul_pow_add_pow_div_char_of_commute",
+          "delta": 4
+        },
+        {
+          "name": "CharP.add_pow_eq_mul_pow_add_pow_div_expChar_of_commute",
+          "delta": 4
+        },
+        {
+          "name": "Degree.coeff_mul_add_eq_of_natDegree_le",
+          "delta": 4
+        },
+        {
+          "name": "IsFormallyReal.of_eq_zero_of_eq_zero_of_mul_self_add",
+          "delta": 4
+        },
+        {
+          "name": "IsFormallyReal.of_eq_zero_of_mul_self_of_eq_zero_of_add",
+          "delta": 4
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_sequences_04",
+      "domain": "Sequences",
+      "semanticTokens": [
+        "div",
+        "pow",
+        "lt"
+      ],
+      "eligibleCandidates": 36,
+      "boostedCandidates": 2,
+      "goldAffected": true,
+      "goldRankDelta": 1,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "Mathlib.Meta.Real.cos_eq_one_iff_of_lt_of_lt",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "holdout_v2_analysis_07",
+      "domain": "Analysis",
+      "semanticTokens": [
+        "mem",
+        "neg",
+        "div"
+      ],
+      "eligibleCandidates": 21,
+      "boostedCandidates": 9,
+      "goldAffected": false,
+      "goldRankDelta": 0,
+      "largestNonGoldRankMovements": [
+        {
+          "name": "Mathlib.Meta.Real.cos_neg_of_pi_div_two_lt_of_lt",
+          "delta": 4
+        },
+        {
+          "name": "Mathlib.Meta.Real.cos_nonneg_of_neg_pi_div_two_le_of_le",
+          "delta": 4
+        },
+        {
+          "name": "Set.neg_mem_center",
+          "delta": 4
+        },
+        {
+          "name": "Set.neg_mem_centralizer",
+          "delta": 4
+        },
+        {
+          "name": "Mathlib.Meta.Real.cos_sub_pi_div_two",
+          "delta": 1
+        },
+        {
+          "name": "Mathlib.Meta.Real.sin_pi_div_two_sub",
+          "delta": 1
+        },
+        {
+          "name": "Mathlib.Meta.Real.sin_sub_pi_div_two",
+          "delta": 1
+        },
+        {
+          "name": "Real.arcsin_le_iff_le_sin",
+          "delta": 1
+        },
+        {
+          "name": "Real.arcsin_lt_iff_lt_sin",
+          "delta": 1
+        }
+      ]
+    }
+  ],
+  "hashGuard": {
+    "manifestVersion": "retrieval-holdout-v2-manifest-v1",
+    "createdAt": "2026-08-24",
+    "canonicalEvaluationAuthorized": true,
+    "v2Spec": {
+      "path": "benchmarks/retrieval-experiments/semantic-operator-profile-v2.json",
+      "sha256": "673757caf38b7facf965c81c047e77bea135bb9c879c2550ffacce37cbd311d2"
+    },
+    "v2Implementation": {
+      "path": "packages/retrieval/src/semantic-operator-profile-v2.ts",
+      "sha256": "26ae12e0ae81d77d63bc9233068f76ce2c1b88337bb587967b3284b121a89012"
+    },
+    "holdoutV2": {
+      "path": "packages/retrieval/src/holdout-v2-fixtures.ts",
+      "sha256": "87b018cff5f260e4b8b51cc003f32932d4f252b552007678c2eb16a872970235",
+      "datasetVersion": "retrieval-holdout-v2",
+      "frozen": true,
+      "fixtureCount": 180
+    },
+    "lean": {
+      "version": "v4.33.1",
+      "fullVersion": "Lean (version 4.33.1, x86_64-apple-darwin24.6.0, commit 819816b2e0a3bf405af45ae5c7af2491d8f5bee6, Release)"
+    },
+    "mathlib": {
+      "version": "v4.33.1",
+      "lakeManifestRevision": "0df444a360eaa60ab8c11dca51a86af692955474"
+    },
+    "sourceIndex": {
+      "revision": "827dabf4588cc464",
+      "formatVersion": 3,
+      "declarationCount": 234537
+    }
+  },
+  "gates": {
+    "final20NonDecreasing": false,
+    "hit10NonDecreasing": true,
+    "mrrNotMeaningfullyNegative": true,
+    "completeRegressionZero": false,
+    "unrelatedCompleteRegressionZero": true,
+    "nonGold20PlusZero": true,
+    "upstreamPositive": false,
+    "latencySmall": true
+  },
+  "decision": "REJECT",
+  "trustModel": [
+    "retrieval gain != theorem correctness",
+    "semantic compatibility != confidence",
+    "premise != proof",
+    "Lean inspection != verification",
+    "VerificationGate is the only KERNEL_VERIFIED path"
+  ],
+  "closedAfterCanonicalResult": true
+}

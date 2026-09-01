@@ -1,0 +1,22 @@
+{
+  "name": "@mathos/core",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@mathos/shared": "workspace:*",
+    "@mathos/domain": "workspace:*",
+    "@mathos/events": "workspace:*",
+    "@mathos/storage": "workspace:*",
+    "@mathos/workspace": "workspace:*",
+    "@mathos/models": "workspace:*",
+    "@mathos/lean": "workspace:*",
+    "@mathos/retrieval": "workspace:*",
+    "@mathos/vcs": "workspace:*",
+    "@mathos/graph": "workspace:*",
+    "@mathos/computation": "workspace:*",
+    "@mathos/literature": "workspace:*"
+  }
+}

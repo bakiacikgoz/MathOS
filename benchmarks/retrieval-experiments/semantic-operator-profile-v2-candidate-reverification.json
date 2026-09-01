@@ -1,0 +1,18 @@
+{
+  "version": "SEMANTIC_OPERATOR_PROFILE_V2_CANDIDATE_REVERIFICATION",
+  "createdAt": "2026-08-24",
+  "candidateArtifactSha256": "5a0f91873748b8580717dd3e4295a804f56798702f3dac779a046b094b454cf2",
+  "candidateImplementationSha256": "ec0ee404868671c147b7fdd678e7a787b45d0f767405cc74fc4e57147af99746",
+  "development": {
+    "fixtures": 20,
+    "metrics": { "union": 0.95, "top200": 0.80, "inspect30": 0.75, "final20": 0.65, "hit5": 0.25, "hit10": 0.40, "mrr": 0.1282456636500754 },
+    "paired": { "improved": 5, "unchanged": 15, "hurt": 0, "completeRegressions": 0 }
+  },
+  "validation": {
+    "fixtures": 60,
+    "metrics": { "union": 0.8833333333333333, "top200": 0.7833333333333333, "inspect30": 0.6333333333333333, "final20": 0.6333333333333333, "hit5": 0.45, "hit10": 0.5666666666666667, "mrr": 0.2591393311710649 },
+    "paired": { "improved": 5, "unchanged": 55, "hurt": 0, "completeRegressions": 0 }
+  },
+  "matchesStoredCandidateReport": true,
+  "holdoutV1Used": false
+}

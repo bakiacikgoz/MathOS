@@ -1,0 +1,1346 @@
+{
+  "dataset": {
+    "datasetVersion": "retrieval-holdout-v1",
+    "createdAt": "2026-08-24",
+    "leanVersion": "v4.33.1",
+    "mathlibVersion": "v4.33.1",
+    "frozen": true,
+    "selection": {
+      "method": "deterministic domain-stratified SHA-256 ordering over indexed theorem/lemma declarations",
+      "seed": "retrieval-holdout-v1",
+      "featureSpecificationFrozenBeforeSelection": true,
+      "weakDomainCount": 36
+    }
+  },
+  "fixtureCount": 100,
+  "featureVersion": "SEMANTIC_OPERATOR_PROFILE_V1",
+  "policies": {
+    "baseline": {
+      "union": 0.75,
+      "top200": 0.58,
+      "inspect30": 0.51,
+      "final20": 0.5,
+      "hit1": 0.05,
+      "hit5": 0.16,
+      "hit10": 0.31,
+      "mrr": 0.12176649124868939,
+      "top200ToInspect30": 0.8793103448275862,
+      "inspect30ToFinal20": 0.9803921568627451
+    },
+    "feature": {
+      "union": 0.76,
+      "top200": 0.6,
+      "inspect30": 0.53,
+      "final20": 0.51,
+      "hit1": 0.05,
+      "hit5": 0.15,
+      "hit10": 0.32,
+      "mrr": 0.12462620038200534,
+      "top200ToInspect30": 0.8833333333333333,
+      "inspect30ToFinal20": 0.9622641509433962
+    },
+    "delta": {
+      "union": 0.01,
+      "top200": 0.02,
+      "inspect30": 0.02,
+      "final20": 0.01,
+      "hit1": 0,
+      "hit5": -0.01,
+      "hit10": 0.01,
+      "mrr": 0.00285971,
+      "top200ToInspect30": 0.00402299,
+      "inspect30ToFinal20": -0.01812801
+    }
+  },
+  "failureBreakdown": {
+    "baseline": {
+      "NOT_INDEXED": 0,
+      "NOT_GENERATED": 25,
+      "OUTSIDE_TOP200": 17,
+      "OUTSIDE_INSPECT30": 7,
+      "LEAN_INSPECTION_FAILED": 1,
+      "OUTSIDE_FINAL20": 0
+    },
+    "feature": {
+      "NOT_INDEXED": 0,
+      "NOT_GENERATED": 24,
+      "OUTSIDE_TOP200": 16,
+      "OUTSIDE_INSPECT30": 7,
+      "LEAN_INSPECTION_FAILED": 2,
+      "OUTSIDE_FINAL20": 0
+    }
+  },
+  "domains": {
+    "baseline": {
+      "Algebra": {
+        "count": 12,
+        "union": 0.9166666666666666,
+        "top200": 0.75,
+        "inspect30": 0.6666666666666666,
+        "final20": 0.6666666666666666,
+        "hit1": 0,
+        "hit5": 0.16666666666666666,
+        "hit10": 0.4166666666666667,
+        "mrr": 0.09551343264578559,
+        "top200ToInspect30": 0.8888888888888888,
+        "inspect30ToFinal20": 1
+      },
+      "Analysis": {
+        "count": 5,
+        "union": 0.2,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0,
+        "top200ToInspect30": 0,
+        "inspect30ToFinal20": 0
+      },
+      "Basic number theory": {
+        "count": 4,
+        "union": 0.75,
+        "top200": 0.5,
+        "inspect30": 0.5,
+        "final20": 0.5,
+        "hit1": 0,
+        "hit5": 0.5,
+        "hit10": 0.5,
+        "mrr": 0.14583333333333331,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "Combinatorics": {
+        "count": 4,
+        "union": 0.5,
+        "top200": 0.25,
+        "inspect30": 0.25,
+        "final20": 0,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 0
+      },
+      "Eq / Logic": {
+        "count": 6,
+        "union": 0.8333333333333334,
+        "top200": 0.8333333333333334,
+        "inspect30": 0.5,
+        "final20": 0.5,
+        "hit1": 0.16666666666666666,
+        "hit5": 0.16666666666666666,
+        "hit10": 0.3333333333333333,
+        "mrr": 0.2043650793650794,
+        "top200ToInspect30": 0.6,
+        "inspect30ToFinal20": 1
+      },
+      "Finset": {
+        "count": 5,
+        "union": 0.6,
+        "top200": 0.4,
+        "inspect30": 0.4,
+        "final20": 0.4,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0.2,
+        "mrr": 0.0327485380116959,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "Function": {
+        "count": 5,
+        "union": 1,
+        "top200": 0.8,
+        "inspect30": 0.8,
+        "final20": 0.8,
+        "hit1": 0.6,
+        "hit5": 0.8,
+        "hit10": 0.8,
+        "mrr": 0.65,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "Int": {
+        "count": 8,
+        "union": 0.75,
+        "top200": 0.625,
+        "inspect30": 0.375,
+        "final20": 0.375,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0.027564102564102563,
+        "top200ToInspect30": 0.6,
+        "inspect30ToFinal20": 1
+      },
+      "List": {
+        "count": 5,
+        "union": 1,
+        "top200": 0.8,
+        "inspect30": 0.8,
+        "final20": 0.8,
+        "hit1": 0,
+        "hit5": 0.2,
+        "hit10": 0.6,
+        "mrr": 0.12,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "Maps / Functions": {
+        "count": 4,
+        "union": 1,
+        "top200": 0.75,
+        "inspect30": 0.75,
+        "final20": 0.75,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0.5,
+        "mrr": 0.08333333333333333,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "Nat": {
+        "count": 8,
+        "union": 0.625,
+        "top200": 0.375,
+        "inspect30": 0.375,
+        "final20": 0.375,
+        "hit1": 0.125,
+        "hit5": 0.25,
+        "hit10": 0.25,
+        "mrr": 0.19886363636363635,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "Option": {
+        "count": 4,
+        "union": 0.5,
+        "top200": 0.5,
+        "inspect30": 0.5,
+        "final20": 0.5,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0.034722222222222224,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "Order": {
+        "count": 5,
+        "union": 0.6,
+        "top200": 0.2,
+        "inspect30": 0.2,
+        "final20": 0.2,
+        "hit1": 0,
+        "hit5": 0.2,
+        "hit10": 0.2,
+        "mrr": 0.06666666666666667,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "Prod / Sum": {
+        "count": 4,
+        "union": 0.5,
+        "top200": 0.5,
+        "inspect30": 0.25,
+        "final20": 0.25,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0.019230769230769232,
+        "top200ToInspect30": 0.5,
+        "inspect30ToFinal20": 1
+      },
+      "Relations": {
+        "count": 8,
+        "union": 0.875,
+        "top200": 0.625,
+        "inspect30": 0.625,
+        "final20": 0.625,
+        "hit1": 0,
+        "hit5": 0.125,
+        "hit10": 0.375,
+        "mrr": 0.11769005847953216,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "Sequences": {
+        "count": 4,
+        "union": 1,
+        "top200": 0.75,
+        "inspect30": 0.5,
+        "final20": 0.5,
+        "hit1": 0,
+        "hit5": 0.25,
+        "hit10": 0.25,
+        "mrr": 0.14772727272727273,
+        "top200ToInspect30": 0.6666666666666666,
+        "inspect30ToFinal20": 1
+      },
+      "Set": {
+        "count": 5,
+        "union": 0.8,
+        "top200": 0.8,
+        "inspect30": 0.8,
+        "final20": 0.8,
+        "hit1": 0,
+        "hit5": 0.2,
+        "hit10": 0.6,
+        "mrr": 0.13562271062271064,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "Topology": {
+        "count": 4,
+        "union": 0.75,
+        "top200": 0.75,
+        "inspect30": 0.75,
+        "final20": 0.75,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0.5,
+        "mrr": 0.07569444444444444,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      }
+    },
+    "feature": {
+      "Algebra": {
+        "count": 12,
+        "union": 0.9166666666666666,
+        "top200": 0.75,
+        "inspect30": 0.75,
+        "final20": 0.75,
+        "hit1": 0,
+        "hit5": 0.08333333333333333,
+        "hit10": 0.4166666666666667,
+        "mrr": 0.10063400651635947,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "Analysis": {
+        "count": 5,
+        "union": 0.2,
+        "top200": 0,
+        "inspect30": 0,
+        "final20": 0,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0,
+        "top200ToInspect30": 0,
+        "inspect30ToFinal20": 0
+      },
+      "Basic number theory": {
+        "count": 4,
+        "union": 0.75,
+        "top200": 0.5,
+        "inspect30": 0.5,
+        "final20": 0.5,
+        "hit1": 0,
+        "hit5": 0.5,
+        "hit10": 0.5,
+        "mrr": 0.14583333333333331,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "Combinatorics": {
+        "count": 4,
+        "union": 0.5,
+        "top200": 0.25,
+        "inspect30": 0.25,
+        "final20": 0,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 0
+      },
+      "Eq / Logic": {
+        "count": 6,
+        "union": 0.8333333333333334,
+        "top200": 0.8333333333333334,
+        "inspect30": 0.5,
+        "final20": 0.5,
+        "hit1": 0.16666666666666666,
+        "hit5": 0.16666666666666666,
+        "hit10": 0.3333333333333333,
+        "mrr": 0.2043650793650794,
+        "top200ToInspect30": 0.6,
+        "inspect30ToFinal20": 1
+      },
+      "Finset": {
+        "count": 5,
+        "union": 0.6,
+        "top200": 0.4,
+        "inspect30": 0.4,
+        "final20": 0.4,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0.2,
+        "mrr": 0.034722222222222224,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "Function": {
+        "count": 5,
+        "union": 1,
+        "top200": 0.8,
+        "inspect30": 0.8,
+        "final20": 0.8,
+        "hit1": 0.6,
+        "hit5": 0.8,
+        "hit10": 0.8,
+        "mrr": 0.65,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "Int": {
+        "count": 8,
+        "union": 0.75,
+        "top200": 0.75,
+        "inspect30": 0.375,
+        "final20": 0.375,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0.026102941176470586,
+        "top200ToInspect30": 0.5,
+        "inspect30ToFinal20": 1
+      },
+      "List": {
+        "count": 5,
+        "union": 1,
+        "top200": 0.8,
+        "inspect30": 0.8,
+        "final20": 0.8,
+        "hit1": 0,
+        "hit5": 0.2,
+        "hit10": 0.4,
+        "mrr": 0.14994652406417114,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "Maps / Functions": {
+        "count": 4,
+        "union": 1,
+        "top200": 0.75,
+        "inspect30": 0.75,
+        "final20": 0.75,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0.5,
+        "mrr": 0.09564393939393939,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "Nat": {
+        "count": 8,
+        "union": 0.75,
+        "top200": 0.375,
+        "inspect30": 0.375,
+        "final20": 0.375,
+        "hit1": 0.125,
+        "hit5": 0.25,
+        "hit10": 0.25,
+        "mrr": 0.19791666666666669,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "Option": {
+        "count": 4,
+        "union": 0.5,
+        "top200": 0.5,
+        "inspect30": 0.5,
+        "final20": 0.25,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0.020833333333333332,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 0.5
+      },
+      "Order": {
+        "count": 5,
+        "union": 0.6,
+        "top200": 0.2,
+        "inspect30": 0.2,
+        "final20": 0.2,
+        "hit1": 0,
+        "hit5": 0.2,
+        "hit10": 0.2,
+        "mrr": 0.06666666666666667,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "Prod / Sum": {
+        "count": 4,
+        "union": 0.5,
+        "top200": 0.5,
+        "inspect30": 0.25,
+        "final20": 0.25,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0,
+        "mrr": 0.019230769230769232,
+        "top200ToInspect30": 0.5,
+        "inspect30ToFinal20": 1
+      },
+      "Relations": {
+        "count": 8,
+        "union": 0.875,
+        "top200": 0.625,
+        "inspect30": 0.625,
+        "final20": 0.625,
+        "hit1": 0,
+        "hit5": 0.125,
+        "hit10": 0.375,
+        "mrr": 0.11769005847953216,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "Sequences": {
+        "count": 4,
+        "union": 1,
+        "top200": 1,
+        "inspect30": 0.75,
+        "final20": 0.75,
+        "hit1": 0,
+        "hit5": 0.25,
+        "hit10": 0.75,
+        "mrr": 0.175,
+        "top200ToInspect30": 0.75,
+        "inspect30ToFinal20": 1
+      },
+      "Set": {
+        "count": 5,
+        "union": 0.8,
+        "top200": 0.8,
+        "inspect30": 0.8,
+        "final20": 0.8,
+        "hit1": 0,
+        "hit5": 0.2,
+        "hit10": 0.6,
+        "mrr": 0.13690476190476192,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      },
+      "Topology": {
+        "count": 4,
+        "union": 0.75,
+        "top200": 0.75,
+        "inspect30": 0.75,
+        "final20": 0.75,
+        "hit1": 0,
+        "hit5": 0,
+        "hit10": 0.5,
+        "mrr": 0.06944444444444445,
+        "top200ToInspect30": 1,
+        "inspect30ToFinal20": 1
+      }
+    }
+  },
+  "weakDomains": {
+    "baseline": {
+      "union": 0.8055555555555556,
+      "top200": 0.6111111111111112,
+      "inspect30": 0.5277777777777778,
+      "final20": 0.5277777777777778,
+      "hit1": 0.027777777777777776,
+      "hit5": 0.1388888888888889,
+      "hit10": 0.2777777777777778,
+      "mrr": 0.10830843252798877,
+      "top200ToInspect30": 0.8636363636363636,
+      "inspect30ToFinal20": 1
+    },
+    "feature": {
+      "union": 0.8333333333333334,
+      "top200": 0.6388888888888888,
+      "inspect30": 0.5555555555555556,
+      "final20": 0.5555555555555556,
+      "hit1": 0.027777777777777776,
+      "hit5": 0.1111111111111111,
+      "hit10": 0.2777777777777778,
+      "mrr": 0.10948015024382413,
+      "top200ToInspect30": 0.8695652173913043,
+      "inspect30ToFinal20": 1
+    }
+  },
+  "paired": {
+    "improved": 10,
+    "unchanged": 83,
+    "hurt": 7,
+    "net": 3,
+    "fixedFailures": [
+      "holdout_algebra_02",
+      "holdout_sequences_04"
+    ],
+    "newRegressions": [
+      "holdout_option_01"
+    ],
+    "unrelatedRegressions": [
+      "holdout_list_03",
+      "holdout_list_04",
+      "holdout_option_01",
+      "holdout_topology_03"
+    ],
+    "fixtures": [
+      {
+        "id": "holdout_algebra_01",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "baselineRank": 11,
+        "featureRank": 11
+      },
+      {
+        "id": "holdout_algebra_02",
+        "domain": "Algebra",
+        "classification": "IMPROVED",
+        "baselineRank": null,
+        "featureRank": 13
+      },
+      {
+        "id": "holdout_algebra_03",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "baselineRank": 10,
+        "featureRank": 10
+      },
+      {
+        "id": "holdout_algebra_04",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "baselineRank": 14,
+        "featureRank": 14
+      },
+      {
+        "id": "holdout_algebra_05",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "baselineRank": 17,
+        "featureRank": 17
+      },
+      {
+        "id": "holdout_algebra_06",
+        "domain": "Algebra",
+        "classification": "IMPROVED",
+        "baselineRank": 8,
+        "featureRank": 7
+      },
+      {
+        "id": "holdout_algebra_07",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "baselineRank": 6,
+        "featureRank": 6
+      },
+      {
+        "id": "holdout_algebra_08",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "baselineRank": 3,
+        "featureRank": 3
+      },
+      {
+        "id": "holdout_algebra_09",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_algebra_10",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_algebra_11",
+        "domain": "Algebra",
+        "classification": "HURT",
+        "baselineRank": 5,
+        "featureRank": 6
+      },
+      {
+        "id": "holdout_algebra_12",
+        "domain": "Algebra",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_nat_01",
+        "domain": "Nat",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_nat_02",
+        "domain": "Nat",
+        "classification": "HURT",
+        "baselineRank": 11,
+        "featureRank": 12
+      },
+      {
+        "id": "holdout_nat_03",
+        "domain": "Nat",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_nat_04",
+        "domain": "Nat",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_nat_05",
+        "domain": "Nat",
+        "classification": "UNCHANGED",
+        "baselineRank": 2,
+        "featureRank": 2
+      },
+      {
+        "id": "holdout_nat_06",
+        "domain": "Nat",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_nat_07",
+        "domain": "Nat",
+        "classification": "UNCHANGED",
+        "baselineRank": 1,
+        "featureRank": 1
+      },
+      {
+        "id": "holdout_nat_08",
+        "domain": "Nat",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_int_01",
+        "domain": "Int",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_int_02",
+        "domain": "Int",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_int_03",
+        "domain": "Int",
+        "classification": "UNCHANGED",
+        "baselineRank": 15,
+        "featureRank": 15
+      },
+      {
+        "id": "holdout_int_04",
+        "domain": "Int",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_int_05",
+        "domain": "Int",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_int_06",
+        "domain": "Int",
+        "classification": "IMPROVED",
+        "baselineRank": 13,
+        "featureRank": 12
+      },
+      {
+        "id": "holdout_int_07",
+        "domain": "Int",
+        "classification": "HURT",
+        "baselineRank": 13,
+        "featureRank": 17
+      },
+      {
+        "id": "holdout_int_08",
+        "domain": "Int",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_relations_01",
+        "domain": "Relations",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_relations_02",
+        "domain": "Relations",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_relations_03",
+        "domain": "Relations",
+        "classification": "UNCHANGED",
+        "baselineRank": 6,
+        "featureRank": 6
+      },
+      {
+        "id": "holdout_relations_04",
+        "domain": "Relations",
+        "classification": "UNCHANGED",
+        "baselineRank": 19,
+        "featureRank": 19
+      },
+      {
+        "id": "holdout_relations_05",
+        "domain": "Relations",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_relations_06",
+        "domain": "Relations",
+        "classification": "UNCHANGED",
+        "baselineRank": 6,
+        "featureRank": 6
+      },
+      {
+        "id": "holdout_relations_07",
+        "domain": "Relations",
+        "classification": "UNCHANGED",
+        "baselineRank": 18,
+        "featureRank": 18
+      },
+      {
+        "id": "holdout_relations_08",
+        "domain": "Relations",
+        "classification": "UNCHANGED",
+        "baselineRank": 2,
+        "featureRank": 2
+      },
+      {
+        "id": "holdout_eq_logic_01",
+        "domain": "Eq / Logic",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_eq_logic_02",
+        "domain": "Eq / Logic",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_eq_logic_03",
+        "domain": "Eq / Logic",
+        "classification": "UNCHANGED",
+        "baselineRank": 12,
+        "featureRank": 12
+      },
+      {
+        "id": "holdout_eq_logic_04",
+        "domain": "Eq / Logic",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_eq_logic_05",
+        "domain": "Eq / Logic",
+        "classification": "UNCHANGED",
+        "baselineRank": 7,
+        "featureRank": 7
+      },
+      {
+        "id": "holdout_eq_logic_06",
+        "domain": "Eq / Logic",
+        "classification": "UNCHANGED",
+        "baselineRank": 1,
+        "featureRank": 1
+      },
+      {
+        "id": "holdout_finset_01",
+        "domain": "Finset",
+        "classification": "IMPROVED",
+        "baselineRank": 19,
+        "featureRank": 16
+      },
+      {
+        "id": "holdout_finset_02",
+        "domain": "Finset",
+        "classification": "UNCHANGED",
+        "baselineRank": 9,
+        "featureRank": 9
+      },
+      {
+        "id": "holdout_finset_03",
+        "domain": "Finset",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_finset_04",
+        "domain": "Finset",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_finset_05",
+        "domain": "Finset",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_set_01",
+        "domain": "Set",
+        "classification": "UNCHANGED",
+        "baselineRank": 3,
+        "featureRank": 3
+      },
+      {
+        "id": "holdout_set_02",
+        "domain": "Set",
+        "classification": "UNCHANGED",
+        "baselineRank": 7,
+        "featureRank": 7
+      },
+      {
+        "id": "holdout_set_03",
+        "domain": "Set",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_set_04",
+        "domain": "Set",
+        "classification": "IMPROVED",
+        "baselineRank": 13,
+        "featureRank": 12
+      },
+      {
+        "id": "holdout_set_05",
+        "domain": "Set",
+        "classification": "UNCHANGED",
+        "baselineRank": 8,
+        "featureRank": 8
+      },
+      {
+        "id": "holdout_list_01",
+        "domain": "List",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_list_02",
+        "domain": "List",
+        "classification": "UNCHANGED",
+        "baselineRank": 10,
+        "featureRank": 10
+      },
+      {
+        "id": "holdout_list_03",
+        "domain": "List",
+        "classification": "HURT",
+        "baselineRank": 10,
+        "featureRank": 11
+      },
+      {
+        "id": "holdout_list_04",
+        "domain": "List",
+        "classification": "HURT",
+        "baselineRank": 15,
+        "featureRank": 17
+      },
+      {
+        "id": "holdout_list_05",
+        "domain": "List",
+        "classification": "IMPROVED",
+        "baselineRank": 3,
+        "featureRank": 2
+      },
+      {
+        "id": "holdout_function_01",
+        "domain": "Function",
+        "classification": "UNCHANGED",
+        "baselineRank": 1,
+        "featureRank": 1
+      },
+      {
+        "id": "holdout_function_02",
+        "domain": "Function",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_function_03",
+        "domain": "Function",
+        "classification": "UNCHANGED",
+        "baselineRank": 1,
+        "featureRank": 1
+      },
+      {
+        "id": "holdout_function_04",
+        "domain": "Function",
+        "classification": "UNCHANGED",
+        "baselineRank": 1,
+        "featureRank": 1
+      },
+      {
+        "id": "holdout_function_05",
+        "domain": "Function",
+        "classification": "UNCHANGED",
+        "baselineRank": 4,
+        "featureRank": 4
+      },
+      {
+        "id": "holdout_option_01",
+        "domain": "Option",
+        "classification": "HURT",
+        "baselineRank": 18,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_option_02",
+        "domain": "Option",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_option_03",
+        "domain": "Option",
+        "classification": "UNCHANGED",
+        "baselineRank": 12,
+        "featureRank": 12
+      },
+      {
+        "id": "holdout_option_04",
+        "domain": "Option",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_prod_sum_01",
+        "domain": "Prod / Sum",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_prod_sum_02",
+        "domain": "Prod / Sum",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_prod_sum_03",
+        "domain": "Prod / Sum",
+        "classification": "UNCHANGED",
+        "baselineRank": 13,
+        "featureRank": 13
+      },
+      {
+        "id": "holdout_prod_sum_04",
+        "domain": "Prod / Sum",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_order_01",
+        "domain": "Order",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_order_02",
+        "domain": "Order",
+        "classification": "UNCHANGED",
+        "baselineRank": 3,
+        "featureRank": 3
+      },
+      {
+        "id": "holdout_order_03",
+        "domain": "Order",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_order_04",
+        "domain": "Order",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_order_05",
+        "domain": "Order",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_topology_01",
+        "domain": "Topology",
+        "classification": "UNCHANGED",
+        "baselineRank": 15,
+        "featureRank": 15
+      },
+      {
+        "id": "holdout_topology_02",
+        "domain": "Topology",
+        "classification": "UNCHANGED",
+        "baselineRank": 9,
+        "featureRank": 9
+      },
+      {
+        "id": "holdout_topology_03",
+        "domain": "Topology",
+        "classification": "HURT",
+        "baselineRank": 8,
+        "featureRank": 10
+      },
+      {
+        "id": "holdout_topology_04",
+        "domain": "Topology",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_analysis_01",
+        "domain": "Analysis",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_analysis_02",
+        "domain": "Analysis",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_analysis_03",
+        "domain": "Analysis",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_analysis_04",
+        "domain": "Analysis",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_analysis_05",
+        "domain": "Analysis",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_sequences_01",
+        "domain": "Sequences",
+        "classification": "UNCHANGED",
+        "baselineRank": 2,
+        "featureRank": 2
+      },
+      {
+        "id": "holdout_sequences_02",
+        "domain": "Sequences",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_sequences_03",
+        "domain": "Sequences",
+        "classification": "IMPROVED",
+        "baselineRank": 11,
+        "featureRank": 10
+      },
+      {
+        "id": "holdout_sequences_04",
+        "domain": "Sequences",
+        "classification": "IMPROVED",
+        "baselineRank": null,
+        "featureRank": 10
+      },
+      {
+        "id": "holdout_maps_functions_01",
+        "domain": "Maps / Functions",
+        "classification": "IMPROVED",
+        "baselineRank": 8,
+        "featureRank": 6
+      },
+      {
+        "id": "holdout_maps_functions_02",
+        "domain": "Maps / Functions",
+        "classification": "UNCHANGED",
+        "baselineRank": 8,
+        "featureRank": 8
+      },
+      {
+        "id": "holdout_maps_functions_03",
+        "domain": "Maps / Functions",
+        "classification": "IMPROVED",
+        "baselineRank": 12,
+        "featureRank": 11
+      },
+      {
+        "id": "holdout_maps_functions_04",
+        "domain": "Maps / Functions",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_basic_number_theory_01",
+        "domain": "Basic number theory",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_basic_number_theory_02",
+        "domain": "Basic number theory",
+        "classification": "UNCHANGED",
+        "baselineRank": 4,
+        "featureRank": 4
+      },
+      {
+        "id": "holdout_basic_number_theory_03",
+        "domain": "Basic number theory",
+        "classification": "UNCHANGED",
+        "baselineRank": 3,
+        "featureRank": 3
+      },
+      {
+        "id": "holdout_basic_number_theory_04",
+        "domain": "Basic number theory",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_combinatorics_01",
+        "domain": "Combinatorics",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_combinatorics_02",
+        "domain": "Combinatorics",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_combinatorics_03",
+        "domain": "Combinatorics",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      },
+      {
+        "id": "holdout_combinatorics_04",
+        "domain": "Combinatorics",
+        "classification": "UNCHANGED",
+        "baselineRank": null,
+        "featureRank": null
+      }
+    ]
+  },
+  "confidenceIntervals95": {
+    "final20": {
+      "estimate": 0.01,
+      "low": -0.02,
+      "high": 0.04,
+      "iterations": 10000,
+      "seed": 99013793
+    },
+    "hit10": {
+      "estimate": 0.01,
+      "low": -0.02,
+      "high": 0.05,
+      "iterations": 10000,
+      "seed": 99013793
+    },
+    "mrr": {
+      "estimate": 0.0028597091333159457,
+      "low": -0.0009925676748432173,
+      "high": 0.007718345809677079,
+      "iterations": 10000,
+      "seed": 99013793
+    }
+  },
+  "performance": {
+    "baseline": {
+      "medianStage1Ms": 66.17167800000061,
+      "p95Stage1Ms": 137.40199799999937,
+      "medianFullMs": 123.59270999999899,
+      "p95FullMs": 240.55819900000097
+    },
+    "feature": {
+      "medianStage1Ms": 63.68869300000006,
+      "p95Stage1Ms": 130.30389600000126,
+      "medianFullMs": 121.87778499999695,
+      "p95FullMs": 211.23875199999748
+    },
+    "rssDeltaBaseline": 663023616,
+    "rssDeltaFeature": 29847552,
+    "indexBytesDelta": 0,
+    "indexFormatBaseline": 3,
+    "indexFormatFeature": 3,
+    "leanInvocations": 0
+  },
+  "decision": "REJECT",
+  "promotionChecks": {
+    "globalFinal20NonDecreasing": true,
+    "globalHit10NonDecreasing": true,
+    "mrrNotMeaningfullyNegative": true,
+    "seriousCrossDomainRegressionsAbsent": false,
+    "weakDomainUpstreamImproved": true,
+    "latencySmall": true
+  }
+}

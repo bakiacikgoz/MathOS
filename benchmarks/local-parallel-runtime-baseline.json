@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1",
+  "kind": "local-parallel-runtime-baseline",
+  "createdAt": "2026-08-25",
+  "executionMode": "BOUNDED_PARALLEL",
+  "maxParallelWorkers": 2,
+  "checks": {
+    "budgetRace": "parallel-global-lean-budget-race",
+    "proofRace": "parallel-global-proof-budget-race",
+    "digestIsolation": "parallel-digest-snapshot",
+    "crashRecovery": "parallel-crash-two-running",
+    "idAllocation": "parallel-id-stress",
+    "timeoutCleanup": "parallel-timeout-no-process-leak",
+    "queuedTiming": "parallel-queued-worker-timing",
+    "peakConcurrency": "parallel-peak-concurrency"
+  }
+}

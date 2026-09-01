@@ -1,0 +1,36 @@
+{
+  "feature": "SEMANTIC_OPERATOR_PROFILE_V2",
+  "decision": "REJECTED",
+  "productionIntegrated": false,
+  "decidedAt": "2026-08-24",
+  "spec": {
+    "path": "benchmarks/retrieval-experiments/semantic-operator-profile-v2.json",
+    "sha256": "673757caf38b7facf965c81c047e77bea135bb9c879c2550ffacce37cbd311d2"
+  },
+  "implementation": {
+    "path": "packages/retrieval/src/semantic-operator-profile-v2.ts",
+    "sha256": "26ae12e0ae81d77d63bc9233068f76ce2c1b88337bb587967b3284b121a89012"
+  },
+  "holdoutV2": {
+    "datasetPath": "packages/retrieval/src/holdout-v2-fixtures.ts",
+    "datasetSha256": "87b018cff5f260e4b8b51cc003f32932d4f252b552007678c2eb16a872970235",
+    "resultPath": "benchmarks/retrieval-holdout-v2-results.json",
+    "resultSha256": "1e7463fa9357c2419f2e7be2244ff4539737710671aaf7a2ec6d0a3416429c8a"
+  },
+  "reasonCodes": [
+    "NO_UPSTREAM_GAIN",
+    "FINAL20_REGRESSION",
+    "COMPLETE_REGRESSION",
+    "WEAK_DOMAIN_REGRESSION"
+  ],
+  "metrics": {
+    "unionDelta": 0,
+    "top200Delta": 0,
+    "inspect30Delta": -0.005556,
+    "final20Delta": -0.005556,
+    "hit10Delta": 0,
+    "completeRegressions": 1,
+    "completeRegressionIds": ["holdout_v2_nat_04"]
+  },
+  "notes": "Frozen V2 produced no unseen Union/Top200 gain, reduced Inspect30/Final20, and caused one Nat complete regression. Production retrieval remains unchanged. Holdout-v2 is closed; no same-family reevaluation or tuning is allowed."
+}

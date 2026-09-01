@@ -1,0 +1,9 @@
+{
+  "research-benchmark-v1": {
+    "status": "FROZEN",
+    "role": "EVALUATION",
+    "tuningAllowed": false,
+    "datasetHash": "b57c006e88f6ca285778c3b353c0dfa6d4948402e201a1739d962c18fd1f53df",
+    "notes": "NO_TUNING_ON_BENCHMARK. Create research-dev-v1 for planner work. Do not reuse retrieval holdouts."
+  }
+}

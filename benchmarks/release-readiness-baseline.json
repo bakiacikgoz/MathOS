@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "release-readiness-v1",
+  "kind": "release-readiness-baseline",
+  "release": "0.1.0-alpha.1",
+  "required": [
+    "version",
+    "fresh-init",
+    "migrations",
+    "backup-restore",
+    "secret-redaction",
+    "schema-too-new",
+    "scale",
+    "soak",
+    "package-smoke"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "version": "SEMANTIC_OPERATOR_PROFILE_V2",
+  "frozen": true,
+  "spec": {
+    "path": "benchmarks/retrieval-experiments/semantic-operator-profile-v2.json",
+    "sha256": "673757caf38b7facf965c81c047e77bea135bb9c879c2550ffacce37cbd311d2"
+  },
+  "implementation": {
+    "path": "packages/retrieval/src/semantic-operator-profile-v2.ts",
+    "sha256": "26ae12e0ae81d77d63bc9233068f76ce2c1b88337bb587967b3284b121a89012"
+  }
+}

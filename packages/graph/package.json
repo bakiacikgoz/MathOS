@@ -1,0 +1,11 @@
+{
+  "name": "@mathos/graph",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@mathos/domain": "workspace:*"
+  }
+}

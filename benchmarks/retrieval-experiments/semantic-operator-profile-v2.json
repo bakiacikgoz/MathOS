@@ -1,0 +1,102 @@
+{
+  "version": "SEMANTIC_OPERATOR_PROFILE_V2",
+  "status": "FROZEN",
+  "frozen": true,
+  "createdAt": "2026-08-24",
+  "basedOn": {
+    "candidate": "SEMANTIC_OPERATOR_PROFILE_V2_CANDIDATE",
+    "candidateArtifact": "benchmarks/retrieval-experiments/semantic-operator-profile-v2-candidate.json",
+    "stabilityArtifact": "benchmarks/retrieval-experiments/semantic-operator-profile-v2-stability.json",
+    "datasets": ["development-20", "retrieval-validation-v1"],
+    "holdoutV1Used": false
+  },
+  "compatibilityRule": {
+    "strategy": "COMP-A",
+    "rule": "At least two informative exact semantic matches OR one exact semantic match plus known-compatible formal type evidence",
+    "knownNegativeBlocks": true,
+    "unknownMetadata": "UNKNOWN is not incompatible, but cannot combine with a single generic token to permit promotion",
+    "candidateAbsentAndIneligible": "excluded from the semantic Top200 merge",
+    "candidateScorePolicy": "existing candidates retain baseline score objects; semantic evidence changes only bounded rank position"
+  },
+  "semanticFamilies": {
+    "Arithmetic": { "status": "ACTIVE", "tokens": ["add", "sub", "neg", "mul", "div", "pow", "inv"] },
+    "Order": { "status": "ACTIVE", "tokens": ["le", "lt"] },
+    "Set/Collection": { "status": "ACTIVE", "tokens": ["union", "inter", "subset", "mem", "card"] },
+    "Function": { "status": "ACTIVE", "tokens": ["comp"] },
+    "Relation": { "status": "DIAGNOSTIC_ONLY", "tokens": ["relation_comp", "exact relation property identifiers"] }
+  },
+  "disabledFamilies": {
+    "morphology": ["zero", "one", "assoc", "comm", "self"],
+    "relationBoost": ["relation_comp", "relation properties"],
+    "namespaceBoost": true,
+    "proseInference": true
+  },
+  "authorityModel": {
+    "EXACT_NOTATION": "high-authority evidence, subject to compatibility gating",
+    "EXACT_IDENTIFIER": "diagnostic-only for relation semantics",
+    "DERIVED_STRUCTURE": "diagnostic-only",
+    "MORPHOLOGY_INFERENCE": "diagnostic-only"
+  },
+  "genericTokenRules": {
+    "protected": ["mem", "le", "lt", "add", "mul", "div", "comp", "zero", "one", "self", "comm", "assoc"],
+    "singleTokenPromotion": "FORBIDDEN without known compatible formal type evidence"
+  },
+  "conjunctionRules": {
+    "minimumExactMatches": 2,
+    "alternative": "one exact match plus typeCompatible=YES",
+    "domainSpecificRules": false,
+    "theoremNameHardCodes": false
+  },
+  "rankContributionCap": {
+    "value": 4,
+    "unit": "Top200 rank positions",
+    "formula": "boundedRank = baselineRank - min(4, baselineRank - semanticRank)",
+    "nonImprovingOrIneligible": "baselineRank",
+    "scoreCap": false
+  },
+  "relationPolicy": {
+    "status": "DIAGNOSTIC_ONLY",
+    "reason": "REL-EXACT produced no development, validation, or relations-domain change after compatibility and cap were fixed",
+    "functionCompIsRelationComp": false
+  },
+  "morphologyPolicy": {
+    "MORPHOLOGY_BOOST": "DISABLED",
+    "diagnosticOnly": ["zero", "one", "assoc", "comm", "self"]
+  },
+  "developmentMetrics": {
+    "union": 0.95,
+    "top200": 0.80,
+    "inspect30": 0.75,
+    "final20": 0.65,
+    "hit5": 0.25,
+    "hit10": 0.40,
+    "mrr": 0.119406789031402
+  },
+  "validationMetrics": {
+    "union": 0.8833333333333333,
+    "top200": 0.7833333333333333,
+    "inspect30": 0.6166666666666667,
+    "final20": 0.6166666666666667,
+    "hit5": 0.40,
+    "hit10": 0.5666666666666667,
+    "mrr": 0.2420941241993873
+  },
+  "pairedMetrics": {
+    "development": { "improved": 0, "unchanged": 20, "hurt": 0, "completeRegressions": 0 },
+    "validation": { "improved": 0, "unchanged": 60, "hurt": 0, "completeRegressions": 0 }
+  },
+  "rankStability": {
+    "development": { "promoted100Plus": 0, "promoted50To99": 0, "promoted20To49": 0, "promoted1To19": 184, "meanAbsoluteMovement": 0.6761133603238867, "p95": 2, "max": 43 },
+    "validation": { "promoted100Plus": 0, "promoted50To99": 0, "promoted20To49": 0, "promoted1To19": 204, "meanAbsoluteMovement": 0.19934640522875818, "p95": 1, "max": 25 }
+  },
+  "sourceHashes": {
+    "implementation": "26ae12e0ae81d77d63bc9233068f76ce2c1b88337bb587967b3284b121a89012",
+    "stabilityImplementation": "b31167aa2f82d6dc395e8481a62cac20050a4cc4e989d9f4d9824718dfc79550",
+    "stabilityArtifact": "9f0b576647e8be01120569d41bd50e1ff46c6777c51e3c113957d774e1c0d517",
+    "v1Spec": "cdc817eb6eaa650066b59b89d9a050046a3aab8699ee5019a2c3cc489c236790",
+    "holdoutV1Dataset": "82328c87696e141175e7b10f22e0a1f5ede659a3b96cbc56a5578e4f61103fe4",
+    "holdoutV1Result": "bb757c7f91a4922b297125938ec845f35f405885488d4cb831f318d7ffcd1c5d"
+  },
+  "productionIntegration": false,
+  "nextEvaluation": "new unseen retrieval-holdout-v2 in a separate task"
+}

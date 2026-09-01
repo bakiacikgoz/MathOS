@@ -1,0 +1,541 @@
+{
+  "version": "SEMANTIC_OPERATOR_PROFILE_V2_CANDIDATE",
+  "status": "candidate",
+  "frozen": false,
+  "basedOn": {
+    "feature": "SEMANTIC_OPERATOR_PROFILE_V1",
+    "decision": "REJECT",
+    "v1SpecSha256": "cdc817eb6eaa650066b59b89d9a050046a3aab8699ee5019a2c3cc489c236790",
+    "closedHoldoutResultSha256": "bb757c7f91a4922b297125938ec845f35f405885488d4cb831f318d7ffcd1c5d"
+  },
+  "removedRules": [
+    "morphology tokens are diagnostic only and cannot boost",
+    "relation_comp and relation properties excluded pending stronger evidence",
+    "no blind goal-token injection without candidate compatibility"
+  ],
+  "changedAuthorities": {
+    "exact notation": "EXACT_NOTATION / active when gated",
+    "formal relation property identifier": "EXACT_IDENTIFIER / inactive pending evidence",
+    "zero/one": "DERIVED_STRUCTURE / inactive",
+    "assoc/comm/self": "MORPHOLOGY_INFERENCE / inactive"
+  },
+  "gatingRules": [
+    "at least two exact candidate matches OR one exact match plus formal type-constructor compatibility",
+    "generic single-token evidence cannot promote",
+    "namespace is not a gate and receives no blind boost",
+    "domain labels are never consulted"
+  ],
+  "boostCaps": {
+    "maxSemanticRankContribution": 12,
+    "semantics": "maximum upward Top200 rank movement attributable to semantic evidence",
+    "saturation": "repeated evidence cannot exceed the cap",
+    "rankProtection": "baseline order is retained unless a compatible candidate receives bounded additive promotion"
+  },
+  "developmentResults": {
+    "metrics": {
+      "union": 0.95,
+      "top200": 0.8,
+      "inspect30": 0.75,
+      "final20": 0.65,
+      "hit5": 0.25,
+      "hit10": 0.4,
+      "mrr": 0.1282456636500754
+    },
+    "paired": {
+      "improved": 5,
+      "unchanged": 15,
+      "hurt": 0,
+      "completeRegressions": 0
+    },
+    "delta": {
+      "union": 0,
+      "top200": 0.05,
+      "inspect30": 0.05,
+      "final20": 0,
+      "hit5": 0,
+      "hit10": 0,
+      "mrr": 0.00883887
+    }
+  },
+  "validationResults": {
+    "metrics": {
+      "union": 0.8833333333333333,
+      "top200": 0.7833333333333333,
+      "inspect30": 0.6333333333333333,
+      "final20": 0.6333333333333333,
+      "hit5": 0.45,
+      "hit10": 0.5666666666666667,
+      "mrr": 0.2591393311710649
+    },
+    "paired": {
+      "improved": 5,
+      "unchanged": 55,
+      "hurt": 0,
+      "completeRegressions": 0
+    },
+    "delta": {
+      "union": 0,
+      "top200": 0.01666667,
+      "inspect30": 0.01666667,
+      "final20": 0.01666667,
+      "hit5": 0.05,
+      "hit10": 0,
+      "mrr": 0.01704521
+    }
+  },
+  "ablations": {
+    "development": {
+      "BASELINE": {
+        "metrics": {
+          "union": 0.95,
+          "top200": 0.75,
+          "inspect30": 0.7,
+          "final20": 0.65,
+          "hit5": 0.25,
+          "hit10": 0.4,
+          "mrr": 0.119406789031402
+        },
+        "paired": null
+      },
+      "EXACT_ONLY": {
+        "metrics": {
+          "union": 0.95,
+          "top200": 0.75,
+          "inspect30": 0.7,
+          "final20": 0.6,
+          "hit5": 0.2,
+          "hit10": 0.35,
+          "mrr": 0.11656176640696762
+        },
+        "paired": {
+          "improved": 3,
+          "unchanged": 14,
+          "hurt": 3,
+          "completeRegressions": 1
+        },
+        "delta": {
+          "union": 0,
+          "top200": 0,
+          "inspect30": 0,
+          "final20": -0.05,
+          "hit5": -0.05,
+          "hit10": -0.05,
+          "mrr": -0.00284502
+        }
+      },
+      "EXACT_MULTIPLICITY": {
+        "metrics": {
+          "union": 0.95,
+          "top200": 0.75,
+          "inspect30": 0.7,
+          "final20": 0.6,
+          "hit5": 0.2,
+          "hit10": 0.35,
+          "mrr": 0.11656176640696762
+        },
+        "paired": {
+          "improved": 3,
+          "unchanged": 14,
+          "hurt": 3,
+          "completeRegressions": 1
+        },
+        "delta": {
+          "union": 0,
+          "top200": 0,
+          "inspect30": 0,
+          "final20": -0.05,
+          "hit5": -0.05,
+          "hit10": -0.05,
+          "mrr": -0.00284502
+        }
+      },
+      "EXACT_SEQUENCE": {
+        "metrics": {
+          "union": 0.95,
+          "top200": 0.75,
+          "inspect30": 0.7,
+          "final20": 0.6,
+          "hit5": 0.2,
+          "hit10": 0.35,
+          "mrr": 0.11656176640696762
+        },
+        "paired": {
+          "improved": 3,
+          "unchanged": 14,
+          "hurt": 3,
+          "completeRegressions": 1
+        },
+        "delta": {
+          "union": 0,
+          "top200": 0,
+          "inspect30": 0,
+          "final20": -0.05,
+          "hit5": -0.05,
+          "hit10": -0.05,
+          "mrr": -0.00284502
+        }
+      },
+      "MORPHOLOGY_ONLY": {
+        "metrics": {
+          "union": 0.95,
+          "top200": 0.75,
+          "inspect30": 0.65,
+          "final20": 0.6,
+          "hit5": 0.3,
+          "hit10": 0.35,
+          "mrr": 0.12087504299965598
+        },
+        "paired": {
+          "improved": 2,
+          "unchanged": 16,
+          "hurt": 2,
+          "completeRegressions": 2
+        },
+        "delta": {
+          "union": 0,
+          "top200": 0,
+          "inspect30": -0.05,
+          "final20": -0.05,
+          "hit5": 0.05,
+          "hit10": -0.05,
+          "mrr": 0.00146825
+        }
+      },
+      "OPERATORS_MORPHOLOGY": {
+        "metrics": {
+          "union": 0.95,
+          "top200": 0.75,
+          "inspect30": 0.65,
+          "final20": 0.6,
+          "hit5": 0.25,
+          "hit10": 0.35,
+          "mrr": 0.12100621085141205
+        },
+        "paired": {
+          "improved": 4,
+          "unchanged": 12,
+          "hurt": 4,
+          "completeRegressions": 2
+        },
+        "delta": {
+          "union": 0,
+          "top200": 0,
+          "inspect30": -0.05,
+          "final20": -0.05,
+          "hit5": 0,
+          "hit10": -0.05,
+          "mrr": 0.00159942
+        }
+      },
+      "RELATION_ONLY": {
+        "metrics": {
+          "union": 0.95,
+          "top200": 0.75,
+          "inspect30": 0.7,
+          "final20": 0.65,
+          "hit5": 0.25,
+          "hit10": 0.4,
+          "mrr": 0.119406789031402
+        },
+        "paired": {
+          "improved": 0,
+          "unchanged": 20,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "delta": {
+          "union": 0,
+          "top200": 0,
+          "inspect30": 0,
+          "final20": 0,
+          "hit5": 0,
+          "hit10": 0,
+          "mrr": 0
+        }
+      },
+      "ARITHMETIC_ONLY": {
+        "metrics": {
+          "union": 0.95,
+          "top200": 0.75,
+          "inspect30": 0.7,
+          "final20": 0.6,
+          "hit5": 0.25,
+          "hit10": 0.35,
+          "mrr": 0.11643059855521154
+        },
+        "paired": {
+          "improved": 1,
+          "unchanged": 18,
+          "hurt": 1,
+          "completeRegressions": 1
+        },
+        "delta": {
+          "union": 0,
+          "top200": 0,
+          "inspect30": 0,
+          "final20": -0.05,
+          "hit5": 0,
+          "hit10": -0.05,
+          "mrr": -0.00297619
+        }
+      },
+      "V2_CANDIDATE": {
+        "metrics": {
+          "union": 0.95,
+          "top200": 0.8,
+          "inspect30": 0.75,
+          "final20": 0.65,
+          "hit5": 0.25,
+          "hit10": 0.4,
+          "mrr": 0.1282456636500754
+        },
+        "paired": {
+          "improved": 5,
+          "unchanged": 15,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "delta": {
+          "union": 0,
+          "top200": 0.05,
+          "inspect30": 0.05,
+          "final20": 0,
+          "hit5": 0,
+          "hit10": 0,
+          "mrr": 0.00883887
+        }
+      }
+    },
+    "validation": {
+      "BASELINE": {
+        "metrics": {
+          "union": 0.8833333333333333,
+          "top200": 0.7666666666666667,
+          "inspect30": 0.6166666666666667,
+          "final20": 0.6166666666666667,
+          "hit5": 0.4,
+          "hit10": 0.5666666666666667,
+          "mrr": 0.2420941241993873
+        },
+        "paired": null
+      },
+      "EXACT_ONLY": {
+        "metrics": {
+          "union": 0.8833333333333333,
+          "top200": 0.7666666666666667,
+          "inspect30": 0.7,
+          "final20": 0.7,
+          "hit5": 0.48333333333333334,
+          "hit10": 0.6,
+          "mrr": 0.2701809978377316
+        },
+        "paired": {
+          "improved": 10,
+          "unchanged": 50,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "delta": {
+          "union": 0,
+          "top200": 0,
+          "inspect30": 0.08333333,
+          "final20": 0.08333333,
+          "hit5": 0.08333333,
+          "hit10": 0.03333333,
+          "mrr": 0.02808687
+        }
+      },
+      "EXACT_MULTIPLICITY": {
+        "metrics": {
+          "union": 0.8833333333333333,
+          "top200": 0.7666666666666667,
+          "inspect30": 0.7,
+          "final20": 0.7,
+          "hit5": 0.48333333333333334,
+          "hit10": 0.6,
+          "mrr": 0.2701809978377316
+        },
+        "paired": {
+          "improved": 10,
+          "unchanged": 50,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "delta": {
+          "union": 0,
+          "top200": 0,
+          "inspect30": 0.08333333,
+          "final20": 0.08333333,
+          "hit5": 0.08333333,
+          "hit10": 0.03333333,
+          "mrr": 0.02808687
+        }
+      },
+      "EXACT_SEQUENCE": {
+        "metrics": {
+          "union": 0.8833333333333333,
+          "top200": 0.7666666666666667,
+          "inspect30": 0.7,
+          "final20": 0.7,
+          "hit5": 0.48333333333333334,
+          "hit10": 0.6,
+          "mrr": 0.2701809978377316
+        },
+        "paired": {
+          "improved": 10,
+          "unchanged": 50,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "delta": {
+          "union": 0,
+          "top200": 0,
+          "inspect30": 0.08333333,
+          "final20": 0.08333333,
+          "hit5": 0.08333333,
+          "hit10": 0.03333333,
+          "mrr": 0.02808687
+        }
+      },
+      "MORPHOLOGY_ONLY": {
+        "metrics": {
+          "union": 0.9166666666666666,
+          "top200": 0.8833333333333333,
+          "inspect30": 0.7,
+          "final20": 0.6666666666666666,
+          "hit5": 0.4,
+          "hit10": 0.6,
+          "mrr": 0.24743803954330262
+        },
+        "paired": {
+          "improved": 3,
+          "unchanged": 57,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "delta": {
+          "union": 0.03333333,
+          "top200": 0.11666667,
+          "inspect30": 0.08333333,
+          "final20": 0.05,
+          "hit5": 0,
+          "hit10": 0.03333333,
+          "mrr": 0.00534392
+        }
+      },
+      "OPERATORS_MORPHOLOGY": {
+        "metrics": {
+          "union": 0.9333333333333333,
+          "top200": 0.8833333333333333,
+          "inspect30": 0.7666666666666667,
+          "final20": 0.7333333333333333,
+          "hit5": 0.48333333333333334,
+          "hit10": 0.65,
+          "mrr": 0.27545546873720245
+        },
+        "paired": {
+          "improved": 12,
+          "unchanged": 48,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "delta": {
+          "union": 0.05,
+          "top200": 0.11666667,
+          "inspect30": 0.15,
+          "final20": 0.11666667,
+          "hit5": 0.08333333,
+          "hit10": 0.08333333,
+          "mrr": 0.03336134
+        }
+      },
+      "RELATION_ONLY": {
+        "metrics": {
+          "union": 0.8833333333333333,
+          "top200": 0.7666666666666667,
+          "inspect30": 0.65,
+          "final20": 0.65,
+          "hit5": 0.43333333333333335,
+          "hit10": 0.6,
+          "mrr": 0.2523719019771651
+        },
+        "paired": {
+          "improved": 3,
+          "unchanged": 57,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "delta": {
+          "union": 0,
+          "top200": 0,
+          "inspect30": 0.03333333,
+          "final20": 0.03333333,
+          "hit5": 0.03333333,
+          "hit10": 0.03333333,
+          "mrr": 0.01027778
+        }
+      },
+      "ARITHMETIC_ONLY": {
+        "metrics": {
+          "union": 0.8833333333333333,
+          "top200": 0.7833333333333333,
+          "inspect30": 0.65,
+          "final20": 0.65,
+          "hit5": 0.4,
+          "hit10": 0.5666666666666667,
+          "mrr": 0.24424690197716506
+        },
+        "paired": {
+          "improved": 2,
+          "unchanged": 58,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "delta": {
+          "union": 0,
+          "top200": 0.01666667,
+          "inspect30": 0.03333333,
+          "final20": 0.03333333,
+          "hit5": 0,
+          "hit10": 0,
+          "mrr": 0.00215278
+        }
+      },
+      "V2_CANDIDATE": {
+        "metrics": {
+          "union": 0.8833333333333333,
+          "top200": 0.7833333333333333,
+          "inspect30": 0.6333333333333333,
+          "final20": 0.6333333333333333,
+          "hit5": 0.45,
+          "hit10": 0.5666666666666667,
+          "mrr": 0.2591393311710649
+        },
+        "paired": {
+          "improved": 5,
+          "unchanged": 55,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "delta": {
+          "union": 0,
+          "top200": 0.01666667,
+          "inspect30": 0.01666667,
+          "final20": 0.01666667,
+          "hit5": 0.05,
+          "hit10": 0,
+          "mrr": 0.01704521
+        }
+      }
+    }
+  },
+  "holdoutV1EvaluationForbidden": true,
+  "productionIntegration": false,
+  "trustBoundary": [
+    "semantic match is not theorem relevance certainty",
+    "retrieval rank is not mathematical confidence",
+    "premise is not proof",
+    "Lean inspection is not verification",
+    "VerificationGate is the only KERNEL_VERIFIED path"
+  ]
+}

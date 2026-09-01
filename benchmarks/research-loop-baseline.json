@@ -1,0 +1,12 @@
+{
+  "kind": "research-loop-orchestration-baseline",
+  "createdAt": "2026-08-25",
+  "mode": "fake-planner+fake-or-native-execution",
+  "scenarios": [
+    { "id": "trivial-direct", "expectedOutcome": "KERNEL_VERIFIED" },
+    { "id": "premise-needed", "expectedOutcome": "KERNEL_VERIFIED" },
+    { "id": "failure-recovery", "expectedOutcome": "KERNEL_VERIFIED" },
+    { "id": "human-blocker", "expectedOutcome": "BLOCKED" },
+    { "id": "repetition", "expectedOutcome": "REPETITION_DETECTED" }
+  ]
+}

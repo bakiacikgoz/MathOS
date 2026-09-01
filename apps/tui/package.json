@@ -1,0 +1,21 @@
+{
+  "name": "@mathos/tui",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "mathos": "./src/cli.ts"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@mathos/core": "workspace:*",
+    "@mathos/graph": "workspace:*",
+    "@mathos/domain": "workspace:*",
+    "@mathos/shared": "workspace:*",
+    "@opentui/core": "^0.5.7",
+    "@opentui/keymap": "^0.5.7",
+    "@opentui/solid": "^0.5.7",
+    "solid-js": "1.9.12"
+  }
+}

@@ -1,0 +1,763 @@
+{
+  "schemaVersion": "research-benchmark-v1",
+  "datasetVersion": "v1.0.0",
+  "createdAt": "2026-08-25",
+  "name": "mathos-research-benchmark-v1",
+  "leanVersion": "v4.33.1",
+  "mathlibRevision": "0df444a360eaa60ab8c11dca51a86af692955474",
+  "fixtureCount": 40,
+  "datasetHash": "b57c006e88f6ca285778c3b353c0dfa6d4948402e201a1739d962c18fd1f53df",
+  "fixtures": [
+    {
+      "id": "RB-ALG-001",
+      "domain": "ALGEBRA",
+      "difficulty": "TIER_1_DIRECT",
+      "naturalLanguageObjective": "Show that one plus one equals two.",
+      "referenceFormalStatement": "theorem rb_alg_001 : 1 + 1 = 2",
+      "declarationName": "rb_alg_001",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION"
+      ],
+      "tags": [
+        "algebra",
+        "equality"
+      ]
+    },
+    {
+      "id": "RB-LOG-001",
+      "domain": "LOGIC",
+      "difficulty": "TIER_1_DIRECT",
+      "naturalLanguageObjective": "Establish a trivially true proposition.",
+      "referenceFormalStatement": "theorem rb_log_001 : True",
+      "declarationName": "rb_log_001",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION"
+      ],
+      "tags": [
+        "logic"
+      ]
+    },
+    {
+      "id": "RB-LOG-002",
+      "domain": "LOGIC",
+      "difficulty": "TIER_1_DIRECT",
+      "naturalLanguageObjective": "A true hypothesis implies a true conclusion.",
+      "referenceFormalStatement": "theorem rb_log_002 : True → True",
+      "declarationName": "rb_log_002",
+      "expectedProperties": {
+        "trueTheorem": true,
+        "fidelitySensitive": true,
+        "temptingWrongFormalization": "theorem rb_log_002 : False → True"
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION"
+      ],
+      "tags": [
+        "logic",
+        "implication"
+      ]
+    },
+    {
+      "id": "RB-NUM-001",
+      "domain": "NUMBER_THEORY",
+      "difficulty": "TIER_1_DIRECT",
+      "naturalLanguageObjective": "Every natural number equals itself.",
+      "referenceFormalStatement": "theorem rb_num_001 (n : Nat) : n = n",
+      "declarationName": "rb_num_001",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION"
+      ],
+      "tags": [
+        "identity"
+      ]
+    },
+    {
+      "id": "RB-LOG-003",
+      "domain": "LOGIC",
+      "difficulty": "TIER_1_DIRECT",
+      "naturalLanguageObjective": "From a contradiction any claim follows.",
+      "referenceFormalStatement": "theorem rb_log_003 (P : Prop) : False → P",
+      "declarationName": "rb_log_003",
+      "expectedProperties": {
+        "trueTheorem": true,
+        "fidelitySensitive": true,
+        "temptingWrongFormalization": "theorem rb_log_003 (P : Prop) : P → False"
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION"
+      ],
+      "tags": [
+        "logic",
+        "ex-falso"
+      ]
+    },
+    {
+      "id": "RB-SET-001",
+      "domain": "SETS",
+      "difficulty": "TIER_1_DIRECT",
+      "naturalLanguageObjective": "Every collection is contained in itself.",
+      "referenceFormalStatement": "theorem rb_set_001 {α : Type*} (s : Set α) : s ⊆ s",
+      "declarationName": "rb_set_001",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION"
+      ],
+      "tags": [
+        "sets"
+      ]
+    },
+    {
+      "id": "RB-ORD-001",
+      "domain": "ORDER",
+      "difficulty": "TIER_1_DIRECT",
+      "naturalLanguageObjective": "A natural number is at most itself.",
+      "referenceFormalStatement": "theorem rb_ord_001 (n : Nat) : n ≤ n",
+      "declarationName": "rb_ord_001",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION"
+      ],
+      "tags": [
+        "order"
+      ]
+    },
+    {
+      "id": "RB-COM-001",
+      "domain": "COMBINATORICS",
+      "difficulty": "TIER_1_DIRECT",
+      "naturalLanguageObjective": "The empty list of naturals has length zero.",
+      "referenceFormalStatement": "theorem rb_com_001 : ([] : List Nat).length = 0",
+      "declarationName": "rb_com_001",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION"
+      ],
+      "tags": [
+        "lists"
+      ]
+    },
+    {
+      "id": "RB-FUN-001",
+      "domain": "FUNCTIONS",
+      "difficulty": "TIER_1_DIRECT",
+      "naturalLanguageObjective": "Applying the identity map does nothing.",
+      "referenceFormalStatement": "theorem rb_fun_001 {α : Type*} (a : α) : (fun x => x) a = a",
+      "declarationName": "rb_fun_001",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION"
+      ],
+      "tags": [
+        "functions"
+      ]
+    },
+    {
+      "id": "RB-REL-001",
+      "domain": "RELATIONS",
+      "difficulty": "TIER_1_DIRECT",
+      "naturalLanguageObjective": "The conjunction of two truths is still true.",
+      "referenceFormalStatement": "theorem rb_rel_001 : True ∧ True → True",
+      "declarationName": "rb_rel_001",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION"
+      ],
+      "tags": [
+        "logic"
+      ]
+    },
+    {
+      "id": "RB-ALG-002",
+      "domain": "ALGEBRA",
+      "difficulty": "TIER_2_RETRIEVAL",
+      "naturalLanguageObjective": "Adding zero on the right leaves a natural unchanged.",
+      "referenceFormalStatement": "theorem rb_alg_002 (n : Nat) : n + 0 = n",
+      "declarationName": "rb_alg_002",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "RETRIEVAL"
+      ],
+      "tags": [
+        "nat",
+        "add"
+      ]
+    },
+    {
+      "id": "RB-ALG-003",
+      "domain": "ALGEBRA",
+      "difficulty": "TIER_2_RETRIEVAL",
+      "naturalLanguageObjective": "Adding zero on the left leaves a natural unchanged.",
+      "referenceFormalStatement": "theorem rb_alg_003 (n : Nat) : 0 + n = n",
+      "declarationName": "rb_alg_003",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "RETRIEVAL"
+      ],
+      "tags": [
+        "nat",
+        "add"
+      ]
+    },
+    {
+      "id": "RB-ALG-004",
+      "domain": "ALGEBRA",
+      "difficulty": "TIER_2_RETRIEVAL",
+      "naturalLanguageObjective": "Multiplying a natural by one leaves it unchanged.",
+      "referenceFormalStatement": "theorem rb_alg_004 (n : Nat) : n * 1 = n",
+      "declarationName": "rb_alg_004",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "RETRIEVAL"
+      ],
+      "tags": [
+        "nat",
+        "mul"
+      ]
+    },
+    {
+      "id": "RB-REL-002",
+      "domain": "RELATIONS",
+      "difficulty": "TIER_2_RETRIEVAL",
+      "naturalLanguageObjective": "Equality of naturals is symmetric.",
+      "referenceFormalStatement": "theorem rb_rel_002 (a b : Nat) (h : a = b) : b = a",
+      "declarationName": "rb_rel_002",
+      "expectedProperties": {
+        "trueTheorem": true,
+        "fidelitySensitive": true,
+        "temptingWrongFormalization": "theorem rb_rel_002 (a b : Nat) (h : a = b) : a ≠ b"
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "RETRIEVAL"
+      ],
+      "tags": [
+        "equality"
+      ]
+    },
+    {
+      "id": "RB-LOG-004",
+      "domain": "LOGIC",
+      "difficulty": "TIER_2_RETRIEVAL",
+      "naturalLanguageObjective": "Conjunction of propositions may be swapped.",
+      "referenceFormalStatement": "theorem rb_log_004 (P Q : Prop) : P ∧ Q → Q ∧ P",
+      "declarationName": "rb_log_004",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "RETRIEVAL"
+      ],
+      "tags": [
+        "logic"
+      ]
+    },
+    {
+      "id": "RB-SET-002",
+      "domain": "SETS",
+      "difficulty": "TIER_2_RETRIEVAL",
+      "naturalLanguageObjective": "Union of two collections does not depend on order.",
+      "referenceFormalStatement": "theorem rb_set_002 {α : Type*} (s t : Set α) : s ∪ t = t ∪ s",
+      "declarationName": "rb_set_002",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "RETRIEVAL"
+      ],
+      "tags": [
+        "sets"
+      ]
+    },
+    {
+      "id": "RB-ORD-002",
+      "domain": "ORDER",
+      "difficulty": "TIER_2_RETRIEVAL",
+      "naturalLanguageObjective": "A natural is strictly smaller than its successor.",
+      "referenceFormalStatement": "theorem rb_ord_002 (n : Nat) : n < n + 1",
+      "declarationName": "rb_ord_002",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "RETRIEVAL"
+      ],
+      "tags": [
+        "order"
+      ]
+    },
+    {
+      "id": "RB-LOG-005",
+      "domain": "LOGIC",
+      "difficulty": "TIER_2_RETRIEVAL",
+      "naturalLanguageObjective": "Falsehood is not the case.",
+      "referenceFormalStatement": "theorem rb_log_005 : ¬False",
+      "declarationName": "rb_log_005",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "RETRIEVAL"
+      ],
+      "tags": [
+        "logic"
+      ]
+    },
+    {
+      "id": "RB-FUN-002",
+      "domain": "FUNCTIONS",
+      "difficulty": "TIER_2_RETRIEVAL",
+      "naturalLanguageObjective": "Composition applies the inner map first.",
+      "referenceFormalStatement": "theorem rb_fun_002 {α β γ : Type*} (f : β → γ) (g : α → β) (x : α) : (f ∘ g) x = f (g x)",
+      "declarationName": "rb_fun_002",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "RETRIEVAL"
+      ],
+      "tags": [
+        "functions"
+      ]
+    },
+    {
+      "id": "RB-REL-003",
+      "domain": "RELATIONS",
+      "difficulty": "TIER_2_RETRIEVAL",
+      "naturalLanguageObjective": "Equality of naturals is transitive.",
+      "referenceFormalStatement": "theorem rb_rel_003 (a b c : Nat) (h₁ : a = b) (h₂ : b = c) : a = c",
+      "declarationName": "rb_rel_003",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "RETRIEVAL"
+      ],
+      "tags": [
+        "equality"
+      ]
+    },
+    {
+      "id": "RB-COM-002",
+      "domain": "COMBINATORICS",
+      "difficulty": "TIER_2_RETRIEVAL",
+      "naturalLanguageObjective": "Length of a concatenation is the sum of lengths.",
+      "referenceFormalStatement": "theorem rb_com_002 (l m : List Nat) : (l ++ m).length = l.length + m.length",
+      "declarationName": "rb_com_002",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "RETRIEVAL"
+      ],
+      "tags": [
+        "lists"
+      ]
+    },
+    {
+      "id": "RB-ALG-005",
+      "domain": "ALGEBRA",
+      "difficulty": "TIER_2_RETRIEVAL",
+      "naturalLanguageObjective": "Addition of naturals does not depend on order.",
+      "referenceFormalStatement": "theorem rb_alg_005 (n m : Nat) : n + m = m + n",
+      "declarationName": "rb_alg_005",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "RETRIEVAL"
+      ],
+      "tags": [
+        "nat",
+        "comm"
+      ]
+    },
+    {
+      "id": "RB-REL-004",
+      "domain": "RELATIONS",
+      "difficulty": "TIER_3_DECOMPOSITION",
+      "naturalLanguageObjective": "If a equals b and b equals c then a equals c, via an intermediate fact.",
+      "referenceFormalStatement": "theorem rb_rel_004 (a b c : Nat) (h : a = b ∧ b = c) : a = c",
+      "declarationName": "rb_rel_004",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "DECOMPOSITION"
+      ],
+      "tags": [
+        "equality",
+        "and"
+      ]
+    },
+    {
+      "id": "RB-SET-003",
+      "domain": "SETS",
+      "difficulty": "TIER_3_DECOMPOSITION",
+      "naturalLanguageObjective": "Containment of collections is transitive.",
+      "referenceFormalStatement": "theorem rb_set_003 {α : Type*} (s t u : Set α) (h : s ⊆ t ∧ t ⊆ u) : s ⊆ u",
+      "declarationName": "rb_set_003",
+      "expectedProperties": {
+        "trueTheorem": true,
+        "fidelitySensitive": true,
+        "temptingWrongFormalization": "theorem rb_set_003 {α : Type*} (s t u : Set α) (h : s ⊆ t ∧ t ⊆ u) : u ⊆ s"
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "DECOMPOSITION"
+      ],
+      "tags": [
+        "sets"
+      ]
+    },
+    {
+      "id": "RB-LOG-006",
+      "domain": "LOGIC",
+      "difficulty": "TIER_3_DECOMPOSITION",
+      "naturalLanguageObjective": "Implications may be chained.",
+      "referenceFormalStatement": "theorem rb_log_006 (P Q R : Prop) : (P → Q) → (Q → R) → P → R",
+      "declarationName": "rb_log_006",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "DECOMPOSITION"
+      ],
+      "tags": [
+        "logic"
+      ]
+    },
+    {
+      "id": "RB-ALG-006",
+      "domain": "ALGEBRA",
+      "difficulty": "TIER_3_DECOMPOSITION",
+      "naturalLanguageObjective": "Addition of naturals is associative.",
+      "referenceFormalStatement": "theorem rb_alg_006 (n m k : Nat) : n + m + k = n + (m + k)",
+      "declarationName": "rb_alg_006",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "DECOMPOSITION",
+        "RETRIEVAL"
+      ],
+      "tags": [
+        "nat"
+      ]
+    },
+    {
+      "id": "RB-SET-004",
+      "domain": "SETS",
+      "difficulty": "TIER_3_DECOMPOSITION",
+      "naturalLanguageObjective": "The intersection of two collections sits inside the first.",
+      "referenceFormalStatement": "theorem rb_set_004 {α : Type*} (s t : Set α) : s ∩ t ⊆ s",
+      "declarationName": "rb_set_004",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "DECOMPOSITION"
+      ],
+      "tags": [
+        "sets"
+      ]
+    },
+    {
+      "id": "RB-NUM-002",
+      "domain": "NUMBER_THEORY",
+      "difficulty": "TIER_3_DECOMPOSITION",
+      "naturalLanguageObjective": "One is at most the successor of any natural.",
+      "referenceFormalStatement": "theorem rb_num_002 (n : Nat) : 1 ≤ n + 1",
+      "declarationName": "rb_num_002",
+      "expectedProperties": {
+        "trueTheorem": true,
+        "fidelitySensitive": true,
+        "temptingWrongFormalization": "theorem rb_num_002 (n : Nat) : n + 1 ≤ 1"
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "DECOMPOSITION"
+      ],
+      "tags": [
+        "order"
+      ]
+    },
+    {
+      "id": "RB-FUN-003",
+      "domain": "FUNCTIONS",
+      "difficulty": "TIER_3_DECOMPOSITION",
+      "naturalLanguageObjective": "Composing with the identity on the left does nothing.",
+      "referenceFormalStatement": "theorem rb_fun_003 {α β : Type*} (f : α → β) : (fun x => x) ∘ f = f",
+      "declarationName": "rb_fun_003",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "DECOMPOSITION"
+      ],
+      "tags": [
+        "functions"
+      ]
+    },
+    {
+      "id": "RB-ORD-003",
+      "domain": "ORDER",
+      "difficulty": "TIER_3_DECOMPOSITION",
+      "naturalLanguageObjective": "The order on naturals is transitive.",
+      "referenceFormalStatement": "theorem rb_ord_003 (a b c : Nat) (h : a ≤ b ∧ b ≤ c) : a ≤ c",
+      "declarationName": "rb_ord_003",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "DECOMPOSITION"
+      ],
+      "tags": [
+        "order"
+      ]
+    },
+    {
+      "id": "RB-LOG-007",
+      "domain": "LOGIC",
+      "difficulty": "TIER_3_DECOMPOSITION",
+      "naturalLanguageObjective": "A double negation of a trivial truth still holds.",
+      "referenceFormalStatement": "theorem rb_log_007 : ¬¬True",
+      "declarationName": "rb_log_007",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "DECOMPOSITION"
+      ],
+      "tags": [
+        "logic"
+      ]
+    },
+    {
+      "id": "RB-SEQ-001",
+      "domain": "SEQUENCES",
+      "difficulty": "TIER_3_DECOMPOSITION",
+      "naturalLanguageObjective": "A singleton list built from zero has length one.",
+      "referenceFormalStatement": "theorem rb_seq_001 : ([0] : List Nat).length = 1",
+      "declarationName": "rb_seq_001",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "DECOMPOSITION"
+      ],
+      "tags": [
+        "lists",
+        "sequences"
+      ]
+    },
+    {
+      "id": "RB-LOG-008",
+      "domain": "LOGIC",
+      "difficulty": "TIER_4_RESEARCH",
+      "naturalLanguageObjective": "Recover a trivial truth after an unsuccessful proof attempt.",
+      "referenceFormalStatement": "theorem rb_log_008 : True",
+      "declarationName": "rb_log_008",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION"
+      ],
+      "tags": [
+        "recovery"
+      ]
+    },
+    {
+      "id": "RB-ALG-007",
+      "domain": "ALGEBRA",
+      "difficulty": "TIER_4_RESEARCH",
+      "naturalLanguageObjective": "Twice a natural is that natural added to itself.",
+      "referenceFormalStatement": "theorem rb_alg_007 (n : Nat) : n + n = 2 * n",
+      "declarationName": "rb_alg_007",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "RETRIEVAL",
+        "DECOMPOSITION"
+      ],
+      "tags": [
+        "nat"
+      ]
+    },
+    {
+      "id": "RB-NUM-003",
+      "domain": "NUMBER_THEORY",
+      "difficulty": "TIER_4_RESEARCH",
+      "naturalLanguageObjective": "A square of a natural is nonnegative; a finite check may precede a proof.",
+      "referenceFormalStatement": "theorem rb_num_003 (n : Nat) : 0 ≤ n * n",
+      "declarationName": "rb_num_003",
+      "expectedProperties": {
+        "trueTheorem": true,
+        "fidelitySensitive": true,
+        "temptingWrongFormalization": "theorem rb_num_003 (n : Int) : 0 ≤ n"
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "COMPUTATION"
+      ],
+      "tags": [
+        "nat",
+        "computation"
+      ]
+    },
+    {
+      "id": "RB-ALG-008",
+      "domain": "ALGEBRA",
+      "difficulty": "TIER_4_RESEARCH",
+      "naturalLanguageObjective": "Successor is injective on naturals.",
+      "referenceFormalStatement": "theorem rb_alg_008 (a b : Nat) (h : a + 1 = b + 1) : a = b",
+      "declarationName": "rb_alg_008",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "RETRIEVAL"
+      ],
+      "tags": [
+        "nat"
+      ]
+    },
+    {
+      "id": "RB-LIT-001",
+      "domain": "LOGIC",
+      "difficulty": "TIER_4_RESEARCH",
+      "naturalLanguageObjective": "A classical identity may be known from sources, yet still needs a formal proof.",
+      "referenceFormalStatement": "theorem rb_lit_001 (n : Nat) : n = n",
+      "declarationName": "rb_lit_001",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "LITERATURE"
+      ],
+      "tags": [
+        "literature"
+      ]
+    },
+    {
+      "id": "RB-LOG-009",
+      "domain": "LOGIC",
+      "difficulty": "TIER_4_RESEARCH",
+      "naturalLanguageObjective": "Repeating a proposition with or does not change it.",
+      "referenceFormalStatement": "theorem rb_log_009 (P : Prop) : (P ∨ P) ↔ P",
+      "declarationName": "rb_log_009",
+      "expectedProperties": {
+        "trueTheorem": true,
+        "fidelitySensitive": true,
+        "temptingWrongFormalization": "theorem rb_log_009 (P : Prop) : (P ∨ P) ↔ ¬P"
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "DECOMPOSITION"
+      ],
+      "tags": [
+        "logic"
+      ]
+    },
+    {
+      "id": "RB-ANA-001",
+      "domain": "BASIC_ANALYSIS",
+      "difficulty": "TIER_4_RESEARCH",
+      "naturalLanguageObjective": "Zero is a lower bound for every natural.",
+      "referenceFormalStatement": "theorem rb_ana_001 (n : Nat) : 0 ≤ n",
+      "declarationName": "rb_ana_001",
+      "expectedProperties": {
+        "trueTheorem": true,
+        "fidelitySensitive": true,
+        "temptingWrongFormalization": "theorem rb_ana_001 (n : Int) : 0 ≤ n"
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "RETRIEVAL"
+      ],
+      "tags": [
+        "analysis",
+        "bound"
+      ]
+    },
+    {
+      "id": "RB-COM-003",
+      "domain": "COMBINATORICS",
+      "difficulty": "TIER_4_RESEARCH",
+      "naturalLanguageObjective": "Appending the empty list does not change a list of naturals.",
+      "referenceFormalStatement": "theorem rb_com_003 (l : List Nat) : l ++ [] = l",
+      "declarationName": "rb_com_003",
+      "expectedProperties": {
+        "trueTheorem": true
+      },
+      "allowedCapabilities": [
+        "FORMALIZATION",
+        "RETRIEVAL",
+        "COMPUTATION"
+      ],
+      "tags": [
+        "lists"
+      ]
+    }
+  ],
+  "teamSubset": [
+    "RB-ALG-002",
+    "RB-REL-002",
+    "RB-SET-002",
+    "RB-ALG-005",
+    "RB-REL-004",
+    "RB-SET-003",
+    "RB-LOG-006",
+    "RB-ALG-007",
+    "RB-NUM-003",
+    "RB-LOG-009"
+  ]
+}

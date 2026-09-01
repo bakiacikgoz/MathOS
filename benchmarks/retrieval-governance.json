@@ -1,0 +1,47 @@
+{
+  "kind": "audit-research-artifact",
+  "runtimeCoupling": false,
+  "createdAt": "2026-08-24",
+  "productionPolicy": {
+    "stage1": "current",
+    "top200": "current",
+    "selector": "stratified-v2",
+    "inspectTopK": 30,
+    "fusion": "SCORE_FUSION",
+    "stage1Weight": 0.45,
+    "leanWeight": 0.55
+  },
+  "rejectedFeatures": [
+    {
+      "feature": "SEMANTIC_OPERATOR_PROFILE_V1",
+      "decision": "REJECTED",
+      "artifact": "benchmarks/retrieval-experiments/semantic-v1-immutable.json"
+    },
+    {
+      "feature": "SEMANTIC_OPERATOR_PROFILE_V2",
+      "decision": "REJECTED",
+      "productionIntegrated": false,
+      "artifact": "benchmarks/retrieval-experiments/semantic-operator-profile-v2-decision.json"
+    }
+  ],
+  "closedDatasets": [
+    {
+      "datasetVersion": "retrieval-holdout-v1",
+      "status": "CLOSED",
+      "policy": ["NO_TUNING", "NO_REEVALUATION_FOR_SAME_FEATURE_FAMILY"],
+      "path": "packages/retrieval/src/holdout-fixtures.ts"
+    },
+    {
+      "datasetVersion": "retrieval-holdout-v2",
+      "status": "CLOSED",
+      "policy": ["NO_TUNING", "NO_REEVALUATION_FOR_SAME_FEATURE_FAMILY"],
+      "path": "packages/retrieval/src/holdout-v2-fixtures.ts"
+    }
+  ],
+  "validationBaseline": {
+    "datasetVersion": "retrieval-validation-v1",
+    "frozen": true,
+    "path": "packages/retrieval/src/validation-fixtures.ts"
+  },
+  "productionRegressionCommand": "bun scripts/retrieval-regression.ts"
+}

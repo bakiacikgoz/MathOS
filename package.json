@@ -1,0 +1,31 @@
+{
+  "name": "mathos",
+  "version": "0.1.0-alpha.1",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "description": "Agentic mathematical research environment",
+  "workspaces": ["apps/*", "packages/*"],
+  "bin": {
+    "mathos": "./apps/tui/src/cli.ts"
+  },
+  "scripts": {
+    "mathos": "bun run apps/tui/src/cli.ts",
+    "test": "bun test",
+    "typecheck": "bunx tsc --noEmit -p tsconfig.json",
+    "build": "bun -e 'console.log(\"mathos build ok\")'",
+    "release-check": "bun scripts/release-check.ts"
+  },
+  "engines": {
+    "bun": ">=1.2.0"
+  },
+  "devDependencies": {
+    "bun-types": "^1.4.0"
+  },
+  "dependencies": {
+    "@opentui/core": "^0.5.7",
+    "@opentui/keymap": "^0.5.7",
+    "@opentui/solid": "^0.5.7",
+    "solid-js": "1.9.12"
+  }
+}

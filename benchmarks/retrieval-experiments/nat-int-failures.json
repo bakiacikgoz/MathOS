@@ -1,0 +1,360 @@
+[
+  {
+    "fixtureId": "nat_zero_add",
+    "domain": "Nat/Int",
+    "expectedAnyOf": [
+      "Nat.zero_add"
+    ],
+    "stage": "OUTSIDE_TOP200",
+    "goal": "theorem validation (n : Nat) : 0 + n = n",
+    "diagnostics": {
+      "unionRank": 206,
+      "matchedTokens": [
+        "nat",
+        "0"
+      ],
+      "missingTokens": [],
+      "goalProfile": {
+        "rawTarget": "0 + n = n",
+        "propositionHead": "Eq",
+        "constants": [
+          "goal",
+          "validation",
+          "nat"
+        ],
+        "namespaces": [],
+        "typeConstructors": [
+          "nat"
+        ],
+        "operators": [],
+        "localTypes": [
+          "nat"
+        ],
+        "conclusionTokens": [],
+        "isEquality": true,
+        "isIff": false,
+        "isImplication": false,
+        "isExistential": false,
+        "isUniversal": false,
+        "operatorMultiplicity": {
+          "neg": 0,
+          "eq": 1,
+          "iff": 0,
+          "union": 0,
+          "inter": 0,
+          "subset": 0,
+          "le": 0
+        },
+        "known": true
+      },
+      "goldNameTokens": [
+        "nat",
+        "zero",
+        "add"
+      ],
+      "goldSignatureTokens": [
+        "theorem",
+        "nat",
+        "zero",
+        "add",
+        "n",
+        "nat",
+        "0",
+        "n",
+        "n"
+      ],
+      "goldNamespace": "Nat",
+      "goldConclusionShape": "Eq",
+      "goalGoldOverlap": 1,
+      "goldCheapScore": 0.144,
+      "top200Cutoff": 0.21,
+      "scoreDelta": -0.066,
+      "higherRankedCandidateCount": 93,
+      "falsePositiveGroups": {
+        "genericNatDeclarations": 1,
+        "sameOperatorWrongConclusion": 0,
+        "sameSuffixWrongType": 15,
+        "namespaceOnlyMatches": 0,
+        "commonTokenNoise": 7
+      },
+      "selectionCutoff": 7.7200457379041545,
+      "primaryCluster": "wrong conclusion structure",
+      "secondaryClusters": [
+        "missing structure evidence"
+      ]
+    }
+  },
+  {
+    "fixtureId": "nat_add_assoc",
+    "domain": "Nat/Int",
+    "expectedAnyOf": [
+      "Nat.add_assoc"
+    ],
+    "stage": "OUTSIDE_TOP200",
+    "goal": "theorem validation (n m k : Nat) : n + m + k = n + (m + k)",
+    "diagnostics": {
+      "unionRank": 204,
+      "matchedTokens": [
+        "k",
+        "nat",
+        "k",
+        "k"
+      ],
+      "missingTokens": [],
+      "goalProfile": {
+        "rawTarget": "n + m + k = n + (m + k)",
+        "propositionHead": "Eq",
+        "constants": [
+          "goal",
+          "validation",
+          "nat"
+        ],
+        "namespaces": [],
+        "typeConstructors": [
+          "nat"
+        ],
+        "operators": [],
+        "localTypes": [
+          "nat"
+        ],
+        "conclusionTokens": [],
+        "isEquality": true,
+        "isIff": false,
+        "isImplication": false,
+        "isExistential": false,
+        "isUniversal": false,
+        "operatorMultiplicity": {
+          "neg": 0,
+          "eq": 1,
+          "iff": 0,
+          "union": 0,
+          "inter": 0,
+          "subset": 0,
+          "le": 0
+        },
+        "known": true
+      },
+      "goldNameTokens": [
+        "nat",
+        "add",
+        "assoc"
+      ],
+      "goldSignatureTokens": [
+        "theorem",
+        "nat",
+        "add",
+        "assoc",
+        "n",
+        "m",
+        "k",
+        "nat",
+        "n",
+        "m",
+        "k",
+        "n",
+        "m",
+        "k"
+      ],
+      "goldNamespace": "Nat",
+      "goldConclusionShape": "Eq",
+      "goalGoldOverlap": 1,
+      "goldCheapScore": 0.144,
+      "top200Cutoff": 0.185,
+      "scoreDelta": -0.04100000000000001,
+      "higherRankedCandidateCount": 92,
+      "falsePositiveGroups": {
+        "genericNatDeclarations": 0,
+        "sameOperatorWrongConclusion": 0,
+        "sameSuffixWrongType": 0,
+        "namespaceOnlyMatches": 0,
+        "commonTokenNoise": 7
+      },
+      "selectionCutoff": 7.969942417413673,
+      "primaryCluster": "wrong conclusion structure",
+      "secondaryClusters": [
+        "missing structure evidence"
+      ]
+    }
+  },
+  {
+    "fixtureId": "int_shift_right_zero",
+    "domain": "Nat/Int",
+    "expectedAnyOf": [
+      "Int.shiftRight_zero"
+    ],
+    "stage": "OUTSIDE_TOP200",
+    "goal": "theorem validation (n : Int) : n >>> 0 = n",
+    "diagnostics": {
+      "unionRank": 587,
+      "matchedTokens": [
+        "int",
+        "0"
+      ],
+      "missingTokens": [],
+      "goalProfile": {
+        "rawTarget": "n >>> 0 = n",
+        "propositionHead": "Eq",
+        "constants": [
+          "goal",
+          "validation",
+          "int"
+        ],
+        "namespaces": [],
+        "typeConstructors": [
+          "int"
+        ],
+        "operators": [],
+        "localTypes": [
+          "int"
+        ],
+        "conclusionTokens": [],
+        "isEquality": true,
+        "isIff": false,
+        "isImplication": false,
+        "isExistential": false,
+        "isUniversal": false,
+        "operatorMultiplicity": {
+          "neg": 0,
+          "eq": 1,
+          "iff": 0,
+          "union": 0,
+          "inter": 0,
+          "subset": 0,
+          "le": 0
+        },
+        "known": true
+      },
+      "goldNameTokens": [
+        "int",
+        "shiftright",
+        "zero"
+      ],
+      "goldSignatureTokens": [
+        "simp",
+        "grind",
+        "theorem",
+        "shiftright",
+        "zero",
+        "n",
+        "int",
+        "n",
+        "0",
+        "n",
+        "by"
+      ],
+      "goldNamespace": "Int",
+      "goldConclusionShape": "Eq",
+      "goalGoldOverlap": 1,
+      "goldCheapScore": 0.191,
+      "top200Cutoff": 0.492,
+      "scoreDelta": -0.301,
+      "higherRankedCandidateCount": 100,
+      "falsePositiveGroups": {
+        "genericNatDeclarations": 0,
+        "sameOperatorWrongConclusion": 0,
+        "sameSuffixWrongType": 2,
+        "namespaceOnlyMatches": 0,
+        "commonTokenNoise": 0
+      },
+      "selectionCutoff": 5.452226310575586,
+      "primaryCluster": "wrong conclusion structure",
+      "secondaryClusters": [
+        "missing structure evidence"
+      ]
+    }
+  },
+  {
+    "fixtureId": "int_zero_shift_right",
+    "domain": "Nat/Int",
+    "expectedAnyOf": [
+      "Int.zero_shiftRight"
+    ],
+    "stage": "OUTSIDE_TOP200",
+    "goal": "theorem validation (n : Nat) : (0 : Int) >>> n = 0",
+    "diagnostics": {
+      "unionRank": 291,
+      "matchedTokens": [
+        "nat",
+        "0",
+        "int",
+        "0"
+      ],
+      "missingTokens": [],
+      "goalProfile": {
+        "rawTarget": "(0 : Int) >>> n = 0",
+        "propositionHead": "Eq",
+        "constants": [
+          "goal",
+          "validation",
+          "nat",
+          "int"
+        ],
+        "namespaces": [],
+        "typeConstructors": [
+          "nat",
+          "int"
+        ],
+        "operators": [],
+        "localTypes": [
+          "nat"
+        ],
+        "conclusionTokens": [
+          "int"
+        ],
+        "isEquality": true,
+        "isIff": false,
+        "isImplication": false,
+        "isExistential": false,
+        "isUniversal": false,
+        "operatorMultiplicity": {
+          "neg": 0,
+          "eq": 1,
+          "iff": 0,
+          "union": 0,
+          "inter": 0,
+          "subset": 0,
+          "le": 0
+        },
+        "known": true
+      },
+      "goldNameTokens": [
+        "int",
+        "zero",
+        "shiftright"
+      ],
+      "goldSignatureTokens": [
+        "simp",
+        "grind",
+        "theorem",
+        "zero",
+        "shiftright",
+        "n",
+        "nat",
+        "0",
+        "int",
+        "n",
+        "0",
+        "by"
+      ],
+      "goldNamespace": "Int",
+      "goldConclusionShape": "Eq",
+      "goalGoldOverlap": 1,
+      "goldCheapScore": 0.89,
+      "top200Cutoff": 0.208,
+      "scoreDelta": 0.682,
+      "higherRankedCandidateCount": 124,
+      "falsePositiveGroups": {
+        "genericNatDeclarations": 0,
+        "sameOperatorWrongConclusion": 0,
+        "sameSuffixWrongType": 0,
+        "namespaceOnlyMatches": 0,
+        "commonTokenNoise": 8
+      },
+      "selectionCutoff": 6.868122786049112,
+      "primaryCluster": "wrong conclusion structure",
+      "secondaryClusters": [
+        "missing structure evidence"
+      ]
+    }
+  }
+]

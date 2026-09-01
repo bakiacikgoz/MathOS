@@ -1,0 +1,1921 @@
+{
+  "version": "SEMANTIC_OPERATOR_PROFILE_V2_STABILITY_V1",
+  "datasets": {
+    "development": 20,
+    "validation": 60,
+    "holdoutUsed": false
+  },
+  "baseline": {
+    "development": {
+      "metrics": {
+        "union": 0.95,
+        "top200": 0.75,
+        "inspect30": 0.7,
+        "final20": 0.65,
+        "hit5": 0.25,
+        "hit10": 0.4,
+        "mrr": 0.119406789031402
+      },
+      "paired": null,
+      "activation": {
+        "medianBoostedCandidates": 0,
+        "p95BoostedCandidates": 0,
+        "meanBoostedCandidates": 0,
+        "maxBoostedCandidates": 0
+      },
+      "displacement": {
+        "nonGold": {
+          "promoted100Plus": 0,
+          "promoted50To99": 0,
+          "promoted20To49": 0,
+          "promoted1To19": 0
+        },
+        "goldPromoted": 0,
+        "goldDemoted": 0,
+        "meanAbsoluteRankMovement": 0,
+        "p95RankMovement": 0,
+        "maxRankMovement": 0
+      },
+      "utility": {
+        "eligibleUseful": 0,
+        "eligibleFalsePositive": 0,
+        "ineligibleWouldHaveHelped": 0,
+        "ineligibleCorrectlyBlocked": 0,
+        "semanticPromotionPrecision": null,
+        "semanticOpportunityRecall": null,
+        "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+      },
+      "performance": {
+        "stage1MedianMs": 42.9608019999996,
+        "stage1P95Ms": 96.34860100000014,
+        "semanticProfilingMedianMs": 0.06584499999962645,
+        "compatibilityMedianMs": 0,
+        "fullWarmMedianMs": 125.18563700000004,
+        "fullWarmP95Ms": 175.14103600000135,
+        "newLeanInvocations": 0
+      }
+    },
+    "validation": {
+      "metrics": {
+        "union": 0.8833333333333333,
+        "top200": 0.7666666666666667,
+        "inspect30": 0.6166666666666667,
+        "final20": 0.6166666666666667,
+        "hit5": 0.4,
+        "hit10": 0.5666666666666667,
+        "mrr": 0.2420941241993873
+      },
+      "paired": null,
+      "activation": {
+        "medianBoostedCandidates": 0,
+        "p95BoostedCandidates": 0,
+        "meanBoostedCandidates": 0,
+        "maxBoostedCandidates": 0
+      },
+      "displacement": {
+        "nonGold": {
+          "promoted100Plus": 0,
+          "promoted50To99": 0,
+          "promoted20To49": 0,
+          "promoted1To19": 0
+        },
+        "goldPromoted": 0,
+        "goldDemoted": 0,
+        "meanAbsoluteRankMovement": 0,
+        "p95RankMovement": 0,
+        "maxRankMovement": 0
+      },
+      "utility": {
+        "eligibleUseful": 0,
+        "eligibleFalsePositive": 0,
+        "ineligibleWouldHaveHelped": 0,
+        "ineligibleCorrectlyBlocked": 0,
+        "semanticPromotionPrecision": null,
+        "semanticOpportunityRecall": null,
+        "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+      },
+      "performance": {
+        "stage1MedianMs": 45.76470199999949,
+        "stage1P95Ms": 93.77868799999987,
+        "semanticProfilingMedianMs": 0.05085899999994581,
+        "compatibilityMedianMs": 0,
+        "fullWarmMedianMs": 102.81843200000094,
+        "fullWarmP95Ms": 144.290261000001,
+        "newLeanInvocations": 0
+      }
+    }
+  },
+  "compatibility": {
+    "COMP-A": {
+      "development": {
+        "metrics": {
+          "union": 0.95,
+          "top200": 0.8,
+          "inspect30": 0.75,
+          "final20": 0.65,
+          "hit5": 0.25,
+          "hit10": 0.4,
+          "mrr": 0.119406789031402
+        },
+        "paired": {
+          "improved": 0,
+          "unchanged": 20,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 20,
+          "p95BoostedCandidates": 133,
+          "meanBoostedCandidates": 26.75,
+          "maxBoostedCandidates": 133
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 268
+          },
+          "goldPromoted": 0,
+          "goldDemoted": 2,
+          "meanAbsoluteRankMovement": 1.3821862348178138,
+          "p95RankMovement": 7,
+          "maxRankMovement": 43
+        },
+        "utility": {
+          "eligibleUseful": 4,
+          "eligibleFalsePositive": 531,
+          "ineligibleWouldHaveHelped": 2,
+          "ineligibleCorrectlyBlocked": 449,
+          "semanticPromotionPrecision": 0.007476635514018692,
+          "semanticOpportunityRecall": 0.6666666666666666,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 81.10085499999968,
+          "stage1P95Ms": 174.32277000000022,
+          "semanticProfilingMedianMs": 0.06584499999962645,
+          "compatibilityMedianMs": 4.6795339999989665,
+          "fullWarmMedianMs": 181.0789029999985,
+          "fullWarmP95Ms": 249.11334700000043,
+          "newLeanInvocations": 0
+        }
+      },
+      "validation": {
+        "metrics": {
+          "union": 0.8833333333333333,
+          "top200": 0.7833333333333333,
+          "inspect30": 0.6166666666666667,
+          "final20": 0.6166666666666667,
+          "hit5": 0.4166666666666667,
+          "hit10": 0.5666666666666667,
+          "mrr": 0.2496867167919799
+        },
+        "paired": {
+          "improved": 3,
+          "unchanged": 57,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 0,
+          "p95BoostedCandidates": 54,
+          "meanBoostedCandidates": 9.583333333333334,
+          "maxBoostedCandidates": 71
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 255
+          },
+          "goldPromoted": 6,
+          "goldDemoted": 1,
+          "meanAbsoluteRankMovement": 0.5290486564996368,
+          "p95RankMovement": 4,
+          "maxRankMovement": 25
+        },
+        "utility": {
+          "eligibleUseful": 7,
+          "eligibleFalsePositive": 568,
+          "ineligibleWouldHaveHelped": 0,
+          "ineligibleCorrectlyBlocked": 667,
+          "semanticPromotionPrecision": 0.01217391304347826,
+          "semanticOpportunityRecall": 1,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 58.093339000000014,
+          "stage1P95Ms": 150.83619999999974,
+          "semanticProfilingMedianMs": 0.05085899999994581,
+          "compatibilityMedianMs": 3.670219999999972,
+          "fullWarmMedianMs": 114.15490000000045,
+          "fullWarmP95Ms": 224.75128899999982,
+          "newLeanInvocations": 0
+        }
+      }
+    },
+    "COMP-B": {
+      "development": {
+        "metrics": {
+          "union": 0.95,
+          "top200": 0.8,
+          "inspect30": 0.75,
+          "final20": 0.65,
+          "hit5": 0.25,
+          "hit10": 0.4,
+          "mrr": 0.119406789031402
+        },
+        "paired": {
+          "improved": 0,
+          "unchanged": 20,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 0,
+          "p95BoostedCandidates": 62,
+          "meanBoostedCandidates": 8.05,
+          "maxBoostedCandidates": 62
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 67
+          },
+          "goldPromoted": 0,
+          "goldDemoted": 1,
+          "meanAbsoluteRankMovement": 0.39445364238410596,
+          "p95RankMovement": 2,
+          "maxRankMovement": 22
+        },
+        "utility": {
+          "eligibleUseful": 2,
+          "eligibleFalsePositive": 159,
+          "ineligibleWouldHaveHelped": 4,
+          "ineligibleCorrectlyBlocked": 821,
+          "semanticPromotionPrecision": 0.012422360248447204,
+          "semanticOpportunityRecall": 0.3333333333333333,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 81.10085499999968,
+          "stage1P95Ms": 174.32277000000022,
+          "semanticProfilingMedianMs": 0.06584499999962645,
+          "compatibilityMedianMs": 4.059384000000136,
+          "fullWarmMedianMs": 168.3284979999985,
+          "fullWarmP95Ms": 250.73224400000072,
+          "newLeanInvocations": 0
+        }
+      },
+      "validation": {
+        "metrics": {
+          "union": 0.8833333333333333,
+          "top200": 0.7666666666666667,
+          "inspect30": 0.6166666666666667,
+          "final20": 0.6166666666666667,
+          "hit5": 0.4,
+          "hit10": 0.5666666666666667,
+          "mrr": 0.2420941241993873
+        },
+        "paired": {
+          "improved": 0,
+          "unchanged": 60,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 0,
+          "p95BoostedCandidates": 0,
+          "meanBoostedCandidates": 0.3333333333333333,
+          "maxBoostedCandidates": 16
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 14
+          },
+          "goldPromoted": 0,
+          "goldDemoted": 0,
+          "meanAbsoluteRankMovement": 0.05000915918666422,
+          "p95RankMovement": 0,
+          "maxRankMovement": 15
+        },
+        "utility": {
+          "eligibleUseful": 0,
+          "eligibleFalsePositive": 20,
+          "ineligibleWouldHaveHelped": 7,
+          "ineligibleCorrectlyBlocked": 1215,
+          "semanticPromotionPrecision": 0,
+          "semanticOpportunityRecall": 0,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 58.093339000000014,
+          "stage1P95Ms": 150.83619999999974,
+          "semanticProfilingMedianMs": 0.05085899999994581,
+          "compatibilityMedianMs": 3.037927999997919,
+          "fullWarmMedianMs": 109.24949799999922,
+          "fullWarmP95Ms": 204.17190300000038,
+          "newLeanInvocations": 0
+        }
+      }
+    },
+    "COMP-C": {
+      "development": {
+        "metrics": {
+          "union": 0.95,
+          "top200": 0.8,
+          "inspect30": 0.75,
+          "final20": 0.65,
+          "hit5": 0.25,
+          "hit10": 0.4,
+          "mrr": 0.119406789031402
+        },
+        "paired": {
+          "improved": 0,
+          "unchanged": 20,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 20,
+          "p95BoostedCandidates": 133,
+          "meanBoostedCandidates": 26.75,
+          "maxBoostedCandidates": 133
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 268
+          },
+          "goldPromoted": 0,
+          "goldDemoted": 2,
+          "meanAbsoluteRankMovement": 1.3821862348178138,
+          "p95RankMovement": 7,
+          "maxRankMovement": 43
+        },
+        "utility": {
+          "eligibleUseful": 4,
+          "eligibleFalsePositive": 531,
+          "ineligibleWouldHaveHelped": 2,
+          "ineligibleCorrectlyBlocked": 449,
+          "semanticPromotionPrecision": 0.007476635514018692,
+          "semanticOpportunityRecall": 0.6666666666666666,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 81.10085499999968,
+          "stage1P95Ms": 174.32277000000022,
+          "semanticProfilingMedianMs": 0.06584499999962645,
+          "compatibilityMedianMs": 4.139541999997164,
+          "fullWarmMedianMs": 167.0217279999997,
+          "fullWarmP95Ms": 249.79107900000054,
+          "newLeanInvocations": 0
+        }
+      },
+      "validation": {
+        "metrics": {
+          "union": 0.8833333333333333,
+          "top200": 0.7833333333333333,
+          "inspect30": 0.6166666666666667,
+          "final20": 0.6166666666666667,
+          "hit5": 0.4166666666666667,
+          "hit10": 0.5666666666666667,
+          "mrr": 0.2496867167919799
+        },
+        "paired": {
+          "improved": 3,
+          "unchanged": 57,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 0,
+          "p95BoostedCandidates": 54,
+          "meanBoostedCandidates": 9.583333333333334,
+          "maxBoostedCandidates": 71
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 255
+          },
+          "goldPromoted": 6,
+          "goldDemoted": 1,
+          "meanAbsoluteRankMovement": 0.5290486564996368,
+          "p95RankMovement": 4,
+          "maxRankMovement": 25
+        },
+        "utility": {
+          "eligibleUseful": 7,
+          "eligibleFalsePositive": 568,
+          "ineligibleWouldHaveHelped": 0,
+          "ineligibleCorrectlyBlocked": 667,
+          "semanticPromotionPrecision": 0.01217391304347826,
+          "semanticOpportunityRecall": 1,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 58.093339000000014,
+          "stage1P95Ms": 150.83619999999974,
+          "semanticProfilingMedianMs": 0.05085899999994581,
+          "compatibilityMedianMs": 3.0357960000001185,
+          "fullWarmMedianMs": 110.25146099999802,
+          "fullWarmP95Ms": 212.79136800000015,
+          "newLeanInvocations": 0
+        }
+      }
+    },
+    "COMP-D": {
+      "development": {
+        "metrics": {
+          "union": 0.95,
+          "top200": 0.8,
+          "inspect30": 0.75,
+          "final20": 0.65,
+          "hit5": 0.25,
+          "hit10": 0.4,
+          "mrr": 0.11959061256081378
+        },
+        "paired": {
+          "improved": 1,
+          "unchanged": 19,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 23,
+          "p95BoostedCandidates": 133,
+          "meanBoostedCandidates": 34.7,
+          "maxBoostedCandidates": 133
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 375
+          },
+          "goldPromoted": 1,
+          "goldDemoted": 3,
+          "meanAbsoluteRankMovement": 1.7909967845659165,
+          "p95RankMovement": 8,
+          "maxRankMovement": 46
+        },
+        "utility": {
+          "eligibleUseful": 5,
+          "eligibleFalsePositive": 689,
+          "ineligibleWouldHaveHelped": 1,
+          "ineligibleCorrectlyBlocked": 291,
+          "semanticPromotionPrecision": 0.007204610951008645,
+          "semanticOpportunityRecall": 0.8333333333333334,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 81.10085499999968,
+          "stage1P95Ms": 174.32277000000022,
+          "semanticProfilingMedianMs": 0.06584499999962645,
+          "compatibilityMedianMs": 4.158101999997598,
+          "fullWarmMedianMs": 167.148643,
+          "fullWarmP95Ms": 250.4635729999991,
+          "newLeanInvocations": 0
+        }
+      },
+      "validation": {
+        "metrics": {
+          "union": 0.8833333333333333,
+          "top200": 0.7833333333333333,
+          "inspect30": 0.6166666666666667,
+          "final20": 0.6166666666666667,
+          "hit5": 0.4166666666666667,
+          "hit10": 0.5666666666666667,
+          "mrr": 0.25385338345864655
+        },
+        "paired": {
+          "improved": 4,
+          "unchanged": 56,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 0,
+          "p95BoostedCandidates": 62,
+          "meanBoostedCandidates": 12.283333333333333,
+          "maxBoostedCandidates": 73
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 346
+          },
+          "goldPromoted": 5,
+          "goldDemoted": 2,
+          "meanAbsoluteRankMovement": 0.7283705839942322,
+          "p95RankMovement": 5,
+          "maxRankMovement": 25
+        },
+        "utility": {
+          "eligibleUseful": 7,
+          "eligibleFalsePositive": 730,
+          "ineligibleWouldHaveHelped": 0,
+          "ineligibleCorrectlyBlocked": 505,
+          "semanticPromotionPrecision": 0.009497964721845319,
+          "semanticOpportunityRecall": 1,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 58.093339000000014,
+          "stage1P95Ms": 150.83619999999974,
+          "semanticProfilingMedianMs": 0.05085899999994581,
+          "compatibilityMedianMs": 3.0661419999996724,
+          "fullWarmMedianMs": 109.95428899999933,
+          "fullWarmP95Ms": 204.38697499999762,
+          "newLeanInvocations": 0
+        }
+      }
+    }
+  },
+  "selectedCompatibility": "COMP-A",
+  "capSensitivity": {
+    "4": {
+      "development": {
+        "metrics": {
+          "union": 0.95,
+          "top200": 0.8,
+          "inspect30": 0.75,
+          "final20": 0.65,
+          "hit5": 0.25,
+          "hit10": 0.4,
+          "mrr": 0.119406789031402
+        },
+        "paired": {
+          "improved": 0,
+          "unchanged": 20,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 20,
+          "p95BoostedCandidates": 133,
+          "meanBoostedCandidates": 26.75,
+          "maxBoostedCandidates": 133
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 184
+          },
+          "goldPromoted": 0,
+          "goldDemoted": 2,
+          "meanAbsoluteRankMovement": 0.6761133603238867,
+          "p95RankMovement": 2,
+          "maxRankMovement": 43
+        },
+        "utility": {
+          "eligibleUseful": 4,
+          "eligibleFalsePositive": 531,
+          "ineligibleWouldHaveHelped": 2,
+          "ineligibleCorrectlyBlocked": 449,
+          "semanticPromotionPrecision": 0.007476635514018692,
+          "semanticOpportunityRecall": 0.6666666666666666,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 81.10085499999968,
+          "stage1P95Ms": 174.32277000000022,
+          "semanticProfilingMedianMs": 0.06584499999962645,
+          "compatibilityMedianMs": 4.0550250000014785,
+          "fullWarmMedianMs": 160.978020999999,
+          "fullWarmP95Ms": 249.55247599999893,
+          "newLeanInvocations": 0
+        }
+      },
+      "validation": {
+        "metrics": {
+          "union": 0.8833333333333333,
+          "top200": 0.7833333333333333,
+          "inspect30": 0.6166666666666667,
+          "final20": 0.6166666666666667,
+          "hit5": 0.4,
+          "hit10": 0.5666666666666667,
+          "mrr": 0.2420941241993873
+        },
+        "paired": {
+          "improved": 0,
+          "unchanged": 60,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 0,
+          "p95BoostedCandidates": 54,
+          "meanBoostedCandidates": 9.583333333333334,
+          "maxBoostedCandidates": 71
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 204
+          },
+          "goldPromoted": 5,
+          "goldDemoted": 1,
+          "meanAbsoluteRankMovement": 0.19934640522875818,
+          "p95RankMovement": 1,
+          "maxRankMovement": 25
+        },
+        "utility": {
+          "eligibleUseful": 7,
+          "eligibleFalsePositive": 568,
+          "ineligibleWouldHaveHelped": 0,
+          "ineligibleCorrectlyBlocked": 667,
+          "semanticPromotionPrecision": 0.01217391304347826,
+          "semanticOpportunityRecall": 1,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 58.093339000000014,
+          "stage1P95Ms": 150.83619999999974,
+          "semanticProfilingMedianMs": 0.05085899999994581,
+          "compatibilityMedianMs": 3.078035999998974,
+          "fullWarmMedianMs": 110.2188889999934,
+          "fullWarmP95Ms": 204.2803159999985,
+          "newLeanInvocations": 0
+        }
+      }
+    },
+    "6": {
+      "development": {
+        "metrics": {
+          "union": 0.95,
+          "top200": 0.8,
+          "inspect30": 0.75,
+          "final20": 0.65,
+          "hit5": 0.25,
+          "hit10": 0.4,
+          "mrr": 0.119406789031402
+        },
+        "paired": {
+          "improved": 0,
+          "unchanged": 20,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 20,
+          "p95BoostedCandidates": 133,
+          "meanBoostedCandidates": 26.75,
+          "maxBoostedCandidates": 133
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 227
+          },
+          "goldPromoted": 0,
+          "goldDemoted": 2,
+          "meanAbsoluteRankMovement": 0.8736842105263158,
+          "p95RankMovement": 4,
+          "maxRankMovement": 43
+        },
+        "utility": {
+          "eligibleUseful": 4,
+          "eligibleFalsePositive": 531,
+          "ineligibleWouldHaveHelped": 2,
+          "ineligibleCorrectlyBlocked": 449,
+          "semanticPromotionPrecision": 0.007476635514018692,
+          "semanticOpportunityRecall": 0.6666666666666666,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 81.10085499999968,
+          "stage1P95Ms": 174.32277000000022,
+          "semanticProfilingMedianMs": 0.06584499999962645,
+          "compatibilityMedianMs": 4.10120000000461,
+          "fullWarmMedianMs": 165.1236100000051,
+          "fullWarmP95Ms": 260.2662019999934,
+          "newLeanInvocations": 0
+        }
+      },
+      "validation": {
+        "metrics": {
+          "union": 0.8833333333333333,
+          "top200": 0.7833333333333333,
+          "inspect30": 0.6166666666666667,
+          "final20": 0.6166666666666667,
+          "hit5": 0.4,
+          "hit10": 0.5666666666666667,
+          "mrr": 0.24227930938457248
+        },
+        "paired": {
+          "improved": 1,
+          "unchanged": 59,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 0,
+          "p95BoostedCandidates": 54,
+          "meanBoostedCandidates": 9.583333333333334,
+          "maxBoostedCandidates": 71
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 239
+          },
+          "goldPromoted": 6,
+          "goldDemoted": 1,
+          "meanAbsoluteRankMovement": 0.29193899782135074,
+          "p95RankMovement": 2,
+          "maxRankMovement": 25
+        },
+        "utility": {
+          "eligibleUseful": 7,
+          "eligibleFalsePositive": 568,
+          "ineligibleWouldHaveHelped": 0,
+          "ineligibleCorrectlyBlocked": 667,
+          "semanticPromotionPrecision": 0.01217391304347826,
+          "semanticOpportunityRecall": 1,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 58.093339000000014,
+          "stage1P95Ms": 150.83619999999974,
+          "semanticProfilingMedianMs": 0.05085899999994581,
+          "compatibilityMedianMs": 3.0075120000037714,
+          "fullWarmMedianMs": 112.32370600000468,
+          "fullWarmP95Ms": 205.65721400000075,
+          "newLeanInvocations": 0
+        }
+      }
+    },
+    "8": {
+      "development": {
+        "metrics": {
+          "union": 0.95,
+          "top200": 0.8,
+          "inspect30": 0.75,
+          "final20": 0.65,
+          "hit5": 0.25,
+          "hit10": 0.4,
+          "mrr": 0.119406789031402
+        },
+        "paired": {
+          "improved": 0,
+          "unchanged": 20,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 20,
+          "p95BoostedCandidates": 133,
+          "meanBoostedCandidates": 26.75,
+          "maxBoostedCandidates": 133
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 252
+          },
+          "goldPromoted": 0,
+          "goldDemoted": 2,
+          "meanAbsoluteRankMovement": 1.0850202429149798,
+          "p95RankMovement": 6,
+          "maxRankMovement": 43
+        },
+        "utility": {
+          "eligibleUseful": 4,
+          "eligibleFalsePositive": 531,
+          "ineligibleWouldHaveHelped": 2,
+          "ineligibleCorrectlyBlocked": 449,
+          "semanticPromotionPrecision": 0.007476635514018692,
+          "semanticOpportunityRecall": 0.6666666666666666,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 81.10085499999968,
+          "stage1P95Ms": 174.32277000000022,
+          "semanticProfilingMedianMs": 0.06584499999962645,
+          "compatibilityMedianMs": 4.010627000003296,
+          "fullWarmMedianMs": 173.6606149999966,
+          "fullWarmP95Ms": 252.7272630000025,
+          "newLeanInvocations": 0
+        }
+      },
+      "validation": {
+        "metrics": {
+          "union": 0.8833333333333333,
+          "top200": 0.7833333333333333,
+          "inspect30": 0.6166666666666667,
+          "final20": 0.6166666666666667,
+          "hit5": 0.4,
+          "hit10": 0.5666666666666667,
+          "mrr": 0.24373433583959897
+        },
+        "paired": {
+          "improved": 2,
+          "unchanged": 58,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 0,
+          "p95BoostedCandidates": 54,
+          "meanBoostedCandidates": 9.583333333333334,
+          "maxBoostedCandidates": 71
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 253
+          },
+          "goldPromoted": 6,
+          "goldDemoted": 1,
+          "meanAbsoluteRankMovement": 0.3776325344952796,
+          "p95RankMovement": 3,
+          "maxRankMovement": 25
+        },
+        "utility": {
+          "eligibleUseful": 7,
+          "eligibleFalsePositive": 568,
+          "ineligibleWouldHaveHelped": 0,
+          "ineligibleCorrectlyBlocked": 667,
+          "semanticPromotionPrecision": 0.01217391304347826,
+          "semanticOpportunityRecall": 1,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 58.093339000000014,
+          "stage1P95Ms": 150.83619999999974,
+          "semanticProfilingMedianMs": 0.05085899999994581,
+          "compatibilityMedianMs": 3.1187769999960437,
+          "fullWarmMedianMs": 109.82185700001173,
+          "fullWarmP95Ms": 205.26167899999746,
+          "newLeanInvocations": 0
+        }
+      }
+    },
+    "10": {
+      "development": {
+        "metrics": {
+          "union": 0.95,
+          "top200": 0.8,
+          "inspect30": 0.75,
+          "final20": 0.65,
+          "hit5": 0.25,
+          "hit10": 0.4,
+          "mrr": 0.119406789031402
+        },
+        "paired": {
+          "improved": 0,
+          "unchanged": 20,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 20,
+          "p95BoostedCandidates": 133,
+          "meanBoostedCandidates": 26.75,
+          "maxBoostedCandidates": 133
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 260
+          },
+          "goldPromoted": 0,
+          "goldDemoted": 2,
+          "meanAbsoluteRankMovement": 1.2461538461538462,
+          "p95RankMovement": 6,
+          "maxRankMovement": 43
+        },
+        "utility": {
+          "eligibleUseful": 4,
+          "eligibleFalsePositive": 531,
+          "ineligibleWouldHaveHelped": 2,
+          "ineligibleCorrectlyBlocked": 449,
+          "semanticPromotionPrecision": 0.007476635514018692,
+          "semanticOpportunityRecall": 0.6666666666666666,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 81.10085499999968,
+          "stage1P95Ms": 174.32277000000022,
+          "semanticProfilingMedianMs": 0.06584499999962645,
+          "compatibilityMedianMs": 4.273856000007072,
+          "fullWarmMedianMs": 166.39688599999818,
+          "fullWarmP95Ms": 258.42340099999456,
+          "newLeanInvocations": 0
+        }
+      },
+      "validation": {
+        "metrics": {
+          "union": 0.8833333333333333,
+          "top200": 0.7833333333333333,
+          "inspect30": 0.6166666666666667,
+          "final20": 0.6166666666666667,
+          "hit5": 0.4166666666666667,
+          "hit10": 0.5666666666666667,
+          "mrr": 0.24690893901420213
+        },
+        "paired": {
+          "improved": 3,
+          "unchanged": 57,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 0,
+          "p95BoostedCandidates": 54,
+          "meanBoostedCandidates": 9.583333333333334,
+          "maxBoostedCandidates": 71
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 255
+          },
+          "goldPromoted": 6,
+          "goldDemoted": 1,
+          "meanAbsoluteRankMovement": 0.4589687726942629,
+          "p95RankMovement": 3,
+          "maxRankMovement": 25
+        },
+        "utility": {
+          "eligibleUseful": 7,
+          "eligibleFalsePositive": 568,
+          "ineligibleWouldHaveHelped": 0,
+          "ineligibleCorrectlyBlocked": 667,
+          "semanticPromotionPrecision": 0.01217391304347826,
+          "semanticOpportunityRecall": 1,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 58.093339000000014,
+          "stage1P95Ms": 150.83619999999974,
+          "semanticProfilingMedianMs": 0.05085899999994581,
+          "compatibilityMedianMs": 3.0912979999993695,
+          "fullWarmMedianMs": 110.72087499999634,
+          "fullWarmP95Ms": 209.32864200000222,
+          "newLeanInvocations": 0
+        }
+      }
+    },
+    "12": {
+      "development": {
+        "metrics": {
+          "union": 0.95,
+          "top200": 0.8,
+          "inspect30": 0.75,
+          "final20": 0.65,
+          "hit5": 0.25,
+          "hit10": 0.4,
+          "mrr": 0.119406789031402
+        },
+        "paired": {
+          "improved": 0,
+          "unchanged": 20,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 20,
+          "p95BoostedCandidates": 133,
+          "meanBoostedCandidates": 26.75,
+          "maxBoostedCandidates": 133
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 268
+          },
+          "goldPromoted": 0,
+          "goldDemoted": 2,
+          "meanAbsoluteRankMovement": 1.3821862348178138,
+          "p95RankMovement": 7,
+          "maxRankMovement": 43
+        },
+        "utility": {
+          "eligibleUseful": 4,
+          "eligibleFalsePositive": 531,
+          "ineligibleWouldHaveHelped": 2,
+          "ineligibleCorrectlyBlocked": 449,
+          "semanticPromotionPrecision": 0.007476635514018692,
+          "semanticOpportunityRecall": 0.6666666666666666,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 81.10085499999968,
+          "stage1P95Ms": 174.32277000000022,
+          "semanticProfilingMedianMs": 0.06584499999962645,
+          "compatibilityMedianMs": 4.195390000000771,
+          "fullWarmMedianMs": 169.72345700000005,
+          "fullWarmP95Ms": 251.986089,
+          "newLeanInvocations": 0
+        }
+      },
+      "validation": {
+        "metrics": {
+          "union": 0.8833333333333333,
+          "top200": 0.7833333333333333,
+          "inspect30": 0.6166666666666667,
+          "final20": 0.6166666666666667,
+          "hit5": 0.4166666666666667,
+          "hit10": 0.5666666666666667,
+          "mrr": 0.2496867167919799
+        },
+        "paired": {
+          "improved": 3,
+          "unchanged": 57,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 0,
+          "p95BoostedCandidates": 54,
+          "meanBoostedCandidates": 9.583333333333334,
+          "maxBoostedCandidates": 71
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 255
+          },
+          "goldPromoted": 6,
+          "goldDemoted": 1,
+          "meanAbsoluteRankMovement": 0.5290486564996368,
+          "p95RankMovement": 4,
+          "maxRankMovement": 25
+        },
+        "utility": {
+          "eligibleUseful": 7,
+          "eligibleFalsePositive": 568,
+          "ineligibleWouldHaveHelped": 0,
+          "ineligibleCorrectlyBlocked": 667,
+          "semanticPromotionPrecision": 0.01217391304347826,
+          "semanticOpportunityRecall": 1,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 58.093339000000014,
+          "stage1P95Ms": 150.83619999999974,
+          "semanticProfilingMedianMs": 0.05085899999994581,
+          "compatibilityMedianMs": 2.9841009999945527,
+          "fullWarmMedianMs": 110.22342099999969,
+          "fullWarmP95Ms": 203.3932500000028,
+          "newLeanInvocations": 0
+        }
+      }
+    },
+    "16": {
+      "development": {
+        "metrics": {
+          "union": 0.95,
+          "top200": 0.8,
+          "inspect30": 0.75,
+          "final20": 0.65,
+          "hit5": 0.25,
+          "hit10": 0.4,
+          "mrr": 0.119406789031402
+        },
+        "paired": {
+          "improved": 0,
+          "unchanged": 20,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 20,
+          "p95BoostedCandidates": 133,
+          "meanBoostedCandidates": 26.75,
+          "maxBoostedCandidates": 133
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 270
+          },
+          "goldPromoted": 0,
+          "goldDemoted": 2,
+          "meanAbsoluteRankMovement": 1.6161943319838057,
+          "p95RankMovement": 9,
+          "maxRankMovement": 43
+        },
+        "utility": {
+          "eligibleUseful": 4,
+          "eligibleFalsePositive": 531,
+          "ineligibleWouldHaveHelped": 2,
+          "ineligibleCorrectlyBlocked": 449,
+          "semanticPromotionPrecision": 0.007476635514018692,
+          "semanticOpportunityRecall": 0.6666666666666666,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 81.10085499999968,
+          "stage1P95Ms": 174.32277000000022,
+          "semanticProfilingMedianMs": 0.06584499999962645,
+          "compatibilityMedianMs": 4.290737999996054,
+          "fullWarmMedianMs": 174.2121330000009,
+          "fullWarmP95Ms": 249.41833600000427,
+          "newLeanInvocations": 0
+        }
+      },
+      "validation": {
+        "metrics": {
+          "union": 0.8833333333333333,
+          "top200": 0.7833333333333333,
+          "inspect30": 0.6166666666666667,
+          "final20": 0.6166666666666667,
+          "hit5": 0.4166666666666667,
+          "hit10": 0.5666666666666667,
+          "mrr": 0.2496867167919799
+        },
+        "paired": {
+          "improved": 3,
+          "unchanged": 57,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 0,
+          "p95BoostedCandidates": 54,
+          "meanBoostedCandidates": 9.583333333333334,
+          "maxBoostedCandidates": 71
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 259
+          },
+          "goldPromoted": 6,
+          "goldDemoted": 1,
+          "meanAbsoluteRankMovement": 0.6539578794480755,
+          "p95RankMovement": 5,
+          "maxRankMovement": 25
+        },
+        "utility": {
+          "eligibleUseful": 7,
+          "eligibleFalsePositive": 568,
+          "ineligibleWouldHaveHelped": 0,
+          "ineligibleCorrectlyBlocked": 667,
+          "semanticPromotionPrecision": 0.01217391304347826,
+          "semanticOpportunityRecall": 1,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 58.093339000000014,
+          "stage1P95Ms": 150.83619999999974,
+          "semanticProfilingMedianMs": 0.05085899999994581,
+          "compatibilityMedianMs": 3.084664000001794,
+          "fullWarmMedianMs": 111.65880200000265,
+          "fullWarmP95Ms": 220.11668100000134,
+          "newLeanInvocations": 0
+        }
+      }
+    },
+    "20": {
+      "development": {
+        "metrics": {
+          "union": 0.95,
+          "top200": 0.8,
+          "inspect30": 0.75,
+          "final20": 0.65,
+          "hit5": 0.25,
+          "hit10": 0.4,
+          "mrr": 0.119406789031402
+        },
+        "paired": {
+          "improved": 0,
+          "unchanged": 20,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 20,
+          "p95BoostedCandidates": 133,
+          "meanBoostedCandidates": 26.75,
+          "maxBoostedCandidates": 133
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 274
+          },
+          "goldPromoted": 0,
+          "goldDemoted": 2,
+          "meanAbsoluteRankMovement": 1.865587044534413,
+          "p95RankMovement": 11,
+          "maxRankMovement": 43
+        },
+        "utility": {
+          "eligibleUseful": 4,
+          "eligibleFalsePositive": 531,
+          "ineligibleWouldHaveHelped": 2,
+          "ineligibleCorrectlyBlocked": 449,
+          "semanticPromotionPrecision": 0.007476635514018692,
+          "semanticOpportunityRecall": 0.6666666666666666,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 81.10085499999968,
+          "stage1P95Ms": 174.32277000000022,
+          "semanticProfilingMedianMs": 0.06584499999962645,
+          "compatibilityMedianMs": 3.9762379999956465,
+          "fullWarmMedianMs": 164.0286130000054,
+          "fullWarmP95Ms": 250.0099430000064,
+          "newLeanInvocations": 0
+        }
+      },
+      "validation": {
+        "metrics": {
+          "union": 0.8833333333333333,
+          "top200": 0.7833333333333333,
+          "inspect30": 0.6166666666666667,
+          "final20": 0.6166666666666667,
+          "hit5": 0.4166666666666667,
+          "hit10": 0.5666666666666667,
+          "mrr": 0.2496867167919799
+        },
+        "paired": {
+          "improved": 3,
+          "unchanged": 57,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 0,
+          "p95BoostedCandidates": 54,
+          "meanBoostedCandidates": 9.583333333333334,
+          "maxBoostedCandidates": 71
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 258
+          },
+          "goldPromoted": 6,
+          "goldDemoted": 2,
+          "meanAbsoluteRankMovement": 0.7603485838779956,
+          "p95RankMovement": 5,
+          "maxRankMovement": 25
+        },
+        "utility": {
+          "eligibleUseful": 7,
+          "eligibleFalsePositive": 568,
+          "ineligibleWouldHaveHelped": 0,
+          "ineligibleCorrectlyBlocked": 667,
+          "semanticPromotionPrecision": 0.01217391304347826,
+          "semanticOpportunityRecall": 1,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 58.093339000000014,
+          "stage1P95Ms": 150.83619999999974,
+          "semanticProfilingMedianMs": 0.05085899999994581,
+          "compatibilityMedianMs": 3.019495000000461,
+          "fullWarmMedianMs": 110.48109399999248,
+          "fullWarmP95Ms": 204.79017799999747,
+          "newLeanInvocations": 0
+        }
+      }
+    }
+  },
+  "selectedCap": 4,
+  "capSemantics": "For an eligible candidate: boundedRank = baselineRank - min(cap, baselineRank - semanticRank). Ineligible or non-improving candidates keep baselineRank. The cap is rank positions, not score and not confidence.",
+  "relation": {
+    "REL-OFF": {
+      "development": {
+        "metrics": {
+          "union": 0.95,
+          "top200": 0.8,
+          "inspect30": 0.75,
+          "final20": 0.65,
+          "hit5": 0.25,
+          "hit10": 0.4,
+          "mrr": 0.119406789031402
+        },
+        "paired": {
+          "improved": 0,
+          "unchanged": 20,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 20,
+          "p95BoostedCandidates": 133,
+          "meanBoostedCandidates": 26.75,
+          "maxBoostedCandidates": 133
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 184
+          },
+          "goldPromoted": 0,
+          "goldDemoted": 2,
+          "meanAbsoluteRankMovement": 0.6761133603238867,
+          "p95RankMovement": 2,
+          "maxRankMovement": 43
+        },
+        "utility": {
+          "eligibleUseful": 4,
+          "eligibleFalsePositive": 531,
+          "ineligibleWouldHaveHelped": 2,
+          "ineligibleCorrectlyBlocked": 449,
+          "semanticPromotionPrecision": 0.007476635514018692,
+          "semanticOpportunityRecall": 0.6666666666666666,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 81.10085499999968,
+          "stage1P95Ms": 174.32277000000022,
+          "semanticProfilingMedianMs": 0.06584499999962645,
+          "compatibilityMedianMs": 4.0928339999954915,
+          "fullWarmMedianMs": 166.8858309999955,
+          "fullWarmP95Ms": 253.19768700000168,
+          "newLeanInvocations": 0
+        }
+      },
+      "validation": {
+        "metrics": {
+          "union": 0.8833333333333333,
+          "top200": 0.7833333333333333,
+          "inspect30": 0.6166666666666667,
+          "final20": 0.6166666666666667,
+          "hit5": 0.4,
+          "hit10": 0.5666666666666667,
+          "mrr": 0.2420941241993873
+        },
+        "paired": {
+          "improved": 0,
+          "unchanged": 60,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 0,
+          "p95BoostedCandidates": 54,
+          "meanBoostedCandidates": 9.583333333333334,
+          "maxBoostedCandidates": 71
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 204
+          },
+          "goldPromoted": 5,
+          "goldDemoted": 1,
+          "meanAbsoluteRankMovement": 0.19934640522875818,
+          "p95RankMovement": 1,
+          "maxRankMovement": 25
+        },
+        "utility": {
+          "eligibleUseful": 7,
+          "eligibleFalsePositive": 568,
+          "ineligibleWouldHaveHelped": 0,
+          "ineligibleCorrectlyBlocked": 667,
+          "semanticPromotionPrecision": 0.01217391304347826,
+          "semanticOpportunityRecall": 1,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 58.093339000000014,
+          "stage1P95Ms": 150.83619999999974,
+          "semanticProfilingMedianMs": 0.05085899999994581,
+          "compatibilityMedianMs": 3.1536789999954635,
+          "fullWarmMedianMs": 115.59883399999853,
+          "fullWarmP95Ms": 207.69423299999653,
+          "newLeanInvocations": 0
+        }
+      }
+    },
+    "REL-EXACT": {
+      "development": {
+        "metrics": {
+          "union": 0.95,
+          "top200": 0.8,
+          "inspect30": 0.75,
+          "final20": 0.65,
+          "hit5": 0.25,
+          "hit10": 0.4,
+          "mrr": 0.119406789031402
+        },
+        "paired": {
+          "improved": 0,
+          "unchanged": 20,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 20,
+          "p95BoostedCandidates": 133,
+          "meanBoostedCandidates": 26.75,
+          "maxBoostedCandidates": 133
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 184
+          },
+          "goldPromoted": 0,
+          "goldDemoted": 2,
+          "meanAbsoluteRankMovement": 0.6761133603238867,
+          "p95RankMovement": 2,
+          "maxRankMovement": 43
+        },
+        "utility": {
+          "eligibleUseful": 4,
+          "eligibleFalsePositive": 531,
+          "ineligibleWouldHaveHelped": 2,
+          "ineligibleCorrectlyBlocked": 449,
+          "semanticPromotionPrecision": 0.007476635514018692,
+          "semanticOpportunityRecall": 0.6666666666666666,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 42.96410199999946,
+          "stage1P95Ms": 96.34887800000024,
+          "semanticProfilingMedianMs": 0.06584499999962645,
+          "compatibilityMedianMs": 4.5634399999980815,
+          "fullWarmMedianMs": 140.37380199999643,
+          "fullWarmP95Ms": 199.33595699999705,
+          "newLeanInvocations": 0
+        }
+      },
+      "validation": {
+        "metrics": {
+          "union": 0.8833333333333333,
+          "top200": 0.7833333333333333,
+          "inspect30": 0.6166666666666667,
+          "final20": 0.6166666666666667,
+          "hit5": 0.4,
+          "hit10": 0.5666666666666667,
+          "mrr": 0.2420941241993873
+        },
+        "paired": {
+          "improved": 0,
+          "unchanged": 60,
+          "hurt": 0,
+          "completeRegressions": 0
+        },
+        "activation": {
+          "medianBoostedCandidates": 0,
+          "p95BoostedCandidates": 54,
+          "meanBoostedCandidates": 9.65,
+          "maxBoostedCandidates": 71
+        },
+        "displacement": {
+          "nonGold": {
+            "promoted100Plus": 0,
+            "promoted50To99": 0,
+            "promoted20To49": 0,
+            "promoted1To19": 208
+          },
+          "goldPromoted": 5,
+          "goldDemoted": 1,
+          "meanAbsoluteRankMovement": 0.20319303338171263,
+          "p95RankMovement": 1,
+          "maxRankMovement": 25
+        },
+        "utility": {
+          "eligibleUseful": 7,
+          "eligibleFalsePositive": 572,
+          "ineligibleWouldHaveHelped": 2,
+          "ineligibleCorrectlyBlocked": 870,
+          "semanticPromotionPrecision": 0.012089810017271158,
+          "semanticOpportunityRecall": 0.7777777777777778,
+          "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+        },
+        "performance": {
+          "stage1MedianMs": 47.11386399999947,
+          "stage1P95Ms": 93.78150000000005,
+          "semanticProfilingMedianMs": 0.05085899999994581,
+          "compatibilityMedianMs": 3.0384789999952773,
+          "fullWarmMedianMs": 108.14107399999102,
+          "fullWarmP95Ms": 160.67021199999,
+          "newLeanInvocations": 0
+        }
+      }
+    }
+  },
+  "selectedRelation": "REL-OFF",
+  "finalConfig": {
+    "strategy": "COMP-A",
+    "cap": 4,
+    "relation": "REL-OFF"
+  },
+  "final": {
+    "development": {
+      "metrics": {
+        "union": 0.95,
+        "top200": 0.8,
+        "inspect30": 0.75,
+        "final20": 0.65,
+        "hit5": 0.25,
+        "hit10": 0.4,
+        "mrr": 0.119406789031402
+      },
+      "paired": {
+        "improved": 0,
+        "unchanged": 20,
+        "hurt": 0,
+        "completeRegressions": 0
+      },
+      "activation": {
+        "medianBoostedCandidates": 20,
+        "p95BoostedCandidates": 133,
+        "meanBoostedCandidates": 26.75,
+        "maxBoostedCandidates": 133
+      },
+      "displacement": {
+        "nonGold": {
+          "promoted100Plus": 0,
+          "promoted50To99": 0,
+          "promoted20To49": 0,
+          "promoted1To19": 184
+        },
+        "goldPromoted": 0,
+        "goldDemoted": 2,
+        "meanAbsoluteRankMovement": 0.6761133603238867,
+        "p95RankMovement": 2,
+        "maxRankMovement": 43
+      },
+      "utility": {
+        "eligibleUseful": 4,
+        "eligibleFalsePositive": 531,
+        "ineligibleWouldHaveHelped": 2,
+        "ineligibleCorrectlyBlocked": 449,
+        "semanticPromotionPrecision": 0.007476635514018692,
+        "semanticOpportunityRecall": 0.6666666666666666,
+        "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+      },
+      "performance": {
+        "stage1MedianMs": 81.10085499999968,
+        "stage1P95Ms": 174.32277000000022,
+        "semanticProfilingMedianMs": 0.06584499999962645,
+        "compatibilityMedianMs": 3.96098799999163,
+        "fullWarmMedianMs": 162.17572200000313,
+        "fullWarmP95Ms": 252.71811699999853,
+        "newLeanInvocations": 0
+      }
+    },
+    "validation": {
+      "metrics": {
+        "union": 0.8833333333333333,
+        "top200": 0.7833333333333333,
+        "inspect30": 0.6166666666666667,
+        "final20": 0.6166666666666667,
+        "hit5": 0.4,
+        "hit10": 0.5666666666666667,
+        "mrr": 0.2420941241993873
+      },
+      "paired": {
+        "improved": 0,
+        "unchanged": 60,
+        "hurt": 0,
+        "completeRegressions": 0
+      },
+      "activation": {
+        "medianBoostedCandidates": 0,
+        "p95BoostedCandidates": 54,
+        "meanBoostedCandidates": 9.583333333333334,
+        "maxBoostedCandidates": 71
+      },
+      "displacement": {
+        "nonGold": {
+          "promoted100Plus": 0,
+          "promoted50To99": 0,
+          "promoted20To49": 0,
+          "promoted1To19": 204
+        },
+        "goldPromoted": 5,
+        "goldDemoted": 1,
+        "meanAbsoluteRankMovement": 0.19934640522875818,
+        "p95RankMovement": 1,
+        "maxRankMovement": 25
+      },
+      "utility": {
+        "eligibleUseful": 7,
+        "eligibleFalsePositive": 568,
+        "ineligibleWouldHaveHelped": 0,
+        "ineligibleCorrectlyBlocked": 667,
+        "semanticPromotionPrecision": 0.01217391304347826,
+        "semanticOpportunityRecall": 1,
+        "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+      },
+      "performance": {
+        "stage1MedianMs": 58.093339000000014,
+        "stage1P95Ms": 150.83619999999974,
+        "semanticProfilingMedianMs": 0.05085899999994581,
+        "compatibilityMedianMs": 3.0462470000056783,
+        "fullWarmMedianMs": 111.6088620000055,
+        "fullWarmP95Ms": 207.56709600000795,
+        "newLeanInvocations": 0
+      }
+    }
+  },
+  "domainContribution": {
+    "Eq/logical": {
+      "count": 5,
+      "final20Delta": 0,
+      "mrrDelta": 0,
+      "improved": 0,
+      "hurt": 0
+    },
+    "Finset": {
+      "count": 5,
+      "final20Delta": 0,
+      "mrrDelta": 0,
+      "improved": 0,
+      "hurt": 0
+    },
+    "Function": {
+      "count": 5,
+      "final20Delta": 0,
+      "mrrDelta": 0,
+      "improved": 0,
+      "hurt": 0
+    },
+    "List": {
+      "count": 5,
+      "final20Delta": 0,
+      "mrrDelta": 0,
+      "improved": 0,
+      "hurt": 0
+    },
+    "Nat/Int": {
+      "count": 5,
+      "final20Delta": 0,
+      "mrrDelta": 0,
+      "improved": 0,
+      "hurt": 0
+    },
+    "Option": {
+      "count": 5,
+      "final20Delta": 0,
+      "mrrDelta": 0,
+      "improved": 0,
+      "hurt": 0
+    },
+    "Prod/Sum": {
+      "count": 5,
+      "final20Delta": 0,
+      "mrrDelta": 0,
+      "improved": 0,
+      "hurt": 0
+    },
+    "Set": {
+      "count": 5,
+      "final20Delta": 0,
+      "mrrDelta": 0,
+      "improved": 0,
+      "hurt": 0
+    },
+    "algebra": {
+      "count": 5,
+      "final20Delta": 0,
+      "mrrDelta": 0,
+      "improved": 0,
+      "hurt": 0
+    },
+    "order": {
+      "count": 5,
+      "final20Delta": 0,
+      "mrrDelta": 0,
+      "improved": 0,
+      "hurt": 0
+    },
+    "relations": {
+      "count": 5,
+      "final20Delta": 0,
+      "mrrDelta": 0,
+      "improved": 0,
+      "hurt": 0
+    },
+    "topology/analysis": {
+      "count": 5,
+      "final20Delta": 0,
+      "mrrDelta": 0,
+      "improved": 0,
+      "hurt": 0
+    }
+  },
+  "leaveOneDomainOut": {
+    "Eq/logical": {
+      "fixtureCount": 55,
+      "final20Delta": 0,
+      "hit10Delta": 0,
+      "mrrDelta": 0
+    },
+    "Finset": {
+      "fixtureCount": 55,
+      "final20Delta": 0,
+      "hit10Delta": 0,
+      "mrrDelta": 0
+    },
+    "Function": {
+      "fixtureCount": 55,
+      "final20Delta": 0,
+      "hit10Delta": 0,
+      "mrrDelta": 0
+    },
+    "List": {
+      "fixtureCount": 55,
+      "final20Delta": 0,
+      "hit10Delta": 0,
+      "mrrDelta": 0
+    },
+    "Nat/Int": {
+      "fixtureCount": 55,
+      "final20Delta": 0,
+      "hit10Delta": 0,
+      "mrrDelta": 0
+    },
+    "Option": {
+      "fixtureCount": 55,
+      "final20Delta": 0,
+      "hit10Delta": 0,
+      "mrrDelta": 0
+    },
+    "Prod/Sum": {
+      "fixtureCount": 55,
+      "final20Delta": 0,
+      "hit10Delta": 0,
+      "mrrDelta": 0
+    },
+    "Set": {
+      "fixtureCount": 55,
+      "final20Delta": 0,
+      "hit10Delta": 0,
+      "mrrDelta": 0
+    },
+    "algebra": {
+      "fixtureCount": 55,
+      "final20Delta": 0,
+      "hit10Delta": 0,
+      "mrrDelta": 0
+    },
+    "order": {
+      "fixtureCount": 55,
+      "final20Delta": 0,
+      "hit10Delta": 0,
+      "mrrDelta": 0
+    },
+    "relations": {
+      "fixtureCount": 55,
+      "final20Delta": 0,
+      "hit10Delta": 0,
+      "mrrDelta": 0
+    },
+    "topology/analysis": {
+      "fixtureCount": 55,
+      "final20Delta": 0,
+      "hit10Delta": 0,
+      "mrrDelta": 0
+    }
+  },
+  "conjunctionCoverage": [
+    {
+      "fixtureId": "finset_disjoint_union_left",
+      "domain": "Finset",
+      "exactSemanticMatches": [
+        "union"
+      ],
+      "typeCompatible": "YES",
+      "conclusionCompatible": "YES",
+      "signatureCompatible": "YES",
+      "authority": "MEDIUM"
+    },
+    {
+      "fixtureId": "option_to_array_empty",
+      "domain": "Option",
+      "exactSemanticMatches": [
+        "card"
+      ],
+      "typeCompatible": "YES",
+      "conclusionCompatible": "YES",
+      "signatureCompatible": "YES",
+      "authority": "MEDIUM"
+    },
+    {
+      "fixtureId": "algebra_rat_inv_inv",
+      "domain": "algebra",
+      "exactSemanticMatches": [
+        "inv"
+      ],
+      "typeCompatible": "YES",
+      "conclusionCompatible": "YES",
+      "signatureCompatible": "YES",
+      "authority": "MEDIUM"
+    },
+    {
+      "fixtureId": "order_nat_le_max_right",
+      "domain": "order",
+      "exactSemanticMatches": [
+        "le"
+      ],
+      "typeCompatible": "YES",
+      "conclusionCompatible": "YES",
+      "signatureCompatible": "YES",
+      "authority": "MEDIUM"
+    },
+    {
+      "fixtureId": "order_nat_min_le_left",
+      "domain": "order",
+      "exactSemanticMatches": [
+        "le"
+      ],
+      "typeCompatible": "YES",
+      "conclusionCompatible": "YES",
+      "signatureCompatible": "YES",
+      "authority": "MEDIUM"
+    },
+    {
+      "fixtureId": "order_int_le_trans",
+      "domain": "order",
+      "exactSemanticMatches": [
+        "le"
+      ],
+      "typeCompatible": "YES",
+      "conclusionCompatible": "YES",
+      "signatureCompatible": "YES",
+      "authority": "MEDIUM"
+    },
+    {
+      "fixtureId": "order_rat_le_refl",
+      "domain": "order",
+      "exactSemanticMatches": [
+        "le"
+      ],
+      "typeCompatible": "YES",
+      "conclusionCompatible": "YES",
+      "signatureCompatible": "YES",
+      "authority": "MEDIUM"
+    }
+  ],
+  "promotionUtility": {
+    "eligibleUseful": 7,
+    "eligibleFalsePositive": 568,
+    "ineligibleWouldHaveHelped": 0,
+    "ineligibleCorrectlyBlocked": 667,
+    "semanticPromotionPrecision": 0.01217391304347826,
+    "semanticOpportunityRecall": 1,
+    "definition": "retrieval-feature utility only: precision=eligible useful gold promotions/(eligible useful + eligible non-gold promotions); opportunity recall=eligible useful/(eligible useful + ineligible gold candidates that semantic ranking would have promoted). Not probability or theorem confidence."
+  },
+  "performance": {
+    "stage1MedianMs": 58.093339000000014,
+    "stage1P95Ms": 150.83619999999974,
+    "semanticProfilingMedianMs": 0.05085899999994581,
+    "compatibilityMedianMs": 3.0462470000056783,
+    "fullWarmMedianMs": 111.6088620000055,
+    "fullWarmP95Ms": 207.56709600000795,
+    "newLeanInvocations": 0
+  },
+  "freezeEligible": true
+}

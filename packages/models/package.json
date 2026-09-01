@@ -1,0 +1,12 @@
+{
+  "name": "@mathos/models",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@mathos/shared": "workspace:*",
+    "@mathos/domain": "workspace:*"
+  }
+}

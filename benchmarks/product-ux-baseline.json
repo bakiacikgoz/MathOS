@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "product-ux-v1",
+  "kind": "product-ux-baseline",
+  "role": "HARNESS_CORRECTNESS",
+  "tuningAllowed": false,
+  "scenarios": [
+    "fresh-init",
+    "workspace-home",
+    "objective-create",
+    "environment-readiness",
+    "research-view",
+    "claim-detail",
+    "verification-detail",
+    "why-verified",
+    "why-not-verified",
+    "ledger",
+    "blocker-review",
+    "reopen-summary",
+    "experiment-panel",
+    "literature-panel",
+    "graph-to-claim-navigation",
+    "team-to-claim-navigation",
+    "command-palette",
+    "empty-states",
+    "typed-error-display",
+    "report-export",
+    "demo-workspace",
+    "status-summary",
+    "absolute-runtime-path-independence"
+  ]
+}
