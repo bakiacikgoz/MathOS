@@ -43,7 +43,7 @@
     {
       "id": "RB-SET-001",
       "file": "cases/RB-SET-001.json",
-      "sha256": "78f59696b03ecfe8504b30a7530c0a715e79c30365bca2a9b31ac49ab21c72f6"
+      "sha256": "7268617e468a1df8a64b355b3ed9e96e42f4229967826e42a476f539b1e2e8f3"
     },
     {
       "id": "RB-ORD-001",
@@ -93,7 +93,7 @@
     {
       "id": "RB-SET-002",
       "file": "cases/RB-SET-002.json",
-      "sha256": "a5c8daee21d3f1304b902d9f8122ace6e29875e5a2aed5845f2da7857beaf426"
+      "sha256": "86793ba13c45ddfb3553d1cb800fad3a69a1d0deceea95b09995146547e77a4f"
     },
     {
       "id": "RB-ORD-002",
@@ -133,7 +133,7 @@
     {
       "id": "RB-SET-003",
       "file": "cases/RB-SET-003.json",
-      "sha256": "d8041d2232f4bb4b8636d733b50f6967655a72a61519e1fcbfbfba08439c3cf2"
+      "sha256": "f7fee072f436d3381f9eb53e51a2722b0f6d25cb12fe53bc568c0a7985a70bc7"
     },
     {
       "id": "RB-LOG-006",
@@ -148,7 +148,7 @@
     {
       "id": "RB-SET-004",
       "file": "cases/RB-SET-004.json",
-      "sha256": "028c70143126b436e1572d7be6af0129492be1347d6ebbd8ad8e36bba24bfe31"
+      "sha256": "eb8aaeb06c7463d3ae0b82f1ac90254eac8d514302f942cb5729b57b5c6bdd36"
     },
     {
       "id": "RB-NUM-002",
@@ -216,5 +216,5 @@
       "sha256": "e9680263657639bd684d95aab9de06fcd30ec1c1edab959a67efe565db31bd93"
     }
   ],
-  "manifestHash": "f84f187e83b3c472be54833efd5e5e6a00d1709fd4b3572d06029b9c1e721b96"
+  "manifestHash": "0bdf9671fb0780907a1beadffab20db79ffc6a5a6d2b80768f410a1d8d020f15"
 }

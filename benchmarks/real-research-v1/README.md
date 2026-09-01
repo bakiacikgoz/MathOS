@@ -17,4 +17,9 @@ bun scripts/real-research-eval.ts --case RB-ALG-001
 bun scripts/real-research-eval.ts
 ```
 
+Fidelity approval is never synthesized by the harness. A reviewed case may be
+continued with explicit human input, for example
+`--human-approve=RB-ALG-001`. Without that input it ends as
+`HUMAN_FIDELITY_APPROVAL_REQUIRED` and cannot contribute a kernel-verified result.
+
 Results are written under `artifacts/real-research-v1/`. They report the primary `KernelVerifiedRate` and all Phase 5 secondary metrics. Comparisons are nondeterministic regression signals and explicitly have `hardGate: false`; this benchmark must not be added to CI or the release gate.

@@ -1,16 +1,18 @@
 {
   "schemaVersion": "real-research-case-v1",
   "id": "RB-SET-002",
-  "naturalStatement": "Union of two collections does not depend on order.",
-  "expectedFormalTarget": "theorem rb_set_002 {α : Type*} (s t : Set α) : s ∪ t = t ∪ s",
+  "naturalStatement": "Union of two finite sets does not depend on order.",
+  "expectedFormalTarget": "theorem rb_set_002 {α : Type*} [DecidableEq α] (s t : Finset α) : s ∪ t = t ∪ s",
   "domain": "finite sets",
   "difficulty": "TIER_2_RETRIEVAL",
   "knownProof": {
     "exists": true,
-    "leanBody": "by\n  ext x\n  simp [Set.mem_union, or_comm]"
+    "leanBody": "by\n  exact Finset.union_comm s t"
   },
   "requiredConcepts": [
-    "sets"
+    "finset",
+    "union",
+    "commutativity"
   ],
   "provenance": {
     "source": "MathOS research-benchmark-v1 frozen known theorem corpus",

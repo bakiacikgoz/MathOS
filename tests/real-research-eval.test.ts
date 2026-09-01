@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { loadRealResearchDataset, validateRealResearchDataset } from "../packages/core/src/evaluation/real-research-eval.ts"
-import type { RealResearchCaseResult } from "../packages/core/src/evaluation/research-case-runner.ts"
+import { formalTargetMatches, hasExplicitFidelityApproval, isTimeoutReason, type RealResearchCaseResult } from "../packages/core/src/evaluation/research-case-runner.ts"
 import { nondeterministicRegression, summarizeRealResearch } from "../packages/core/src/evaluation/research-report.ts"
 
 const row = (overrides: Partial<RealResearchCaseResult> = {}): RealResearchCaseResult => ({
@@ -19,6 +19,26 @@ describe("real research capability benchmark v1", () => {
     const dataset = loadRealResearchDataset()
     expect(dataset.cases.every((item) => item.knownProof.exists && !item.provenance.openProblem)).toBe(true)
     expect(new Set(dataset.cases.map((item) => item.domain))).toEqual(new Set(dataset.manifest.categories))
+    const finiteSets = dataset.cases.filter((item) => item.domain === "finite sets")
+    expect(finiteSets.length).toBeGreaterThan(0)
+    expect(finiteSets.every((item) => item.expectedFormalTarget.includes("Finset"))).toBe(true)
+  })
+
+  test("a normalized target mismatch cannot count as successful formalization", () => {
+    expect(formalTargetMatches("theorem generated (n : Nat) : n + 0 = n", "theorem expected (n : Nat) : n + 0 = n")).toBe(true)
+    expect(formalTargetMatches("theorem generated (n : Nat) : n + 1 = n", "theorem expected (n : Nat) : n + 0 = n")).toBe(false)
+    expect(formalTargetMatches("theorem generated : True := by trivial", "theorem expected : False")).toBe(false)
+  })
+
+  test("fidelity cannot continue without explicit human approval", async () => {
+    const benchmarkCase = loadRealResearchDataset().cases[0]!
+    expect(await hasExplicitFidelityApproval(undefined, { benchmarkCase, formalStatement: benchmarkCase.expectedFormalTarget })).toBe(false)
+    expect(await hasExplicitFidelityApproval(async () => true, { benchmarkCase, formalStatement: benchmarkCase.expectedFormalTarget })).toBe(true)
+  })
+
+  test("all model, Lean, step, and generic timeout forms are classified", () => {
+    for (const reason of ["STEP_TIMEOUT", "MODEL_TIMEOUT", "LEAN_TIMEOUT", "EXECUTION_TIMEOUT", "request timed out"]) expect(isTimeoutReason(reason)).toBe(true)
+    expect(isTimeoutReason("BLOCKED_NEEDS_HUMAN")).toBe(false)
   })
 
   test("configuration blocks are excluded instead of becoming fake capability results", () => {

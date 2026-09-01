@@ -18,12 +18,15 @@ const valueAfter = (flag: string) => args.includes(flag) ? args[args.indexOf(fla
 const wanted = valueAfter("--case")
 const limit = Number(valueAfter("--limit") ?? Number.POSITIVE_INFINITY)
 const baselinePath = valueAfter("--baseline")
+const humanApprovals = new Set(args.filter((arg) => arg.startsWith("--human-approve=")).map((arg) => arg.slice("--human-approve=".length)))
 const dataset = loadRealResearchDataset()
 const cases = dataset.cases.filter((item) => !wanted || item.id === wanted).slice(0, limit)
 if (!cases.length) throw new Error(`No case selected${wanted ? ` for ${wanted}` : ""}`)
 
 const rows = []
-for (const item of cases) rows.push(await runRealResearchCase(item))
+for (const item of cases) rows.push(await runRealResearchCase(item, {
+  fidelityApproval: humanApprovals.has(item.id) ? async () => true : undefined,
+}))
 const summary = summarizeRealResearch(rows)
 let baseline: RealResearchSummary | undefined
 if (baselinePath && existsSync(baselinePath)) baseline = (JSON.parse(readFileSync(baselinePath, "utf8")) as { summary: RealResearchSummary }).summary

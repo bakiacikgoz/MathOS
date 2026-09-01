@@ -1,16 +1,18 @@
 {
   "schemaVersion": "real-research-case-v1",
   "id": "RB-SET-004",
-  "naturalStatement": "The intersection of two collections sits inside the first.",
-  "expectedFormalTarget": "theorem rb_set_004 {α : Type*} (s t : Set α) : s ∩ t ⊆ s",
+  "naturalStatement": "The intersection of two finite sets is contained in the first.",
+  "expectedFormalTarget": "theorem rb_set_004 {α : Type*} [DecidableEq α] (s t : Finset α) : s ∩ t ⊆ s",
   "domain": "finite sets",
   "difficulty": "TIER_3_DECOMPOSITION",
   "knownProof": {
     "exists": true,
-    "leanBody": "by\n  intro x hx\n  exact hx.left"
+    "leanBody": "by\n  intro x hx\n  exact (Finset.mem_inter.mp hx).left"
   },
   "requiredConcepts": [
-    "sets"
+    "finset",
+    "intersection",
+    "subset"
   ],
   "provenance": {
     "source": "MathOS research-benchmark-v1 frozen known theorem corpus",

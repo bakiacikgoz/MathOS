@@ -1,8 +1,8 @@
 {
   "schemaVersion": "real-research-case-v1",
   "id": "RB-SET-001",
-  "naturalStatement": "Every collection is contained in itself.",
-  "expectedFormalTarget": "theorem rb_set_001 {α : Type*} (s : Set α) : s ⊆ s",
+  "naturalStatement": "Every finite set is contained in itself.",
+  "expectedFormalTarget": "theorem rb_set_001 {α : Type*} [DecidableEq α] (s : Finset α) : s ⊆ s",
   "domain": "finite sets",
   "difficulty": "TIER_1_DIRECT",
   "knownProof": {
@@ -10,7 +10,8 @@
     "leanBody": "by\n  intro x hx\n  exact hx"
   },
   "requiredConcepts": [
-    "sets"
+    "finset",
+    "subset"
   ],
   "provenance": {
     "source": "MathOS research-benchmark-v1 frozen known theorem corpus",
