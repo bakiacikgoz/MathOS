@@ -1,178 +1,257 @@
 {
-  "schemaVersion": 1,
-  "generatedAt": "2026-09-01T19:49:40.674Z",
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-01T20:00:26.859Z",
   "platform": "darwin-arm64",
   "runtime": "Bun 1.4.0",
   "workspaceKind": "fresh-temporary",
+  "provenance": {
+    "gitCommit": "490a8b2805c09c782a1898bfcbdf5ae8db43ac38",
+    "packageVersion": "0.1.0-alpha.1",
+    "entrypoint": "dist/cli.js",
+    "cliSha256": "c807b4fc7937c8a329e8535cead8efe202fbaae134ca450e2551d712313cc21d",
+    "runnerSha256": "4edcebc54891bf28f1432273991ea51f80f385a34b13a629ab7b33027b309400",
+    "environment": "credential-free-allowlist"
+  },
   "steps": [
     {
       "id": "init",
       "status": "PASS",
       "command": "mathos init pilot",
       "exitCode": 0,
-      "reason": "Command completed with the expected exit code.",
-      "stdout": "MathOS\n\nCreate research workspace\n\nName\n  pilot\n\nDirectory\n  /private/var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/pilot\n\nFormal environment\n× Lean Lean not on PATH\n○ Mathlib project (workspace-local)\n\nOptional computation\n✓ Python Python 3.9.6\n○ SymPy optional missing\n\nLiterature\n✓ local sources\n○ OpenAlex optional (no live request)\n\nModel  ○ missing — AI planner optional\n\nReady.\nInitialized MathOS workspace: /private/var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/pilot\n",
+      "reason": "Command completed and its step-specific evidence is checked below.",
+      "stdout": "MathOS\n\nCreate research workspace\n\nName\n  pilot\n\nDirectory\n  /private<pilot-root>/pilot\n\nFormal environment\n× Lean Lean not on PATH\n○ Mathlib project (workspace-local)\n\nOptional computation\n✓ Python Python 3.9.6\n○ SymPy optional missing\n\nLiterature\n✓ local sources\n○ OpenAlex optional (no live request)\n\nModel  ○ missing — AI planner optional\n\nReady.\nInitialized MathOS workspace: /private<pilot-root>/pilot\n",
       "stderr": "",
-      "rerun": "cd <fresh-parent>/pilot && mathos init pilot"
+      "rerun": "cd <pilot-root>/pilot && mathos init pilot",
+      "evidence": "fresh workspace database and layout created"
     },
     {
       "id": "doctor",
-      "status": "PASS",
+      "status": "BLOCKED",
       "command": "mathos doctor --json",
       "exitCode": 0,
-      "reason": "Command completed with the expected exit code.",
-      "stdout": "{\n  \"checks\": [\n    {\n      \"name\": \"Platform support\",\n      \"status\": \"WARN\",\n      \"detail\": \"darwin: SUPPORTED; runtime=missing; sandbox=macos-sandbox-exec; network isolation=detected\"\n    },\n    {\n      \"name\": \"Bun\",\n      \"status\": \"PASS\",\n      \"detail\": \"1.4.0\"\n    },\n    {\n      \"name\": \"Git\",\n      \"status\": \"PASS\",\n      \"detail\": \"git version 2.55.0\"\n    },\n    {\n      \"name\": \"SQLite\",\n      \"status\": \"PASS\",\n      \"detail\": \"mathos.db present\"\n    },\n    {\n      \"name\": \"Workspace\",\n      \"status\": \"PASS\",\n      \"detail\": \"layout complete\"\n    },\n    {\n      \"name\": \"Database\",\n      \"status\": \"PASS\",\n      \"detail\": \"schema reachable\"\n    },\n    {\n      \"name\": \"Event log\",\n      \"status\": \"PASS\",\n      \"detail\": \"appendable\"\n    },\n    {\n      \"name\": \"Model provider\",\n      \"status\": \"PASS\",\n      \"detail\": \"openai-compatible\"\n    },\n    {\n      \"name\": \"API key\",\n      \"status\": \"WARN\",\n      \"detail\": \"MATHOS_API_KEY is not set\"\n    },\n    {\n      \"name\": \"Model\",\n      \"status\": \"WARN\",\n      \"detail\": \"MATHOS_MODEL is not set\"\n    },\n    {\n      \"name\": \"Endpoint\",\n      \"status\": \"PASS\",\n      \"detail\": \"https://api.openai.com/v1\"\n    },\n    {\n      \"name\": \"Lean\",\n      \"status\": \"WARN\",\n      \"detail\": \"not installed\"\n    },\n    {\n      \"name\": \"Lake\",\n      \"status\": \"WARN\",\n      \"detail\": \"not installed\"\n    },\n    {\n      \"name\": \"Lean project\",\n      \"status\": \"WARN\",\n      \"detail\": \"no lean-toolchain / lakefile\"\n    },\n    {\n      \"name\": \"Mathlib\",\n      \"status\": \"WARN\",\n      \"detail\": \"not detected\"\n    },\n    {\n      \"name\": \"Toolchain pinned\",\n      \"status\": \"WARN\",\n      \"detail\": \"lean-toolchain missing\"\n    },\n    {\n      \"name\": \"Lean compile\",\n      \"status\": \"WARN\",\n      \"detail\": \"skipped\"\n    },\n    {\n      \"name\": \"Declaration inspect\",\n      \"status\": \"WARN\",\n      \"detail\": \"skipped\"\n    },\n    {\n      \"name\": \"Research graph\",\n      \"status\": \"PASS\",\n      \"detail\": \"consistent\"\n    },\n    {\n      \"name\": \"Python runtime\",\n      \"status\": \"PASS\",\n      \"detail\": \"3.9.6\"\n    },\n    {\n      \"name\": \"Python version\",\n      \"status\": \"PASS\",\n      \"detail\": \"3.9.6\"\n    },\n    {\n      \"name\": \"SymPy\",\n      \"status\": \"WARN\",\n      \"detail\": \"OPTIONAL_MISSING\"\n    },\n    {\n      \"name\": \"Experiment sandbox\",\n      \"status\": \"PASS\",\n      \"detail\": \"/private/var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/pilot/.mathos/experiments\"\n    },\n    {\n      \"name\": \"Literature providers\",\n      \"status\": \"PASS\",\n      \"detail\": \"fake\"\n    },\n    {\n      \"name\": \"Local source extraction\",\n      \"status\": \"PASS\",\n      \"detail\": \"text/pdf-text\"\n    },\n    {\n      \"name\": \"Event Projection Health\",\n      \"status\": \"PASS\",\n      \"detail\": \"JSONL matches canonical SQLite events\"\n    },\n    {\n      \"name\": \"Schema version\",\n      \"status\": \"PASS\",\n      \"detail\": \"20\"\n    },\n    {\n      \"name\": \"MathOS version\",\n      \"status\": \"PASS\",\n      \"detail\": \"0.1.0-alpha.1\"\n    }\n  ],\n  \"ok\": true,\n  \"schemaVersion\": 20,\n  \"mathosVersion\": \"0.1.0-alpha.1\"\n}\n",
+      "reason": "Doctor reported unavailable or unverified capabilities: API key=WARN, Model=WARN, Lean=WARN, Lake=WARN, Lean project=WARN, Mathlib=WARN, Toolchain pinned=WARN, Lean compile=WARN, Declaration inspect=WARN, SymPy=WARN.",
+      "stdout": "{\n  \"checks\": [\n    {\n      \"name\": \"Platform support\",\n      \"status\": \"PASS\",\n      \"detail\": \"darwin: SUPPORTED; runtime=<repo>/.tools/bun-darwin-aarch64/bun; sandbox=macos-sandbox-exec; network isolation=detected\"\n    },\n    {\n      \"name\": \"Bun\",\n      \"status\": \"PASS\",\n      \"detail\": \"1.4.0\"\n    },\n    {\n      \"name\": \"Git\",\n      \"status\": \"PASS\",\n      \"detail\": \"git version 2.55.0\"\n    },\n    {\n      \"name\": \"SQLite\",\n      \"status\": \"PASS\",\n      \"detail\": \"mathos.db present\"\n    },\n    {\n      \"name\": \"Workspace\",\n      \"status\": \"PASS\",\n      \"detail\": \"layout complete\"\n    },\n    {\n      \"name\": \"Database\",\n      \"status\": \"PASS\",\n      \"detail\": \"schema reachable\"\n    },\n    {\n      \"name\": \"Event log\",\n      \"status\": \"PASS\",\n      \"detail\": \"appendable\"\n    },\n    {\n      \"name\": \"Model provider\",\n      \"status\": \"PASS\",\n      \"detail\": \"openai-compatible\"\n    },\n    {\n      \"name\": \"API key\",\n      \"status\": \"WARN\",\n      \"detail\": \"MATHOS_API_KEY is not set\"\n    },\n    {\n      \"name\": \"Model\",\n      \"status\": \"WARN\",\n      \"detail\": \"MATHOS_MODEL is not set\"\n    },\n    {\n      \"name\": \"Endpoint\",\n      \"status\": \"PASS\",\n      \"detail\": \"https://api.openai.com/v1\"\n    },\n    {\n      \"name\": \"Lean\",\n      \"status\": \"WARN\",\n      \"detail\": \"not installed\"\n    },\n    {\n      \"name\": \"Lake\",\n      \"status\": \"WARN\",\n      \"detail\": \"not installed\"\n    },\n    {\n      \"name\": \"Lean project\",\n      \"status\": \"WARN\",\n      \"detail\": \"no lean-toolchain / lakefile\"\n    },\n    {\n      \"name\": \"Mathlib\",\n      \"status\": \"WARN\",\n      \"detail\": \"not detected\"\n    },\n    {\n      \"name\": \"Toolchain pinned\",\n      \"status\": \"WARN\",\n      \"detail\": \"lean-toolchain missing\"\n    },\n    {\n      \"name\": \"Lean compile\",\n      \"status\": \"WARN\",\n      \"detail\": \"skipped\"\n    },\n    {\n      \"name\": \"Declaration inspect\",\n      \"status\": \"WARN\",\n      \"detail\": \"skipped\"\n    },\n    {\n      \"name\": \"Research graph\",\n      \"status\": \"PASS\",\n      \"detail\": \"consistent\"\n    },\n    {\n      \"name\": \"Python runtime\",\n      \"status\": \"PASS\",\n      \"detail\": \"3.9.6\"\n    },\n    {\n      \"name\": \"Python version\",\n      \"status\": \"PASS\",\n      \"detail\": \"3.9.6\"\n    },\n    {\n      \"name\": \"SymPy\",\n      \"status\": \"WARN\",\n      \"detail\": \"OPTIONAL_MISSING\"\n    },\n    {\n      \"name\": \"Experiment sandbox\",\n      \"status\": \"PASS\",\n      \"detail\": \"/private<pilot-root>/pilot/.mathos/experiments\"\n    },\n    {\n      \"name\": \"Literature providers\",\n      \"status\": \"PASS\",\n      \"detail\": \"fake\"\n    },\n    {\n      \"name\": \"Local source extraction\",\n      \"status\": \"PASS\",\n      \"detail\": \"text/pdf-text\"\n    },\n    {\n      \"name\": \"Event Projection Health\",\n      \"status\": \"PASS\",\n      \"detail\": \"JSONL matches canonical SQLite events\"\n    },\n    {\n      \"name\": \"Schema version\",\n      \"status\": \"PASS\",\n      \"detail\": \"20\"\n    },\n    {\n      \"name\": \"MathOS version\",\n      \"status\": \"PASS\",\n      \"detail\": \"0.1.0-alpha.1\"\n    }\n  ],\n  \"ok\": true,\n  \"schemaVersion\": 20,\n  \"mathosVersion\": \"0.1.0-alpha.1\"\n}\n",
       "stderr": "",
-      "rerun": "cd <fresh-parent>/pilot && mathos doctor --json"
+      "rerun": "cd <pilot-root>/pilot && mathos doctor --json",
+      "evidence": "API key: MATHOS_API_KEY is not set; Model: MATHOS_MODEL is not set; Lean: not installed; Lake: not installed; Lean project: no lean-toolchain / lakefile; Mathlib: not detected; Toolchain pinned: lean-toolchain missing; Lean compile: skipped; Declaration inspect: skipped; SymPy: OPTIONAL_MISSING"
+    },
+    {
+      "id": "tui_launch",
+      "status": "BLOCKED",
+      "reason": "Interactive TUI launch and visual interaction require a human terminal; the built entrypoint was proven executable by the headless steps.",
+      "evidence": "manual terminal action explicitly retained in checklist",
+      "rerun": "mathos"
     },
     {
       "id": "create_conjecture",
       "status": "PASS",
       "command": "mathos claim create --type conjecture --title Pilot identity --statement For every natural number n, n equals n.",
       "exitCode": 0,
-      "reason": "Command completed with the expected exit code.",
+      "reason": "Command completed and its step-specific evidence is checked below.",
       "stdout": "Created C-001  CONJECTURE  Pilot identity\n",
       "stderr": "",
-      "rerun": "cd <fresh-parent>/pilot && mathos claim create --type conjecture --title Pilot identity --statement For every natural number n, n equals n."
+      "rerun": "cd <pilot-root>/pilot && mathos claim create --type conjecture --title Pilot identity --statement For every natural number n, n equals n.",
+      "evidence": "C-001 created as CONJECTURE"
     },
     {
       "id": "set_objective",
       "status": "PASS",
       "command": "mathos objective set C-001",
       "exitCode": 0,
-      "reason": "Command completed with the expected exit code.",
+      "reason": "Command completed and its step-specific evidence is checked below.",
       "stdout": "Main objective: C-001  Pilot identity\n",
       "stderr": "",
-      "rerun": "cd <fresh-parent>/pilot && mathos objective set C-001"
+      "rerun": "cd <pilot-root>/pilot && mathos objective set C-001",
+      "evidence": "C-001 selected as main objective"
     },
     {
       "id": "formalize",
       "status": "BLOCKED",
       "command": "mathos formalize C-001 --json",
       "exitCode": 1,
-      "reason": "A configured model and usable Lean toolchain are required; no synthetic formalization was substituted.",
+      "reason": "Formalization is blocked by the doctor-confirmed model or Lean capability gap; configure the reported capability and rerun.",
       "stdout": "",
       "stderr": "Set MATHOS_API_KEY and MATHOS_MODEL to enable research intake.\nSee the error code for debugging. Stack traces stay hidden unless MATHOS_DEBUG=1.\nError code: ModelNotConfigured\n",
-      "rerun": "cd <fresh-parent>/pilot && mathos formalize C-001 --json"
+      "rerun": "cd <pilot-root>/pilot && mathos formalize C-001 --json"
     },
     {
       "id": "fidelity_approval",
-      "status": "NOT_RUN",
-      "reason": "No checked formal draft exists, so fidelity approval would be unsafe.",
-      "rerun": "mathos formalize C-001, review the mapping in the TUI, then approve it"
+      "status": "BLOCKED",
+      "command": "mathos formal approve C-001",
+      "exitCode": 1,
+      "reason": "Built CLI was probed and exposes no headless fidelity-approval command; human semantic review is required in the TUI.",
+      "stdout": "",
+      "stderr": "Usage: mathos formal setup\n",
+      "rerun": "mathos; review C-001 formalization and approve only after checking meaning",
+      "evidence": "unsupported headless surface confirmed by CLI usage response"
     },
     {
       "id": "premise_search",
       "status": "BLOCKED",
       "command": "mathos premises C-001 --explain",
       "exitCode": 0,
-      "reason": "A built, provenance-valid retrieval index returned no real candidates; the natural-language fallback was not accepted as a pilot pass.",
+      "reason": "The real retrieval command ran, but no provenance-valid indexed premise was returned; build a compatible index and rerun.",
       "stdout": "Formal goal unavailable. Premise ranking is using natural-language fallback and may be noisy. Formalize the claim for goal-aware retrieval.\n\nPREMISES FOR C-001\n\n",
       "stderr": "",
-      "rerun": "cd <fresh-parent>/pilot && mathos premises C-001 --explain"
+      "rerun": "cd <pilot-root>/pilot && mathos premises C-001 --explain",
+      "evidence": "natural-language fallback was not accepted as passing evidence"
     },
     {
       "id": "proof_attempt",
-      "status": "NOT_RUN",
-      "reason": "Proof execution requires an approved formal statement and usable Lean project.",
-      "rerun": "mathos prove C-001 --json"
+      "status": "BLOCKED",
+      "command": "mathos prove C-001 --json",
+      "exitCode": 1,
+      "reason": "Proof attempt is blocked by the previously evidenced formalization, fidelity, model, or Lean prerequisite.",
+      "stdout": "",
+      "stderr": "Formal statement C-001 was not found.\nSee the error code for debugging. Stack traces stay hidden unless MATHOS_DEBUG=1.\nError code: FormalStatementNotFound\n",
+      "rerun": "cd <pilot-root>/pilot && mathos prove C-001 --json"
     },
     {
       "id": "verify",
-      "status": "NOT_RUN",
-      "reason": "Kernel verification requires a compiled proof artifact.",
-      "rerun": "mathos verify C-001 --json"
+      "status": "BLOCKED",
+      "command": "mathos verify C-001 --json",
+      "exitCode": 1,
+      "reason": "Kernel verification is blocked because no compiled current proof artifact exists and Lean/formalization prerequisites are unavailable.",
+      "stdout": "",
+      "stderr": "Formal statement C-001 was not found.\nSee the error code for debugging. Stack traces stay hidden unless MATHOS_DEBUG=1.\nError code: FormalStatementNotFound\n",
+      "rerun": "cd <pilot-root>/pilot && mathos verify C-001 --json"
+    },
+    {
+      "id": "experiment_create",
+      "status": "PASS",
+      "command": "mathos experiment create --claim C-001 --kind FINITE_VERIFICATION --property n == n --from 0 --to 2",
+      "exitCode": 0,
+      "reason": "Command completed and its step-specific evidence is checked below.",
+      "stdout": "Created EXP-001\n",
+      "stderr": "",
+      "rerun": "cd <pilot-root>/pilot && mathos experiment create --claim C-001 --kind FINITE_VERIFICATION --property n == n --from 0 --to 2"
     },
     {
       "id": "experiment",
-      "status": "BLOCKED",
-      "reason": "No headless experiment-create command exists; sandbox policy must be reviewed in the TUI.",
-      "rerun": "mathos; open Experiments, create a deterministic experiment, and inspect its trust labels"
+      "status": "PASS",
+      "command": "mathos experiment run EXP-001",
+      "exitCode": 0,
+      "reason": "Command completed and its step-specific evidence is checked below.",
+      "stdout": "ER-001 INCONCLUSIVE\nNOT A PROOF\n",
+      "stderr": "",
+      "rerun": "cd <pilot-root>/pilot && mathos experiment run EXP-001",
+      "evidence": "real headless experiment create/run completed; computation remains not proof"
     },
     {
       "id": "literature",
       "status": "BLOCKED",
-      "reason": "No headless literature-search command exists and no external provider was configured.",
-      "rerun": "configure a literature provider, run mathos, then search Literature and record source provenance"
+      "command": "mathos literature search identity theorem",
+      "exitCode": 0,
+      "reason": "The real headless search surface ran, but doctor reports the fake provider; configure a real provider before treating results as pilot literature evidence.",
+      "stdout": "EXTERNAL SOURCE\nNOT A PROOF\n0. Fundamental theorem of arithmetic (-300)\n",
+      "stderr": "",
+      "rerun": "cd <pilot-root>/pilot && mathos literature search identity theorem",
+      "evidence": "provider=fake; output remains EXTERNAL SOURCE / NOT A PROOF"
+    },
+    {
+      "id": "branch_setup",
+      "status": "PASS",
+      "command": "mathos branch setup",
+      "exitCode": 0,
+      "reason": "Command completed and its step-specific evidence is checked below.",
+      "stdout": "Research versioning ready  /private<pilot-root>/pilot\n",
+      "stderr": "",
+      "rerun": "cd <pilot-root>/pilot && mathos branch setup"
     },
     {
       "id": "branch",
       "status": "PASS",
-      "command": "mathos branch setup",
-      "exitCode": 0,
-      "reason": "Command completed with the expected exit code.",
-      "stdout": "Research versioning ready  /private/var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/pilot\n",
-      "stderr": "",
-      "rerun": "cd <fresh-parent>/pilot && mathos branch setup"
-    },
-    {
-      "id": "branch_create",
-      "status": "PASS",
       "command": "mathos branch create pilot alternative",
       "exitCode": 0,
-      "reason": "Command completed with the expected exit code.",
+      "reason": "Command completed and its step-specific evidence is checked below.",
       "stdout": "Created B-001  pilot alternative\n",
       "stderr": "",
-      "rerun": "cd <fresh-parent>/pilot && mathos branch create pilot alternative"
+      "rerun": "cd <pilot-root>/pilot && mathos branch create pilot alternative",
+      "evidence": "isolated research branch created"
     },
     {
       "id": "team_start",
-      "status": "BLOCKED",
-      "reason": "No headless team-start command exists and model-backed workers are unavailable.",
-      "rerun": "mathos; open Team, start a bounded session for C-001"
+      "status": "PASS",
+      "command": "mathos team start --json",
+      "exitCode": 0,
+      "reason": "Command completed and its step-specific evidence is checked below.",
+      "stdout": "{\n  \"id\": \"MR-001\",\n  \"workspaceId\": \"ws_<id>\",\n  \"sourceBranchId\": \"B-000\",\n  \"sourceRevision\": null,\n  \"objectiveClaimId\": \"C-001\",\n  \"status\": \"READY\",\n  \"strategy\": \"DIVERSE_BRANCHES\",\n  \"limits\": {\n    \"maxAgents\": 3,\n    \"maxRounds\": 8,\n    \"maxTotalSteps\": 24,\n    \"maxTotalModelCalls\": 30,\n    \"maxTotalLeanCalls\": 20,\n    \"maxTotalProofAttempts\": 12\n  },\n  \"usage\": {\n    \"rounds\": 0,\n    \"steps\": 0,\n    \"modelCalls\": 0,\n    \"leanCalls\": 0,\n    \"proofAttempts\": 0\n  },\n  \"currentRound\": 0,\n  \"sourceStale\": false,\n  \"executionMode\": \"SEQUENTIAL\",\n  \"maxParallelWorkers\": 2,\n  \"createdAt\": \"<timestamp>\",\n  \"startedAt\": null,\n  \"stoppedAt\": null,\n  \"stopReason\": null\n}\n",
+      "stderr": "",
+      "rerun": "cd <pilot-root>/pilot && mathos team start --json",
+      "evidence": "MR-001 created through the real headless team surface"
     },
     {
       "id": "team_pause",
-      "status": "NOT_RUN",
-      "reason": "No team session was started, so pause cannot be exercised.",
-      "rerun": "pause the active session from the Team panel"
+      "status": "PASS",
+      "command": "mathos team pause MR-001",
+      "exitCode": 0,
+      "reason": "Command completed and its step-specific evidence is checked below.",
+      "stdout": "Paused MR-001\n",
+      "stderr": "",
+      "rerun": "cd <pilot-root>/pilot && mathos team pause MR-001",
+      "evidence": "MR-001 paused cleanly"
     },
     {
       "id": "reopen",
       "status": "PASS",
       "command": "mathos status --json",
       "exitCode": 0,
-      "reason": "Command completed with the expected exit code.",
-      "stdout": "{\n  \"text\": \"MATHOS WORKSPACE\\n\\nObjective\\nC-001\\n\\nEpistemic status\\nCONJECTURE\\n\\nResearch state\\nnone\\n\\nOpen blockers\\n0\\n\\nLast meaningful progress\\nbranch_created\\n\\nClaims\\n1 total\\n0 kernel verified\\n1 frontier\\n0 blocked\\n\\nEvidence\\n0 computation\\n0 citations\\n\\nTeam\\nnone\\n\\nEnvironment readiness\\nLean ○\\nPython ✓\\nModel ○\",\n  \"status\": {\n    \"projectName\": \"pilot\",\n    \"workspaceRoot\": \"/private/var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/pilot\",\n    \"mainObjective\": {\n      \"id\": \"C-001\",\n      \"title\": \"Pilot identity\",\n      \"status\": \"CONJECTURE\"\n    },\n    \"research\": {\n      \"verified\": 0,\n      \"informal\": 0,\n      \"conjectures\": 1,\n      \"blocked\": 0,\n      \"totalClaims\": 1\n    },\n    \"branch\": {\n      \"id\": \"B-000\",\n      \"name\": \"MAIN\",\n      \"slug\": \"main\",\n      \"status\": \"ACTIVE\",\n      \"staleBase\": false\n    },\n    \"integrity\": {\n      \"database\": \"connected\",\n      \"eventLog\": \"ok\",\n      \"initialized\": true\n    }\n  }\n}\n",
+      "reason": "Command completed and its step-specific evidence is checked below.",
+      "stdout": "{\n  \"text\": \"MATHOS WORKSPACE\\n\\nObjective\\nC-001\\n\\nEpistemic status\\nCONJECTURE\\n\\nResearch state\\nR-003 READY\\n\\nOpen blockers\\n0\\n\\nLast meaningful progress\\nmulti_agent_session_paused\\n\\nClaims\\n4 total\\n0 kernel verified\\n1 frontier\\n0 blocked\\n\\nEvidence\\n1 computation\\n0 citations\\n\\nTeam\\nMR-001 PAUSED\\n\\nEnvironment readiness\\nLean ○\\nPython ✓\\nModel ○\",\n  \"status\": {\n    \"projectName\": \"pilot\",\n    \"workspaceRoot\": \"/private<pilot-root>/pilot\",\n    \"mainObjective\": {\n      \"id\": \"C-001\",\n      \"title\": \"Pilot identity\",\n      \"status\": \"CONJECTURE\"\n    },\n    \"research\": {\n      \"verified\": 0,\n      \"informal\": 0,\n      \"conjectures\": 1,\n      \"blocked\": 0,\n      \"totalClaims\": 1\n    },\n    \"branch\": {\n      \"id\": \"B-000\",\n      \"name\": \"MAIN\",\n      \"slug\": \"main\",\n      \"status\": \"ACTIVE\",\n      \"staleBase\": false\n    },\n    \"integrity\": {\n      \"database\": \"connected\",\n      \"eventLog\": \"ok\",\n      \"initialized\": true\n    }\n  }\n}\n",
       "stderr": "",
-      "rerun": "cd <fresh-parent>/pilot && mathos status --json"
+      "rerun": "cd <pilot-root>/pilot && mathos status --json",
+      "evidence": "fresh CLI process reopened C-001 and preserved claim summary plus MR-001 PAUSED state"
     },
     {
       "id": "backup",
       "status": "PASS",
-      "command": "mathos backup --out /var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/backups",
+      "command": "mathos backup --out <pilot-root>/backups",
       "exitCode": 0,
-      "reason": "Command completed with the expected exit code.",
-      "stdout": "/var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/backups/mathos-backup-2026-09-01T194940.tgz\n",
+      "reason": "Command completed and its step-specific evidence is checked below.",
+      "stdout": "<pilot-root>/backups/mathos-backup-<timestamp>.tgz\n",
       "stderr": "",
-      "rerun": "cd <fresh-parent>/pilot && mathos backup --out /var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/backups"
+      "rerun": "cd <pilot-root>/pilot && mathos backup --out <pilot-root>/backups",
+      "evidence": "archive exists; manifest parsed and secret scan clean"
     },
     {
       "id": "restore",
       "status": "PASS",
-      "command": "mathos restore /var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/backups/mathos-backup-2026-09-01T194940.tgz --into /var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/restored",
+      "command": "mathos restore <pilot-root>/backups/mathos-backup-<timestamp>.tgz --into <pilot-root>/restored",
       "exitCode": 0,
-      "reason": "Command completed with the expected exit code.",
-      "stdout": "Restored /var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/restored\n",
+      "reason": "Command completed and its step-specific evidence is checked below.",
+      "stdout": "Restored <pilot-root>/restored\n",
       "stderr": "",
-      "rerun": "cd <fresh-parent>/pilot && mathos restore /var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/backups/mathos-backup-2026-09-01T194940.tgz --into /var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/restored"
+      "rerun": "cd <pilot-root>/pilot && mathos restore <pilot-root>/backups/mathos-backup-<timestamp>.tgz --into <pilot-root>/restored",
+      "evidence": "semantic state equivalent (objective, claims, branch, event digest); extracted archive secret scan clean"
+    },
+    {
+      "id": "restore_status_probe",
+      "status": "PASS",
+      "command": "mathos status --json",
+      "exitCode": 0,
+      "reason": "Command completed and its step-specific evidence is checked below.",
+      "stdout": "{\n  \"text\": \"MATHOS WORKSPACE\\n\\nObjective\\nC-001\\n\\nEpistemic status\\nCONJECTURE\\n\\nResearch state\\nR-003 READY\\n\\nOpen blockers\\n0\\n\\nLast meaningful progress\\nmulti_agent_session_paused\\n\\nClaims\\n4 total\\n0 kernel verified\\n1 frontier\\n0 blocked\\n\\nEvidence\\n1 computation\\n0 citations\\n\\nTeam\\nMR-001 PAUSED\\n\\nEnvironment readiness\\nLean ○\\nPython ✓\\nModel ○\",\n  \"status\": {\n    \"projectName\": \"pilot\",\n    \"workspaceRoot\": \"/private<pilot-root>/restored\",\n    \"mainObjective\": {\n      \"id\": \"C-001\",\n      \"title\": \"Pilot identity\",\n      \"status\": \"CONJECTURE\"\n    },\n    \"research\": {\n      \"verified\": 0,\n      \"informal\": 0,\n      \"conjectures\": 1,\n      \"blocked\": 0,\n      \"totalClaims\": 1\n    },\n    \"branch\": {\n      \"id\": \"B-000\",\n      \"name\": \"MAIN\",\n      \"slug\": \"main\",\n      \"status\": \"ACTIVE\",\n      \"staleBase\": false\n    },\n    \"integrity\": {\n      \"database\": \"connected\",\n      \"eventLog\": \"ok\",\n      \"initialized\": true\n    }\n  }\n}\n",
+      "stderr": "",
+      "rerun": "cd <pilot-root>/pilot && mathos status --json"
     },
     {
       "id": "report",
       "status": "PASS",
       "command": "mathos report --format json",
       "exitCode": 0,
-      "reason": "Command completed with the expected exit code.",
-      "stdout": "/private/var/folders/0c/v2st_tnn06xd_qc2_ztt4byr0000gn/T/mathos-pilot-lUkLFH/pilot/reports/research-report-2026-09-01T1949.json\n",
+      "reason": "Command completed and its step-specific evidence is checked below.",
+      "stdout": "/private<pilot-root>/pilot/reports/research-report-<timestamp>.json\n",
       "stderr": "",
-      "rerun": "cd <fresh-parent>/pilot && mathos report --format json"
+      "rerun": "cd <pilot-root>/pilot && mathos report --format json",
+      "evidence": "report JSON parsed; trust labels present; secret scan clean"
     }
   ],
   "summary": {
-    "PASS": 10,
-    "BLOCKED": 5,
-    "NOT_RUN": 4,
+    "PASS": 14,
+    "BLOCKED": 8,
+    "NOT_RUN": 0,
     "FAIL": 0
   },
-  "overall": "BLOCKED"
+  "overall": "BLOCKED",
+  "canonicalSha256": "a5e3b2a15c8148e56cfc20e900b4568f4b7d38e7a7b1b68b5c2b30d4646bae9f"
 }
