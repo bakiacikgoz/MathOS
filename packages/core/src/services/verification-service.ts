@@ -11,6 +11,7 @@ import {
 } from "@mathos/storage"
 import { ClaimNotFound, FormalStatementNotFound, createId, nowIso } from "@mathos/shared"
 import { runVerificationGate } from "../verify.ts"
+import { verificationAuthority } from "../../../storage/src/verification-authority.ts"
 
 type VerificationEvent = {
   target?: string | null
@@ -98,7 +99,7 @@ export class VerificationService {
     })
 
     if (report.passed) {
-      this.dependencies.claims.updateStatus(claim.id, "KERNEL_VERIFIED", nowIso())
+      this.dependencies.claims.promoteKernelVerified(claim.id, nowIso(), verificationAuthority)
       writeProofFile(this.dependencies.root, claim.id, proof!.proofSource)
       this.dependencies.recordEvent("verification_passed", {
         target: claim.id,

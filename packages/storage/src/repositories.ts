@@ -19,6 +19,8 @@ import type {
   VerificationRun,
   WorkspaceRecord,
 } from "@mathos/domain"
+import { VerificationFailed } from "@mathos/shared"
+import { verificationAuthority, type VerificationAuthority } from "./verification-authority.ts"
 
 interface WorkspaceRow {
   id: string
@@ -209,7 +211,8 @@ export class WorkspaceRepository {
 export class ClaimRepository {
   constructor(private readonly db: Database) {}
 
-  insert(claim: Claim): void {
+  insert(claim: Claim, authority?: VerificationAuthority): void {
+    this.assertKernelAuthority(claim.status, authority)
     this.db
       .query(
         `INSERT INTO claims (
@@ -271,8 +274,19 @@ export class ClaimRepository {
     return this.idsByPrefix(workspaceId, prefix).length
   }
 
-  updateStatus(id: string, status: ClaimStatus, updatedAt: string): void {
+  updateStatus(id: string, status: ClaimStatus, updatedAt: string, authority?: VerificationAuthority): void {
+    this.assertKernelAuthority(status, authority)
     this.db.query("UPDATE claims SET status = ?, updated_at = ? WHERE id = ?").run(status, updatedAt, id)
+  }
+
+  promoteKernelVerified(id: string, updatedAt: string, authority: VerificationAuthority): void {
+    this.updateStatus(id, "KERNEL_VERIFIED", updatedAt, authority)
+  }
+
+  private assertKernelAuthority(status: ClaimStatus, authority?: VerificationAuthority): void {
+    if (status === "KERNEL_VERIFIED" && authority !== verificationAuthority) {
+      throw new VerificationFailed("KERNEL_VERIFIED can only be assigned by VerificationGate.")
+    }
   }
 }
 

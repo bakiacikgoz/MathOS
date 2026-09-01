@@ -4,6 +4,8 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { MathOS, runVerificationGate } from "@mathos/core"
 import type { Claim, FormalStatement, ProofAttempt } from "@mathos/domain"
+import { ClaimRepository, DatabaseClient } from "@mathos/storage"
+import { databasePath } from "@mathos/shared"
 
 const timestamp = "2026-01-01T00:00:00.000Z"
 const claim: Claim = {
@@ -40,7 +42,13 @@ describe("VerificationGate trust matrix", () => {
     ["stale formal", { currentRevision: false }],
     ["non-human fidelity", { formal: { ...formal, fidelityStatus: "AI_REVIEWED" } }],
     ["compile failure", { compiled: false }],
-    ["unpinned toolchain", { toolchain: "stable" }],
+    ["bare stable toolchain", { toolchain: "stable" }],
+    ["bare latest toolchain", { toolchain: "latest" }],
+    ["qualified latest toolchain", { toolchain: "leanprover/lean4:latest" }],
+    ["qualified stable toolchain", { toolchain: "leanprover/lean4:stable" }],
+    ["floating nightly toolchain", { toolchain: "leanprover/lean4:nightly" }],
+    ["branch toolchain", { toolchain: "leanprover/lean4:master" }],
+    ["partial version toolchain", { toolchain: "leanprover/lean4:v4.33" }],
     ["missing toolchain", { toolchain: null }],
   ] as const)("rejects %s", (_name, overrides) => {
     const report = gate(overrides as Partial<Parameters<typeof runVerificationGate>[0]>)
@@ -54,26 +62,67 @@ describe("VerificationGate trust matrix", () => {
     expect(report.passed).toBe(true)
     expect(report.claimStatus).toBe("KERNEL_VERIFIED")
   })
+
+  test.each(["leanprover/lean4:v4.33.1", "v4.33.1", "leanprover/lean4:0123456789abcdef", "0123456789abcdef"])(
+    "accepts immutable toolchain %s",
+    (toolchain) => expect(gate({ toolchain }).passed).toBe(true),
+  )
 })
 
 describe("KERNEL_VERIFIED assignment authority", () => {
-  test("production writes are confined to VerificationGate and VerificationService", () => {
-    const root = join(import.meta.dir, "..", "packages", "core", "src")
-    const files = walk(root).filter((file) => file.endsWith(".ts"))
+  test("production writes are confined to VerificationGate, VerificationService, and the guarded storage sink", () => {
+    const repoRoot = join(import.meta.dir, "..")
+    const files = [join(repoRoot, "packages"), join(repoRoot, "apps")]
+      .flatMap(walk)
+      .filter((file) => /\.[cm]?[jt]sx?$/.test(file))
     const writePatterns = [
       /\b(?:status|claimStatus)\s*:[^\n]*["']KERNEL_VERIFIED["']/g,
       /\.updateStatus\([^\n]*["']KERNEL_VERIFIED["']/g,
+      /\.promoteKernelVerified\(/g,
       /\.status\s*=\s*["']KERNEL_VERIFIED["']/g,
+      /\.createClaim\([\s\S]{0,500}?status\s*:\s*["']KERNEL_VERIFIED["'][\s\S]{0,100}?\)/g,
+      /\bUPDATE\b[^\n]{0,300}\bstatus\s*=\s*["']KERNEL_VERIFIED["']/gi,
+      /\bINSERT\b[^\n]{0,300}\bVALUES\b[^\n]*["']KERNEL_VERIFIED["']/gi,
     ]
     const writes = files.flatMap((file) => {
       const source = readFileSync(file, "utf8")
-      return writePatterns.flatMap((pattern) => [...source.matchAll(pattern)].map(() => file.slice(root.length + 1)))
+      return writePatterns.flatMap((pattern) => [...source.matchAll(pattern)].map(() => file.slice(repoRoot.length + 1)))
     })
     expect(writes.sort()).toEqual([
-      "services/verification-service.ts",
-      "services/verification-service.ts",
-      "verify.ts",
+      "packages/core/src/services/verification-service.ts",
+      "packages/core/src/services/verification-service.ts",
+      "packages/core/src/verify.ts",
+      "packages/storage/src/repositories.ts",
     ])
+    const authorityImports = files.flatMap((file) => readFileSync(file, "utf8").includes("verification-authority")
+      ? [file.slice(repoRoot.length + 1)] : [])
+    expect(authorityImports.sort()).toEqual([
+      "packages/core/src/services/verification-service.ts",
+      "packages/storage/src/repositories.ts",
+    ])
+  })
+})
+
+describe("ClaimRepository trust boundary", () => {
+  test("rejects direct verified insert and aliased updateStatus while preserving existing verified rows", async () => {
+    const parent = mkdtempSync(join(tmpdir(), "mathos-storage-trust-"))
+    try {
+      const created = await MathOS.init(parent, "claims")
+      const app = MathOS.open(created.root)
+      const ordinary = app.createClaim({ kind: "lemma", title: "ordinary", statement: "True" })
+      app.close()
+      const client = new DatabaseClient(databasePath(created.root))
+      client.migrate()
+      const repository = new ClaimRepository(client.db)
+      expect(() => repository.insert({ ...ordinary, id: "L-999", status: "KERNEL_VERIFIED" })).toThrow("VerificationGate")
+      const aliasedUpdate = repository.updateStatus.bind(repository)
+      expect(() => aliasedUpdate(ordinary.id, "KERNEL_VERIFIED", timestamp)).toThrow("VerificationGate")
+      client.db.query("UPDATE claims SET status = 'KERNEL_VERIFIED' WHERE id = ?").run(ordinary.id)
+      client.close()
+      const reopened = MathOS.open(created.root)
+      try { expect(reopened.getClaim(ordinary.id).status).toBe("KERNEL_VERIFIED") }
+      finally { reopened.close() }
+    } finally { rmSync(parent, { recursive: true, force: true }) }
   })
 })
 

@@ -10,6 +10,8 @@ const STANDARD_AXIOMS = new Set([
   "rfl",
 ])
 
+const PINNED_TOOLCHAIN = /^(?:leanprover\/lean4:)?(?:v\d+\.\d+\.\d+(?:-(?:rc|beta)\.\d+)?|[0-9a-f]{7,40})$/i
+
 export function runVerificationGate(input: {
   claim: Claim
   formal: FormalStatement
@@ -55,7 +57,7 @@ export function runVerificationGate(input: {
     },
     {
       name: "toolchain pinned",
-      status: input.toolchain && !/^(stable|latest)$/i.test(input.toolchain) ? "PASS" : "FAIL",
+      status: input.toolchain && PINNED_TOOLCHAIN.test(input.toolchain) ? "PASS" : "FAIL",
       detail: input.toolchain ?? "missing",
     },
   ]
