@@ -173,7 +173,7 @@ describe("doctor", () => {
         "Experiment sandbox",
         "Literature providers",
         "Local source extraction",
-        "Database/events consistency",
+        "Event Projection Health",
         "Schema version",
         "MathOS version",
       ])

@@ -108,6 +108,13 @@ export async function runHeadless(argv: string[]): Promise<number> {
         return report.ok ? 0 : 1
       }
 
+      if (command === "events" && rest[0] === "rebuild") {
+        const result = app.rebuildEventProjection()
+        if (rest.includes("--json")) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`)
+        else process.stdout.write(`Event projection rebuilt: ${result.eventCount} events (${result.status})\n`)
+        return result.status === "HEALTHY" ? 0 : 1
+      }
+
       if (command === "backup" || (command === "workspace" && rest[0] === "backup")) {
         const dest = flag(rest, "--out") ?? joinCwdBackups()
         const result = app.backup(dest)

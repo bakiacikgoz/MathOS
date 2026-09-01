@@ -1,4 +1,4 @@
-import { appendFileSync, existsSync, mkdirSync } from "node:fs"
+import { appendFileSync, existsSync, mkdirSync, renameSync, rmSync, writeFileSync } from "node:fs"
 import { dirname } from "node:path"
 import type { ResearchEvent } from "@mathos/domain"
 import { EventWriteFailed } from "@mathos/shared"
@@ -26,6 +26,30 @@ export class EventLog {
       })
       appendFileSync(this.filePath, `${line}\n`, "utf8")
     } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error)
+      throw new EventWriteFailed(reason, { path: this.filePath })
+    }
+  }
+
+  serialize(event: ResearchEvent): string {
+    return JSON.stringify({
+      event_id: event.eventId,
+      timestamp: event.timestamp,
+      actor: event.actor,
+      action: event.action,
+      target: event.target,
+      metadata: event.metadata,
+    })
+  }
+
+  replace(events: ResearchEvent[]): void {
+    this.ensure()
+    const temporary = `${this.filePath}.tmp-${process.pid}`
+    try {
+      writeFileSync(temporary, events.map((event) => this.serialize(event)).join("\n") + (events.length ? "\n" : ""), "utf8")
+      renameSync(temporary, this.filePath)
+    } catch (error) {
+      rmSync(temporary, { force: true })
       const reason = error instanceof Error ? error.message : String(error)
       throw new EventWriteFailed(reason, { path: this.filePath })
     }

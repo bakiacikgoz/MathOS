@@ -30,6 +30,15 @@ export class DatabaseClient {
     }
   }
 
+  /**
+   * Runs related repository writes as one SQLite transaction. Services migrating
+   * mutation/event atomicity should insert the canonical event inside this unit,
+   * then update external projections only after it returns successfully.
+   */
+  unitOfWork<T>(work: () => T): T {
+    return this.db.transaction(work)()
+  }
+
   migrate(): void {
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS schema_migrations (

@@ -20,3 +20,5 @@ export function makeEvent(
 }
 
 export { EventLog } from "./jsonl.ts"
+export { EventProjection } from "./projection.ts"
+export type { EventProjectionHealth, EventProjectionPoint, EventProjectionStatus } from "./projection.ts"

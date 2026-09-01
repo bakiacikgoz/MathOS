@@ -513,8 +513,8 @@ export class EventRepository {
   insert(workspaceId: string, event: ResearchEvent): void {
     this.db
       .query(
-        `INSERT INTO events (id, workspace_id, timestamp, actor_type, actor_id, action, target, metadata_json)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO events (id, workspace_id, timestamp, actor_type, actor_id, action, target, metadata_json, projection_order)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, COALESCE((SELECT MAX(projection_order) + 1 FROM events WHERE workspace_id = ?), 1))`,
       )
       .run(
         event.eventId,
@@ -525,12 +525,13 @@ export class EventRepository {
         event.action,
         event.target,
         JSON.stringify(event.metadata),
+        workspaceId,
       )
   }
 
   list(workspaceId: string): ResearchEvent[] {
     return this.db
-      .query<Record<string, unknown>, [string]>("SELECT * FROM events WHERE workspace_id = ? ORDER BY timestamp, id")
+      .query<Record<string, unknown>, [string]>("SELECT * FROM events WHERE workspace_id = ? ORDER BY projection_order, timestamp, id")
       .all(workspaceId)
       .map((row) => ({
         eventId: String(row.id),
@@ -540,6 +541,20 @@ export class EventRepository {
         target: row.target ? String(row.target) : null,
         metadata: row.metadata_json ? JSON.parse(String(row.metadata_json)) : {},
       }))
+  }
+
+  projectionHealth(workspaceId: string): { status: string; detail: string; updatedAt: string } | null {
+    const row = this.db.query<{ status: string; detail: string; updated_at: string }, [string]>(
+      "SELECT status, detail, updated_at FROM event_projection_health WHERE workspace_id = ?",
+    ).get(workspaceId)
+    return row ? { status: row.status, detail: row.detail, updatedAt: row.updated_at } : null
+  }
+
+  setProjectionHealth(workspaceId: string, status: string, detail: string, updatedAt: string): void {
+    this.db.query(
+      `INSERT INTO event_projection_health (workspace_id, status, detail, updated_at) VALUES (?, ?, ?, ?)
+       ON CONFLICT(workspace_id) DO UPDATE SET status = excluded.status, detail = excluded.detail, updated_at = excluded.updated_at`,
+    ).run(workspaceId, status, detail, updatedAt)
   }
 }
 

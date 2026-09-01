@@ -51,7 +51,7 @@ import {
   type VerifiedArtifactImport,
   type ImportPreview,
 } from "@mathos/domain"
-import { EventLog, makeEvent } from "@mathos/events"
+import { EventLog, EventProjection, makeEvent, type EventProjectionHealth, type EventProjectionPoint } from "@mathos/events"
 import {
   createDefaultModelProvider,
   modelDoctorChecks,
@@ -131,7 +131,7 @@ import { buildDoctorReport } from "./doctor.ts"
 import {
   writeReport,
 } from "./product-ux.ts"
-import { backupWorkspace, restoreWorkspace, eventLogHealth, exportDiagnostics } from "./release.ts"
+import { backupWorkspace, restoreWorkspace, exportDiagnostics } from "./release.ts"
 import { SCHEMA_EPOCH } from "@mathos/storage"
 import { FakeResearchPlanner, ModelResearchPlanner, type ResearchPlanner } from "./research-planner.ts"
 import { buildResearchContext } from "./research-context.ts"
@@ -160,6 +160,8 @@ export interface MathOSOptions {
   maxStepWallClockMs?: number
   computationRuntime?: ComputationalRuntime
   literatureProvider?: LiteratureProvider
+  /** Test/fault-injection boundary around canonical DB persistence and JSONL projection. */
+  eventProjectionHook?: (point: EventProjectionPoint, event: import("@mathos/domain").ResearchEvent) => void
 }
 
 export class MathOS {
@@ -208,6 +210,7 @@ export class MathOS {
     private readonly maxStepWallClockMs: number,
     private readonly computationRuntime: ComputationalRuntime,
     private readonly literatureProvider: LiteratureProvider,
+    private readonly eventProjectionHook: MathOSOptions["eventProjectionHook"],
   ) {}
 
   lastExperimentPid: number | null = null
@@ -278,6 +281,7 @@ export class MathOS {
       options.maxStepWallClockMs ?? 120_000,
       options.computationRuntime ?? new PythonRuntime(),
       options.literatureProvider ?? new FakeLiteratureProvider(),
+      options.eventProjectionHook,
     )
     instance.claimService = new ClaimService({
       client,
@@ -533,8 +537,17 @@ export class MathOS {
       ...options,
       metadata: { ...options.metadata, branchId: branch?.id ?? MAIN_BRANCH_ID },
     })
-    this.eventRows.insert(workspace.id, event)
-    this.events.append(event)
+    new EventProjection(workspace.id, this.eventRows, this.events, this.eventProjectionHook).record(event)
+  }
+
+  eventProjectionHealth(): EventProjectionHealth {
+    const workspace = this.requireWorkspace()
+    return new EventProjection(workspace.id, this.eventRows, this.events).inspect()
+  }
+
+  rebuildEventProjection(): EventProjectionHealth {
+    const workspace = this.requireWorkspace()
+    return new EventProjection(workspace.id, this.eventRows, this.events).rebuild()
   }
 
   private requireWorkspace() {
@@ -640,8 +653,8 @@ export class MathOS {
     const literatureCheck = { name: "Literature providers", status: "PASS" as const, detail: this.literatureProvider.name }
     const sourceExtractCheck = { name: "Local source extraction", status: "PASS" as const, detail: "text/pdf-text" }
     const eventsCheck = (() => {
-      const health = eventLogHealth(this.root)
-      return { name: "Database/events consistency", status: health.status, detail: health.detail }
+      const health = this.eventProjectionHealth()
+      return { name: "Event Projection Health", status: health.status === "HEALTHY" ? "PASS" as const : "WARN" as const, detail: health.detail }
     })()
     const schemaCheck = { name: "Schema version", status: "PASS" as const, detail: String(this.client.schemaEpoch()) }
     const versionCheck = { name: "MathOS version", status: "PASS" as const, detail: mathosVersion() }

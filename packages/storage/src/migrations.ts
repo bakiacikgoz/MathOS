@@ -780,6 +780,21 @@ export const MIGRATIONS: Migration[] = [
       BEGIN SELECT RAISE(ABORT, 'downgrade KERNEL_VERIFIED claim before deleting fidelity evidence'); END;
     `,
   },
+  {
+    id: "020_event_projection_health",
+    sql: `
+      ALTER TABLE events ADD COLUMN projection_order INTEGER;
+      UPDATE events SET projection_order = rowid WHERE projection_order IS NULL;
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_events_projection_order ON events(workspace_id, projection_order);
+      CREATE TABLE IF NOT EXISTS event_projection_health (
+        workspace_id TEXT PRIMARY KEY,
+        status TEXT NOT NULL,
+        detail TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (workspace_id) REFERENCES workspaces(id)
+      );
+    `,
+  },
 ]
 
 export const SCHEMA_EPOCH = MIGRATIONS.length
