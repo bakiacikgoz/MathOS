@@ -27,8 +27,7 @@ import {
 } from "@mathos/storage"
 import { ClaimNotFound, createId, nowIso } from "@mathos/shared"
 import { sha256Text } from "@mathos/computation"
-
-type LiteratureEvent = { target?: string | null; metadata?: Record<string, unknown> }
+import type { MutationRecorder } from "../mutation-recorder.ts"
 
 export interface LiteratureServiceDependencies {
   root: string
@@ -43,7 +42,7 @@ export interface LiteratureServiceDependencies {
   searches: LiteratureSearchRepository
   provider: LiteratureProvider
   allocateId: (prefix: string) => string
-  recordEvent: (action: string, event: LiteratureEvent) => void
+  recorder: MutationRecorder
 }
 
 export class LiteratureService {
@@ -58,7 +57,7 @@ export class LiteratureService {
     const fingerprint = queryFingerprint(this.dependencies.provider.name, { text: query, maxResults })
     const prior = this.dependencies.searches.findFingerprint(workspace.id, fingerprint)
     if (prior && (!opts.runId || prior.researchRunId === opts.runId)) throw new Error("LITERATURE_SEARCH_REPETITION")
-    this.dependencies.recordEvent("literature_search_started", { target: workspace.id, metadata: { query, provider: this.dependencies.provider.name, branchId: branch.id, runId: opts.runId, stepId: opts.stepId, agentId: opts.agentId } })
+    this.dependencies.recorder.record("literature_search_started", { target: workspace.id, metadata: { query, provider: this.dependencies.provider.name, branchId: branch.id, runId: opts.runId, stepId: opts.stepId, agentId: opts.agentId } })
     const hits = await this.dependencies.provider.search({ text: query, maxResults })
     const search = {
       id: this.dependencies.allocateId("LS"), workspaceId: workspace.id, branchId: branch.id, query,
@@ -66,14 +65,15 @@ export class LiteratureService {
       researchRunId: opts.runId ?? null, researchStepId: opts.stepId ?? null, agentId: opts.agentId ?? null,
       resultCount: hits.length, createdAt: nowIso(),
     }
-    this.dependencies.searches.insert(search)
-    hits.forEach((hit, index) => this.dependencies.searches.insertHit({
-      searchId: search.id, index, provider: hit.provider, externalId: hit.externalId, title: hit.title, authors: hit.authors,
-      year: hit.year ?? null, doi: hit.doi ?? null, arxivId: hit.arxivId ?? null, url: hit.url ?? null,
-      abstract: hit.abstract ?? null, score: hit.score ?? null,
-    }))
+    this.dependencies.recorder.mutate("literature_search_completed", { target: search.id, metadata: { resultCount: hits.length, provider: search.provider, branchId: branch.id, runId: opts.runId } }, () => {
+      this.dependencies.searches.insert(search)
+      hits.forEach((hit, index) => this.dependencies.searches.insertHit({
+        searchId: search.id, index, provider: hit.provider, externalId: hit.externalId, title: hit.title, authors: hit.authors,
+        year: hit.year ?? null, doi: hit.doi ?? null, arxivId: hit.arxivId ?? null, url: hit.url ?? null,
+        abstract: hit.abstract ?? null, score: hit.score ?? null,
+      }))
+    })
     this.lastSearchId = search.id
-    this.dependencies.recordEvent("literature_search_completed", { target: search.id, metadata: { resultCount: hits.length, provider: search.provider, branchId: branch.id, runId: opts.runId } })
     return search
   }
 
@@ -104,7 +104,7 @@ export class LiteratureService {
     const fingerprint = sourceFingerprint({ doi: input.doi, arxivId: input.arxivId, isbn: input.isbn, url: input.url, title: input.title, authors: input.authors, year: input.year, fileHash: input.fileHash })
     const existing = this.dependencies.sources.findByFingerprint(workspace.id, fingerprint)
     if (existing) {
-      this.dependencies.recordEvent("source_discovered", { target: existing.id, metadata: { dedup: true, fingerprint } })
+      this.dependencies.recorder.record("source_discovered", { target: existing.id, metadata: { dedup: true, fingerprint } })
       return existing
     }
     const timestamp = nowIso()
@@ -115,8 +115,7 @@ export class LiteratureService {
       localPath: input.localPath ?? null, provider: input.provider ?? null, providerId: input.providerId ?? null,
       version: null, retrievedAt: timestamp, createdAt: timestamp,
     }
-    this.dependencies.sources.insert(source)
-    this.dependencies.recordEvent("source_imported", { target: source.id, metadata: { fingerprint, provider: source.provider } })
+    this.dependencies.recorder.mutate("source_imported", { target: source.id, metadata: { fingerprint, provider: source.provider } }, () => this.dependencies.sources.insert(source))
     return source
   }
 
@@ -142,16 +141,14 @@ export class LiteratureService {
 
   inspectSource(id: string) {
     const source = this.getSource(id)
-    this.dependencies.sources.updateStatus(source.id, "INSPECTED")
-    this.dependencies.recordEvent("source_inspected", { target: source.id, metadata: { branchId: this.requireCurrentBranch().id } })
+    this.dependencies.recorder.mutate("source_inspected", { target: source.id, metadata: { branchId: this.requireCurrentBranch().id } }, () => this.dependencies.sources.updateStatus(source.id, "INSPECTED"))
     return this.getSource(source.id)
   }
 
   addExcerpt(sourceId: string, text: string, locator?: SourceLocator, method: SourceExcerpt["extractionMethod"] = "USER_PROVIDED") {
     const source = this.getSource(sourceId)
     const excerpt: SourceExcerpt = { id: this.dependencies.allocateId("EXC"), sourceId: source.id, locator: locator ?? null, text, textHash: sha256Text(text), extractionMethod: method, createdAt: nowIso() }
-    this.dependencies.excerpts.insert(excerpt)
-    this.dependencies.recordEvent("source_excerpt_created", { target: excerpt.id, metadata: { sourceId: source.id } })
+    this.dependencies.recorder.mutate("source_excerpt_created", { target: excerpt.id, metadata: { sourceId: source.id } }, () => this.dependencies.excerpts.insert(excerpt))
     return excerpt
   }
 
@@ -170,15 +167,13 @@ export class LiteratureService {
       name: input.name ?? null, statementSummary: input.statementSummary, statementMode: input.statementMode ?? (excerpt ? "QUOTED_EXCERPT" : "SUMMARY"),
       locator: input.locator ?? excerpt?.locator ?? null, status: "EXTRACTED", createdAt: nowIso(),
     }
-    this.dependencies.external.insert(result)
-    this.dependencies.recordEvent("external_result_extracted", { target: result.id, metadata: { sourceId: source.id, branchId: result.branchId, excerptId: result.excerptId } })
+    this.dependencies.recorder.mutate("external_result_extracted", { target: result.id, metadata: { sourceId: source.id, branchId: result.branchId, excerptId: result.excerptId } }, () => this.dependencies.external.insert(result))
     return result
   }
 
   reviewExternalResult(id: string, status: ExternalResult["status"] = "HUMAN_REVIEWED") {
     const row = this.getExternal(id)
-    this.dependencies.external.updateStatus(row.id, status)
-    this.dependencies.recordEvent("external_result_reviewed", { target: row.id, metadata: { status } })
+    this.dependencies.recorder.mutate("external_result_reviewed", { target: row.id, metadata: { status } }, () => this.dependencies.external.updateStatus(row.id, status))
     return this.getExternal(row.id)
   }
 
@@ -199,16 +194,21 @@ export class LiteratureService {
       externalResultId: input.externalResultId ?? null, excerptId: input.excerptId ?? null, locator: input.locator ?? null,
       purpose: input.purpose ?? "SUPPORT", invalidated: false, createdAt: nowIso(),
     }
-    if (citation.claimId) citation.evidenceId = this.recordLiteratureEvidence(citation, source).id
-    this.dependencies.citations.insert(citation)
-    this.dependencies.recordEvent("citation_created", { target: citation.id, metadata: { sourceId: source.id, claimId: citation.claimId, branchId: citation.branchId } })
+    let evidence: Evidence | null = null
+    this.dependencies.recorder.mutate("citation_created", { target: citation.id, metadata: { sourceId: source.id, claimId: citation.claimId, branchId: citation.branchId } }, () => {
+      if (citation.claimId) {
+        evidence = this.recordLiteratureEvidence(citation, source)
+        citation.evidenceId = evidence.id
+      }
+      this.dependencies.citations.insert(citation)
+    })
+    if (evidence) this.dependencies.recorder.record("evidence_created", { target: evidence.id, metadata: { claimId: evidence.claimId, kind: evidence.kind } })
     return citation
   }
 
   invalidateCitation(id: string) {
     const row = this.getCitation(id)
-    this.dependencies.citations.invalidate(row.id)
-    this.dependencies.recordEvent("citation_invalidated", { target: row.id, metadata: {} })
+    this.dependencies.recorder.mutate("citation_invalidated", { target: row.id, metadata: {} }, () => this.dependencies.citations.invalidate(row.id))
     return this.getCitation(row.id)
   }
 
@@ -239,8 +239,11 @@ export class LiteratureService {
     const excerpt = ext.excerptId ? this.dependencies.excerpts.get(ext.excerptId) : null
     if (!excerpt) throw new Error("EXTERNAL_KNOWN_REQUIRES_EXCERPT")
     this.cite({ sourceId: ext.sourceId, claimId: claim.id, purpose: "KNOWN_RESULT", locator: ext.locator ?? undefined, externalResultId: ext.id, excerptId: excerpt.id })
-    if (!["KERNEL_VERIFIED", "INDEPENDENTLY_CHECKED", "DISPROVED"].includes(claim.status)) this.dependencies.claims.updateStatus(claim.id, "EXTERNAL_KNOWN", nowIso())
-    this.dependencies.recordEvent("external_known_linked", { target: claim.id, metadata: { externalResultId: ext.id, sourceId: ext.sourceId } })
+    if (!["KERNEL_VERIFIED", "INDEPENDENTLY_CHECKED", "DISPROVED"].includes(claim.status)) {
+      this.dependencies.recorder.mutate("external_known_linked", { target: claim.id, metadata: { externalResultId: ext.id, sourceId: ext.sourceId } }, () => this.dependencies.claims.updateStatus(claim.id, "EXTERNAL_KNOWN", nowIso()))
+    } else {
+      this.dependencies.recorder.record("external_known_linked", { target: claim.id, metadata: { externalResultId: ext.id, sourceId: ext.sourceId } })
+    }
     return this.requireClaim(claim.id)
   }
 
@@ -259,7 +262,6 @@ export class LiteratureService {
       reproducible: true, createdAt: nowIso(),
     }
     this.dependencies.evidence.insert(evidence)
-    this.dependencies.recordEvent("evidence_created", { target: evidence.id, metadata: { claimId: evidence.claimId, kind: evidence.kind } })
     return evidence
   }
 

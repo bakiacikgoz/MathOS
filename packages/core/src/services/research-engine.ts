@@ -31,8 +31,8 @@ import { buildResearchContext } from "../research-context.ts"
 import type { ResearchContextView } from "../research-planner.ts"
 import { FakeResearchPlanner, ModelResearchPlanner, type ResearchPlanner } from "../research-planner.ts"
 import { createPlannerFromDescriptor, plannerDescriptorFrom, PersistentScriptedPlanner } from "../planner-factory.ts"
+import type { MutationRecorder } from "../mutation-recorder.ts"
 
-type Event = { target?: string | null; metadata?: Record<string, unknown> }
 type ActionResult = { artifacts: string[]; proofAttempts: number; failed: boolean; failureClass: import("@mathos/domain").FailureClass | null; summary: string }
 
 export interface ResearchEngineDependencies {
@@ -55,7 +55,7 @@ export interface ResearchEngineDependencies {
   digestVerifiedFindings: (worker: NonNullable<ReturnType<ResearchAgentRepository["getByRun"]>>) => Array<{ claimId: string; branchId: string; title: string }>
   consumeModelBudget: (kind: "planner" | "proof" | "formalization") => boolean
   consumeProofBudget: () => boolean
-  recordEvent: (action: string, event: Event) => void
+  recorder: MutationRecorder
   crashHook: ((point: "before_mutation" | "after_mutation" | "after_event", action: string) => void) | null
   searchPremises: (claimId: string) => Promise<{ candidates: Array<{ declaration: { name: string } }> }>
   createSubclaim: (input: { title: string; statement: string }) => Claim
@@ -96,8 +96,7 @@ export class ResearchEngine {
       strategy: { focusClaimId: objectiveId, exhaustedApproaches: [], activeBlockerIds: [] }, agentId: null,
       createdAt: timestamp, updatedAt: timestamp,
     }
-    this.d.runs.insert(run)
-    this.d.recordEvent("research_run_created", { target: run.id, metadata: { runId: run.id, branchId: branch.id, objectiveClaimId: objectiveId } })
+    this.d.recorder.mutate("research_run_created", { target: run.id, metadata: { runId: run.id, branchId: branch.id, objectiveClaimId: objectiveId } }, () => this.d.runs.insert(run))
     return run
   }
 
@@ -120,20 +119,20 @@ export class ResearchEngine {
   answer(runId: string, blockerId: string, text: string) {
     const run = this.get(runId); const blocker = this.d.blockers.get(blockerId.toUpperCase())
     if (!blocker) throw new Error(`Blocker ${blockerId} was not found.`)
-    this.d.blockers.answer(blocker.id, text, nowIso())
-    this.d.recordEvent("research_blocker_resolved", { target: blocker.id, metadata: { runId: run.id, branchId: run.branchId, human: true } })
+    this.d.recorder.mutate("research_blocker_resolved", { target: blocker.id, metadata: { runId: run.id, branchId: run.branchId, human: true } }, () => this.d.blockers.answer(blocker.id, text, nowIso()))
     return this.d.blockers.get(blocker.id)
   }
   latest(): ResearchRun | null { const last = this.d.runs.ids(this.d.requireWorkspace().id).at(-1); return last ? this.get(last) : null }
   pause(id: string): ResearchRun {
     const run = this.get(id); run.status = "PAUSED"; run.stopReason = "USER_PAUSED"; run.stoppedAt = nowIso(); run.updatedAt = run.stoppedAt
-    this.d.runs.update(run); this.d.recordEvent("research_run_paused", { target: run.id, metadata: { runId: run.id, branchId: run.branchId } }); return run
+    this.d.recorder.mutate("research_run_paused", { target: run.id, metadata: { runId: run.id, branchId: run.branchId } }, () => this.d.runs.update(run)); return run
   }
   resume(id: string): ResearchRun {
     const run = this.get(id)
-    for (const step of this.d.steps.interrupted(run.id)) { step.status = "INTERRUPTED"; step.finishedAt = nowIso(); this.d.steps.update(step) }
-    run.status = "READY"; run.stopReason = null; run.stoppedAt = null; run.updatedAt = nowIso(); this.d.runs.update(run)
-    this.d.recordEvent("research_run_resumed", { target: run.id, metadata: { runId: run.id, branchId: run.branchId } }); return run
+    this.d.recorder.mutate("research_run_resumed", { target: run.id, metadata: { runId: run.id, branchId: run.branchId } }, () => {
+      for (const step of this.d.steps.interrupted(run.id)) { step.status = "INTERRUPTED"; step.finishedAt = nowIso(); this.d.steps.update(step) }
+      run.status = "READY"; run.stopReason = null; run.stoppedAt = null; run.updatedAt = nowIso(); this.d.runs.update(run)
+    }); return run
   }
 
   async step(id: string): Promise<ResearchRun> {
@@ -187,7 +186,7 @@ export class ResearchEngine {
           const message = error instanceof Error ? error.message : ""
           if (message === "LEAN_CALL_BUDGET_EXHAUSTED") return this.stop(run, worker ? "LOCAL_LEAN_BUDGET_EXHAUSTED" : "LEAN_CALL_BUDGET_EXHAUSTED")
           if (message === "PROOF_ATTEMPT_BUDGET_EXHAUSTED") return this.stop(run, worker ? "LOCAL_PROOF_BUDGET_EXHAUSTED" : "PROOF_ATTEMPT_BUDGET_EXHAUSTED")
-          if (["GLOBAL_PROOF_BUDGET_EXHAUSTED", "GLOBAL_LEAN_BUDGET_EXHAUSTED", "GLOBAL_MODEL_BUDGET_EXHAUSTED"].includes(message)) { run.updatedAt = nowIso(); this.d.runs.update(run); return run }
+          if (["GLOBAL_PROOF_BUDGET_EXHAUSTED", "GLOBAL_LEAN_BUDGET_EXHAUSTED", "GLOBAL_MODEL_BUDGET_EXHAUSTED"].includes(message)) return run
           throw error
         }
       })
@@ -195,20 +194,20 @@ export class ResearchEngine {
   }
 
   async run(id: string): Promise<ResearchRun> {
-    this.d.recordEvent("research_run_started", { target: id, metadata: { runId: id } })
-    let run = this.get(id); run.status = "RUNNING"; run.startedAt = run.startedAt ?? nowIso(); this.d.runs.update(run)
-    while (["READY", "RUNNING"].includes(this.get(id).status)) { run = await this.step(id); if (!['RUNNING','READY'].includes(run.status)) break; run.status = "RUNNING"; this.d.runs.update(run) }
+    let run = this.get(id); run.status = "RUNNING"; run.startedAt = run.startedAt ?? nowIso()
+    this.d.recorder.mutate("research_run_started", { target: id, metadata: { runId: id } }, () => this.d.runs.update(run))
+    while (["READY", "RUNNING"].includes(this.get(id).status)) { run = await this.step(id); if (!['RUNNING','READY'].includes(run.status)) break }
     return this.get(id)
   }
 
   stop(run: ResearchRun, reason: ResearchStopReason, status: ResearchRun["status"] = "BLOCKED"): ResearchRun {
-    run.status = reason === "OBJECTIVE_KERNEL_VERIFIED" ? "COMPLETED" : status; run.stopReason = reason; run.stoppedAt = nowIso(); run.updatedAt = run.stoppedAt; this.d.runs.update(run)
-    this.d.recordEvent(run.status === "COMPLETED" ? "research_run_completed" : "research_run_blocked", { target: run.id, metadata: { runId: run.id, branchId: run.branchId, reason } }); return run
+    run.status = reason === "OBJECTIVE_KERNEL_VERIFIED" ? "COMPLETED" : status; run.stopReason = reason; run.stoppedAt = nowIso(); run.updatedAt = run.stoppedAt
+    this.d.recorder.mutate(run.status === "COMPLETED" ? "research_run_completed" : "research_run_blocked", { target: run.id, metadata: { runId: run.id, branchId: run.branchId, reason } }, () => this.d.runs.update(run)); return run
   }
   private createBlocker(run: ResearchRun, type: ResearchBlockerType, summary: string, claimId: string | null, stepId?: string) {
     const blocker = { id: nextPrefixedId(this.d.blockers.ids(), "BL"), workspaceId: run.workspaceId, branchId: run.branchId, claimId, type, status: "OPEN" as const,
       summary, createdByStepId: stepId ?? null, resolvedByStepId: null, humanResponse: null, resolvedByHumanAt: null, createdAt: nowIso() }
-    this.d.blockers.insert(blocker); this.d.recordEvent("research_blocker_created", { target: blocker.id, metadata: { runId: run.id, branchId: run.branchId } }); return blocker
+    this.d.recorder.mutate("research_blocker_created", { target: blocker.id, metadata: { runId: run.id, branchId: run.branchId } }, () => this.d.blockers.insert(blocker)); return blocker
   }
 
   private async executeDecision(run: ResearchRun, decision: ResearchDecision): Promise<ResearchRun> {
@@ -217,23 +216,30 @@ export class ResearchEngine {
     const timestamp = nowIso(); const step: ResearchStep = existing ?? { id: nextPrefixedId(this.d.steps.ids(), "RS"), runId: run.id, branchId: run.branchId, sequence,
       action: decision.action, inputArtifactIds: [decision.targetClaimId ?? run.objectiveClaimId ?? ""], resultArtifactIds: [], status: "RUNNING", idempotencyKey: key,
       startedAt: timestamp, finishedAt: null, summary: decision.rationaleSummary, failureClass: null, createdAt: timestamp }
-    if (!existing) this.d.steps.insert(step)
+    if (!existing) this.d.recorder.mutate("research_step_started", { target: step.id, metadata: { runId: run.id, branchId: run.branchId, action: step.action } }, () => this.d.steps.insert(step))
     else if (existing.status === "INTERRUPTED" && existing.resultArtifactIds.length) { existing.status = "SUCCEEDED"; this.d.steps.update(existing); run.currentStep = sequence; this.d.runs.update(run); return run }
-    this.d.recordEvent("research_step_started", { target: step.id, metadata: { runId: run.id, branchId: run.branchId, action: step.action } }); this.d.crashHook?.("after_event", decision.action)
+    else this.d.recorder.record("research_step_started", { target: step.id, metadata: { runId: run.id, branchId: run.branchId, action: step.action } })
+    this.d.crashHook?.("after_event", decision.action)
     const focus = decision.targetClaimId ?? run.strategy.focusClaimId ?? run.objectiveClaimId
-    if (focus && focus !== run.strategy.focusClaimId) { run.strategy.focusClaimId = focus; this.d.recordEvent("research_focus_changed", { target: run.id, metadata: { runId: run.id, branchId: run.branchId, focus } }) }
+    if (focus && focus !== run.strategy.focusClaimId) { run.strategy.focusClaimId = focus; this.d.recorder.record("research_focus_changed", { target: run.id, metadata: { runId: run.id, branchId: run.branchId, focus } }) }
     try {
-      this.d.crashHook?.("before_mutation", decision.action); const result = await this.dispatchAction(run, step, decision); step.resultArtifactIds = result.artifacts; this.d.steps.update(step)
-      this.d.crashHook?.("after_mutation", decision.action); step.status = result.failed ? "FAILED" : "SUCCEEDED"; step.summary = result.summary; step.failureClass = result.failureClass; step.finishedAt = nowIso(); this.d.steps.update(step)
+      this.d.crashHook?.("before_mutation", decision.action); const result = await this.dispatchAction(run, step, decision); step.resultArtifactIds = result.artifacts
+      step.status = result.failed ? "FAILED" : "SUCCEEDED"; step.summary = result.summary; step.failureClass = result.failureClass; step.finishedAt = nowIso()
       run.currentStep = sequence; run.usage = normalizeResearchUsage(run.usage); run.usage.steps += 1; run.usage.proofAttempts += result.proofAttempts; run.updatedAt = nowIso()
-      if (decision.rationaleSummary && /abandon|switch/i.test(decision.rationaleSummary)) this.d.decisions.insert({ id: nextPrefixedId(this.d.decisions.ids(), "DEC"), runId: run.id, branchId: run.branchId, summary: decision.rationaleSummary, createdAt: nowIso() })
+      run.status = "RUNNING"
+      this.d.recorder.mutate("research_step_completed", { target: step.id, metadata: { runId: run.id, branchId: run.branchId } }, () => {
+        this.d.steps.update(step)
+        if (decision.rationaleSummary && /abandon|switch/i.test(decision.rationaleSummary)) this.d.decisions.insert({ id: nextPrefixedId(this.d.decisions.ids(), "DEC"), runId: run.id, branchId: run.branchId, summary: decision.rationaleSummary, createdAt: nowIso() })
+        this.d.runs.update(run)
+      })
+      this.d.crashHook?.("after_mutation", decision.action)
       if (run.objectiveClaimId && this.d.getClaim(run.objectiveClaimId).status === "KERNEL_VERIFIED") return this.stop(run, "OBJECTIVE_KERNEL_VERIFIED", "COMPLETED")
       if (decision.action === "STOP" || decision.action === "REQUEST_HUMAN") return this.stop(run, decision.action === "REQUEST_HUMAN" ? "BLOCKED_NEEDS_HUMAN" : "NO_PRODUCTIVE_ACTION")
-      run.status = "RUNNING"; this.d.runs.update(run); this.d.recordEvent("research_step_completed", { target: step.id, metadata: { runId: run.id, branchId: run.branchId } }); return run
+      return run
     } catch (error) {
       if (error instanceof Error && error.message === "crash") { this.d.steps.update(step); throw error }
-      step.status = "FAILED"; step.summary = error instanceof Error ? error.message : "execution failure"; step.finishedAt = nowIso(); this.d.steps.update(step); run.currentStep = sequence; run.usage.steps += 1
-      this.d.recordEvent("research_step_failed", { target: step.id, metadata: { runId: run.id, branchId: run.branchId } }); return this.stop(run, "EXECUTION_FAILURE", "FAILED")
+      step.status = "FAILED"; step.summary = error instanceof Error ? error.message : "execution failure"; step.finishedAt = nowIso(); run.currentStep = sequence; run.usage.steps += 1
+      this.d.recorder.mutate("research_step_failed", { target: step.id, metadata: { runId: run.id, branchId: run.branchId } }, () => this.d.steps.update(step)); return this.stop(run, "EXECUTION_FAILURE", "FAILED")
     }
   }
 
