@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { existsSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join, resolve } from "node:path"
+import { isAbsolute, join, relative, resolve } from "node:path"
 
 const root = resolve(import.meta.dir, "..")
 
@@ -30,7 +30,7 @@ try {
   const passed = version.exitCode === 0 && compiled.exitCode === 0
   console.log(JSON.stringify({
     passed,
-    executable: lean,
+    executable: isAbsolute(lean) && !relative(root, lean).startsWith("..") ? `<repo>/${relative(root, lean)}` : lean,
     version: new TextDecoder().decode(version.stdout).trim(),
     diagnostic: new TextDecoder().decode(compiled.stderr).trim().slice(0, 1_000),
   }))

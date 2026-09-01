@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 import { resolve } from "node:path"
+import { homedir } from "node:os"
 import { mathosVersion } from "@mathos/shared"
 
 export const RELEASE_CHECK_ORDER = [
@@ -44,7 +45,11 @@ const bun = process.execPath
 const DEFAULT_TIMEOUT_MS = 180_000
 
 function summary(stdout: string, stderr: string): string {
-  const output = (stdout + "\n" + stderr).replace(/\u001b\[[0-9;]*m/gu, "").trim()
+  const output = (stdout + "\n" + stderr)
+    .replaceAll(repositoryRoot, "<repo>")
+    .replaceAll(homedir(), "<home>")
+    .replace(/\u001b\[[0-9;]*m/gu, "")
+    .trim()
   if (!output) return "command produced no output"
   return output.split("\n").map((line) => line.trim()).filter(Boolean).slice(-12).join("\n").slice(0, 2_000)
 }
@@ -136,12 +141,13 @@ export async function executeReleaseCheck(options: {
 
   for (const name of RELEASE_CHECK_ORDER) {
     const command = configured[name]
+    const reportedCommand = command?.map((part) => part === bun ? "bun" : part.replaceAll(repositoryRoot, "<repo>").replaceAll(homedir(), "<home>")) ?? []
     if (!command?.length) {
       checks.push({ name, status: "FAIL", durationMs: 0, command: [], evidence: "missing release check command", exitCode: null, timedOut: false })
       continue
     }
     if (unsupportedPlatform(name, platform)) {
-      checks.push({ name, status: "SKIPPED_UNSUPPORTED_PLATFORM", durationMs: 0, command, evidence: `${platform} is not a supported Lean release platform`, exitCode: null, timedOut: false })
+      checks.push({ name, status: "SKIPPED_UNSUPPORTED_PLATFORM", durationMs: 0, command: reportedCommand, evidence: `${platform} is not a supported Lean release platform`, exitCode: null, timedOut: false })
       continue
     }
     const result = await runner(command, { cwd: repositoryRoot, timeoutMs: options.timeoutMs ?? DEFAULT_TIMEOUT_MS })
@@ -150,7 +156,7 @@ export async function executeReleaseCheck(options: {
     if (result.exitCode === 0 && !result.timedOut && !validatesEvidence(name, result)) {
       evidence = `command exited successfully without required evidence; ${evidence}`
     }
-    checks.push({ name, status, durationMs: result.durationMs, command, evidence, exitCode: result.exitCode, timedOut: result.timedOut })
+    checks.push({ name, status, durationMs: result.durationMs, command: reportedCommand, evidence, exitCode: result.exitCode, timedOut: result.timedOut })
   }
 
   const revision = await runner(["git", "rev-parse", "HEAD"], { cwd: repositoryRoot, timeoutMs: 10_000 })
