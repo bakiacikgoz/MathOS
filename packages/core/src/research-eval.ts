@@ -215,7 +215,8 @@ async function runGraphAwareResearchCase(id: string): Promise<ResearchEvalRow> {
     const created = await MathOS.init(root, "eval")
     const app = MathOS.open(created.root, { vcs: new FakeVcs() })
     const t = app.createClaim({ kind: "theorem", title: "T", statement: "P", asMainObjective: true, status: "FORMALIZED_UNVERIFIED" })
-    const l1 = app.createClaim({ kind: "lemma", title: "L1", statement: "Q", status: "KERNEL_VERIFIED" })
+    // Fake graph harness input: externally checked support without forging a VerificationGate result.
+    const l1 = app.createClaim({ kind: "lemma", title: "L1", statement: "Q", status: "INDEPENDENTLY_CHECKED" })
     const l2 = app.createClaim({ kind: "lemma", title: "L2", statement: "R", status: id === "graph-aware-blocker" ? "BLOCKED" : "FORMALIZED_UNVERIFIED" })
     app.addDependency(t.id, l1.id)
     app.addDependency(t.id, l2.id)

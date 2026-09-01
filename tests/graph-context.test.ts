@@ -88,7 +88,7 @@ describe("mathos research context", () => {
       const created = await MathOS.init(dir, "gctx")
       const app = MathOS.open(created.root, { vcs: new FakeVcs() })
       const t = app.createClaim({ kind: "theorem", title: "T", statement: "P", asMainObjective: true, status: "FORMALIZED_UNVERIFIED" })
-      const l1 = app.createClaim({ kind: "lemma", title: "L1", statement: "Q", status: "KERNEL_VERIFIED" })
+      const l1 = app.createClaim({ kind: "lemma", title: "L1", statement: "Q", status: "INDEPENDENTLY_CHECKED" })
       const l2 = app.createClaim({ kind: "lemma", title: "L2", statement: "R", status: "FORMALIZED_UNVERIFIED" })
       app.addDependency(t.id, l1.id)
       app.addDependency(t.id, l2.id)

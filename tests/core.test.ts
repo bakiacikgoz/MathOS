@@ -90,13 +90,13 @@ describe("claims, dependencies, events", () => {
       })
       expect(lemma.id).toBe("L-001")
 
-      const verified = app.createClaim({
+      const independentlyChecked = app.createClaim({
         kind: "lemma",
         title: "Energy identity",
         naturalStatement: "The energy identity is available.",
-        status: "KERNEL_VERIFIED",
+        status: "INDEPENDENTLY_CHECKED",
       })
-      expect(verified.id).toBe("L-002")
+      expect(independentlyChecked.id).toBe("L-002")
 
       const dep = app.addDependency(lemma.id, conjecture.id, "depends_on")
       expect(dep.fromClaimId).toBe(lemma.id)

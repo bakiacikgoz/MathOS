@@ -27,7 +27,7 @@ import {
   EvidenceRepository,
   WorkspaceRepository,
 } from "@mathos/storage"
-import { ClaimNotFound, InvalidClaimStatus, createId, nowIso, type Logger } from "@mathos/shared"
+import { ClaimNotFound, InvalidClaimStatus, VerificationFailed, createId, nowIso, type Logger } from "@mathos/shared"
 import { runResearchIntake } from "../intake.ts"
 
 type ClaimEvent = {
@@ -108,6 +108,9 @@ export class ClaimService {
     const requestedStatus = input.status ?? defaultStatusForKind(draft.kind)
     if (!isClaimStatus(String(requestedStatus))) throw new InvalidClaimStatus(String(requestedStatus))
     const status = requestedStatus as ClaimStatus
+    if (status === "KERNEL_VERIFIED") {
+      throw new VerificationFailed("KERNEL_VERIFIED can only be assigned by VerificationGate.")
+    }
 
     const workspace = this.requireWorkspace()
     const branch = this.d.branches.current(workspace.id)
