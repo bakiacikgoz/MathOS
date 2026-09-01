@@ -7,11 +7,11 @@ import {
   FormalStatementRepository,
   ProofAttemptRepository,
   VerificationRunRepository,
+  VerificationClaimPromoter,
   WorkspaceRepository,
 } from "@mathos/storage"
 import { ClaimNotFound, FormalStatementNotFound, createId, nowIso } from "@mathos/shared"
 import { runVerificationGate } from "../verify.ts"
-import { verificationAuthority } from "../../../storage/src/verification-authority.ts"
 
 type VerificationEvent = {
   target?: string | null
@@ -24,6 +24,7 @@ interface VerificationServiceDependencies {
   claims: ClaimRepository
   formalStatements: FormalStatementRepository
   verificationRuns: VerificationRunRepository
+  verificationPromoter: VerificationClaimPromoter
   proofs: ProofAttemptRepository
   leanAdapter: LeanAdapter
   leanContext: () => LeanContext
@@ -81,8 +82,9 @@ export class VerificationService {
       currentRevision: formal.isCurrent,
     })
 
+    const verificationRunId = createId("vr")
     this.dependencies.verificationRuns.insert({
-      id: createId("vr"),
+      id: verificationRunId,
       workspaceId: workspace.id,
       formalStatementId: formal.id,
       claimId: claim.id,
@@ -99,7 +101,7 @@ export class VerificationService {
     })
 
     if (report.passed) {
-      this.dependencies.claims.promoteKernelVerified(claim.id, nowIso(), verificationAuthority)
+      this.dependencies.verificationPromoter.promote(claim.id, verificationRunId, nowIso())
       writeProofFile(this.dependencies.root, claim.id, proof!.proofSource)
       this.dependencies.recordEvent("verification_passed", {
         target: claim.id,

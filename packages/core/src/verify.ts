@@ -10,7 +10,7 @@ const STANDARD_AXIOMS = new Set([
   "rfl",
 ])
 
-const PINNED_TOOLCHAIN = /^(?:leanprover\/lean4:)?(?:v\d+\.\d+\.\d+(?:-(?:rc|beta)\.\d+)?|[0-9a-f]{7,40})$/i
+const PINNED_TOOLCHAIN = /^(?:leanprover\/lean4:)?(?:v\d+\.\d+\.\d+(?:-(?:rc|beta)\.?\d+)?|[0-9a-f]{7,40})$/i
 
 export function runVerificationGate(input: {
   claim: Claim

@@ -103,6 +103,7 @@ import {
   FormalStatementRepository,
   ProofAttemptRepository,
   VerificationRunRepository,
+  VerificationClaimPromoter,
   WorkspaceRepository,
   ClaimVisibilityRepository,
 } from "@mathos/storage"
@@ -315,6 +316,7 @@ export class MathOS {
       claims: instance.claims,
       formalStatements: instance.formalStatements,
       verificationRuns: instance.verificationRuns,
+      verificationPromoter: new VerificationClaimPromoter(client.db),
       proofs: instance.proofs,
       leanAdapter: instance.leanAdapter,
       leanContext: () => instance.leanContext(),

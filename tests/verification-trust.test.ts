@@ -63,7 +63,7 @@ describe("VerificationGate trust matrix", () => {
     expect(report.claimStatus).toBe("KERNEL_VERIFIED")
   })
 
-  test.each(["leanprover/lean4:v4.33.1", "v4.33.1", "leanprover/lean4:0123456789abcdef", "0123456789abcdef"])(
+  test.each(["leanprover/lean4:v4.33.1", "v4.33.1", "v4.34.0-rc1", "v4.34.0-rc.1", "leanprover/lean4:0123456789abcdef", "0123456789abcdef"])(
     "accepts immutable toolchain %s",
     (toolchain) => expect(gate({ toolchain }).passed).toBe(true),
   )
@@ -78,7 +78,7 @@ describe("KERNEL_VERIFIED assignment authority", () => {
     const writePatterns = [
       /\b(?:status|claimStatus)\s*:[^\n]*["']KERNEL_VERIFIED["']/g,
       /\.updateStatus\([^\n]*["']KERNEL_VERIFIED["']/g,
-      /\.promoteKernelVerified\(/g,
+      /\.verificationPromoter\.promote\(/g,
       /\.status\s*=\s*["']KERNEL_VERIFIED["']/g,
       /\.createClaim\([\s\S]{0,500}?status\s*:\s*["']KERNEL_VERIFIED["'][\s\S]{0,100}?\)/g,
       /\bUPDATE\b[^\n]{0,300}\bstatus\s*=\s*["']KERNEL_VERIFIED["']/gi,
@@ -92,19 +92,16 @@ describe("KERNEL_VERIFIED assignment authority", () => {
       "packages/core/src/services/verification-service.ts",
       "packages/core/src/services/verification-service.ts",
       "packages/core/src/verify.ts",
+      "packages/storage/src/migrations.ts",
+      "packages/storage/src/migrations.ts",
       "packages/storage/src/repositories.ts",
     ])
-    const authorityImports = files.flatMap((file) => readFileSync(file, "utf8").includes("verification-authority")
-      ? [file.slice(repoRoot.length + 1)] : [])
-    expect(authorityImports.sort()).toEqual([
-      "packages/core/src/services/verification-service.ts",
-      "packages/storage/src/repositories.ts",
-    ])
+    expect(files.some((file) => readFileSync(file, "utf8").includes("verification-authority"))).toBe(false)
   })
 })
 
 describe("ClaimRepository trust boundary", () => {
-  test("rejects direct verified insert and aliased updateStatus while preserving existing verified rows", async () => {
+  test("rejects repository and raw SQL bypasses and downgrades unbacked legacy rows", async () => {
     const parent = mkdtempSync(join(tmpdir(), "mathos-storage-trust-"))
     try {
       const created = await MathOS.init(parent, "claims")
@@ -117,10 +114,21 @@ describe("ClaimRepository trust boundary", () => {
       expect(() => repository.insert({ ...ordinary, id: "L-999", status: "KERNEL_VERIFIED" })).toThrow("VerificationGate")
       const aliasedUpdate = repository.updateStatus.bind(repository)
       expect(() => aliasedUpdate(ordinary.id, "KERNEL_VERIFIED", timestamp)).toThrow("VerificationGate")
+      expect(() => client.db.query(
+        `INSERT INTO claims (
+          id, workspace_id, kind, title, natural_statement, original_input, status, branch_id,
+          created_by, provider, model_name, created_at, updated_at
+        ) SELECT 'L-998', workspace_id, kind, title, natural_statement, original_input, 'KERNEL_VERIFIED', branch_id,
+          created_by, provider, model_name, created_at, updated_at FROM claims WHERE id = ?`,
+      ).run(ordinary.id)).toThrow("VerificationGate evidence")
+      expect(() => client.db.exec(`UPDATE claims SET status = 'KERNEL_VERIFIED' WHERE id = '${ordinary.id}'`)).toThrow("VerificationGate evidence")
+      expect(() => client.db.query("UPDATE claims SET status = ? WHERE id = ?").run("KERNEL_VERIFIED", ordinary.id)).toThrow("VerificationGate evidence")
+      client.db.exec("DROP TRIGGER claims_kernel_verified_insert_guard; DROP TRIGGER claims_kernel_verified_update_guard;")
       client.db.query("UPDATE claims SET status = 'KERNEL_VERIFIED' WHERE id = ?").run(ordinary.id)
+      client.db.query("DELETE FROM schema_migrations WHERE id = '018_kernel_verification_integrity'").run()
       client.close()
       const reopened = MathOS.open(created.root)
-      try { expect(reopened.getClaim(ordinary.id).status).toBe("KERNEL_VERIFIED") }
+      try { expect(reopened.getClaim(ordinary.id).status).toBe("FORMALIZED_UNVERIFIED") }
       finally { reopened.close() }
     } finally { rmSync(parent, { recursive: true, force: true }) }
   })

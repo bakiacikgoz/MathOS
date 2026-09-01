@@ -4,6 +4,7 @@ import { dirname } from "node:path"
 import { StorageUnavailable, WorkspaceSchemaTooNew, nowIso } from "@mathos/shared"
 import { MIGRATIONS, SCHEMA_EPOCH } from "./migrations.ts"
 
+/** @internal Low-level database lifecycle API. It is not a supported domain mutation surface. */
 export class DatabaseClient {
   readonly db: Database
 

@@ -644,6 +644,78 @@ export const MIGRATIONS: Migration[] = [
       ALTER TABLE experiments ADD COLUMN execution_policy_version TEXT;
     `,
   },
+  {
+    id: "018_kernel_verification_integrity",
+    sql: `
+      UPDATE claims
+      SET status = 'FORMALIZED_UNVERIFIED'
+      WHERE status = 'KERNEL_VERIFIED'
+        AND NOT EXISTS (
+          SELECT 1
+          FROM verification_runs vr
+          JOIN formal_statements fs ON fs.id = vr.formal_statement_id
+          JOIN proof_attempts pa ON pa.id = vr.proof_attempt_id
+          WHERE vr.claim_id = claims.id
+            AND vr.result = 'KERNEL_ACCEPTED'
+            AND length(trim(vr.gate_json)) > 2
+            AND length(trim(vr.lean_version)) > 0 AND length(trim(vr.toolchain)) > 0
+            AND vr.fidelity_status = 'HUMAN_APPROVED'
+            AND fs.claim_id = claims.id AND fs.is_current = 1 AND fs.fidelity_status = 'HUMAN_APPROVED'
+            AND pa.claim_id = claims.id AND pa.formal_statement_id = fs.id AND pa.status = 'KERNEL_ACCEPTED'
+            AND NOT EXISTS (
+              SELECT 1 FROM (
+                SELECT 'current revision' AS name UNION ALL SELECT 'fidelity' UNION ALL
+                SELECT 'proof compiles' UNION ALL SELECT 'forbidden constructs' UNION ALL
+                SELECT 'custom axioms' UNION ALL SELECT 'Lean version' UNION ALL SELECT 'toolchain pinned'
+              ) required
+              WHERE NOT EXISTS (
+                SELECT 1 FROM json_each(vr.gate_json) check_row
+                WHERE json_extract(check_row.value, '$.name') = required.name
+                  AND json_extract(check_row.value, '$.status') = 'PASS'
+              )
+            )
+        );
+
+      CREATE TRIGGER IF NOT EXISTS claims_kernel_verified_insert_guard
+      BEFORE INSERT ON claims
+      WHEN NEW.status = 'KERNEL_VERIFIED'
+      BEGIN
+        SELECT RAISE(ABORT, 'KERNEL_VERIFIED requires persisted VerificationGate evidence');
+      END;
+
+      CREATE TRIGGER IF NOT EXISTS claims_kernel_verified_update_guard
+      BEFORE UPDATE OF status ON claims
+      WHEN NEW.status = 'KERNEL_VERIFIED' AND OLD.status <> 'KERNEL_VERIFIED'
+        AND NOT EXISTS (
+          SELECT 1
+          FROM verification_runs vr
+          JOIN formal_statements fs ON fs.id = vr.formal_statement_id
+          JOIN proof_attempts pa ON pa.id = vr.proof_attempt_id
+          WHERE vr.claim_id = NEW.id
+            AND vr.result = 'KERNEL_ACCEPTED'
+            AND length(trim(vr.gate_json)) > 2
+            AND length(trim(vr.lean_version)) > 0 AND length(trim(vr.toolchain)) > 0
+            AND vr.fidelity_status = 'HUMAN_APPROVED'
+            AND fs.claim_id = NEW.id AND fs.is_current = 1 AND fs.fidelity_status = 'HUMAN_APPROVED'
+            AND pa.claim_id = NEW.id AND pa.formal_statement_id = fs.id AND pa.status = 'KERNEL_ACCEPTED'
+            AND NOT EXISTS (
+              SELECT 1 FROM (
+                SELECT 'current revision' AS name UNION ALL SELECT 'fidelity' UNION ALL
+                SELECT 'proof compiles' UNION ALL SELECT 'forbidden constructs' UNION ALL
+                SELECT 'custom axioms' UNION ALL SELECT 'Lean version' UNION ALL SELECT 'toolchain pinned'
+              ) required
+              WHERE NOT EXISTS (
+                SELECT 1 FROM json_each(vr.gate_json) check_row
+                WHERE json_extract(check_row.value, '$.name') = required.name
+                  AND json_extract(check_row.value, '$.status') = 'PASS'
+              )
+            )
+        )
+      BEGIN
+        SELECT RAISE(ABORT, 'KERNEL_VERIFIED requires persisted VerificationGate evidence');
+      END;
+    `,
+  },
 ]
 
 export const SCHEMA_EPOCH = MIGRATIONS.length

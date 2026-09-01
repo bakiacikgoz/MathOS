@@ -1,3 +1,4 @@
+/** @internal Runtime composition and migration tooling only; application code must use repositories. */
 export { DatabaseClient } from "./client.ts"
 export { MIGRATIONS, SCHEMA_EPOCH } from "./migrations.ts"
 export {
@@ -13,6 +14,7 @@ export {
   VerificationRunRepository,
   ProofAttemptRepository,
   ClaimVisibilityRepository,
+  VerificationClaimPromoter,
 } from "./repositories.ts"
 export {
   ResearchRunRepository,
