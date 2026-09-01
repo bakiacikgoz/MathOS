@@ -2,7 +2,7 @@
   "version": "retrieval-v3",
   "split": "holdout",
   "candidateChannel": "lexical-declaration-name",
-  "measuredAt": "2026-09-01T19:05:26.234Z",
+  "measuredAt": "2026-09-01T19:16:22.902Z",
   "corpusSizes": {
     "HOLD-001": 40,
     "HOLD-002": 40,
@@ -20,9 +20,15 @@
     "HOLD-006": 16
   },
   "environment": {
+    "adapter": "NativeLeanAdapter",
+    "leanVersion": null,
+    "projectRoot": null,
+    "toolchain": null,
+    "provenanceHash": "09f0e458d57c07b6cf22fa1fa7ae210717aa12fb18edd8e0a07e6400e9b9fdd0",
     "leanAvailable": false,
     "mathlib": false,
     "probe": "Lean/mathlib project unavailable",
+    "scannedIndexProvenance": false,
     "corpusReady": false,
     "executionsValid": false
   },
@@ -55,7 +61,7 @@
           "hit10": 1,
           "mrr": 0.5,
           "complete": true,
-          "latencyMs": 0.013792000000009352
+          "latencyMs": 0.016416000000006647
         },
         {
           "id": "HOLD-002",
@@ -69,7 +75,7 @@
           "hit10": 1,
           "mrr": 0.5,
           "complete": true,
-          "latencyMs": 0.0015839999999940346
+          "latencyMs": 0.005583999999998923
         },
         {
           "id": "HOLD-003",
@@ -83,7 +89,7 @@
           "hit10": 1,
           "mrr": 1,
           "complete": true,
-          "latencyMs": 0.0004999999999881766
+          "latencyMs": 0.0017500000000012506
         },
         {
           "id": "HOLD-004",
@@ -97,7 +103,7 @@
           "hit10": 1,
           "mrr": 0.3333333333333333,
           "complete": true,
-          "latencyMs": 0.0007920000000041227
+          "latencyMs": 0.0024999999999977263
         },
         {
           "id": "HOLD-005",
@@ -111,7 +117,7 @@
           "hit10": 1,
           "mrr": 0.5,
           "complete": true,
-          "latencyMs": 0.0007910000000066475
+          "latencyMs": 0.0009160000000036916
         },
         {
           "id": "HOLD-006",
@@ -125,7 +131,7 @@
           "hit10": 1,
           "mrr": 0.1111111111111111,
           "complete": true,
-          "latencyMs": 0.0016669999999976426
+          "latencyMs": 0.01345799999999997
         }
       ],
       "aggregate": {
@@ -139,7 +145,7 @@
         "hit5": 0.8333333333333334,
         "hit10": 1,
         "mrr": 0.49074074074074076,
-        "latencyMs": 0.003187666666666663
+        "latencyMs": 0.006770666666668035
       },
       "domains": {
         "Function": {
@@ -153,7 +159,7 @@
           "hit5": 1,
           "hit10": 1,
           "mrr": 0.3333333333333333,
-          "latencyMs": 0.0007920000000041227
+          "latencyMs": 0.0024999999999977263
         },
         "Logic": {
           "cases": 1,
@@ -166,7 +172,7 @@
           "hit5": 1,
           "hit10": 1,
           "mrr": 1,
-          "latencyMs": 0.0004999999999881766
+          "latencyMs": 0.0017500000000012506
         },
         "Nat": {
           "cases": 2,
@@ -179,7 +185,7 @@
           "hit5": 1,
           "hit10": 1,
           "mrr": 0.5,
-          "latencyMs": 0.0076880000000016935
+          "latencyMs": 0.011000000000002785
         },
         "Order": {
           "cases": 1,
@@ -192,7 +198,7 @@
           "hit5": 0,
           "hit10": 1,
           "mrr": 0.1111111111111111,
-          "latencyMs": 0.0016669999999976426
+          "latencyMs": 0.01345799999999997
         },
         "Set": {
           "cases": 1,
@@ -205,7 +211,7 @@
           "hit5": 1,
           "hit10": 1,
           "mrr": 0.5,
-          "latencyMs": 0.0007910000000066475
+          "latencyMs": 0.0009160000000036916
         }
       }
     },
@@ -223,7 +229,7 @@
           "hit10": 1,
           "mrr": 0.5,
           "complete": true,
-          "latencyMs": 0.04766600000000665
+          "latencyMs": 0.08587500000000148
         },
         {
           "id": "HOLD-002",
@@ -237,7 +243,7 @@
           "hit10": 1,
           "mrr": 0.5,
           "complete": true,
-          "latencyMs": 0.014457999999990534
+          "latencyMs": 0.017250000000004206
         },
         {
           "id": "HOLD-003",
@@ -251,7 +257,7 @@
           "hit10": 1,
           "mrr": 1,
           "complete": true,
-          "latencyMs": 0.004458999999997104
+          "latencyMs": 0.004084000000005972
         },
         {
           "id": "HOLD-004",
@@ -265,7 +271,7 @@
           "hit10": 1,
           "mrr": 1,
           "complete": true,
-          "latencyMs": 0.6442090000000036
+          "latencyMs": 0.014874999999989313
         },
         {
           "id": "HOLD-005",
@@ -279,7 +285,7 @@
           "hit10": 1,
           "mrr": 0.5,
           "complete": true,
-          "latencyMs": 0.05762500000000159
+          "latencyMs": 0.021917000000001963
         },
         {
           "id": "HOLD-006",
@@ -293,7 +299,7 @@
           "hit10": 1,
           "mrr": 0.14285714285714285,
           "complete": true,
-          "latencyMs": 0.04899999999999238
+          "latencyMs": 0.024124999999997954
         }
       ],
       "aggregate": {
@@ -307,7 +313,7 @@
         "hit5": 0.8333333333333334,
         "hit10": 1,
         "mrr": 0.6071428571428571,
-        "latencyMs": 0.1362361666666653
+        "latencyMs": 0.028021000000000146
       },
       "domains": {
         "Function": {
@@ -321,7 +327,7 @@
           "hit5": 1,
           "hit10": 1,
           "mrr": 1,
-          "latencyMs": 0.6442090000000036
+          "latencyMs": 0.014874999999989313
         },
         "Logic": {
           "cases": 1,
@@ -334,7 +340,7 @@
           "hit5": 1,
           "hit10": 1,
           "mrr": 1,
-          "latencyMs": 0.004458999999997104
+          "latencyMs": 0.004084000000005972
         },
         "Nat": {
           "cases": 2,
@@ -347,7 +353,7 @@
           "hit5": 1,
           "hit10": 1,
           "mrr": 0.5,
-          "latencyMs": 0.03106199999999859
+          "latencyMs": 0.05156250000000284
         },
         "Order": {
           "cases": 1,
@@ -360,7 +366,7 @@
           "hit5": 0,
           "hit10": 1,
           "mrr": 0.14285714285714285,
-          "latencyMs": 0.04899999999999238
+          "latencyMs": 0.024124999999997954
         },
         "Set": {
           "cases": 1,
@@ -373,7 +379,7 @@
           "hit5": 1,
           "hit10": 1,
           "mrr": 0.5,
-          "latencyMs": 0.05762500000000159
+          "latencyMs": 0.021917000000001963
         }
       }
     },
@@ -386,7 +392,7 @@
       "hit5": 0,
       "hit10": 0,
       "mrr": 0.11640211640211634,
-      "latencyMs": 0.13304849999999863
+      "latencyMs": 0.02125033333333211
     },
     "completenessRegressions": [],
     "domainHit10Deltas": {

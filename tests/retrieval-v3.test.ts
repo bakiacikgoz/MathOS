@@ -4,7 +4,7 @@ import { cpSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { downstreamProofSuccess, pairedAnalysis, promotionReport } from "@mathos/retrieval"
-import { assertFrozenManifestFiles, assertRetrievalV3SplitIndependence, loadRetrievalV3Fixtures, runRetrievalV3, validateRetrievalV3Manifest } from "../scripts/retrieval-v3-eval.ts"
+import { assertFrozenManifestFiles, assertRetrievalV3SplitIndependence, evaluateHarnessRetrievalV3, loadRetrievalV3Fixtures, runRetrievalV3, semanticTargetFingerprint, validateRetrievalV3Manifest } from "../scripts/retrieval-v3-eval.ts"
 
 describe("retrieval v3 governance", () => {
   test("frozen manifests validate, splits are semantically disjoint, and holdout gold is unavailable to tuning", () => {
@@ -24,10 +24,22 @@ describe("retrieval v3 governance", () => {
     expect(() => assertRetrievalV3SplitIndependence(root)).toThrow("RETRIEVAL_V3_SEMANTIC_DUPLICATE")
   })
 
+  test("semantic fingerprint canonicalizes binder renaming and simple commutative reorderings", () => {
+    const a = "theorem first (a b : Nat) : a + b = b + a"
+    const b = "theorem second (x y : Nat) : y + x = x + y"
+    expect(semanticTargetFingerprint(a)).toBe(semanticTargetFingerprint(b))
+  })
+
+  test("injected adapters and threshold overrides cannot reach the production promotion path", async () => {
+    const fake = { detect: async () => ({ leanAvailable: true, lakeAvailable: true, mathlib: true }), probeCompile: async () => ({ ok: true }), checkProof: async () => ({ result: "KERNEL_ACCEPTED", diagnostics: [] }) }
+    expect((await evaluateHarnessRetrievalV3("holdout", "final-evaluation", { adapter: fake, minimumCorpusSize: 1 })).decision).toBe("INCONCLUSIVE")
+    expect((await (runRetrievalV3 as any)("holdout", "final-evaluation", { adapter: fake, minimumCorpusSize: 1 })).decision).toBe("INCONCLUSIVE")
+  })
+
   test("freeze validation rejects a changed fixture", () => {
     const root = mkdtempSync(join(tmpdir(), "retrieval-v3-freeze-")); writeFileSync(join(root, "fixture.json"), "changed")
     const expected = createHash("sha256").update("original").digest("hex")
-    expect(() => assertFrozenManifestFiles({ version: "retrieval-v3", split: "development", frozen: true, caseCount: 1, files: [{ path: "fixture.json", sha256: expected }] }, root)).toThrow("RETRIEVAL_V3_FREEZE_MISMATCH")
+    expect(() => assertFrozenManifestFiles({ version: "retrieval-v3", split: "development", frozen: true, caseCount: 1, files: [{ path: "fixture.json", sha256: expected }], governance: { minimumSourceCorpusSize: 1000, minimumPipelineStageSize: 200, requiredCorpusProvenance: "SCANNED_INDEX" } }, root)).toThrow("RETRIEVAL_V3_FREEZE_MISMATCH")
   })
 
   test("production pipeline supplies representative candidate stages", () => {

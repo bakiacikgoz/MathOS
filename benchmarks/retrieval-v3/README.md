@@ -22,7 +22,9 @@ bun scripts/retrieval-v3-eval.ts --split=holdout
 
 Each case is evaluated through the production `retrieveFromDeclarations` stages and
 reports both source-corpus and generated-stage sizes. A stage below the minimum
-representative size makes promotion inconclusive. Gold files identify expected
+representative size frozen in the split manifest makes promotion inconclusive.
+Fixture-authored declarations are not accepted as scanned-index provenance.
+Gold files identify expected
 premises and contain proof programs, but success is counted only after that program
 is executed by Lean and returns `KERNEL_ACCEPTED`. Missing Lean/mathlib, a failed
 probe, or any missing downstream execution makes promotion inconclusive.

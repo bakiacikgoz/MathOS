@@ -6,17 +6,33 @@ import { baselineRanker, buildChannelIndex, downstreamProofSuccess, lexicalNameC
 
 type Split = "development" | "holdout"
 type Purpose = "tuning" | "final-evaluation"
-interface Manifest { version: string; split: Split; frozen: boolean; caseCount: number; files: Array<{ path: string; sha256: string }> }
+interface Manifest { version: string; split: Split; frozen: boolean; caseCount: number; files: Array<{ path: string; sha256: string }>; governance: { minimumSourceCorpusSize: number; minimumPipelineStageSize: number; requiredCorpusProvenance: "SCANNED_INDEX" } }
 interface FixtureInput { id: string; domain: string; goal: string; declarations: LeanDeclaration[] }
 interface GoldLabel { expectedPremises: string[]; proofSource: string }
 interface Loaded { fixtures: EvaluationFixture[]; labels: Record<string, GoldLabel>; corpusSizes: Record<string, number>; pipelineStageSizes: Record<string, number> }
 const ROOT = resolve(import.meta.dir, "..")
 const sha256 = (path: string) => createHash("sha256").update(readFileSync(path)).digest("hex")
-const semanticFingerprint = (goal: string) => createHash("sha256").update(goal.toLowerCase().replace(/\s+/g, " ").replace(/\b(dev|hold)[-_a-z0-9]*\b/g, "").trim()).digest("hex")
+export function semanticTargetFingerprint(goal: string): string {
+  const binders = new Map<string, string>()
+  for (const match of goal.matchAll(/[({]([^:)}]+):/g)) for (const name of match[1]!.trim().split(/\s+/)) if (/^[a-z][a-z0-9_']*$/i.test(name)) binders.set(name, `$${binders.size}`)
+  const afterBinders = goal.match(/[)}]\s*:\s*(.+)$/s)?.[1]
+  let target = afterBinders ?? goal.replace(/^\s*(theorem|lemma|example)\s+[a-z0-9_'.]+\s*:\s*/i, "")
+  for (const [name, canonical] of binders) target = target.replace(new RegExp(`\\b${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "g"), canonical)
+  target = target.toLowerCase().replace(/\s+/g, "").replace(/[{}]/g, "")
+  const canonicalSide = (side: string) => {
+    for (const op of ["+", "*", "∧", "∨"]) { const parts = side.split(op); if (parts.length === 2) return parts.sort().join(op) }
+    return side
+  }
+  for (const relation of ["↔", "="]) {
+    const parts = target.split(relation)
+    if (parts.length === 2) target = parts.map(canonicalSide).sort().join(relation)
+  }
+  return createHash("sha256").update(target).digest("hex")
+}
 
 export function validateRetrievalV3Manifest(split: Split): Manifest {
   const manifest = JSON.parse(readFileSync(resolve(ROOT, `benchmarks/retrieval-v3/${split}/manifest.json`), "utf8")) as Manifest
-  if (manifest.version !== "retrieval-v3" || manifest.split !== split || manifest.frozen !== true) throw new Error("RETRIEVAL_V3_MANIFEST_INVALID")
+  if (manifest.version !== "retrieval-v3" || manifest.split !== split || manifest.frozen !== true || !manifest.governance || manifest.governance.requiredCorpusProvenance !== "SCANNED_INDEX") throw new Error("RETRIEVAL_V3_MANIFEST_INVALID")
   assertFrozenManifestFiles(manifest, ROOT)
   return manifest
 }
@@ -28,7 +44,7 @@ export function assertRetrievalV3SplitIndependence(root = ROOT): void {
   for (const split of ["development", "holdout"] as const) {
     const data = JSON.parse(readFileSync(resolve(root, `benchmarks/retrieval-v3/${split}/fixtures.json`), "utf8")) as { cases: FixtureInput[] }
     for (const item of data.cases) {
-      const fingerprint = semanticFingerprint(item.goal), previous = seen.get(fingerprint)
+      const fingerprint = semanticTargetFingerprint(item.goal), previous = seen.get(fingerprint)
       if (previous) throw new Error(`RETRIEVAL_V3_SEMANTIC_DUPLICATE:${previous}:${item.id}`)
       seen.set(fingerprint, item.id)
     }
@@ -63,13 +79,14 @@ async function executeDownstream(fixtures: EvaluationFixture[], labels: Record<s
   }
   return rows
 }
-export async function runRetrievalV3(split: Split, purpose: Purpose, options: { adapter?: NativeLeanAdapter; workspaceRoot?: string; minimumCorpusSize?: number } = {}) {
+export async function runRetrievalV3(split: Split, purpose: Purpose) {
   const loaded = loadRetrievalV3Fixtures(split, purpose), paired = pairedAnalysis(loaded.fixtures)
-  const adapter = options.adapter ?? new NativeLeanAdapter(), workspaceRoot = options.workspaceRoot ?? ROOT
+  const adapter = new NativeLeanAdapter(), workspaceRoot = ROOT
+  const manifest = validateRetrievalV3Manifest(split)
   const environment = await adapter.detect(workspaceRoot)
   const probe = environment.leanAvailable && environment.lakeAvailable && environment.mathlib ? await adapter.probeCompile(workspaceRoot) : { ok: false, detail: "Lean/mathlib project unavailable" }
-  const minimumCorpusSize = options.minimumCorpusSize ?? 30
-  const corpusReady = Object.values(loaded.corpusSizes).every((size) => size >= minimumCorpusSize) && Object.values(loaded.pipelineStageSizes).every((size) => size >= minimumCorpusSize)
+  const scannedIndexProvenance = loaded.fixtures.every((fixture) => fixture.candidates.length > 0) && loadFixtureInputs(split).every((item) => item.declarations.every((declaration) => Boolean(declaration.module && declaration.source)))
+  const corpusReady = scannedIndexProvenance && Object.values(loaded.corpusSizes).every((size) => size >= manifest.governance.minimumSourceCorpusSize) && Object.values(loaded.pipelineStageSizes).every((size) => size >= manifest.governance.minimumPipelineStageSize)
   let baselineRows: DownstreamExecution[] = [], candidateRows: DownstreamExecution[] = []
   if (probe.ok && corpusReady) {
     baselineRows = await executeDownstream(loaded.fixtures, loaded.labels, baselineRanker, 10, adapter, workspaceRoot)
@@ -77,8 +94,21 @@ export async function runRetrievalV3(split: Split, purpose: Purpose, options: { 
   }
   const downstream = { baseline: downstreamProofSuccess(baselineRows, 10), candidate: downstreamProofSuccess(candidateRows, 10) }
   const executionsValid = baselineRows.length === loaded.fixtures.length && candidateRows.length === loaded.fixtures.length && baselineRows.every((row) => row.executed) && candidateRows.every((row) => row.executed)
-  const environmentReady = probe.ok && corpusReady && executionsValid
-  return { version: "retrieval-v3", split, candidateChannel: "lexical-declaration-name", measuredAt: new Date().toISOString(), corpusSizes: loaded.corpusSizes, pipelineStageSizes: loaded.pipelineStageSizes, environment: { leanAvailable: environment.leanAvailable, mathlib: environment.mathlib, probe: probe.detail, corpusReady, executionsValid }, ...promotionReport(paired, downstream, environmentReady) }
+  const nativeProvenance = { adapter: adapter.constructor.name, leanVersion: environment.leanVersion, projectRoot: environment.projectRoot, toolchain: environment.toolchain }
+  const provenanceHash = createHash("sha256").update(JSON.stringify(nativeProvenance)).digest("hex")
+  const environmentReady = adapter instanceof NativeLeanAdapter && probe.ok && corpusReady && executionsValid && Boolean(environment.leanVersion && environment.projectRoot)
+  return { version: "retrieval-v3", split, candidateChannel: "lexical-declaration-name", measuredAt: new Date().toISOString(), corpusSizes: loaded.corpusSizes, pipelineStageSizes: loaded.pipelineStageSizes, environment: { ...nativeProvenance, provenanceHash, leanAvailable: environment.leanAvailable, mathlib: environment.mathlib, probe: probe.detail, scannedIndexProvenance, corpusReady, executionsValid }, ...promotionReport(paired, downstream, environmentReady) }
+}
+
+function loadFixtureInputs(split: Split): FixtureInput[] {
+  return (JSON.parse(readFileSync(resolve(ROOT, `benchmarks/retrieval-v3/${split}/fixtures.json`), "utf8")) as { cases: FixtureInput[] }).cases
+}
+
+/** Dependency-injected experiments are never promotion-capable. */
+export async function evaluateHarnessRetrievalV3(split: Split, purpose: Purpose, _options: unknown = {}) {
+  const loaded = loadRetrievalV3Fixtures(split, purpose)
+  const empty = { baseline: downstreamProofSuccess([], 10), candidate: downstreamProofSuccess([], 10) }
+  return { harness: true, ...promotionReport(pairedAnalysis(loaded.fixtures), empty, false) }
 }
 if (import.meta.main) {
   const split = (process.argv.find((arg) => arg.startsWith("--split="))?.split("=")[1] ?? "development") as Split
