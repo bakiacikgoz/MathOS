@@ -1,5 +1,4 @@
 import { basename, join, resolve } from "node:path"
-import { createHash } from "node:crypto"
 import { AsyncLocalStorage } from "node:async_hooks"
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs"
 import {
@@ -86,6 +85,7 @@ import { parseProofBody, PROVE_SYSTEM_PROMPT } from "./prove.ts"
 import { FormalizationService } from "./services/formalization-service.ts"
 import { VerificationService } from "./services/verification-service.ts"
 import { ExperimentService } from "./services/experiment-service.ts"
+import { LiteratureService } from "./services/literature-service.ts"
 import {
   buildResearchGraph,
   formatClaimDetail,
@@ -184,8 +184,8 @@ import { buildResearchContext } from "./research-context.ts"
 import { FakeMultiAgentPlanner, type MultiAgentPlanner } from "./multi-agent-planner.ts"
 import { createPlannerFromDescriptor, plannerDescriptorFrom, PersistentScriptedPlanner } from "./planner-factory.ts"
 import { PythonRuntime, sha256Text, type ComputationalRuntime } from "@mathos/computation"
-import { FakeLiteratureProvider, queryFingerprint, sourceFingerprint, type LiteratureProvider, type LiteratureSearchResult } from "@mathos/literature"
-import { DEFAULT_COMPUTATIONAL_BUDGET, type Experiment, type ExperimentResult, type CitationPurpose, type ExternalResultKind, type SourceLocator, type Source, type SourceExcerpt, type Citation, type ExternalResult, formatLocator } from "@mathos/domain"
+import { FakeLiteratureProvider, type LiteratureProvider } from "@mathos/literature"
+import { DEFAULT_COMPUTATIONAL_BUDGET, type Experiment, type ExperimentResult, type CitationPurpose, type SourceLocator, type Source, type SourceExcerpt, type ExternalResult } from "@mathos/domain"
 
 export interface MathOSOptions {
   logger?: Logger
@@ -212,6 +212,7 @@ export class MathOS {
   private formalizationService!: FormalizationService
   private verificationService!: VerificationService
   private experimentService!: ExperimentService
+  private literatureService!: LiteratureService
   private constructor(
     readonly root: string,
     private readonly client: DatabaseClient,
@@ -367,6 +368,21 @@ export class MathOS {
       allocateId: (prefix) => instance.allocateId(prefix),
       recordEvent: (action, event) => instance.record(action, event),
       recordPid: (pid) => { instance.lastExperimentPid = pid },
+    })
+    instance.literatureService = new LiteratureService({
+      root: workspaceRoot,
+      workspaces: instance.workspaces,
+      branches: instance.branches,
+      claims: instance.claims,
+      evidence: instance.evidence,
+      sources: new SourceRepository(client.db),
+      excerpts: new SourceExcerptRepository(client.db),
+      external: new ExternalResultRepository(client.db),
+      citations: new CitationRepository(client.db),
+      searches: new LiteratureSearchRepository(client.db),
+      provider: instance.literatureProvider,
+      allocateId: (prefix) => instance.allocateId(prefix),
+      recordEvent: (action, event) => instance.record(action, event),
     })
     instance.restorePersistentPlanners()
     instance.reconcileInterrupted()
@@ -2537,10 +2553,7 @@ export class MathOS {
       visibility,
       experiments: this.experimentService.listWorkspaceExperiments(),
       experimentResults: this.experimentService.listWorkspaceExperiments().flatMap((item) => this.experimentService.experimentResults(item.id)),
-      sources: this.literatureStores().sources.list(workspace.id),
-      excerpts: this.literatureStores().sources.list(workspace.id).flatMap((item) => this.literatureStores().excerpts.list(item.id)),
-      externalResults: this.literatureStores().external.list(workspace.id),
-      citations: this.literatureStores().citations.list(workspace.id),
+      ...this.literatureService.workspaceSnapshot(),
     }
   }
 
@@ -2726,298 +2739,32 @@ export class MathOS {
     ].join("\n")
   }
 
-  private literatureStores() {
-    return {
-      sources: new SourceRepository(this.client.db),
-      excerpts: new SourceExcerptRepository(this.client.db),
-      external: new ExternalResultRepository(this.client.db),
-      citations: new CitationRepository(this.client.db),
-      searches: new LiteratureSearchRepository(this.client.db),
-    }
-  }
-
-  lastLiteratureSearchId: string | null = null
+  get lastLiteratureSearchId(): string | null { return this.literatureService.lastSearchId }
 
   async searchLiterature(query: string, opts: { claimId?: string; runId?: string; stepId?: string; agentId?: string; maxResults?: number } = {}) {
-    const workspace = this.requireWorkspace()
-    const branch = this.requireCurrentBranch()
-    const maxResults = Math.min(opts.maxResults ?? 10, 10)
-    const fingerprint = queryFingerprint(this.literatureProvider.name, { text: query, maxResults })
-    const prior = this.literatureStores().searches.findFingerprint(workspace.id, fingerprint)
-    if (prior && (!opts.runId || prior.researchRunId === opts.runId)) throw new Error("LITERATURE_SEARCH_REPETITION")
-    this.record("literature_search_started", { target: workspace.id, metadata: { query, provider: this.literatureProvider.name, branchId: branch.id, runId: opts.runId, stepId: opts.stepId, agentId: opts.agentId } })
-    const hits = await this.literatureProvider.search({ text: query, maxResults })
-    const search = {
-      id: this.allocateId("LS"),
-      workspaceId: workspace.id,
-      branchId: branch.id,
-      query,
-      queryFingerprint: fingerprint,
-      provider: this.literatureProvider.name,
-      targetClaimId: opts.claimId ?? null,
-      researchRunId: opts.runId ?? null,
-      researchStepId: opts.stepId ?? null,
-      agentId: opts.agentId ?? null,
-      resultCount: hits.length,
-      createdAt: nowIso(),
-    }
-    this.literatureStores().searches.insert(search)
-    hits.forEach((hit, index) => this.literatureStores().searches.insertHit({
-      searchId: search.id, index, provider: hit.provider, externalId: hit.externalId, title: hit.title, authors: hit.authors,
-      year: hit.year ?? null, doi: hit.doi ?? null, arxivId: hit.arxivId ?? null, url: hit.url ?? null, abstract: hit.abstract ?? null, score: hit.score ?? null,
-    }))
-    this.lastLiteratureSearchId = search.id
-    this.record("literature_search_completed", { target: search.id, metadata: { resultCount: hits.length, provider: search.provider, branchId: branch.id, runId: opts.runId } })
-    return search
+    return this.literatureService.search(query, opts)
   }
 
-  literatureHits(searchId?: string) {
-    const id = searchId ?? this.lastLiteratureSearchId
-    if (!id) return []
-    return this.literatureStores().searches.hits(id)
-  }
-
-  getLiteratureSearch(id: string) {
-    const row = this.literatureStores().searches.get(id.toUpperCase())
-    if (!row) throw new Error(`Literature search ${id} was not found.`)
-    return row
-  }
-
-  async importSearchResult(searchId: string, index: number) {
-    const hits = this.literatureHits(searchId)
-    const hit = hits.find((item) => item.index === index)
-    if (!hit) throw new Error("SEARCH_RESULT_NOT_FOUND")
-    const meta = await this.literatureProvider.fetchMetadata({
-      provider: hit.provider, externalId: hit.externalId, title: hit.title, authors: hit.authors, year: hit.year ?? undefined, doi: hit.doi ?? undefined, arxivId: hit.arxivId ?? undefined, url: hit.url ?? undefined, abstract: hit.abstract ?? undefined,
-    })
-    return this.importSource({
-      type: meta.type ?? "PAPER",
-      title: meta.title,
-      authors: meta.authors,
-      year: meta.year,
-      doi: meta.doi,
-      arxivId: meta.arxivId,
-      url: meta.url,
-      venue: meta.venue,
-      provider: hit.provider,
-      providerId: hit.externalId,
-    })
-  }
-
-  importSource(input: { type?: Source["type"]; title: string; authors: string[]; year?: number; doi?: string; arxivId?: string; isbn?: string; url?: string; venue?: string; provider?: string; providerId?: string; localPath?: string; fileHash?: string }) {
-    const workspace = this.requireWorkspace()
-    const fingerprint = sourceFingerprint({ doi: input.doi, arxivId: input.arxivId, isbn: input.isbn, url: input.url, title: input.title, authors: input.authors, year: input.year, fileHash: input.fileHash })
-    const existing = this.literatureStores().sources.findByFingerprint(workspace.id, fingerprint)
-    if (existing) {
-      this.record("source_discovered", { target: existing.id, metadata: { dedup: true, fingerprint } })
-      return existing
-    }
-    const source: Source = {
-      id: this.allocateId("SRC"),
-      workspaceId: workspace.id,
-      type: input.type ?? "PAPER",
-      title: input.title,
-      authors: input.authors,
-      year: input.year ?? null,
-      venue: input.venue ?? null,
-      doi: input.doi ?? null,
-      arxivId: input.arxivId ?? null,
-      isbn: input.isbn ?? null,
-      url: input.url ?? null,
-      status: "DISCOVERED",
-      fingerprint,
-      localPath: input.localPath ?? null,
-      provider: input.provider ?? null,
-      providerId: input.providerId ?? null,
-      version: null,
-      retrievedAt: nowIso(),
-      createdAt: nowIso(),
-    }
-    this.literatureStores().sources.insert(source)
-    this.record("source_imported", { target: source.id, metadata: { fingerprint, provider: source.provider } })
-    return source
-  }
-
-  addLocalSource(filePath: string, meta: { title?: string; authors?: string[] } = {}) {
-    const abs = resolve(filePath)
-    if (!existsSync(abs)) throw new Error("SOURCE_FILE_NOT_FOUND")
-    const bytes = readFileSync(abs)
-    const fileHash = createHash("sha256").update(bytes).digest("hex")
-    const destDir = join(this.root, ".mathos", "sources")
-    mkdirSync(destDir, { recursive: true })
-    const dest = join(destDir, `${fileHash.slice(0, 16)}${abs.slice(abs.lastIndexOf("."))}`)
-    writeFileSync(dest, bytes)
-    return this.importSource({
-      type: "DOCUMENT",
-      title: meta.title ?? basename(abs),
-      authors: meta.authors ?? [],
-      localPath: dest,
-      fileHash,
-    })
-  }
-
-  listSources() {
-    return this.literatureStores().sources.list(this.requireWorkspace().id)
-  }
-
-  getSource(id: string) {
-    const row = this.literatureStores().sources.get(id.toUpperCase())
-    if (!row) throw new Error(`Source ${id} was not found.`)
-    return row
-  }
-
-  inspectSource(id: string) {
-    const source = this.getSource(id)
-    this.literatureStores().sources.updateStatus(source.id, "INSPECTED")
-    this.record("source_inspected", { target: source.id, metadata: { branchId: this.requireCurrentBranch().id } })
-    return this.getSource(source.id)
-  }
-
-  addExcerpt(sourceId: string, text: string, locator?: SourceLocator, method: SourceExcerpt["extractionMethod"] = "USER_PROVIDED") {
-    const source = this.getSource(sourceId)
-    const excerpt: SourceExcerpt = {
-      id: this.allocateId("EXC"),
-      sourceId: source.id,
-      locator: locator ?? null,
-      text,
-      textHash: sha256Text(text),
-      extractionMethod: method,
-      createdAt: nowIso(),
-    }
-    this.literatureStores().excerpts.insert(excerpt)
-    this.record("source_excerpt_created", { target: excerpt.id, metadata: { sourceId: source.id } })
-    return excerpt
-  }
-
-  listExcerpts(sourceId: string) {
-    return this.literatureStores().excerpts.list(this.getSource(sourceId).id)
-  }
-
-  extractExternalResult(input: { sourceId: string; excerptId?: string; kind?: string; name?: string; statementSummary: string; locator?: SourceLocator; statementMode?: "SUMMARY" | "QUOTED_EXCERPT" }) {
-    const source = this.getSource(input.sourceId)
-    const excerpt = input.excerptId ? this.literatureStores().excerpts.get(input.excerptId.toUpperCase()) : null
-    if (!excerpt && !input.locator) throw new Error("UNSUPPORTED_EXTRACTION")
-    if (excerpt && !excerpt.text.toLowerCase().includes(input.statementSummary.trim().slice(0, 24).toLowerCase()) && input.statementMode !== "SUMMARY") throw new Error("UNSUPPORTED_EXTRACTION")
-    if (excerpt && input.locator && excerpt.locator && excerpt.locator.kind !== "UNKNOWN" && excerpt.locator.kind !== input.locator.kind) throw new Error("LOCATOR_MISMATCH")
-    const result: ExternalResult = {
-      id: this.allocateId("EXT"),
-      workspaceId: this.requireWorkspace().id,
-      branchId: this.requireCurrentBranch().id,
-      sourceId: source.id,
-      excerptId: excerpt?.id ?? null,
-      kind: (["THEOREM", "LEMMA", "PROPOSITION", "COROLLARY", "DEFINITION", "METHOD", "OTHER"].includes(String(input.kind)) ? input.kind : "THEOREM") as ExternalResultKind,
-      name: input.name ?? null,
-      statementSummary: input.statementSummary,
-      statementMode: input.statementMode ?? (excerpt ? "QUOTED_EXCERPT" : "SUMMARY"),
-      locator: input.locator ?? excerpt?.locator ?? null,
-      status: "EXTRACTED",
-      createdAt: nowIso(),
-    }
-    this.literatureStores().external.insert(result)
-    this.record("external_result_extracted", { target: result.id, metadata: { sourceId: source.id, branchId: result.branchId, excerptId: result.excerptId } })
-    return result
-  }
-
-  reviewExternalResult(id: string, status: ExternalResult["status"] = "HUMAN_REVIEWED") {
-    const row = this.getExternal(id)
-    this.literatureStores().external.updateStatus(row.id, status)
-    this.record("external_result_reviewed", { target: row.id, metadata: { status } })
-    return this.getExternal(row.id)
-  }
-
-  getExternal(id: string) {
-    const row = this.literatureStores().external.get(id.toUpperCase())
-    if (!row) throw new Error(`External result ${id} was not found.`)
-    return row
-  }
-
-  listExternal(branchId?: string) {
-    return this.literatureStores().external.list(this.requireWorkspace().id, branchId ?? this.requireCurrentBranch().id)
-  }
-
-  cite(input: { sourceId: string; claimId?: string; purpose?: CitationPurpose; locator?: SourceLocator; externalResultId?: string; excerptId?: string; runId?: string; stepId?: string }) {
-    const source = this.getSource(input.sourceId)
-    const citation: Citation = {
-      id: this.allocateId("CIT"),
-      workspaceId: this.requireWorkspace().id,
-      branchId: this.requireCurrentBranch().id,
-      sourceId: source.id,
-      claimId: input.claimId ? this.getClaim(input.claimId).id : null,
-      evidenceId: null,
-      blockerId: null,
-      decisionId: null,
-      researchRunId: input.runId ?? null,
-      researchStepId: input.stepId ?? null,
-      externalResultId: input.externalResultId ?? null,
-      excerptId: input.excerptId ?? null,
-      locator: input.locator ?? null,
-      purpose: input.purpose ?? "SUPPORT",
-      invalidated: false,
-      createdAt: nowIso(),
-    }
-    if (citation.claimId) {
-      const evidence = this.addEvidence({
-        claimId: citation.claimId,
-        kind: "literature",
-        summary: `${citation.purpose} ${source.title} ${formatLocator(citation.locator)}`.slice(0, 400),
-        artifactRef: JSON.stringify({ sourceId: source.id, citationId: citation.id, externalResultId: citation.externalResultId, excerptId: citation.excerptId, locator: citation.locator }),
-        reproducible: true,
-      })
-      citation.evidenceId = evidence.id
-    }
-    this.literatureStores().citations.insert(citation)
-    this.record("citation_created", { target: citation.id, metadata: { sourceId: source.id, claimId: citation.claimId, branchId: citation.branchId } })
-    return citation
-  }
-
-  invalidateCitation(id: string) {
-    const row = this.getCitation(id)
-    this.literatureStores().citations.invalidate(row.id)
-    this.record("citation_invalidated", { target: row.id, metadata: {} })
-    return this.getCitation(row.id)
-  }
-
-  getCitation(id: string) {
-    const row = this.literatureStores().citations.get(id.toUpperCase())
-    if (!row) throw new Error(`Citation ${id} was not found.`)
-    return row
-  }
-
-  listCitations(branchId?: string) {
-    return this.literatureStores().citations.list(this.requireWorkspace().id, branchId ?? this.requireCurrentBranch().id)
-  }
-
-  linkExternalKnown(claimId: string, externalResultId: string) {
-    const claim = this.getClaim(claimId)
-    const ext = this.getExternal(externalResultId)
-    if (ext.branchId !== this.requireCurrentBranch().id) throw new Error("EXTERNAL_RESULT_BRANCH_MISMATCH")
-    if (ext.status !== "HUMAN_REVIEWED") throw new Error("EXTERNAL_KNOWN_REQUIRES_REVIEW")
-    const excerpt = ext.excerptId ? this.literatureStores().excerpts.get(ext.excerptId) : null
-    if (!excerpt) throw new Error("EXTERNAL_KNOWN_REQUIRES_EXCERPT")
-    this.cite({ sourceId: ext.sourceId, claimId: claim.id, purpose: "KNOWN_RESULT", locator: ext.locator ?? undefined, externalResultId: ext.id, excerptId: excerpt.id })
-    if (!["KERNEL_VERIFIED", "INDEPENDENTLY_CHECKED", "DISPROVED"].includes(claim.status)) {
-      this.claims.updateStatus(claim.id, "EXTERNAL_KNOWN", nowIso())
-    }
-    this.record("external_known_linked", { target: claim.id, metadata: { externalResultId: ext.id, sourceId: ext.sourceId } })
-    return this.getClaim(claim.id)
-  }
-
-  formatSource(id: string) {
-    const source = this.getSource(id)
-    const externals = this.listExternal().filter((item) => item.sourceId === source.id)
-    const citations = this.listCitations().filter((item) => item.sourceId === source.id)
-    return [
-      `SOURCE · ${source.id}`,
-      `Title ${source.title}`,
-      `Authors ${source.authors.join(", ") || "unknown"}`,
-      `Year ${source.year ?? "n/a"}`,
-      `DOI ${source.doi ?? "n/a"}`,
-      `Status ${source.status}`,
-      `External results ${externals.length}`,
-      `Citations ${citations.length}`,
-      "EXTERNAL SOURCE — NOT KERNEL VERIFIED",
-    ].join("\n")
-  }
+  literatureHits(searchId?: string) { return this.literatureService.hits(searchId) }
+  getLiteratureSearch(id: string) { return this.literatureService.getSearch(id) }
+  async importSearchResult(searchId: string, index: number) { return this.literatureService.importSearchResult(searchId, index) }
+  importSource(input: { type?: Source["type"]; title: string; authors: string[]; year?: number; doi?: string; arxivId?: string; isbn?: string; url?: string; venue?: string; provider?: string; providerId?: string; localPath?: string; fileHash?: string }) { return this.literatureService.importSource(input) }
+  addLocalSource(filePath: string, meta: { title?: string; authors?: string[] } = {}) { return this.literatureService.addLocalSource(filePath, meta) }
+  listSources() { return this.literatureService.listSources() }
+  getSource(id: string) { return this.literatureService.getSource(id) }
+  inspectSource(id: string) { return this.literatureService.inspectSource(id) }
+  addExcerpt(sourceId: string, text: string, locator?: SourceLocator, method: SourceExcerpt["extractionMethod"] = "USER_PROVIDED") { return this.literatureService.addExcerpt(sourceId, text, locator, method) }
+  listExcerpts(sourceId: string) { return this.literatureService.listExcerpts(sourceId) }
+  extractExternalResult(input: { sourceId: string; excerptId?: string; kind?: string; name?: string; statementSummary: string; locator?: SourceLocator; statementMode?: "SUMMARY" | "QUOTED_EXCERPT" }) { return this.literatureService.extractExternalResult(input) }
+  reviewExternalResult(id: string, status: ExternalResult["status"] = "HUMAN_REVIEWED") { return this.literatureService.reviewExternalResult(id, status) }
+  getExternal(id: string) { return this.literatureService.getExternal(id) }
+  listExternal(branchId?: string) { return this.literatureService.listExternal(branchId) }
+  cite(input: { sourceId: string; claimId?: string; purpose?: CitationPurpose; locator?: SourceLocator; externalResultId?: string; excerptId?: string; runId?: string; stepId?: string }) { return this.literatureService.cite(input) }
+  invalidateCitation(id: string) { return this.literatureService.invalidateCitation(id) }
+  getCitation(id: string) { return this.literatureService.getCitation(id) }
+  listCitations(branchId?: string) { return this.literatureService.listCitations(branchId) }
+  linkExternalKnown(claimId: string, externalResultId: string) { return this.literatureService.linkExternalKnown(claimId, externalResultId) }
+  formatSource(id: string) { return this.literatureService.formatSource(id) }
 
   productState(): import("./product-ux.ts").ProductState {
     const workspace = this.requireWorkspace()
