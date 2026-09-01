@@ -1,0 +1,12 @@
+bun install v1.4.0 (34cbb9a40)
+Resolving dependencies
+Resolved, downloaded and extracted [8]
+Saved lockfile
+
++ bun-types@1.4.0
++ @opentui/core@0.5.7 (v0.5.10 available)
++ @opentui/keymap@0.5.7 (v0.5.10 available)
++ @opentui/solid@0.5.7 (v0.5.10 available)
++ solid-js@1.9.12 (v1.9.15 available)
+
+106 packages installed [2.23s]

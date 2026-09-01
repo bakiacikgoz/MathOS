@@ -1,0 +1,17 @@
+$ bun scripts/release-check.ts
+MATHOS RELEASE CHECK
+
+build                  PASS
+tests                  FAIL
+migrations             PASS
+package-smoke          PASS
+fresh-init             PASS
+backup-restore         PASS
+secret-redaction       PASS
+research-regression    PASS
+ux-regression          FAIL
+research-benchmark-regression PASS
+
+Release candidate
+NOT_READY
+error: script "release-check" exited with code 1

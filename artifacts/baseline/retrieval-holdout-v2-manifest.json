@@ -1,0 +1,33 @@
+{
+  "manifestVersion": "retrieval-holdout-v2-manifest-v1",
+  "createdAt": "2026-08-24",
+  "canonicalEvaluationAuthorized": true,
+  "v2Spec": {
+    "path": "benchmarks/retrieval-experiments/semantic-operator-profile-v2.json",
+    "sha256": "673757caf38b7facf965c81c047e77bea135bb9c879c2550ffacce37cbd311d2"
+  },
+  "v2Implementation": {
+    "path": "packages/retrieval/src/semantic-operator-profile-v2.ts",
+    "sha256": "26ae12e0ae81d77d63bc9233068f76ce2c1b88337bb587967b3284b121a89012"
+  },
+  "holdoutV2": {
+    "path": "packages/retrieval/src/holdout-v2-fixtures.ts",
+    "sha256": "87b018cff5f260e4b8b51cc003f32932d4f252b552007678c2eb16a872970235",
+    "datasetVersion": "retrieval-holdout-v2",
+    "frozen": true,
+    "fixtureCount": 180
+  },
+  "lean": {
+    "version": "v4.33.1",
+    "fullVersion": "Lean (version 4.33.1, x86_64-apple-darwin24.6.0, commit 819816b2e0a3bf405af45ae5c7af2491d8f5bee6, Release)"
+  },
+  "mathlib": {
+    "version": "v4.33.1",
+    "lakeManifestRevision": "0df444a360eaa60ab8c11dca51a86af692955474"
+  },
+  "sourceIndex": {
+    "revision": "827dabf4588cc464",
+    "formatVersion": 3,
+    "declarationCount": 234537
+  }
+}

@@ -1,0 +1,717 @@
+bun test v1.4.0 (34cbb9a40)
+
+tests/retrieval-validation.test.ts:
+(pass) retrieval validation dataset > schema, metadata and development separation [0.27ms]
+28 | 
+29 |   test("all expected declarations pass real Lean #check", async () => {
+30 |     const report = await validateRetrievalFixtures()
+31 |     expect(report.fixtureCount).toBe(60)
+32 |     expect(report.duplicatesWithDevelopment).toEqual([])
+33 |     expect(report.missing).toEqual([])
+                                ^
+error: expect(received).toEqual(expected)
+
+- []
++ [
++   "Eq.symm",
++   "Eq.trans",
++   "Eq.comm",
++   "Eq.to_iff",
++   "Eq.mpr_not",
++   "Nat.zero_add",
++   "Nat.add_assoc",
++   "Nat.succ.inj",
++   "Int.shiftRight_zero",
++   "Int.zero_shiftRight",
++   "Finset.disjoint_union_left",
++   "Finset.erase_insert",
++   "Finset.subset_insert_iff",
++   "Finset.card_singleton",
++   "Finset.mem_insert",
++   "Set.top_eq_univ",
++   "Set.bot_eq_empty",
++   "Set.union_self",
++   "Set.inter_self",
++   "Set.mem_union",
++   "List.toList_toArray",
++   "List.toArray_eq_toArray_eq",
++   "List.perm_iff_toArray_perm",
++   "List.toListRev_toArray",
++   "List.toByteArray_append'",
++   "Function.curry_uncurry",
++   "Function.uncurry_curry",
++   "Function.comp_assoc",
++   "Function.injective_id",
++   "Function.surjective_id",
++   "Option.toArray_toList",
++   "Option.toList_toArray",
++   "Option.toArray_map",
++   "Option.toArray_eq_empty_iff",
++   "Option.some_injective",
++   "Prod.eta",
++   "Prod.swap_swap",
++   "Prod.swap_prod_mk",
++   "Sum.inl_ne_inr",
++   "Sum.inl_injective",
++   "Int.mul_assoc",
++   "Nat.pow_two",
++   "Rat.add_zero",
++   "Rat.sub_self",
++   "Rat.inv_inv",
++   "Nat.le_max_right",
++   "Nat.min_le_left",
++   "Nat.lt_irrefl",
++   "Int.le_trans",
++   "Rat.le_refl",
++   "Relation.comp_eq",
++   "Relation.eq_comp",
++   "Relation.comp_assoc",
++   "Relation.flip_comp",
++   "Relation.TransGen.trans",
++   "Metric.isPathConnected_ball",
++   "Metric.isPathConnected_closedBall",
++   "TopologicalSpace.isSeparable_union",
++   "TopologicalSpace.isSeparable_closure",
++   "Metric.isPreconnected_ball",
++ ]
+
+- Expected  - 1
++ Received  + 62
+
+      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-validation.test.ts:33:28)
+(fail) retrieval validation dataset > all expected declarations pass real Lean #check [1.12ms]
+(pass) retrieval validation dataset > failure taxonomy is exhaustive and typed [0.07ms]
+47 |   return RETRIEVAL_VALIDATION_FIXTURES.map((fixture) => ({ id: fixture.id, goal: fixture.goal, expected: fixture.expectedAnyOf, domain: fixture.domain }))
+48 | }
+49 | 
+50 | export async function evaluateRetrieval(options: EvaluationOptions) {
+51 |   const stored = readIndex(DEMO)
+52 |   if (!stored) throw new Error("demo index missing; run mathos index build")
+                              ^
+error: demo index missing; run mathos index build
+      at evaluateRetrieval (/Users/baki/Documents/ChatGPT/MathOS/scripts/retrieval-eval.ts:52:26)
+      at validationReport (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-validation.test.ts:10:21)
+      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-validation.test.ts:51:26)
+(fail) retrieval validation dataset > per-domain, fusion sensitivity and header-vs-Lean aggregation [1.04ms]
+(pass) retrieval validation dataset > canonical baseline serializes and regression comparison reports deltas [0.28ms]
+66 |     expect(Object.values(same.comparisons).every((row) => row.delta === 0)).toBe(true)
+67 |   })
+68 | 
+69 |   test("JSON benchmark output is machine readable", () => {
+70 |     const result = Bun.spawnSync(["bun", "scripts/retrieval-eval.ts", "--json"], { cwd: process.cwd(), stdout: "pipe", stderr: "pipe", timeout: 60_000 })
+71 |     expect(result.exitCode).toBe(0)
+                                 ^
+error: expect(received).toBe(expected)
+
+Expected: 0
+Received: 1
+
+      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-validation.test.ts:71:29)
+(fail) retrieval validation dataset > JSON benchmark output is machine readable [148.52ms]
+
+tests/research-native.test.ts:
+28 |     this.generateCalls += 1
+29 |     if (request.signal?.aborted) {
+30 |       throw new DOMException("Aborted", "AbortError")
+31 |     }
+32 |     const next = this.queue.shift()
+33 |     if (!next) throw new ModelNotConfigured("Fake provider has no queued responses.")
+                          ^
+ModelNotConfigured: Fake provider has no queued responses.
+ details: undefined,
+    code: "ModelNotConfigured"
+
+      at generate (/Users/baki/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:33:22)
+      at generateStructured (/Users/baki/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:44:32)
+(fail) native research loop > real Lean smoke KERNEL_VERIFIED [24.67ms]
+28 |     this.generateCalls += 1
+29 |     if (request.signal?.aborted) {
+30 |       throw new DOMException("Aborted", "AbortError")
+31 |     }
+32 |     const next = this.queue.shift()
+33 |     if (!next) throw new ModelNotConfigured("Fake provider has no queued responses.")
+                          ^
+ModelNotConfigured: Fake provider has no queued responses.
+ details: undefined,
+    code: "ModelNotConfigured"
+
+      at generate (/Users/baki/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:33:22)
+      at generateStructured (/Users/baki/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:44:32)
+(fail) native research loop > real Lean failure then recovery [16.43ms]
+114 |     writeFileSync(mainFile, "theorem main_lake : True := trivial\n", "utf8")
+115 |     const child = await app.createBranch("lake-side")
+116 |     mkdirSync(join(child.worktreePath!, "formal"), { recursive: true })
+117 |     const childFile = join(child.worktreePath!, "formal", "ChildCheck.lean")
+118 |     writeFileSync(childFile, "theorem child_lake : True := trivial\n", "utf8")
+119 |     const main = lakeEnv(mainFile)
+                       ^
+error: Executable not found in $PATH: "lake"
+  path: "lake",
+ errno: -2,
+  code: "ENOENT"
+
+      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/research-native.test.ts:119:18)
+(fail) native research loop > dual lake env lean MAIN vs B-001 [192.79ms]
+
+tests/release.test.ts:
+(pass) release hardening > version comes from root package.json [8.19ms]
+(pass) release hardening > fresh migrate is idempotent and records schema epoch [16.41ms]
+(pass) release hardening > newer schema guard [10.03ms]
+(pass) release hardening > backup restore semantic equivalence and no overwrite [58.80ms]
+(pass) release hardening > secret canary does not leak into diagnostics/report/backup manifest [45.27ms]
+(pass) release hardening > crash reopen reconciles running research [24.47ms]
+(pass) release hardening > malformed event tail is reported not rewritten [14.63ms]
+
+tests/retrieval-inspect.test.ts:
+(pass) lean inspection > single declaration inspection parse [2.74ms]
+(pass) lean inspection > batch declaration inspection parse [0.24ms]
+(pass) lean inspection > unknown declaration [0.08ms]
+(pass) lean inspection > inspection cache write/read and invalidation [1.22ms]
+(pass) lean inspection > timeout fallback [10.33ms]
+(pass) lean inspection > parse failure fallback [2.72ms]
+(pass) lean inspection > Lean enriched reranking and strong mismatch [1.99ms]
+(pass) lean inspection > unknown inspection discarded and self exclusion survives [1.61ms]
+(pass) lean inspection > proof provenance records enrichment [25.93ms]
+
+tests/retrieval-name.test.ts:
+(pass) name-aware recall > declaration name profile tokenization [0.04ms]
+(pass) name-aware recall > nested namespace [0.03ms]
+(pass) name-aware recall > protected theorem parsing [0.01ms]
+(pass) name-aware recall > attribute-prefixed declaration parsed [0.47ms]
+(pass) name-aware recall > name token coverage 3/3 boosts rank [1.46ms]
+(pass) name-aware recall > ordered token match boosts rank [0.10ms]
+(pass) name-aware recall > bigram match detected [0.05ms]
+(pass) name-aware recall > trigram match detected [0.03ms]
+(pass) name-aware recall > semantic suffix _le _symm _refl detected [0.01ms]
+(pass) name-aware recall > IDF weighting favors rare tokens [2.49ms]
+(pass) name-aware recall > multi-channel diminishing bonus [0.24ms]
+(pass) name-aware recall > deterministic tie-break [0.07ms]
+(pass) name-aware recall > index format version is 3 [0.02ms]
+
+tests/research-branch.test.ts:
+(pass) research branches > MAIN exists with sequential IDs, inheritance and local isolation [24.61ms]
+(pass) research branches > FakeVcs rollback on worktree failure [19.77ms]
+(pass) research branches > abandon preserves history and last active persists [17.39ms]
+(pass) real git worktree isolation > child file edits do not change MAIN [204.84ms]
+
+tests/retrieval-goal.test.ts:
+(pass) goal-aware retrieval > GoalProfile extraction [0.09ms]
+(pass) goal-aware retrieval > CandidateProfile extraction [0.08ms]
+(pass) goal-aware retrieval > conclusion mismatch is penalized [6.24ms]
+(pass) goal-aware retrieval > current declaration excluded [2.12ms]
+(pass) goal-aware retrieval > natural fallback warning [1.00ms]
+(pass) goal-aware retrieval > formal goal mode [1.82ms]
+(pass) goal-aware retrieval > diagnostic repair mode [1.49ms]
+(pass) goal-aware retrieval > cache hit and invalidation key [1.23ms]
+(pass) goal-aware retrieval > inspectLeanSource equality [0.06ms]
+(pass) goal-aware retrieval > proof provenance records retrieval mode [26.18ms]
+(pass) goal-aware retrieval > benchmark goal-aware vs baseline [6.21ms]
+
+tests/intake.test.ts:
+(pass) model config > resolves env over toml [0.09ms]
+(pass) model config > missing API key is reported as missing [0.05ms]
+(pass) epistemic gate > model cannot promote verified status [0.33ms]
+(pass) research intake > structured success does not persist before confirm [22.02ms]
+(pass) research intake > invalid structured response gets one repair then fails [19.38ms]
+(pass) research intake > single repair attempt can succeed [19.67ms]
+(pass) research intake > confirm creates claim with provenance and can set first objective [22.47ms]
+(pass) research intake > existing main objective is not silently replaced [20.37ms]
+(pass) secret hygiene > secret does not appear in logs, events, or sqlite [19.77ms]
+
+tests/lean-real.test.ts:
+ 8 | 
+ 9 | describe("real lean", () => {
+10 |   test("id_nat rfl is KERNEL_ACCEPTED", async () => {
+11 |     const env = await adapter.detect(process.cwd())
+12 |     if (!env.leanAvailable) {
+13 |       throw new Error("Lean should be installed for this task")
+                     ^
+error: Lean should be installed for this task
+      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/lean-real.test.ts:13:17)
+(fail) real lean > id_nat rfl is KERNEL_ACCEPTED [0.60ms]
+36 |     }
+37 |   })
+38 | 
+39 |   test("demo formal project is pinned with Mathlib", async () => {
+40 |     const env = await adapter.detect("/Users/yazilim/Projects/mathos/demo")
+41 |     expect(env.leanAvailable).toBe(true)
+                                   ^
+error: expect(received).toBe(expected)
+
+Expected: true
+Received: false
+
+      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/lean-real.test.ts:41:31)
+(fail) real lean > demo formal project is pinned with Mathlib [0.48ms]
+(pass) real lean > axiom printer parses lean output [0.23ms]
+
+tests/retrieval-holdout.test.ts:
+(pass) semantic operator profile v1 > normalizes arithmetic, order, set, function and relation symbols in sequence [2.86ms]
+(pass) semantic operator profile v1 > preserves operator multiplicity and ordered sequence [0.56ms]
+(pass) semantic operator profile v1 > extracts pow, inverse and narrow formal morphology [0.20ms]
+(pass) semantic operator profile v1 > extracts relation composition and exact formal properties [0.14ms]
+(pass) semantic operator profile v1 > does not hallucinate semantics from natural-language words [0.11ms]
+50 |     expect(profile.morphologyTokens).toEqual([])
+51 |     expect(profile.relation).toBeUndefined()
+52 |   })
+53 | 
+54 |   test("feature specification is frozen", () => {
+55 |     const spec = JSON.parse(readFileSync(SPEC, "utf8"))
+                                 ^
+error: ENOENT: no such file or directory, open '/Users/yazilim/Projects/mathos/benchmarks/retrieval-experiments/semantic-operator-profile-v1.json'
+      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-holdout.test.ts:55:29)
+(fail) semantic operator profile v1 > feature specification is frozen [0.31ms]
+(pass) retrieval holdout v1 > schema, size, metadata and three-way declaration separation [0.48ms]
+79 |     }
+80 |   })
+81 | 
+82 |   test("all expected declarations pass real Lean check", async () => {
+83 |     const report = await validateRetrievalHoldout()
+84 |     expect(report.failed).toBe(false)
+                               ^
+error: expect(received).toBe(expected)
+
+Expected: false
+Received: true
+
+      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-holdout.test.ts:84:27)
+(fail) retrieval holdout v1 > all expected declarations pass real Lean check [1.50ms]
+(pass) retrieval holdout v1 > paired classification and deterministic seeded bootstrap [1.64ms]
+ 9 | import { validateRetrievalHoldout } from "../scripts/validate-retrieval-holdout.ts"
+10 | 
+11 | const ROOT = "/Users/yazilim/Projects/mathos"
+12 | const SPEC = `${ROOT}/benchmarks/retrieval-experiments/semantic-operator-profile-v1.json`
+13 | const INDEX = `${ROOT}/demo/.mathos/index/declarations.json`
+14 | const hash = (path: string) => createHash("sha256").update(readFileSync(path)).digest("hex")
+                                                                ^
+error: ENOENT: no such file or directory, open '/Users/yazilim/Projects/mathos/demo/.mathos/index/declarations.json'
+      at hash (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-holdout.test.ts:14:60)
+      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-holdout.test.ts:104:25)
+(fail) retrieval holdout v1 > feature is production-isolated and index/config remain unchanged [0.25ms]
+
+tests/cli-format.test.ts:
+(pass) slash parser > parses command names [0.13ms]
+(pass) slash parser > parses quoted claim invocations [0.01ms]
+(pass) slash parser > suggests research commands [0.11ms]
+(pass) formatters > status projection is readable [0.12ms]
+(pass) formatters > doctor report is aligned [0.08ms]
+
+tests/retrieval-holdout-v2.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+10 | import { HOLDOUT_V2_QUOTAS, HOLDOUT_V2_SEED } from "../scripts/generate-retrieval-holdout-v2.ts"
+11 | import { assertFrozenManifest, bootstrapPaired, classifyPaired } from "../scripts/retrieval-holdout-v2.ts"
+12 | 
+13 | const ROOT = "/Users/yazilim/Projects/mathos"
+14 | const DATASET = "packages/retrieval/src/holdout-v2-fixtures.ts"
+15 | const manifest = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-holdout-v2-manifest.json`, "utf8"))
+                                 ^
+ENOENT: no such file or directory, open '/Users/yazilim/Projects/mathos/benchmarks/retrieval-holdout-v2-manifest.json'
+    path: "/Users/yazilim/Projects/mathos/benchmarks/retrieval-holdout-v2-manifest.json",
+ syscall: "open",
+   errno: -2,
+    code: "ENOENT"
+
+      at /Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-holdout-v2.test.ts:15:29
+-------------------------------
+
+
+tests/core.test.ts:
+(pass) workspace init > creates layout, database, and event log [17.24ms]
+(pass) workspace init > rejects duplicate init [15.38ms]
+(pass) workspace init > init in current directory [9.35ms]
+(pass) open and locate > finds workspace from a nested directory [9.85ms]
+(pass) open and locate > missing workspace throws WorkspaceNotFound [0.39ms]
+(pass) claims, dependencies, events > creates typed claims and projects status from sqlite [17.47ms]
+(pass) claims, dependencies, events > rejects invalid claim status [20.11ms]
+(pass) claims, dependencies, events > dependency requires existing claims [19.47ms]
+(pass) doctor > reports pass checks on a fresh workspace [305.38ms]
+(pass) branch initialization > creates an active main branch [20.75ms]
+
+tests/keys.test.ts:
+(pass) keymap > resolves central commands [0.14ms]
+
+tests/retrieval-channels.test.ts:
+(pass) stage-1 generation > name token index [0.08ms]
+(pass) stage-1 generation > symbol normalization [0.08ms]
+(pass) stage-1 generation > operator and namespace indexes find gold [0.84ms]
+(pass) stage-1 generation > union de-duplicates and respects caps [0.30ms]
+(pass) stage-1 generation > formal signals outrank prose [0.77ms]
+(pass) stage-1 generation > diagnostic channel [0.29ms]
+(pass) stage-1 generation > local verified included; STALE and DISPROVED excluded [0.19ms]
+(pass) stage-1 generation > index format version is 3
+
+tests/lean-inspect.test.ts:
+11 |       { workspaceRoot: DEMO },
+12 |       { timeoutMs: 180_000 },
+13 |     )
+14 |     expect(result.timedOut).toBe(false)
+15 |     const byName = new Map(result.inspections.map((item) => [item.name, item]))
+16 |     expect(byName.get("Eq.refl")?.exists).toBe(true)
+                                               ^
+error: expect(received).toBe(expected)
+
+Expected: true
+Received: undefined
+
+      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/lean-inspect.test.ts:16:43)
+(fail) real lean declaration inspect > batch inspect Eq.refl Finset.card_union_le Nat.add_le_add [0.43ms]
+(pass) real lean declaration inspect > parseCheckOutput does not mark regex guesses as elaborated [0.09ms]
+
+tests/literature.test.ts:
+(pass) literature provenance > search import excerpt citation does not verify [30.52ms]
+(pass) literature provenance > external known requires review and is not kernel verified [24.05ms]
+(pass) literature provenance > unsupported extraction and locator mismatch [21.75ms]
+(pass) literature provenance > branch citation isolation and search repetition [17.18ms]
+(pass) literature provenance > local document fingerprint and research action [48.29ms]
+
+tests/retrieval-closeout.test.ts:
+3 | import { createHash } from "node:crypto"
+4 | 
+5 | describe("retrieval closeout artifacts", () => {
+6 |   test("V2 decision is REJECTED and hashes match frozen files", () => {
+7 |     const root = "/Users/yazilim/Projects/mathos"
+8 |     const decision = JSON.parse(readFileSync(`${root}/benchmarks/retrieval-experiments/semantic-operator-profile-v2-decision.json`, "utf8"))
+                                    ^
+error: ENOENT: no such file or directory, open '/Users/yazilim/Projects/mathos/benchmarks/retrieval-experiments/semantic-operator-profile-v2-decision.json'
+      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-closeout.test.ts:8:33)
+(fail) retrieval closeout artifacts > V2 decision is REJECTED and hashes match frozen files [0.16ms]
+
+tests/multi-agent-parallel.test.ts:
+(pass) bounded parallel multi-agent > default execution is sequential [33.49ms]
+(pass) bounded parallel multi-agent > rejects invalid parallel width [22.02ms]
+(pass) bounded parallel multi-agent > parallel two workers find solution without changing MAIN [59.92ms]
+(pass) bounded parallel multi-agent > global lean reservation cannot overspend in parallel [46.55ms]
+(pass) bounded parallel multi-agent > atomic ids under parallel claim creation [24.80ms]
+(pass) bounded parallel multi-agent > sequential vs parallel same terminal solution count [92.96ms]
+
+tests/semantic-profile-v2-stability.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+ 6 | import { applyFrozenSemanticV2RankCap, evaluateFrozenSemanticV2Compatibility, MORPHOLOGY_BOOST, RELATION_POLICY } from "../packages/retrieval/src/semantic-operator-profile-v2.ts"
+ 7 | import { boundedSemanticRank, evaluateSemanticCandidateCompatibility } from "../packages/retrieval/src/semantic-operator-profile-v2-stability.ts"
+ 8 | import { assertStabilityDataset } from "../scripts/semantic-profile-v2-stability.ts"
+ 9 | 
+10 | const ROOT = "/Users/yazilim/Projects/mathos"
+11 | const stability = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-experiments/semantic-operator-profile-v2-stability.json`, "utf8"))
+                                  ^
+ENOENT: no such file or directory, open '/Users/yazilim/Projects/mathos/benchmarks/retrieval-experiments/semantic-operator-profile-v2-stability.json'
+    path: "/Users/yazilim/Projects/mathos/benchmarks/retrieval-experiments/semantic-operator-profile-v2-stability.json",
+ syscall: "open",
+   errno: -2,
+    code: "ENOENT"
+
+      at /Users/baki/Documents/ChatGPT/MathOS/tests/semantic-profile-v2-stability.test.ts:11:30
+-------------------------------
+
+
+tests/proof.test.ts:
+(pass) proof layer > sorry admit unsafe axiom rejected [0.06ms]
+(pass) proof layer > statement cannot mutate [0.02ms]
+(pass) proof layer > kernel accepted alone does not promote without human fidelity [27.05ms]
+(pass) proof layer > human approval + accepted proof promotes KERNEL_VERIFIED [24.73ms]
+(pass) proof layer > sorry proof is rejected before kernel and does not promote [29.25ms]
+(pass) proof layer > max 3 attempts then stop [29.43ms]
+(pass) proof layer > theorem requires human approved fidelity [18.59ms]
+(pass) proof layer > verify is deterministic and reopen persists [25.89ms]
+
+tests/computation.test.ts:
+(pass) computational experiments > python smoke does not verify [112.96ms]
+(pass) computational experiments > finite verification is not proof [143.50ms]
+(pass) computational experiments > counterexample does not auto-disprove [151.36ms]
+(pass) computational experiments > python failure and timeout cleanup [556.07ms]
+(pass) computational experiments > output bound, secret isolation, reproducible rerun [339.28ms]
+(pass) computational experiments > branch isolation and research loop safety [208.28ms]
+
+tests/claims.test.ts:
+(pass) claim workflow > allocates sequential readable ids including COR [18.05ms]
+(pass) claim workflow > persists claims and rejects empty fields [18.74ms]
+(pass) claim workflow > writes claim_created without making the first claim the objective [16.34ms]
+(pass) claim workflow > main objective persists across reopen and logs the change [18.79ms]
+(pass) claim workflow > invalid objective id is rejected [15.59ms]
+(pass) claim workflow > claim detail projection includes empty evidence and dependencies [17.52ms]
+
+tests/multi-agent-native.test.ts:
+28 |     this.generateCalls += 1
+29 |     if (request.signal?.aborted) {
+30 |       throw new DOMException("Aborted", "AbortError")
+31 |     }
+32 |     const next = this.queue.shift()
+33 |     if (!next) throw new ModelNotConfigured("Fake provider has no queued responses.")
+                          ^
+ModelNotConfigured: Fake provider has no queued responses.
+ details: undefined,
+    code: "ModelNotConfigured"
+
+      at generate (/Users/baki/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:33:22)
+      at generateStructured (/Users/baki/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:44:32)
+(fail) native multi-agent + hybrid retrieval > real team smoke SOLUTION_FOUND and MAIN unverified [17.84ms]
+28 |     this.generateCalls += 1
+29 |     if (request.signal?.aborted) {
+30 |       throw new DOMException("Aborted", "AbortError")
+31 |     }
+32 |     const next = this.queue.shift()
+33 |     if (!next) throw new ModelNotConfigured("Fake provider has no queued responses.")
+                          ^
+ModelNotConfigured: Fake provider has no queued responses.
+ details: undefined,
+    code: "ModelNotConfigured"
+
+      at generate (/Users/baki/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:33:22)
+      at generateStructured (/Users/baki/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:44:32)
+(fail) native multi-agent + hybrid retrieval > real cross-agent verified import [16.52ms]
+28 |     this.generateCalls += 1
+29 |     if (request.signal?.aborted) {
+30 |       throw new DOMException("Aborted", "AbortError")
+31 |     }
+32 |     const next = this.queue.shift()
+33 |     if (!next) throw new ModelNotConfigured("Fake provider has no queued responses.")
+                          ^
+ModelNotConfigured: Fake provider has no queued responses.
+ details: undefined,
+    code: "ModelNotConfigured"
+
+      at generate (/Users/baki/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:33:22)
+      at generateStructured (/Users/baki/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:44:32)
+(fail) native multi-agent + hybrid retrieval > full-stack single-agent HybridPremiseRetriever [16.24ms]
+
+tests/research-hardening.test.ts:
+(pass) research hardening > eval fake scenarios pass [1303.40ms]
+(pass) research hardening > invalid planner decision does not corrupt run [16.86ms]
+(pass) research hardening > forceVerified is stripped [0.04ms]
+(pass) research hardening > human answer does not verify claim [11.79ms]
+(pass) research hardening > active run blocks merge apply and abandon [11.89ms]
+(pass) research hardening > crash before mutation does not create a claim [19.87ms]
+(pass) research hardening > crash after mutation then reopen does not duplicate subclaim [24.01ms]
+(pass) research hardening > lean budget stops nested compiles [21.97ms]
+
+tests/retrieval-experiment.test.ts:
+(pass) retrieval experiment laboratory > registry contains the eleven single-variable experiments [0.03ms]
+ 6 | 
+ 7 | const ROOT = "/Users/yazilim/Projects/mathos"
+ 8 | const INDEX = `${ROOT}/demo/.mathos/index/declarations.json`
+ 9 | const RESULTS = `${ROOT}/benchmarks/retrieval-experiments/latest-results.json`
+10 | 
+11 | function hash(path: string) { return createHash("sha256").update(readFileSync(path)).digest("hex") }
+                                                                      ^
+error: ENOENT: no such file or directory, open '/Users/yazilim/Projects/mathos/demo/.mathos/index/declarations.json'
+      at hash (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-experiment.test.ts:11:66)
+      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-experiment.test.ts:20:25)
+(fail) retrieval experiment laboratory > experiment apply is side-effect free and production-isolated [0.16ms]
+51 |     expect(coreSource).not.toContain("retrieval-experiment")
+52 |     expect(hash(INDEX)).toBe(beforeIndex)
+53 |   })
+54 | 
+55 |   test("stored results satisfy the experiment result schema", () => {
+56 |     const report = JSON.parse(readFileSync(RESULTS, "utf8"))
+                                   ^
+error: ENOENT: no such file or directory, open '/Users/yazilim/Projects/mathos/benchmarks/retrieval-experiments/latest-results.json'
+      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-experiment.test.ts:56:31)
+(fail) retrieval experiment laboratory > stored results satisfy the experiment result schema [0.14ms]
+
+tests/research-benchmark.test.ts:
+(pass) research benchmark v1 > schema, uniqueness, coverage, freeze hash [0.61ms]
+(pass) research benchmark v1 > reference proofs are not in agent payloads [0.10ms]
+(pass) research benchmark v1 > safety detectors fire independently [0.07ms]
+(pass) research benchmark v1 > clean workspace isolation [54.60ms]
+(pass) research benchmark v1 > fake fixture uses verification provenance [27.33ms]
+(pass) research benchmark v1 > computation and literature do not count as proof without gate [188.02ms]
+
+tests/formal.test.ts:
+(pass) formal layer > sorry and proof body are rejected [0.23ms]
+(pass) formal layer > fidelity MATCH vs POTENTIAL_MISMATCH [0.11ms]
+(pass) formal layer > persists FS ids and does not promote KERNEL_VERIFIED [18.63ms]
+(pass) formal layer > reject does not promote claim [16.97ms]
+(pass) formal layer > repair max attempts [16.60ms]
+(pass) formal layer > repair success on second lean check [17.19ms]
+(pass) formal layer > reopen keeps formal statement and fidelity [19.55ms]
+
+tests/vcs.test.ts:
+(pass) FakeVcs > setup, branch, worktree, pause/abandon bookkeeping [0.28ms]
+
+tests/research-graph.test.ts:
+(pass) research graph projection > canonical fixture nodes, edges, frontier, blockers, path [1.48ms]
+(pass) research graph projection > cycle detection and no silent break [0.26ms]
+(pass) research graph projection > branch isolation [0.14ms]
+(pass) research graph projection > import provenance keeps separate verifications [0.14ms]
+(pass) research graph projection > orphan and stale impact [0.13ms]
+(pass) research graph projection > deterministic rebuild hash [0.11ms]
+(pass) research graph projection > 1k synthetic graph builds and queries [36.03ms]
+(pass) mathos graph integration > workspace graph, isolation and CLI-shaped queries [80.21ms]
+
+tests/local-parallel-hardening.test.ts:
+(pass) local parallel runtime hardening > queued worker starts only after a slot frees [118.75ms]
+(pass) local parallel runtime hardening > two running leases exist at crash [22.33ms]
+(pass) local parallel runtime hardening > global proof reservation allows only one concurrent attempt [42.53ms]
+(pass) local parallel runtime hardening > digest snapshot hides in-round findings [44.96ms]
+(pass) local parallel runtime hardening > step timeout blocks only that worker [52.51ms]
+(pass) local parallel runtime hardening > worker detail history is hydrated [35.75ms]
+(pass) local parallel runtime hardening > 20 unique claim ids [23.71ms]
+
+tests/research-loop.test.ts:
+(pass) research loop > budget exhausts before extra steps [22.55ms]
+(pass) research loop > repetition detector stops repeated failing proofs [26.68ms]
+(pass) research loop > planner cannot mark KERNEL_VERIFIED [18.53ms]
+(pass) research loop > branch-local subclaim stays off MAIN [19.85ms]
+(pass) research loop > pause reopen resume preserves counters [23.31ms]
+(pass) research loop > smoke SEARCH/PROOF/VERIFY can complete with fake lean [24.31ms]
+159 |     writeFileSync(join(created.root, "formal", "Main.lean"), "theorem main_true : True := trivial\n", "utf8")
+160 |     const child = await app.createBranch("lean-side")
+161 |     mkdirSync(join(child.worktreePath!, "formal"), { recursive: true })
+162 |     writeFileSync(join(child.worktreePath!, "formal", "Child.lean"), "theorem child_true : True := trivial\n", "utf8")
+163 |     writeFileSync(join(child.worktreePath!, "lean-toolchain"), "leanprover/lean4:v4.33.1\n", "utf8")
+164 |     const main = Bun.spawnSync(["lean", join(created.root, "formal", "Main.lean")], { stdout: "pipe", stderr: "pipe", env: { ...process.env, PATH: `${process.env.HOME}/.elan/bin:${process.env.PATH}` } })
+                           ^
+error: Executable not found in $PATH: "lean"
+  path: "lean",
+ errno: -2,
+  code: "ENOENT"
+
+      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/research-loop.test.ts:164:22)
+(fail) dual real Lean worktrees > MAIN and B-001 both check independently [195.76ms]
+
+tests/product-ux.test.ts:
+(pass) product ux v1 > fresh init and no overwrite [91.81ms]
+(pass) product ux v1 > demo reopen, why-verified, report labels [70.01ms]
+(pass) product ux v1 > typed errors include code [0.15ms]
+136 |   }
+137 | 
+138 |   const runtimeFiles = ["packages/core/src/mathos.ts", "packages/core/src/doctor.ts", "apps/tui/src/headless.ts", "apps/tui/src/ui/AppShell.tsx"]
+139 |   let leaked = false
+140 |   for (const file of runtimeFiles) {
+141 |     const text = readFileSync(join("/Users/yazilim/Projects/mathos", file), "utf8")
+                       ^
+ENOENT: no such file or directory, open '/Users/yazilim/Projects/mathos/packages/core/src/mathos.ts'
+    path: "/Users/yazilim/Projects/mathos/packages/core/src/mathos.ts",
+ syscall: "open",
+   errno: -2,
+    code: "ENOENT"
+
+      at runUxEval (/Users/baki/Documents/ChatGPT/MathOS/packages/core/src/ux-eval.ts:141:18)
+      at async <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/product-ux.test.ts:48:24)
+(fail) product ux v1 > ux eval scenarios pass [294.98ms]
+
+tests/graph-context.test.ts:
+(pass) graph context summary > planner context lists frontier, support, failures, blockers [0.33ms]
+(pass) graph context summary > context hash is deterministic [0.19ms]
+(pass) graph context summary > branch context isolation [0.16ms]
+(pass) graph context summary > import support is target-only [0.13ms]
+(pass) graph context summary > fidelity mismatch is marked blocked [0.10ms]
+(pass) graph context summary > explorer search and filters [0.27ms]
+(pass) graph context summary > 1k context build stays compact [34.81ms]
+(pass) mathos research context > researchContext and progress are structural [21.94ms]
+
+tests/retrieval-selection.test.ts:
+(pass) stratified inspection selection > stratified quota fills exact limit [18.67ms]
+(pass) stratified inspection selection > duplicate candidates use one slot [3.24ms]
+(pass) stratified inspection selection > unused quota redistributes [21.02ms]
+(pass) stratified inspection selection > informative multi-token name is protected [17.80ms]
+(pass) stratified inspection selection > single generic token is not name-protected [4.74ms]
+(pass) stratified inspection selection > repeated operator multiplicity is preserved [0.08ms]
+(pass) stratified inspection selection > existential structure selects Exists namespace [20.53ms]
+(pass) stratified inspection selection > Iff structure selects symmetry-like declaration [16.62ms]
+(pass) stratified inspection selection > subset plus refl combination is structural [15.19ms]
+(pass) stratified inspection selection > local and dependency reservations [13.88ms]
+(pass) stratified inspection selection > every selected candidate has a selection reason [19.48ms]
+(pass) stratified-v2 quota pressure > soft quota minimum [1.59ms]
+(pass) stratified-v2 quota pressure > soft quota overflow [1.56ms]
+(pass) stratified-v2 quota pressure > dynamic redistribution uses pressure outside fixed reservation [1.38ms]
+(pass) stratified-v2 quota pressure > cross-channel consensus protects dominant candidate [1.43ms]
+(pass) stratified-v2 quota pressure > formal channel authority exceeds equal name-only evidence [2.16ms]
+(pass) stratified-v2 quota pressure > generic token has low information [1.14ms]
+(pass) stratified-v2 quota pressure > multi-token combination has high information [1.17ms]
+(pass) stratified-v2 quota pressure > redundancy control applies cluster penalty [13.44ms]
+(pass) stratified-v2 quota pressure > namespace diversity is not over-aggressive [10.58ms]
+(pass) stratified-v2 quota pressure > selection is deterministic and obeys hard limit [20.42ms]
+(pass) final rank fusion > unknown metadata is neutral [0.12ms]
+(pass) final rank fusion > real elaborated mismatch gets penalty [0.10ms]
+(pass) final rank fusion > score normalization maps range [0.02ms]
+(pass) final rank fusion > normalized score fusion [0.04ms]
+(pass) final rank fusion > reciprocal rank fusion [0.03ms]
+(pass) final rank fusion > deterministic final ordering [0.04ms]
+
+tests/retrieval.test.ts:
+(pass) retrieval > parses local declarations [0.13ms]
+(pass) retrieval > exact match and signature overlap rank [0.08ms]
+(pass) retrieval > local verified boost and exclusions [0.05ms]
+(pass) retrieval > context max premise cap [0.02ms]
+(pass) retrieval > unknown identifier enriches retry [0.40ms]
+(pass) retrieval > index persistence and stale detection [17.98ms]
+(pass) retrieval > proof receives retrieved context and keeps 3-attempt cap [19.31ms]
+
+tests/tui-smoke.test.tsx:
+(pass) tui renders workspace name and prompt [25.19ms]
+(pass) claim creation form smoke [5.34ms]
+(pass) claims screen smoke [2.61ms]
+(pass) natural input loading state [1.31ms]
+(pass) draft screen renders [3.17ms]
+(pass) formalization screens smoke [6.89ms]
+(pass) theorem search screen smoke [1.18ms]
+
+tests/multi-agent-hardening.test.ts:
+(pass) multi-agent hardening > planner reopen restores script cursor without registerRunPlanner [42.20ms]
+(pass) multi-agent hardening > true local lean budget does not stop other workers [42.70ms]
+(pass) multi-agent hardening > import requires explicit apply and re-verifies target [44.82ms]
+(pass) multi-agent hardening > unverified source apply rejected [24.39ms]
+(pass) multi-agent hardening > stale formal revision requires reverify [44.57ms]
+(pass) multi-agent hardening > teamOverview exists for panel [26.82ms]
+
+tests/semantic-profile-forensics.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+3 | import { readFileSync } from "node:fs"
+4 | import { extractV2CandidateEvidence, V2_CANDIDATE_CONFIG } from "../packages/retrieval/src/semantic-operator-profile-v2-candidate.ts"
+5 | import { assertV2SetAllowed } from "../scripts/semantic-profile-v2.ts"
+6 | 
+7 | const ROOT = "/Users/yazilim/Projects/mathos"
+8 | const immutable = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-experiments/semantic-v1-immutable.json`, "utf8"))
+                                 ^
+ENOENT: no such file or directory, open '/Users/yazilim/Projects/mathos/benchmarks/retrieval-experiments/semantic-v1-immutable.json'
+    path: "/Users/yazilim/Projects/mathos/benchmarks/retrieval-experiments/semantic-v1-immutable.json",
+ syscall: "open",
+   errno: -2,
+    code: "ENOENT"
+
+      at /Users/baki/Documents/ChatGPT/MathOS/tests/semantic-profile-forensics.test.ts:8:30
+-------------------------------
+
+
+tests/multi-agent.test.ts:
+(pass) multi-agent orchestration > IDs, isolation, diversity fallback, round-robin, solution, MAIN unchanged [39.63ms]
+(pass) multi-agent orchestration > low diversity uses fallback roles [23.94ms]
+(pass) multi-agent orchestration > all agents blocked [31.42ms]
+(pass) multi-agent orchestration > global lean budget [33.15ms]
+(pass) multi-agent orchestration > multiple solutions do not verify MAIN [42.27ms]
+(pass) multi-agent orchestration > crash recovery does not duplicate first agent [31.98ms]
+(pass) multi-agent orchestration > worker files isolated from MAIN [23.90ms]
+
+23 tests failed:
+(fail) retrieval validation dataset > all expected declarations pass real Lean #check [1.12ms]
+(fail) retrieval validation dataset > per-domain, fusion sensitivity and header-vs-Lean aggregation [1.04ms]
+(fail) retrieval validation dataset > JSON benchmark output is machine readable [148.52ms]
+(fail) native research loop > real Lean smoke KERNEL_VERIFIED [24.67ms]
+(fail) native research loop > real Lean failure then recovery [16.43ms]
+(fail) native research loop > dual lake env lean MAIN vs B-001 [192.79ms]
+(fail) real lean > id_nat rfl is KERNEL_ACCEPTED [0.60ms]
+(fail) real lean > demo formal project is pinned with Mathlib [0.48ms]
+(fail) semantic operator profile v1 > feature specification is frozen [0.31ms]
+(fail) retrieval holdout v1 > all expected declarations pass real Lean check [1.50ms]
+(fail) retrieval holdout v1 > feature is production-isolated and index/config remain unchanged [0.25ms]
+(fail) real lean declaration inspect > batch inspect Eq.refl Finset.card_union_le Nat.add_le_add [0.43ms]
+(fail) retrieval closeout artifacts > V2 decision is REJECTED and hashes match frozen files [0.16ms]
+(fail) native multi-agent + hybrid retrieval > real team smoke SOLUTION_FOUND and MAIN unverified [17.84ms]
+(fail) native multi-agent + hybrid retrieval > real cross-agent verified import [16.52ms]
+(fail) native multi-agent + hybrid retrieval > full-stack single-agent HybridPremiseRetriever [16.24ms]
+(fail) retrieval experiment laboratory > experiment apply is side-effect free and production-isolated [0.16ms]
+(fail) retrieval experiment laboratory > stored results satisfy the experiment result schema [0.14ms]
+(fail) dual real Lean worktrees > MAIN and B-001 both check independently [195.76ms]
+(fail) product ux v1 > ux eval scenarios pass [294.98ms]
+
+ 229 pass
+ 23 fail
+ 3 errors
+ 1393 expect() calls
+Ran 252 tests across 40 files. [8.86s]

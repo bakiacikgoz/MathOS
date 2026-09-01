@@ -1,0 +1,3 @@
+$ bunx tsc --noEmit -p tsconfig.json
+/bin/bash: bunx: command not found
+error: script "typecheck" exited with code 127

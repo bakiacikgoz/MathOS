@@ -1,0 +1,459 @@
+$ bunx tsc --noEmit -p tsconfig.json
+Resolving dependencies
+Resolved, downloaded and extracted [45]
+Saved lockfile
+apps/tui/src/cli.ts(4,29): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/cli.ts(18,37): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/headless.ts(5,163): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/headless.ts(278,46): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/index.ts(1,29): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/index.ts(2,23): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/main.tsx(4,23): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/main.tsx(5,26): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/AppShell.tsx(4,32): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/AppShell.tsx(21,27): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/AppShell.tsx(22,44): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/AppShell.tsx(23,35): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/AppShell.tsx(24,32): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/AppShell.tsx(25,24): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/AppShell.tsx(26,42): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/AppShell.tsx(27,29): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/AppShell.tsx(28,25): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/AppShell.tsx(29,27): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/AppShell.tsx(30,23): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/BranchViews.tsx(3,23): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/ClaimForm.tsx(6,23): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/ClaimsViews.tsx(5,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/CommandPalette.tsx(3,68): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/CommandPalette.tsx(4,23): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/FormalViews.tsx(5,23): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/GraphPanel.tsx(4,23): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/Header.tsx(2,23): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/IntakeViews.tsx(5,23): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/MainPanel.tsx(16,27): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/MainPanel.tsx(17,23): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/MainPanel.tsx(18,27): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/MainPanel.tsx(19,62): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/MainPanel.tsx(20,64): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/MainPanel.tsx(21,31): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/MainPanel.tsx(22,27): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/MainPanel.tsx(23,28): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/MainPanel.tsx(24,69): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/MainPanel.tsx(25,68): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/MainPanel.tsx(26,57): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/MainPanel.tsx(27,71): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/MainPanel.tsx(28,33): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/MainPanel.tsx(29,27): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/Modal.tsx(2,23): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/Modal.tsx(25,9): error TS2322: Type 'unknown' is not assignable to type 'string | Element'.
+apps/tui/src/ui/ProductViews.tsx(2,23): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/PromptInput.tsx(3,23): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/PromptInput.tsx(4,33): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/ProofViews.tsx(4,23): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/ResearchPanel.tsx(3,23): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/ResearchSummary.tsx(2,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/SearchViews.tsx(5,23): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/Sidebar.tsx(4,23): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/Sidebar.tsx(5,31): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/StatusBar.tsx(1,23): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/TeamPanel.tsx(3,23): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/Toast.tsx(2,23): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+apps/tui/src/ui/WorkspaceInfo.tsx(2,23): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/fidelity.ts(3,40): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/formalize.ts(5,41): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/index.ts(1,44): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/index.ts(2,35): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/index.ts(3,35): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/index.ts(4,41): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/index.ts(5,38): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/index.ts(6,32): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/index.ts(7,37): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/index.ts(8,81): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/index.ts(9,72): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/index.ts(10,87): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/index.ts(11,79): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/index.ts(12,37): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/index.ts(13,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/index.ts(14,100): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/intake.ts(5,38): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/literature-eval.ts(69,52): error TS2367: This comparison appears to be unintentional because the types '"EXTERNAL_KNOWN"' and '"KERNEL_VERIFIED"' have no overlap.
+packages/core/src/mathos.ts(84,35): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/mathos.ts(85,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/mathos.ts(86,32): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/mathos.ts(87,53): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/mathos.ts(88,37): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/mathos.ts(162,35): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/mathos.ts(180,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/mathos.ts(181,86): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/mathos.ts(183,81): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/mathos.ts(184,38): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/mathos.ts(185,63): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/mathos.ts(186,95): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/mathos.ts(472,9): error TS2322: Type '"FAIL" | "PASS" | "WARN"' is not assignable to type '"WARN"'.
+  Type '"FAIL"' is not assignable to type '"WARN"'.
+packages/core/src/mathos.ts(559,7): error TS2322: Type 'string' is not assignable to type '"BLOCKED" | "COMPUTATIONALLY_SUPPORTED" | "CONJECTURE" | "DISPROVED" | "EXTERNAL_KNOWN" | "FORMALIZED_UNVERIFIED" | "HEURISTIC_SUPPORT" | "HUMAN_REVIEWED_ARGUMENT" | "IDEA" | "INDEPENDENTLY_CHECKED" | "INFORMAL_ARGUMENT" | "KERNEL_VERIFIED" | "STALE"'.
+packages/core/src/mathos.ts(1450,30): error TS2554: Expected 1 arguments, but got 4.
+packages/core/src/mathos.ts(1695,76): error TS2367: This comparison appears to be unintentional because the types '"AI_REVIEWED" | "HUMAN_APPROVED" | "NOT_REVIEWED" | "REVIEW_REQUIRED" | undefined' and '"MISMATCH"' have no overlap.
+packages/core/src/mathos.ts(1809,28): error TS2739: Type '{ id: string; workspaceId: string; branchId: string; claimId: string | null; type: "FORMALIZATION_MISMATCH" | "LEAN_ERROR" | "MISSING_PREMISE" | "NEEDS_HUMAN_JUDGMENT" | "PROOF_SEARCH_STALLED" | "REPETITION" | "UNKNOWN"; ... 4 more ...; createdAt: string; }' is missing the following properties from type 'ResearchBlockerRecord': humanResponse, resolvedByHumanAt
+packages/core/src/mathos.ts(2804,7): error TS2322: Type '{ agentId: string; branchId: string; focusClaimId: string | undefined; localClaimId: string; }[]' is not assignable to type '{ agentId: string; branchId: string; focusClaimId: string | null; localClaimId: string; }[]'.
+  Type '{ agentId: string; branchId: string; focusClaimId: string | undefined; localClaimId: string; }' is not assignable to type '{ agentId: string; branchId: string; focusClaimId: string | null; localClaimId: string; }'.
+    Types of property 'focusClaimId' are incompatible.
+      Type 'string | undefined' is not assignable to type 'string | null'.
+        Type 'undefined' is not assignable to type 'string | null'.
+packages/core/src/mathos.ts(2945,7): error TS2322: Type '{} | null' is not assignable to type 'string | number | null'.
+  Type '{}' is not assignable to type 'string | number | null'.
+packages/core/src/mathos.ts(3480,35): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/multi-agent-eval.ts(415,43): error TS2322: Type '"KERNEL_REJECTED"' is not assignable to type '"ERROR" | "KERNEL_ACCEPTED"'.
+packages/core/src/multi-agent-eval.ts(500,11): error TS4114: This member must have an 'override' modifier because it overrides a member in the base class 'NativeLeanAdapter'.
+packages/core/src/planner-factory.ts(8,81): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/planner-factory.ts(28,14): error TS2783: 'researchDecisionVersion' is specified more than once, so this usage will be overwritten.
+packages/core/src/planner-factory.ts(28,45): error TS2783: 'parameters' is specified more than once, so this usage will be overwritten.
+packages/core/src/product-demo.ts(3,24): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/product-demo.ts(8,37): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/product-ux.ts(138,16): error TS18048: 'state.snapshot.sessions' is possibly 'undefined'.
+packages/core/src/product-ux.ts(189,16): error TS18048: 'state.snapshot.sessions' is possibly 'undefined'.
+packages/core/src/product-ux.ts(487,9): error TS2367: This comparison appears to be unintentional because the types '"agent" | "system" | "user"' and '"model"' have no overlap.
+packages/core/src/product-ux.ts(698,8): error TS18048: 'state.snapshot.sessions' is possibly 'undefined'.
+packages/core/src/product-ux.ts(699,5): error TS18048: 'state.snapshot.sessions' is possibly 'undefined'.
+packages/core/src/research-benchmark.ts(6,24): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/research-benchmark.ts(7,59): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/research-benchmark.ts(19,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/research-benchmark.ts(20,46): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/core/src/research-benchmark.ts(131,25): error TS2341: Property 'requireWorkspace' is private and only accessible within class 'MathOS'.
+packages/core/src/research-benchmark.ts(320,65): error TS18048: 'opts.domain' is possibly 'undefined'.
+packages/core/src/research-benchmark.ts(398,39): error TS2559: Type '"/Users/yazilim/Projects/mathos"' has no properties in common with type '{ workspaceRoot?: string | undefined; env?: ProcessEnv | undefined; tomlText?: string | undefined; }'.
+packages/core/src/research-eval.ts(300,91): error TS2341: Property 'requireWorkspace' is private and only accessible within class 'MathOS'.
+packages/core/src/research-eval.ts(316,52): error TS2367: This comparison appears to be unintentional because the types '"EXTERNAL_KNOWN"' and '"KERNEL_VERIFIED"' have no overlap.
+packages/core/src/research-planner.ts(38,14): error TS2783: 'researchDecisionVersion' is specified more than once, so this usage will be overwritten.
+packages/core/src/research-planner.ts(38,45): error TS2783: 'parameters' is specified more than once, so this usage will be overwritten.
+packages/domain/src/claim.ts(2,58): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/domain/src/index.ts(1,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/domain/src/index.ts(2,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/domain/src/index.ts(3,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/domain/src/index.ts(4,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/domain/src/index.ts(5,1): error TS2308: Module "./model.ts" has already exported a member named 'VERIFIED_STATUSES'. Consider explicitly re-exporting to resolve the ambiguity.
+packages/domain/src/index.ts(5,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/domain/src/index.ts(6,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/domain/src/index.ts(7,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/domain/src/index.ts(8,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/domain/src/index.ts(9,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/domain/src/index.ts(10,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/domain/src/index.ts(11,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/domain/src/intake.ts(1,85): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/domain/src/intake.ts(65,5): error TS2322: Type '{ id: string; text?: string | undefined; question?: string | undefined; }[]' is not assignable to type 'AssumptionDraft[]'.
+  Type '{ id: string; text?: string | undefined; question?: string | undefined; }' is not assignable to type 'AssumptionDraft'.
+    Types of property 'text' are incompatible.
+      Type 'string | undefined' is not assignable to type 'string'.
+        Type 'undefined' is not assignable to type 'string'.
+packages/domain/src/intake.ts(67,5): error TS2322: Type '{ id: string; text?: string | undefined; question?: string | undefined; }[]' is not assignable to type 'AmbiguityDraft[]'.
+  Type '{ id: string; text?: string | undefined; question?: string | undefined; }' is not assignable to type 'AmbiguityDraft'.
+    Types of property 'question' are incompatible.
+      Type 'string | undefined' is not assignable to type 'string'.
+        Type 'undefined' is not assignable to type 'string'.
+packages/domain/src/model.ts(65,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/events/src/index.ts(22,26): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/graph/src/analysis.ts(2,58): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/graph/src/builder.ts(2,35): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/graph/src/builder.ts(12,34): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/graph/src/context.ts(4,75): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/graph/src/context.ts(5,64): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/graph/src/explorer.ts(2,30): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/graph/src/format.ts(2,46): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/graph/src/index.ts(1,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/graph/src/index.ts(2,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/graph/src/index.ts(3,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/graph/src/index.ts(4,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/graph/src/index.ts(5,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/graph/src/index.ts(6,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/graph/src/index.ts(7,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/graph/src/index.ts(8,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/graph/src/index.ts(9,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/graph/src/index.ts(10,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/graph/src/validate.ts(2,34): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/lean/src/fake.ts(11,55): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/lean/src/index.ts(15,79): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/lean/src/index.ts(16,33): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/lean/src/index.ts(17,79): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/lean/src/index.ts(18,99): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/lean/src/index.ts(19,34): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/lean/src/native.ts(5,59): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/lean/src/native.ts(15,34): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/lean/src/native.ts(119,12): error TS2532: Object is possibly 'undefined'.
+packages/lean/src/parse-check.ts(2,55): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/models/src/config.ts(3,70): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/models/src/fake.ts(1,63): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/models/src/fake.ts(2,29): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/models/src/index.ts(1,42): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/models/src/index.ts(2,35): error TS2459: Module '"./config.ts"' declares 'ModelConfig' locally, but it is not exported.
+packages/models/src/index.ts(2,54): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/models/src/index.ts(17,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/models/src/index.ts(18,42): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/models/src/index.ts(19,35): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/models/src/index.ts(20,35): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/models/src/index.ts(21,78): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/models/src/index.ts(22,29): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/models/src/index.ts(23,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/models/src/index.ts(24,15): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/models/src/json.ts(1,43): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/models/src/openai.ts(7,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/models/src/openai.ts(8,29): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/benchmark.ts(2,34): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/benchmark.ts(3,42): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/benchmark.ts(5,74): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/benchmark.ts(6,29): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/channels.ts(3,88): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/channels.ts(4,63): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/config.ts(3,64): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/context.ts(2,42): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/enrich.ts(3,51): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/fake.ts(3,42): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/fake.ts(4,37): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/fake.ts(5,69): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/fingerprint.ts(14,29): error TS18048: 'stat' is possibly 'undefined'.
+packages/retrieval/src/fingerprint.ts(14,53): error TS18048: 'stat' is possibly 'undefined'.
+packages/retrieval/src/fingerprint.ts(14,53): error TS2345: Argument of type 'number | bigint' is not assignable to parameter of type 'number'.
+  Type 'bigint' is not assignable to type 'number'.
+packages/retrieval/src/fusion.ts(3,34): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(17,3): error TS2300: Duplicate identifier 'InspectionSelectionReason'.
+packages/retrieval/src/index.ts(19,92): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(20,76): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(21,34): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(22,38): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(23,60): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(24,47): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(25,35): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(26,80): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(27,42): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(28,52): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(29,40): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(30,65): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(31,69): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(32,177): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(33,64): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(34,96): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(35,154): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(36,56): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(37,37): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(44,8): error TS2300: Duplicate identifier 'InspectionSelectionReason'.
+packages/retrieval/src/index.ts(50,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(51,107): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(52,98): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(53,138): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/index.ts(54,181): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/inspect-selector.ts(2,35): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/inspect-selector.ts(3,81): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/name-profile.ts(1,30): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/name-rank.ts(2,26): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/name-rank.ts(3,49): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/name-rank.ts(4,103): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/pipeline.ts(2,42): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/pipeline.ts(3,34): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/pipeline.ts(4,38): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/pipeline.ts(5,29): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/pipeline.ts(6,101): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/pipeline.ts(7,31): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/pipeline.ts(8,35): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/rank.ts(2,26): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/rerank.ts(8,56): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/retriever.ts(5,40): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/retriever.ts(6,44): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/retriever.ts(7,42): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/retriever.ts(8,37): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/retriever.ts(9,69): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/retriever.ts(10,57): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/retriever.ts(11,116): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/retriever.ts(12,108): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/retriever.ts(13,52): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/scan.ts(4,22): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/scan.ts(5,55): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/semantic-operator-profile-v2-candidate.ts(1,71): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/semantic-operator-profile-v2-stability.ts(3,34): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/semantic-operator-profile-v2-stability.ts(4,71): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/semantic-operator-profile-v2.ts(3,71): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/semantic-operator-profile-v2.ts(4,114): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/retrieval/src/store.ts(4,57): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/shared/src/formal-errors.ts(1,29): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/shared/src/index.ts(15,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/shared/src/index.ts(27,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/shared/src/index.ts(28,42): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/shared/src/index.ts(43,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/shared/src/index.ts(44,72): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/shared/src/index.ts(45,105): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/storage/src/client.ts(5,42): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/storage/src/experiment-repos.ts(45,5): error TS2322: Type '{} | null' is not assignable to type 'string | number | null'.
+  Type '{}' is not assignable to type 'string | number | null'.
+packages/storage/src/index.ts(1,32): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/storage/src/index.ts(2,42): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/storage/src/index.ts(16,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/storage/src/index.ts(22,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/storage/src/index.ts(29,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/storage/src/index.ts(30,64): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/storage/src/index.ts(31,66): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/storage/src/index.ts(32,133): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/vcs/src/git.ts(3,87): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/vcs/src/index.ts(2,53): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/vcs/src/index.ts(3,52): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/vcs/src/index.ts(4,25): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+packages/workspace/src/index.ts(8,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+scripts/generate-retrieval-holdout-v2.ts(4,47): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+scripts/generate-retrieval-holdout-v2.ts(5,44): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+scripts/generate-retrieval-holdout-v2.ts(6,39): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+scripts/retrieval-eval.ts(19,78): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+scripts/retrieval-eval.ts(62,63): error TS2345: Argument of type 'ChannelIndex | null' is not assignable to parameter of type 'ChannelIndex'.
+  Type 'null' is not assignable to type 'ChannelIndex'.
+scripts/retrieval-eval.ts(84,88): error TS2353: Object literal may only specify known properties, and 'formalProjectRoot' does not exist in type 'LeanContext'.
+scripts/retrieval-eval.ts(210,150): error TS18048: 'row.diagnostic' is possibly 'undefined'.
+scripts/retrieval-eval.ts(210,199): error TS18048: 'row.diagnostic' is possibly 'undefined'.
+scripts/retrieval-eval.ts(211,55): error TS2367: This comparison appears to be unintentional because the types 'InspectionSelectionReason' and '"MARGINAL"' have no overlap.
+scripts/retrieval-eval.ts(213,53): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+scripts/retrieval-eval.ts(214,70): error TS18048: 'a.marginalValue' is possibly 'undefined'.
+scripts/retrieval-eval.ts(214,88): error TS18048: 'diagnostic.marginalValue' is possibly 'undefined'.
+scripts/retrieval-eval.ts(214,125): error TS18048: 'b.marginalValue' is possibly 'undefined'.
+scripts/retrieval-eval.ts(214,143): error TS18048: 'diagnostic.marginalValue' is possibly 'undefined'.
+scripts/retrieval-eval.ts(221,68): error TS18048: 'diagnostic.marginalValue' is possibly 'undefined'.
+scripts/retrieval-eval.ts(274,71): error TS2322: Type 'string' is not assignable to type '"development" | "validation"'.
+scripts/retrieval-experiment.ts(21,47): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+scripts/retrieval-experiment.ts(104,63): error TS2345: Argument of type 'ChannelIndex | null' is not assignable to parameter of type 'ChannelIndex'.
+  Type 'null' is not assignable to type 'ChannelIndex'.
+scripts/retrieval-experiment.ts(115,43): error TS2322: Type '{ declaration: LeanDeclaration; evidence: CandidateGenerationEvidence; generation: { channels: GenerationChannel[]; matchedTokens: string[]; channelRanks: Record<...>; }; }[]' is not assignable to type 'PremiseCandidate[]'.
+  Type '{ declaration: LeanDeclaration; evidence: CandidateGenerationEvidence; generation: { channels: GenerationChannel[]; matchedTokens: string[]; channelRanks: Record<string, number>; }; }' is missing the following properties from type 'PremiseCandidate': score, reasons
+scripts/retrieval-experiment.ts(189,31): error TS2532: Object is possibly 'undefined'.
+scripts/retrieval-experiment.ts(243,7): error TS2322: Type 'CandidateChannelRanks | undefined' is not assignable to type 'Record<string, number | null> | undefined'.
+  Type 'CandidateChannelRanks' is not assignable to type 'Record<string, number | null>'.
+    Index signature for type 'string' is missing in type 'CandidateChannelRanks'.
+scripts/retrieval-experiment.ts(312,30): error TS2345: Argument of type '(string[] | undefined)[]' is not assignable to parameter of type 'string[][]'.
+  Type 'string[] | undefined' is not assignable to type 'string[]'.
+    Type 'undefined' is not assignable to type 'string[]'.
+scripts/retrieval-experiment.ts(332,135): error TS18048: 'row.diagnostic' is possibly 'undefined'.
+scripts/retrieval-experiment.ts(332,222): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+scripts/retrieval-holdout-v2.ts(8,78): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+scripts/retrieval-holdout-v2.ts(9,118): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+scripts/retrieval-holdout-v2.ts(101,22): error TS18048: 'delta.final20' is possibly 'undefined'.
+scripts/retrieval-holdout-v2.ts(101,43): error TS18048: 'delta.hit10' is possibly 'undefined'.
+scripts/retrieval-holdout-v2.ts(102,28): error TS18048: 'delta.top200' is possibly 'undefined'.
+scripts/retrieval-holdout-v2.ts(102,48): error TS18048: 'delta.union' is possibly 'undefined'.
+scripts/retrieval-holdout-v2.ts(102,67): error TS18048: 'delta.inspect30' is possibly 'undefined'.
+scripts/retrieval-holdout-v2.ts(104,41): error TS18048: 'delta.final20' is possibly 'undefined'.
+scripts/retrieval-holdout-v2.ts(104,81): error TS18048: 'delta.hit10' is possibly 'undefined'.
+scripts/retrieval-holdout-v2.ts(125,68): error TS2345: Argument of type 'ChannelIndex | null' is not assignable to parameter of type 'ChannelIndex'.
+  Type 'null' is not assignable to type 'ChannelIndex'.
+scripts/retrieval-holdout-v2.ts(131,129): error TS2345: Argument of type 'ChannelIndex | null' is not assignable to parameter of type 'ChannelIndex'.
+  Type 'null' is not assignable to type 'ChannelIndex'.
+scripts/retrieval-holdout-v2.ts(162,47): error TS2345: Argument of type '(LeanDeclarationInspection | undefined)[]' is not assignable to parameter of type 'LeanDeclarationInspection[]'.
+  Type 'LeanDeclarationInspection | undefined' is not assignable to type 'LeanDeclarationInspection'.
+    Type 'undefined' is not assignable to type 'LeanDeclarationInspection'.
+scripts/retrieval-holdout-v2.ts(162,118): error TS18048: 'inspection' is possibly 'undefined'.
+scripts/retrieval-holdout.ts(15,72): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+scripts/retrieval-holdout.ts(64,59): error TS2345: Argument of type 'ChannelIndex | null' is not assignable to parameter of type 'ChannelIndex'.
+  Type 'null' is not assignable to type 'ChannelIndex'.
+scripts/retrieval-holdout.ts(70,57): error TS18048: 'item' is possibly 'undefined'.
+scripts/retrieval-holdout.ts(71,47): error TS2345: Argument of type '(LeanDeclarationInspection | undefined)[]' is not assignable to parameter of type 'LeanDeclarationInspection[]'.
+  Type 'LeanDeclarationInspection | undefined' is not assignable to type 'LeanDeclarationInspection'.
+    Type 'undefined' is not assignable to type 'LeanDeclarationInspection'.
+scripts/retrieval-holdout.ts(112,19): error TS18048: 'deltas.final20' is possibly 'undefined'.
+scripts/retrieval-holdout.ts(112,42): error TS18048: 'deltas.hit10' is possibly 'undefined'.
+scripts/retrieval-holdout.ts(125,52): error TS18048: 'deltas.final20' is possibly 'undefined'.
+scripts/retrieval-holdout.ts(125,99): error TS18048: 'deltas.hit10' is possibly 'undefined'.
+scripts/retrieval-regression.ts(2,35): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+scripts/semantic-profile-v2-stability.ts(17,47): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+scripts/semantic-profile-v2-stability.ts(18,113): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+scripts/semantic-profile-v2-stability.ts(28,35): error TS2304: Cannot find name 'prepareFixture'.
+scripts/semantic-profile-v2-stability.ts(42,135): error TS2339: Property 'domain' does not exist on type 'BenchmarkCase'.
+scripts/semantic-profile-v2-stability.ts(123,68): error TS2345: Argument of type 'ChannelIndex | null' is not assignable to parameter of type 'ChannelIndex'.
+  Type 'null' is not assignable to type 'ChannelIndex'.
+scripts/semantic-profile-v2-stability.ts(127,109): error TS2345: Argument of type 'ChannelIndex | null' is not assignable to parameter of type 'ChannelIndex'.
+  Type 'null' is not assignable to type 'ChannelIndex'.
+scripts/semantic-profile-v2-stability.ts(131,102): error TS2345: Argument of type 'ChannelIndex | null' is not assignable to parameter of type 'ChannelIndex'.
+  Type 'null' is not assignable to type 'ChannelIndex'.
+scripts/semantic-profile-v2-stability.ts(157,46): error TS2345: Argument of type '(candidateName: string) => { candidate: any; boundedRank: number; baselineRank: any; } | null' is not assignable to parameter of type '(value: unknown, index: number, array: unknown[]) => { candidate: any; boundedRank: number; baselineRank: any; } | null'.
+  Types of parameters 'candidateName' and 'value' are incompatible.
+    Type 'unknown' is not assignable to type 'string'.
+scripts/semantic-profile-v2-stability.ts(168,150): error TS7006: Parameter 'name' implicitly has an 'any' type.
+scripts/semantic-profile-v2-stability.ts(184,47): error TS2345: Argument of type '(LeanDeclarationInspection | undefined)[]' is not assignable to parameter of type 'LeanDeclarationInspection[]'.
+  Type 'LeanDeclarationInspection | undefined' is not assignable to type 'LeanDeclarationInspection'.
+    Type 'undefined' is not assignable to type 'LeanDeclarationInspection'.
+scripts/semantic-profile-v2-stability.ts(184,111): error TS18048: 'row' is possibly 'undefined'.
+scripts/semantic-profile-v2-stability.ts(202,64): error TS2345: Argument of type '{ id: any; expected: any; }[]' is not assignable to parameter of type 'BenchmarkCase[]'.
+  Property 'goal' is missing in type '{ id: any; expected: any; }' but required in type 'BenchmarkCase'.
+scripts/semantic-profile-v2.ts(16,47): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+scripts/semantic-profile-v2.ts(34,124): error TS2339: Property 'domain' does not exist on type 'BenchmarkCase'.
+scripts/semantic-profile-v2.ts(49,69): error TS2345: Argument of type 'ChannelIndex | null' is not assignable to parameter of type 'ChannelIndex'.
+  Type 'null' is not assignable to type 'ChannelIndex'.
+scripts/semantic-profile-v2.ts(50,107): error TS2345: Argument of type 'ChannelIndex | null' is not assignable to parameter of type 'ChannelIndex'.
+  Type 'null' is not assignable to type 'ChannelIndex'.
+scripts/semantic-profile-v2.ts(58,49): error TS2345: Argument of type '(LeanDeclarationInspection | undefined)[]' is not assignable to parameter of type 'LeanDeclarationInspection[]'.
+  Type 'LeanDeclarationInspection | undefined' is not assignable to type 'LeanDeclarationInspection'.
+    Type 'undefined' is not assignable to type 'LeanDeclarationInspection'.
+scripts/semantic-profile-v2.ts(58,101): error TS18048: 'row' is possibly 'undefined'.
+scripts/validate-retrieval-fixtures.ts(3,78): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+scripts/validate-retrieval-fixtures.ts(21,5): error TS2353: Object literal may only specify known properties, and 'formalProjectRoot' does not exist in type 'LeanContext'.
+scripts/validate-retrieval-holdout.ts(3,47): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+scripts/validate-retrieval-holdout.ts(4,72): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+scripts/validate-retrieval-holdout.ts(16,117): error TS2353: Object literal may only specify known properties, and 'formalProjectRoot' does not exist in type 'LeanContext'.
+tests/cli-format.test.ts(2,45): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/cli-format.test.ts(3,44): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/keys.test.ts(2,32): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/product-ux.test.ts(9,27): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/research-benchmark.test.ts(9,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/research-benchmark.test.ts(10,46): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/research-hardening.test.ts(170,83): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'string | null' is not assignable to parameter of type 'string'.
+      Type 'null' is not assignable to type 'string'.
+tests/research-loop.test.ts(41,45): error TS2345: Argument of type '{ action: "ANALYZE_GOAL"; rationaleSummary: string; parameters: {}; }[]' is not assignable to parameter of type 'ResearchDecision[]'.
+  Property 'researchDecisionVersion' is missing in type '{ action: "ANALYZE_GOAL"; rationaleSummary: string; parameters: {}; }' but required in type 'ResearchDecision'.
+tests/research-loop.test.ts(59,7): error TS2741: Property 'researchDecisionVersion' is missing in type '{ action: "ATTEMPT_PROOF"; rationaleSummary: string; parameters: { proofBody: string; }; }' but required in type 'ResearchDecision'.
+tests/research-loop.test.ts(60,7): error TS2741: Property 'researchDecisionVersion' is missing in type '{ action: "ATTEMPT_PROOF"; rationaleSummary: string; parameters: { proofBody: string; }; }' but required in type 'ResearchDecision'.
+tests/research-loop.test.ts(61,7): error TS2741: Property 'researchDecisionVersion' is missing in type '{ action: "ATTEMPT_PROOF"; rationaleSummary: string; parameters: { proofBody: string; }; }' but required in type 'ResearchDecision'.
+tests/research-loop.test.ts(62,7): error TS2741: Property 'researchDecisionVersion' is missing in type '{ action: "ATTEMPT_PROOF"; rationaleSummary: string; parameters: { proofBody: string; }; }' but required in type 'ResearchDecision'.
+tests/research-loop.test.ts(70,127): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'string | null' is not assignable to parameter of type 'string'.
+      Type 'null' is not assignable to type 'string'.
+tests/research-loop.test.ts(77,7): error TS2741: Property 'researchDecisionVersion' is missing in type '{ action: "ANALYZE_GOAL"; rationaleSummary: string; parameters: {}; stop: { shouldStop: true; reason: string; }; }' but required in type 'ResearchDecision'.
+tests/research-loop.test.ts(91,7): error TS2741: Property 'researchDecisionVersion' is missing in type '{ action: "CREATE_SUBCLAIM"; rationaleSummary: string; parameters: { title: string; statement: string; }; }' but required in type 'ResearchDecision'.
+tests/research-loop.test.ts(92,7): error TS2741: Property 'researchDecisionVersion' is missing in type '{ action: "STOP"; rationaleSummary: string; parameters: {}; stop: { shouldStop: true; reason: string; }; }' but required in type 'ResearchDecision'.
+tests/research-loop.test.ts(109,7): error TS2741: Property 'researchDecisionVersion' is missing in type '{ action: "ANALYZE_GOAL"; rationaleSummary: string; parameters: {}; }' but required in type 'ResearchDecision'.
+tests/research-loop.test.ts(110,7): error TS2741: Property 'researchDecisionVersion' is missing in type '{ action: "RECORD_BLOCKER"; rationaleSummary: string; parameters: { summary: string; }; }' but required in type 'ResearchDecision'.
+tests/research-loop.test.ts(111,7): error TS2741: Property 'researchDecisionVersion' is missing in type '{ action: "ANALYZE_GOAL"; rationaleSummary: string; parameters: {}; }' but required in type 'ResearchDecision'.
+tests/research-loop.test.ts(112,7): error TS2741: Property 'researchDecisionVersion' is missing in type '{ action: "STOP"; rationaleSummary: string; parameters: {}; stop: { shouldStop: true; reason: string; }; }' but required in type 'ResearchDecision'.
+tests/research-loop.test.ts(135,7): error TS2741: Property 'researchDecisionVersion' is missing in type '{ action: "ATTEMPT_PROOF"; rationaleSummary: string; parameters: { proofBody: string; }; }' but required in type 'ResearchDecision'.
+tests/research-loop.test.ts(136,7): error TS2741: Property 'researchDecisionVersion' is missing in type '{ action: "VERIFY"; rationaleSummary: string; parameters: {}; }' but required in type 'ResearchDecision'.
+tests/retrieval-experiment.test.ts(5,29): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/retrieval-experiment.test.ts(39,76): error TS2345: Argument of type '{ fixtureId: string; domain: string; goal: string; goalProfile: GoalProfile; union: { declaration: { name: string; signature: string; origin: "mathlib"; }; score: number; }[]; rankedUnion: { declaration: { name: string; signature: string; origin: "mathlib"; }; score: number; }[]; productionTop200: { declaration: { n...' is not assignable to parameter of type 'ExperimentalRetrievalContext'.
+  Types of property 'union' are incompatible.
+    Type '{ declaration: { name: string; signature: string; origin: "mathlib"; }; score: number; }[]' is not assignable to type 'PremiseCandidate[]'.
+      Property 'reasons' is missing in type '{ declaration: { name: string; signature: string; origin: "mathlib"; }; score: number; }' but required in type 'PremiseCandidate'.
+tests/retrieval-holdout-v2.test.ts(6,47): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/retrieval-holdout-v2.test.ts(7,44): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/retrieval-holdout-v2.test.ts(8,78): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/retrieval-holdout-v2.test.ts(9,39): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/retrieval-holdout-v2.test.ts(10,52): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/retrieval-holdout-v2.test.ts(11,71): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/retrieval-holdout-v2.test.ts(55,70): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Type 'Record<string, number>' is missing the following properties from type '{ readonly "Logic / Eq": 9; readonly Nat: 15; readonly Int: 15; readonly Algebra: 20; readonly Order: 9; readonly Finset: 9; readonly Set: 9; readonly List: 9; readonly Function: 9; readonly Relations: 10; ... 7 more ...; readonly Combinatorics: 8; }': "Logic / Eq", "Nat", "Int", "Algebra", and 14 more.
+tests/retrieval-holdout.test.ts(6,47): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/retrieval-holdout.test.ts(7,72): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/retrieval-holdout.test.ts(8,54): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/retrieval-holdout.test.ts(9,42): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/retrieval-validation.test.ts(3,78): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/retrieval-validation.test.ts(4,53): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/retrieval-validation.test.ts(5,42): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/retrieval-validation.test.ts(6,43): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/retrieval.test.ts(87,30): error TS2741: Property 'formatVersion' is missing in type '{ revision: string; leanVersion: string; mathlibRevision: string; formalFingerprint: string; verifiedFingerprint: string; builtAt: string; declarationCount: number; mathlibCount: number; workspaceCount: number; }' but required in type 'IndexManifest'.
+tests/semantic-profile-forensics.test.ts(4,65): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/semantic-profile-forensics.test.ts(5,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/semantic-profile-v2-stability.test.ts(5,48): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/semantic-profile-v2-stability.test.ts(6,120): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/semantic-profile-v2-stability.test.ts(7,77): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/semantic-profile-v2-stability.test.ts(8,40): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+tests/tui-smoke.test.tsx(8,26): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+tests/tui-smoke.test.tsx(9,50): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+tests/tui-smoke.test.tsx(10,27): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+tests/tui-smoke.test.tsx(11,28): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+tests/tui-smoke.test.tsx(109,80): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+tests/tui-smoke.test.tsx(183,46): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+error: script "typecheck" exited with code 1
