@@ -50,16 +50,23 @@ export class VerificationService {
     if (proof && !this.dependencies.consumeLeanBudget("VERIFICATION")) {
       throw new Error("LEAN_CALL_BUDGET_EXHAUSTED")
     }
-    const context = this.dependencies.leanContext()
+    const proofContext = this.dependencies.leanContext()
     const compiled = proof
-      ? (await this.dependencies.leanAdapter.checkProof(proof.proofSource, context)).result === "KERNEL_ACCEPTED"
+      ? (await this.dependencies.leanAdapter.checkProof(proof.proofSource, {
+          workspaceRoot: proofContext.workspaceRoot,
+          tmpDir: proofContext.tmpDir,
+        })).result === "KERNEL_ACCEPTED"
       : false
 
     if (proof && !this.dependencies.consumeLeanBudget("AXIOM_AUDIT")) {
       throw new Error("LEAN_CALL_BUDGET_EXHAUSTED")
     }
+    const axiomContext = this.dependencies.leanContext()
     const axioms = proof
-      ? await this.dependencies.leanAdapter.printAxioms(formal.declarationName, proof.proofSource, this.dependencies.leanContext())
+      ? await this.dependencies.leanAdapter.printAxioms(formal.declarationName, proof.proofSource, {
+          workspaceRoot: axiomContext.workspaceRoot,
+          tmpDir: axiomContext.tmpDir,
+        })
       : []
     const environment = await this.dependencies.leanAdapter.detect(this.dependencies.leanContext().workspaceRoot)
     const report = runVerificationGate({
