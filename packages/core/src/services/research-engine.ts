@@ -217,7 +217,11 @@ export class ResearchEngine {
       action: decision.action, inputArtifactIds: [decision.targetClaimId ?? run.objectiveClaimId ?? ""], resultArtifactIds: [], status: "RUNNING", idempotencyKey: key,
       startedAt: timestamp, finishedAt: null, summary: decision.rationaleSummary, failureClass: null, createdAt: timestamp }
     if (!existing) this.d.recorder.mutate("research_step_started", { target: step.id, metadata: { runId: run.id, branchId: run.branchId, action: step.action } }, () => this.d.steps.insert(step))
-    else if (existing.status === "INTERRUPTED" && existing.resultArtifactIds.length) { existing.status = "SUCCEEDED"; this.d.steps.update(existing); run.currentStep = sequence; this.d.runs.update(run); return run }
+    else if (existing.status === "INTERRUPTED" && existing.resultArtifactIds.length) {
+      existing.status = "SUCCEEDED"; run.currentStep = sequence
+      this.d.recorder.mutate("research_step_recovered", { target: existing.id, metadata: { runId: run.id, branchId: run.branchId } }, () => { this.d.steps.update(existing); this.d.runs.update(run) })
+      return run
+    }
     else this.d.recorder.record("research_step_started", { target: step.id, metadata: { runId: run.id, branchId: run.branchId, action: step.action } })
     this.d.crashHook?.("after_event", decision.action)
     const focus = decision.targetClaimId ?? run.strategy.focusClaimId ?? run.objectiveClaimId
@@ -237,7 +241,7 @@ export class ResearchEngine {
       if (decision.action === "STOP" || decision.action === "REQUEST_HUMAN") return this.stop(run, decision.action === "REQUEST_HUMAN" ? "BLOCKED_NEEDS_HUMAN" : "NO_PRODUCTIVE_ACTION")
       return run
     } catch (error) {
-      if (error instanceof Error && error.message === "crash") { this.d.steps.update(step); throw error }
+      if (error instanceof Error && error.message === "crash") throw error
       step.status = "FAILED"; step.summary = error instanceof Error ? error.message : "execution failure"; step.finishedAt = nowIso(); run.currentStep = sequence; run.usage.steps += 1
       this.d.recorder.mutate("research_step_failed", { target: step.id, metadata: { runId: run.id, branchId: run.branchId } }, () => this.d.steps.update(step)); return this.stop(run, "EXECUTION_FAILURE", "FAILED")
     }
@@ -265,12 +269,12 @@ export class ResearchEngine {
   registerPlanner(runId: string, planner: ResearchPlanner): void {
     const remaining = planner instanceof FakeResearchPlanner || planner instanceof PersistentScriptedPlanner ? planner.remaining() : []
     const descriptor = plannerDescriptorFrom(planner); if (descriptor.kind === "SCRIPTED") descriptor.config.steps = remaining; descriptor.config.cursor = 0
-    this.d.planners.upsert(runId, descriptor, 0, nowIso()); this.restoreOnePlanner(runId, descriptor, 0)
+    this.d.recorder.mutate("research_planner_registered", { target: runId, metadata: { runId, kind: descriptor.kind } }, () => this.d.planners.upsert(runId, descriptor, 0, nowIso())); this.restoreOnePlanner(runId, descriptor, 0)
   }
   restorePersistentPlanners(): void { try { for (const row of this.d.planners.list()) this.restoreOnePlanner(row.runId, row.descriptor, row.cursor) } catch {} }
   private defaultPlanner(): ResearchPlanner { return this.d.defaultPlanner ?? new ModelResearchPlanner(this.d.modelProvider) }
   private restoreOnePlanner(runId: string, descriptor: ResearchPlannerDescriptor, cursor: number) {
-    try { const persist = (next: number) => { const copy = { ...descriptor, config: { ...descriptor.config, cursor: next } }; this.d.planners.upsert(runId, copy, next, nowIso()) }; this.runPlanners.set(runId, createPlannerFromDescriptor({ ...descriptor, config: { ...descriptor.config, cursor } }, { modelProvider: this.d.modelProvider, persist })) }
+    try { const persist = (next: number) => { const copy = { ...descriptor, config: { ...descriptor.config, cursor: next } }; this.d.recorder.mutate("research_planner_cursor_advanced", { target: runId, metadata: { runId, cursor: next } }, () => this.d.planners.upsert(runId, copy, next, nowIso())) }; this.runPlanners.set(runId, createPlannerFromDescriptor({ ...descriptor, config: { ...descriptor.config, cursor } }, { modelProvider: this.d.modelProvider, persist })) }
     catch { this.runPlanners.delete(runId) }
   }
 }

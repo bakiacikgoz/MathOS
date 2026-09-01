@@ -131,9 +131,14 @@ describe("research hardening", () => {
     })
     app.createClaim({ kind: "theorem", title: "T", statement: "True", asMainObjective: true })
     const run = app.startResearch()
+    app.registerRunPlanner(run.id, planner)
     await app.stepResearch(run.id).catch(() => undefined)
     const first = app.listClaims().filter((claim) => claim.id.startsWith("L-")).length
     expect(first).toBe(1)
+    const actions = app["client"].db.query<{ action: string }, []>("SELECT action FROM events").all().map((row) => row.action)
+    expect(actions).toContain("research_planner_registered")
+    expect(actions).toContain("research_planner_cursor_advanced")
+    expect(actions).toContain("research_step_completed")
     app.close()
     boom = false
     app = MathOS.open(created.root, { researchPlanner: planner, vcs: new FakeVcs() })

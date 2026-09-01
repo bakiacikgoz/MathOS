@@ -254,13 +254,14 @@ export class TeamResearchCoordinator {
     const active = this.d.client.db.query<{ lease_id: string }, [string]>("SELECT lease_id FROM execution_leases WHERE run_id = ? AND status IN ('RESERVED','RUNNING')").get(agent.researchRunId)
     if (active) throw new Error("WORKER_ALREADY_EXECUTING")
     const leaseId = createId("lease")
-    this.d.client.db.query(
-      "INSERT INTO execution_leases (lease_id, session_id, agent_id, run_id, branch_id, round_sequence, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    ).run(leaseId, session.id, agent.id, agent.researchRunId, agent.branchId, sequence, "RUNNING", nowIso())
+    this.d.recorder.mutate("agent_round_step_started", { target: agent.id, metadata: { sessionId: session.id, agentId: agent.id, branchId: agent.branchId, leaseId } }, () => {
+      this.d.client.db.query(
+        "INSERT INTO execution_leases (lease_id, session_id, agent_id, run_id, branch_id, round_sequence, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      ).run(leaseId, session.id, agent.id, agent.researchRunId, agent.branchId, sequence, "RUNNING", nowIso())
+    })
     this.liveLeases += 1
     this.peakConcurrency = Math.max(this.peakConcurrency, this.liveLeases)
     const start = Date.now()
-    this.d.recorder.record("agent_round_step_started", { target: agent.id, metadata: { sessionId: session.id, agentId: agent.id, branchId: agent.branchId } })
     if (this.d.teamCrashAfterAgent === agent.id) throw new Error("crash")
     if (this.d.teamCrashTwoRunning) {
       const n = this.d.client.db.query<{ n: number }, [string]>("SELECT COUNT(*) as n FROM execution_leases WHERE session_id = ? AND status = 'RUNNING'").get(session.id)
@@ -321,7 +322,9 @@ export class TeamResearchCoordinator {
       clearTimeout(timer)
       this.liveLeases = Math.max(0, this.liveLeases - 1)
       this.parallelTimings.push({ agentId: agent.id, start, end: Date.now() })
-      this.d.client.db.query("UPDATE execution_leases SET status = 'RELEASED' WHERE lease_id = ?").run(leaseId)
+      this.d.recorder.mutate("execution_lease_released", { target: leaseId, metadata: { sessionId: session.id, agentId: agent.id, branchId: agent.branchId } }, () => {
+        this.d.client.db.query("UPDATE execution_leases SET status = 'RELEASED' WHERE lease_id = ?").run(leaseId)
+      })
     }
   }
 
@@ -335,15 +338,17 @@ export class TeamResearchCoordinator {
     })
     if (formal) {
       const declarationName = `${formal.declarationName}_${agentId.replaceAll("-", "").toLowerCase()}`
-      this.d.formalStatements.markOthersNotCurrent(clone.id)
-      this.d.formalStatements.insert({
-        ...formal,
-        id: nextSequentialId(this.d.formalStatements.ids(this.d.requireWorkspace().id), "FS"),
-        claimId: clone.id,
-        declarationName,
-        sourceText: formal.sourceText.replace(formal.declarationName, declarationName),
-        isCurrent: true,
-        fidelityStatus: formal.fidelityStatus === "REJECTED" ? "AI_REVIEWED" : formal.fidelityStatus,
+      this.d.recorder.mutate("agent_objective_formal_cloned", { target: clone.id, metadata: { agentId, sourceClaimId: source.id } }, () => {
+        this.d.formalStatements.markOthersNotCurrent(clone.id)
+        this.d.formalStatements.insert({
+          ...formal,
+          id: nextSequentialId(this.d.formalStatements.ids(this.d.requireWorkspace().id), "FS"),
+          claimId: clone.id,
+          declarationName,
+          sourceText: formal.sourceText.replace(formal.declarationName, declarationName),
+          isCurrent: true,
+          fidelityStatus: formal.fidelityStatus === "REJECTED" ? "AI_REVIEWED" : formal.fidelityStatus,
+        })
       })
     }
     return clone
@@ -363,17 +368,16 @@ export class TeamResearchCoordinator {
 
   resumeTeam(id: string): MultiAgentResearchSession {
     const session = this.getTeam(id)
-    for (const round of this.teamStores().rounds.list(session.id).filter((item) => item.status === "RUNNING")) {
-      round.status = "INTERRUPTED"
-      round.finishedAt = nowIso()
-      this.teamStores().rounds.update(round)
-    }
-    this.d.client.db.query("UPDATE execution_leases SET status = 'INTERRUPTED' WHERE session_id = ? AND status IN ('RESERVED','RUNNING')").run(session.id)
+    const interrupted = this.teamStores().rounds.list(session.id).filter((item) => item.status === "RUNNING")
     this.teamPauseRequested.delete(session.id)
     session.status = "READY"
     session.stopReason = null
     session.stoppedAt = null
-    this.d.recorder.mutate("multi_agent_session_resumed", { target: session.id, metadata: { sessionId: session.id } }, () => this.teamStores().sessions.update(session))
+    this.d.recorder.mutate("multi_agent_session_resumed", { target: session.id, metadata: { sessionId: session.id } }, () => {
+      for (const round of interrupted) { round.status = "INTERRUPTED"; round.finishedAt = nowIso(); this.teamStores().rounds.update(round) }
+      this.d.client.db.query("UPDATE execution_leases SET status = 'INTERRUPTED' WHERE session_id = ? AND status IN ('RESERVED','RUNNING')").run(session.id)
+      this.teamStores().sessions.update(session)
+    })
     return session
   }
 
@@ -385,7 +389,7 @@ export class TeamResearchCoordinator {
     session.status = "CANCELLED"
     session.stopReason = "USER_CANCELLED"
     session.stoppedAt = nowIso()
-    this.teamStores().sessions.update(session)
+    this.d.recorder.mutate("multi_agent_session_cancelled", { target: session.id, metadata: { sessionId: session.id } }, () => this.teamStores().sessions.update(session))
     return session
   }
 
@@ -416,7 +420,7 @@ export class TeamResearchCoordinator {
       if (before.status === "COMPLETED" || before.stopReason === "OBJECTIVE_KERNEL_VERIFIED") continue
       if (before.status === "BLOCKED" || localStop.includes(before.stopReason ?? "")) {
         agent.status = "BLOCKED"
-        stores.agents.update(agent)
+        this.d.recorder.mutate("research_agent_blocked", { target: agent.id, metadata: { sessionId: session.id, agentId: agent.id, branchId: agent.branchId, reason: before.stopReason } }, () => stores.agents.update(agent))
         continue
       }
       const done = this.d.client.db.query<{ agent_id: string }, [string, number, string]>("SELECT agent_id FROM agent_round_progress WHERE session_id = ? AND sequence = ? AND agent_id = ?").get(session.id, sequence, agent.id)
@@ -424,13 +428,16 @@ export class TeamResearchCoordinator {
       eligible.push(agent)
     }
     this.frozenDigestBySession.set(session.id, stores.digests.get(session.id, session.currentRound))
-    this.d.client.db.query("INSERT OR REPLACE INTO round_plans (session_id, sequence, plan_json) VALUES (?, ?, ?)").run(session.id, sequence, JSON.stringify({
+    const planJson = JSON.stringify({
       sessionId: session.id,
       roundSequence: sequence,
       workers: eligible.map((agent, plannedIndex) => ({ agentId: agent.id, runId: agent.researchRunId, branchId: agent.branchId, plannedIndex })),
       executionMode: session.executionMode,
       maxParallelWorkers: session.maxParallelWorkers,
-    }))
+    })
+    this.d.recorder.mutate("multi_agent_round_planned", { target: round.id, metadata: { sessionId: session.id, workerCount: eligible.length } }, () => {
+      this.d.client.db.query("INSERT OR REPLACE INTO round_plans (session_id, sequence, plan_json) VALUES (?, ?, ?)").run(session.id, sequence, planJson)
+    })
     try {
       const runOne = async (agent: ResearchAgentWorker) => this.executeAgentRoundStep(session, sequence, agent)
       if (session.executionMode === "BOUNDED_PARALLEL") {
@@ -448,8 +455,10 @@ export class TeamResearchCoordinator {
     } catch (error) {
       if (error instanceof Error && error.message === "crash") {
         round.status = "INTERRUPTED"
-        stores.rounds.update(round)
-        this.d.client.db.query("UPDATE execution_leases SET status = 'INTERRUPTED' WHERE session_id = ? AND status IN ('RESERVED','RUNNING')").run(session.id)
+        this.d.recorder.mutate("multi_agent_round_interrupted", { target: round.id, metadata: { sessionId: session.id } }, () => {
+          stores.rounds.update(round)
+          this.d.client.db.query("UPDATE execution_leases SET status = 'INTERRUPTED' WHERE session_id = ? AND status IN ('RESERVED','RUNNING')").run(session.id)
+        })
         throw error
       }
       round.status = "FAILED"
@@ -646,7 +655,7 @@ export class TeamResearchCoordinator {
       if (error instanceof Error && error.message === "IMPORT_DEPENDENCY_CYCLE") {
         item.status = "FAILED"
         item.failureCode = "IMPORT_DEPENDENCY_CYCLE"
-        this.teamStores().imports.update(item)
+        this.d.recorder.mutate("artifact_import_failed", { target: item.id, metadata: { sessionId: item.sessionId, code: item.failureCode } }, () => this.teamStores().imports.update(item))
         return item
       }
       throw error
@@ -654,7 +663,7 @@ export class TeamResearchCoordinator {
     if (deps.some((dep) => this.d.getClaim(dep).status !== "KERNEL_VERIFIED")) {
       item.status = "FAILED"
       item.failureCode = "DEPENDENCY_IMPORT_REQUIRED"
-      this.teamStores().imports.update(item)
+      this.d.recorder.mutate("artifact_import_failed", { target: item.id, metadata: { sessionId: item.sessionId, code: item.failureCode } }, () => this.teamStores().imports.update(item))
       return item
     }
     const conflicts = this.declarationConflicts(item.targetBranchId, source.id)
@@ -671,25 +680,24 @@ export class TeamResearchCoordinator {
     try {
       this.d.switchBranch(item.targetBranchId)
       const clone = this.d.createClaim({ kind: "conjecture", title: `${source.title} (imported)`, statement: source.naturalStatement })
-      this.d.claims.updateStatus(clone.id, "FORMALIZED_UNVERIFIED", nowIso())
       const declarationName = formal.declarationName
-      this.d.formalStatements.insert({
-        ...formal,
-        id: nextSequentialId(this.d.formalStatements.ids(this.d.requireWorkspace().id), "FS"),
-        claimId: clone.id,
-        declarationName,
-        isCurrent: true,
-        fidelityStatus: "HUMAN_APPROVED",
-        verificationStatus: "ELABORATES",
-      })
       const proof = this.d.proofs.latestAccepted(source.id)
-      if (proof) {
-        this.d.storeAttempt(this.d.requireWorkspace().id, clone.id, this.d.formalStatements.currentForClaim(clone.id)!.id, 1, proof.proofSource, "KERNEL_ACCEPTED", proof.leanVersion, [])
-      }
+      this.d.recorder.mutate("artifact_import_reverify_started", { target: item.id, metadata: { sessionId: item.sessionId, targetClaimId: clone.id } }, () => {
+        this.d.claims.updateStatus(clone.id, "FORMALIZED_UNVERIFIED", nowIso())
+        this.d.formalStatements.insert({
+          ...formal,
+          id: nextSequentialId(this.d.formalStatements.ids(this.d.requireWorkspace().id), "FS"),
+          claimId: clone.id,
+          declarationName,
+          isCurrent: true,
+          fidelityStatus: "HUMAN_APPROVED",
+          verificationStatus: "ELABORATES",
+        })
+        if (proof) this.d.storeAttempt(this.d.requireWorkspace().id, clone.id, this.d.formalStatements.currentForClaim(clone.id)!.id, 1, proof.proofSource, "KERNEL_ACCEPTED", proof.leanVersion, [])
+      })
       const targetFormal = this.d.formalStatements.currentForClaim(clone.id)!
       const worktree = this.d.getBranch(item.targetBranchId).worktreePath
       if (worktree) writeFileSync(join(worktree, `${clone.id}.lean`), `${targetFormal.sourceText}\n`, "utf8")
-      this.d.recorder.record("artifact_import_reverify_started", { target: item.id, metadata: { sessionId: item.sessionId } })
       const report = await this.d.verify(clone.id)
       if (!report.passed) {
         item.status = "FAILED"

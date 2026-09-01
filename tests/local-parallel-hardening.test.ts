@@ -82,6 +82,10 @@ describe("local parallel runtime hardening", () => {
     const app2 = MathOS.open(root, { vcs: new FakeVcs(), leanAdapter: new FakeLeanAdapter(), premiseRetriever: new InMemoryPremiseRetriever() })
     app2.resumeTeam(session.id)
     expect(app2.teamHistory(session.id).some((round) => round.status === "INTERRUPTED")).toBe(true)
+    const actions = app2["client"].db.query<{ action: string }, []>("SELECT action FROM events").all().map((row) => row.action)
+    expect(actions).toContain("multi_agent_round_interrupted")
+    expect(actions).toContain("agent_round_step_started")
+    expect(actions).toContain("multi_agent_session_resumed")
     app2.close()
   })
 

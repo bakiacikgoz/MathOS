@@ -7,10 +7,17 @@ it records `EVENT_PROJECTION_DEGRADED` and `mathos events rebuild` replaces JSON
 atomically from SQLite in durable `projection_order` (with `(timestamp, id)` as a
 legacy fallback) order.
 
-The current service layer does not yet place every domain mutation and its event row
-in one SQLite transaction. A crash between those operations can leave a mutation
-without its event, while a crash after the event row can leave JSONL behind (which is
-detectable and rebuildable). New or migrated mutation paths should use a single
-`DatabaseClient.unitOfWork` for the domain write and canonical event
-insert, then project JSONL only after commit. This release guarantees DB-event-first
-projection durability; it does not claim universal mutation/event atomicity.
+Canonical service state changes use `MutationRecorder.mutate`. The recorder places
+all repository or orchestration-table writes for one semantic transition and its
+primary SQLite event row in the same `DatabaseClient.unitOfWork`. This includes
+research crash recovery and planner cursors, literature imports, team sessions,
+round plans, execution leases, worker progress, and verified-artifact imports.
+Consequently, a failed primary event insert rolls back its associated state change,
+and a committed canonical state change has a committed semantic event.
+
+Network, model, Lean, VCS, and other asynchronous provider calls occur outside the
+SQLite unit of work. Their synchronous result-persistence transitions enter a new
+short unit of work after the await completes. Secondary observational events may be
+recorded after that commit. JSONL remains a rebuildable projection: a projection
+failure can leave it behind SQLite, but cannot split canonical state from its primary
+SQLite event.
