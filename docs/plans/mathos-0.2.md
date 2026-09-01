@@ -1797,7 +1797,7 @@ Verified/unverified findings görsel olarak ayrılmalı.
 Hard-coded:
 
 ```text
-/Users/...
+$HOME/...
 ```
 
 gibi test paths kaldır.
@@ -2229,7 +2229,7 @@ Aşağıdaki tüm maddeler sağlanmadan MathOS 0.2 tamamlandı denmemeli.
 
 ## Portability
 
-- [ ] Hard-coded `/Users/...` path kalmadı.
+- [ ] Hard-coded geliştirici home path kalmadı; taşınabilir örneklerde `$HOME/...` kullanılıyor.
 - [ ] Test workspace temp/repo-relative.
 - [ ] macOS clean environment smoke geçiyor.
 

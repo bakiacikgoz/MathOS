@@ -78,7 +78,7 @@ error: expect(received).toEqual(expected)
 - Expected  - 1
 + Received  + 62
 
-      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-validation.test.ts:33:28)
+      at <anonymous> ($HOME/Documents/ChatGPT/MathOS/tests/retrieval-validation.test.ts:33:28)
 (fail) retrieval validation dataset > all expected declarations pass real Lean #check [1.12ms]
 (pass) retrieval validation dataset > failure taxonomy is exhaustive and typed [0.07ms]
 47 |   return RETRIEVAL_VALIDATION_FIXTURES.map((fixture) => ({ id: fixture.id, goal: fixture.goal, expected: fixture.expectedAnyOf, domain: fixture.domain }))
@@ -89,9 +89,9 @@ error: expect(received).toEqual(expected)
 52 |   if (!stored) throw new Error("demo index missing; run mathos index build")
                               ^
 error: demo index missing; run mathos index build
-      at evaluateRetrieval (/Users/baki/Documents/ChatGPT/MathOS/scripts/retrieval-eval.ts:52:26)
-      at validationReport (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-validation.test.ts:10:21)
-      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-validation.test.ts:51:26)
+      at evaluateRetrieval ($HOME/Documents/ChatGPT/MathOS/scripts/retrieval-eval.ts:52:26)
+      at validationReport ($HOME/Documents/ChatGPT/MathOS/tests/retrieval-validation.test.ts:10:21)
+      at <anonymous> ($HOME/Documents/ChatGPT/MathOS/tests/retrieval-validation.test.ts:51:26)
 (fail) retrieval validation dataset > per-domain, fusion sensitivity and header-vs-Lean aggregation [1.04ms]
 (pass) retrieval validation dataset > canonical baseline serializes and regression comparison reports deltas [0.28ms]
 66 |     expect(Object.values(same.comparisons).every((row) => row.delta === 0)).toBe(true)
@@ -106,7 +106,7 @@ error: expect(received).toBe(expected)
 Expected: 0
 Received: 1
 
-      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-validation.test.ts:71:29)
+      at <anonymous> ($HOME/Documents/ChatGPT/MathOS/tests/retrieval-validation.test.ts:71:29)
 (fail) retrieval validation dataset > JSON benchmark output is machine readable [148.52ms]
 
 tests/research-native.test.ts:
@@ -121,8 +121,8 @@ ModelNotConfigured: Fake provider has no queued responses.
  details: undefined,
     code: "ModelNotConfigured"
 
-      at generate (/Users/baki/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:33:22)
-      at generateStructured (/Users/baki/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:44:32)
+      at generate ($HOME/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:33:22)
+      at generateStructured ($HOME/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:44:32)
 (fail) native research loop > real Lean smoke KERNEL_VERIFIED [24.67ms]
 28 |     this.generateCalls += 1
 29 |     if (request.signal?.aborted) {
@@ -135,8 +135,8 @@ ModelNotConfigured: Fake provider has no queued responses.
  details: undefined,
     code: "ModelNotConfigured"
 
-      at generate (/Users/baki/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:33:22)
-      at generateStructured (/Users/baki/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:44:32)
+      at generate ($HOME/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:33:22)
+      at generateStructured ($HOME/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:44:32)
 (fail) native research loop > real Lean failure then recovery [16.43ms]
 114 |     writeFileSync(mainFile, "theorem main_lake : True := trivial\n", "utf8")
 115 |     const child = await app.createBranch("lake-side")
@@ -150,7 +150,7 @@ error: Executable not found in $PATH: "lake"
  errno: -2,
   code: "ENOENT"
 
-      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/research-native.test.ts:119:18)
+      at <anonymous> ($HOME/Documents/ChatGPT/MathOS/tests/research-native.test.ts:119:18)
 (fail) native research loop > dual lake env lean MAIN vs B-001 [192.79ms]
 
 tests/release.test.ts:
@@ -227,13 +227,13 @@ tests/lean-real.test.ts:
 13 |       throw new Error("Lean should be installed for this task")
                      ^
 error: Lean should be installed for this task
-      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/lean-real.test.ts:13:17)
+      at <anonymous> ($HOME/Documents/ChatGPT/MathOS/tests/lean-real.test.ts:13:17)
 (fail) real lean > id_nat rfl is KERNEL_ACCEPTED [0.60ms]
 36 |     }
 37 |   })
 38 | 
 39 |   test("demo formal project is pinned with Mathlib", async () => {
-40 |     const env = await adapter.detect("/Users/yazilim/Projects/mathos/demo")
+40 |     const env = await adapter.detect("$HOME/Projects/mathos/demo")
 41 |     expect(env.leanAvailable).toBe(true)
                                    ^
 error: expect(received).toBe(expected)
@@ -241,7 +241,7 @@ error: expect(received).toBe(expected)
 Expected: true
 Received: false
 
-      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/lean-real.test.ts:41:31)
+      at <anonymous> ($HOME/Documents/ChatGPT/MathOS/tests/lean-real.test.ts:41:31)
 (fail) real lean > demo formal project is pinned with Mathlib [0.48ms]
 (pass) real lean > axiom printer parses lean output [0.23ms]
 
@@ -258,8 +258,8 @@ tests/retrieval-holdout.test.ts:
 54 |   test("feature specification is frozen", () => {
 55 |     const spec = JSON.parse(readFileSync(SPEC, "utf8"))
                                  ^
-error: ENOENT: no such file or directory, open '/Users/yazilim/Projects/mathos/benchmarks/retrieval-experiments/semantic-operator-profile-v1.json'
-      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-holdout.test.ts:55:29)
+error: ENOENT: no such file or directory, open '$HOME/Projects/mathos/benchmarks/retrieval-experiments/semantic-operator-profile-v1.json'
+      at <anonymous> ($HOME/Documents/ChatGPT/MathOS/tests/retrieval-holdout.test.ts:55:29)
 (fail) semantic operator profile v1 > feature specification is frozen [0.31ms]
 (pass) retrieval holdout v1 > schema, size, metadata and three-way declaration separation [0.48ms]
 79 |     }
@@ -274,19 +274,19 @@ error: expect(received).toBe(expected)
 Expected: false
 Received: true
 
-      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-holdout.test.ts:84:27)
+      at <anonymous> ($HOME/Documents/ChatGPT/MathOS/tests/retrieval-holdout.test.ts:84:27)
 (fail) retrieval holdout v1 > all expected declarations pass real Lean check [1.50ms]
 (pass) retrieval holdout v1 > paired classification and deterministic seeded bootstrap [1.64ms]
  9 | import { validateRetrievalHoldout } from "../scripts/validate-retrieval-holdout.ts"
 10 | 
-11 | const ROOT = "/Users/yazilim/Projects/mathos"
+11 | const ROOT = "$HOME/Projects/mathos"
 12 | const SPEC = `${ROOT}/benchmarks/retrieval-experiments/semantic-operator-profile-v1.json`
 13 | const INDEX = `${ROOT}/demo/.mathos/index/declarations.json`
 14 | const hash = (path: string) => createHash("sha256").update(readFileSync(path)).digest("hex")
                                                                 ^
-error: ENOENT: no such file or directory, open '/Users/yazilim/Projects/mathos/demo/.mathos/index/declarations.json'
-      at hash (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-holdout.test.ts:14:60)
-      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-holdout.test.ts:104:25)
+error: ENOENT: no such file or directory, open '$HOME/Projects/mathos/demo/.mathos/index/declarations.json'
+      at hash ($HOME/Documents/ChatGPT/MathOS/tests/retrieval-holdout.test.ts:14:60)
+      at <anonymous> ($HOME/Documents/ChatGPT/MathOS/tests/retrieval-holdout.test.ts:104:25)
 (fail) retrieval holdout v1 > feature is production-isolated and index/config remain unchanged [0.25ms]
 
 tests/cli-format.test.ts:
@@ -303,17 +303,17 @@ tests/retrieval-holdout-v2.test.ts:
 10 | import { HOLDOUT_V2_QUOTAS, HOLDOUT_V2_SEED } from "../scripts/generate-retrieval-holdout-v2.ts"
 11 | import { assertFrozenManifest, bootstrapPaired, classifyPaired } from "../scripts/retrieval-holdout-v2.ts"
 12 | 
-13 | const ROOT = "/Users/yazilim/Projects/mathos"
+13 | const ROOT = "$HOME/Projects/mathos"
 14 | const DATASET = "packages/retrieval/src/holdout-v2-fixtures.ts"
 15 | const manifest = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-holdout-v2-manifest.json`, "utf8"))
                                  ^
-ENOENT: no such file or directory, open '/Users/yazilim/Projects/mathos/benchmarks/retrieval-holdout-v2-manifest.json'
-    path: "/Users/yazilim/Projects/mathos/benchmarks/retrieval-holdout-v2-manifest.json",
+ENOENT: no such file or directory, open '$HOME/Projects/mathos/benchmarks/retrieval-holdout-v2-manifest.json'
+    path: "$HOME/Projects/mathos/benchmarks/retrieval-holdout-v2-manifest.json",
  syscall: "open",
    errno: -2,
     code: "ENOENT"
 
-      at /Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-holdout-v2.test.ts:15:29
+      at $HOME/Documents/ChatGPT/MathOS/tests/retrieval-holdout-v2.test.ts:15:29
 -------------------------------
 
 
@@ -355,7 +355,7 @@ error: expect(received).toBe(expected)
 Expected: true
 Received: undefined
 
-      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/lean-inspect.test.ts:16:43)
+      at <anonymous> ($HOME/Documents/ChatGPT/MathOS/tests/lean-inspect.test.ts:16:43)
 (fail) real lean declaration inspect > batch inspect Eq.refl Finset.card_union_le Nat.add_le_add [0.43ms]
 (pass) real lean declaration inspect > parseCheckOutput does not mark regex guesses as elaborated [0.09ms]
 
@@ -371,11 +371,11 @@ tests/retrieval-closeout.test.ts:
 4 | 
 5 | describe("retrieval closeout artifacts", () => {
 6 |   test("V2 decision is REJECTED and hashes match frozen files", () => {
-7 |     const root = "/Users/yazilim/Projects/mathos"
+7 |     const root = "$HOME/Projects/mathos"
 8 |     const decision = JSON.parse(readFileSync(`${root}/benchmarks/retrieval-experiments/semantic-operator-profile-v2-decision.json`, "utf8"))
                                     ^
-error: ENOENT: no such file or directory, open '/Users/yazilim/Projects/mathos/benchmarks/retrieval-experiments/semantic-operator-profile-v2-decision.json'
-      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-closeout.test.ts:8:33)
+error: ENOENT: no such file or directory, open '$HOME/Projects/mathos/benchmarks/retrieval-experiments/semantic-operator-profile-v2-decision.json'
+      at <anonymous> ($HOME/Documents/ChatGPT/MathOS/tests/retrieval-closeout.test.ts:8:33)
 (fail) retrieval closeout artifacts > V2 decision is REJECTED and hashes match frozen files [0.16ms]
 
 tests/multi-agent-parallel.test.ts:
@@ -394,16 +394,16 @@ tests/semantic-profile-v2-stability.test.ts:
  7 | import { boundedSemanticRank, evaluateSemanticCandidateCompatibility } from "../packages/retrieval/src/semantic-operator-profile-v2-stability.ts"
  8 | import { assertStabilityDataset } from "../scripts/semantic-profile-v2-stability.ts"
  9 | 
-10 | const ROOT = "/Users/yazilim/Projects/mathos"
+10 | const ROOT = "$HOME/Projects/mathos"
 11 | const stability = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-experiments/semantic-operator-profile-v2-stability.json`, "utf8"))
                                   ^
-ENOENT: no such file or directory, open '/Users/yazilim/Projects/mathos/benchmarks/retrieval-experiments/semantic-operator-profile-v2-stability.json'
-    path: "/Users/yazilim/Projects/mathos/benchmarks/retrieval-experiments/semantic-operator-profile-v2-stability.json",
+ENOENT: no such file or directory, open '$HOME/Projects/mathos/benchmarks/retrieval-experiments/semantic-operator-profile-v2-stability.json'
+    path: "$HOME/Projects/mathos/benchmarks/retrieval-experiments/semantic-operator-profile-v2-stability.json",
  syscall: "open",
    errno: -2,
     code: "ENOENT"
 
-      at /Users/baki/Documents/ChatGPT/MathOS/tests/semantic-profile-v2-stability.test.ts:11:30
+      at $HOME/Documents/ChatGPT/MathOS/tests/semantic-profile-v2-stability.test.ts:11:30
 -------------------------------
 
 
@@ -445,8 +445,8 @@ ModelNotConfigured: Fake provider has no queued responses.
  details: undefined,
     code: "ModelNotConfigured"
 
-      at generate (/Users/baki/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:33:22)
-      at generateStructured (/Users/baki/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:44:32)
+      at generate ($HOME/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:33:22)
+      at generateStructured ($HOME/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:44:32)
 (fail) native multi-agent + hybrid retrieval > real team smoke SOLUTION_FOUND and MAIN unverified [17.84ms]
 28 |     this.generateCalls += 1
 29 |     if (request.signal?.aborted) {
@@ -459,8 +459,8 @@ ModelNotConfigured: Fake provider has no queued responses.
  details: undefined,
     code: "ModelNotConfigured"
 
-      at generate (/Users/baki/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:33:22)
-      at generateStructured (/Users/baki/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:44:32)
+      at generate ($HOME/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:33:22)
+      at generateStructured ($HOME/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:44:32)
 (fail) native multi-agent + hybrid retrieval > real cross-agent verified import [16.52ms]
 28 |     this.generateCalls += 1
 29 |     if (request.signal?.aborted) {
@@ -473,8 +473,8 @@ ModelNotConfigured: Fake provider has no queued responses.
  details: undefined,
     code: "ModelNotConfigured"
 
-      at generate (/Users/baki/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:33:22)
-      at generateStructured (/Users/baki/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:44:32)
+      at generate ($HOME/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:33:22)
+      at generateStructured ($HOME/Documents/ChatGPT/MathOS/packages/models/src/fake.ts:44:32)
 (fail) native multi-agent + hybrid retrieval > full-stack single-agent HybridPremiseRetriever [16.24ms]
 
 tests/research-hardening.test.ts:
@@ -490,15 +490,15 @@ tests/research-hardening.test.ts:
 tests/retrieval-experiment.test.ts:
 (pass) retrieval experiment laboratory > registry contains the eleven single-variable experiments [0.03ms]
  6 | 
- 7 | const ROOT = "/Users/yazilim/Projects/mathos"
+ 7 | const ROOT = "$HOME/Projects/mathos"
  8 | const INDEX = `${ROOT}/demo/.mathos/index/declarations.json`
  9 | const RESULTS = `${ROOT}/benchmarks/retrieval-experiments/latest-results.json`
 10 | 
 11 | function hash(path: string) { return createHash("sha256").update(readFileSync(path)).digest("hex") }
                                                                       ^
-error: ENOENT: no such file or directory, open '/Users/yazilim/Projects/mathos/demo/.mathos/index/declarations.json'
-      at hash (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-experiment.test.ts:11:66)
-      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-experiment.test.ts:20:25)
+error: ENOENT: no such file or directory, open '$HOME/Projects/mathos/demo/.mathos/index/declarations.json'
+      at hash ($HOME/Documents/ChatGPT/MathOS/tests/retrieval-experiment.test.ts:11:66)
+      at <anonymous> ($HOME/Documents/ChatGPT/MathOS/tests/retrieval-experiment.test.ts:20:25)
 (fail) retrieval experiment laboratory > experiment apply is side-effect free and production-isolated [0.16ms]
 51 |     expect(coreSource).not.toContain("retrieval-experiment")
 52 |     expect(hash(INDEX)).toBe(beforeIndex)
@@ -507,8 +507,8 @@ error: ENOENT: no such file or directory, open '/Users/yazilim/Projects/mathos/d
 55 |   test("stored results satisfy the experiment result schema", () => {
 56 |     const report = JSON.parse(readFileSync(RESULTS, "utf8"))
                                    ^
-error: ENOENT: no such file or directory, open '/Users/yazilim/Projects/mathos/benchmarks/retrieval-experiments/latest-results.json'
-      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/retrieval-experiment.test.ts:56:31)
+error: ENOENT: no such file or directory, open '$HOME/Projects/mathos/benchmarks/retrieval-experiments/latest-results.json'
+      at <anonymous> ($HOME/Documents/ChatGPT/MathOS/tests/retrieval-experiment.test.ts:56:31)
 (fail) retrieval experiment laboratory > stored results satisfy the experiment result schema [0.14ms]
 
 tests/research-benchmark.test.ts:
@@ -569,7 +569,7 @@ error: Executable not found in $PATH: "lean"
  errno: -2,
   code: "ENOENT"
 
-      at <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/research-loop.test.ts:164:22)
+      at <anonymous> ($HOME/Documents/ChatGPT/MathOS/tests/research-loop.test.ts:164:22)
 (fail) dual real Lean worktrees > MAIN and B-001 both check independently [195.76ms]
 
 tests/product-ux.test.ts:
@@ -581,16 +581,16 @@ tests/product-ux.test.ts:
 138 |   const runtimeFiles = ["packages/core/src/mathos.ts", "packages/core/src/doctor.ts", "apps/tui/src/headless.ts", "apps/tui/src/ui/AppShell.tsx"]
 139 |   let leaked = false
 140 |   for (const file of runtimeFiles) {
-141 |     const text = readFileSync(join("/Users/yazilim/Projects/mathos", file), "utf8")
+141 |     const text = readFileSync(join("$HOME/Projects/mathos", file), "utf8")
                        ^
-ENOENT: no such file or directory, open '/Users/yazilim/Projects/mathos/packages/core/src/mathos.ts'
-    path: "/Users/yazilim/Projects/mathos/packages/core/src/mathos.ts",
+ENOENT: no such file or directory, open '$HOME/Projects/mathos/packages/core/src/mathos.ts'
+    path: "$HOME/Projects/mathos/packages/core/src/mathos.ts",
  syscall: "open",
    errno: -2,
     code: "ENOENT"
 
-      at runUxEval (/Users/baki/Documents/ChatGPT/MathOS/packages/core/src/ux-eval.ts:141:18)
-      at async <anonymous> (/Users/baki/Documents/ChatGPT/MathOS/tests/product-ux.test.ts:48:24)
+      at runUxEval ($HOME/Documents/ChatGPT/MathOS/packages/core/src/ux-eval.ts:141:18)
+      at async <anonymous> ($HOME/Documents/ChatGPT/MathOS/tests/product-ux.test.ts:48:24)
 (fail) product ux v1 > ux eval scenarios pass [294.98ms]
 
 tests/graph-context.test.ts:
@@ -666,16 +666,16 @@ tests/semantic-profile-forensics.test.ts:
 4 | import { extractV2CandidateEvidence, V2_CANDIDATE_CONFIG } from "../packages/retrieval/src/semantic-operator-profile-v2-candidate.ts"
 5 | import { assertV2SetAllowed } from "../scripts/semantic-profile-v2.ts"
 6 | 
-7 | const ROOT = "/Users/yazilim/Projects/mathos"
+7 | const ROOT = "$HOME/Projects/mathos"
 8 | const immutable = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-experiments/semantic-v1-immutable.json`, "utf8"))
                                  ^
-ENOENT: no such file or directory, open '/Users/yazilim/Projects/mathos/benchmarks/retrieval-experiments/semantic-v1-immutable.json'
-    path: "/Users/yazilim/Projects/mathos/benchmarks/retrieval-experiments/semantic-v1-immutable.json",
+ENOENT: no such file or directory, open '$HOME/Projects/mathos/benchmarks/retrieval-experiments/semantic-v1-immutable.json'
+    path: "$HOME/Projects/mathos/benchmarks/retrieval-experiments/semantic-v1-immutable.json",
  syscall: "open",
    errno: -2,
     code: "ENOENT"
 
-      at /Users/baki/Documents/ChatGPT/MathOS/tests/semantic-profile-forensics.test.ts:8:30
+      at $HOME/Documents/ChatGPT/MathOS/tests/semantic-profile-forensics.test.ts:8:30
 -------------------------------
 
 

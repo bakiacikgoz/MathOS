@@ -9,10 +9,11 @@ export interface SandboxRuntime { inspect():Promise<SandboxCapability>; execute(
 export function blockedResult(request:SandboxedExecutionRequest, reason:string, backend:string|null = null):ComputationalExecutionResult {
  return {exitCode:null,timedOut:false,stdout:"",stderr:"",stdoutTruncated:false,stderrTruncated:false,durationMs:0,pid:null,blockedReason:reason,securityReport:{sandboxAvailable:false,sandboxBackend:backend,networkAllowed:false,filesystemMode:"PRIVATE_TEMP_ONLY",timeoutMs:request.timeoutMs,outputLimitBytes:request.maxOutputBytes,blockedReason:reason,executionPolicyVersion:"sandbox-v1"}}
 }
-export function createSandboxRuntime():SandboxRuntime {
- if (process.platform === "darwin") return new MacOSSandboxRuntime()
- if (process.platform === "linux") return new LinuxSandboxRuntime()
+export function createSandboxRuntime(targetPlatform: NodeJS.Platform = process.platform):SandboxRuntime {
+ if (targetPlatform === "darwin") return new MacOSSandboxRuntime()
+ if (targetPlatform === "linux") return new LinuxSandboxRuntime()
  return new UnavailableSandboxRuntime()
 }
 export const inspectSandbox = () => createSandboxRuntime().inspect()
 export const executeSandboxed = (request:SandboxedExecutionRequest) => createSandboxRuntime().execute(request)
+export { resolveLinuxSandboxBackend } from "./platform/linux-sandbox"

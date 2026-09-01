@@ -121,7 +121,7 @@ packages/core/src/research-benchmark.ts(19,8): error TS5097: An import path can 
 packages/core/src/research-benchmark.ts(20,46): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
 packages/core/src/research-benchmark.ts(131,25): error TS2341: Property 'requireWorkspace' is private and only accessible within class 'MathOS'.
 packages/core/src/research-benchmark.ts(320,65): error TS18048: 'opts.domain' is possibly 'undefined'.
-packages/core/src/research-benchmark.ts(398,39): error TS2559: Type '"/Users/yazilim/Projects/mathos"' has no properties in common with type '{ workspaceRoot?: string | undefined; env?: ProcessEnv | undefined; tomlText?: string | undefined; }'.
+packages/core/src/research-benchmark.ts(398,39): error TS2559: Type '"$HOME/Projects/mathos"' has no properties in common with type '{ workspaceRoot?: string | undefined; env?: ProcessEnv | undefined; tomlText?: string | undefined; }'.
 packages/core/src/research-eval.ts(300,91): error TS2341: Property 'requireWorkspace' is private and only accessible within class 'MathOS'.
 packages/core/src/research-eval.ts(316,52): error TS2367: This comparison appears to be unintentional because the types '"EXTERNAL_KNOWN"' and '"KERNEL_VERIFIED"' have no overlap.
 packages/core/src/research-planner.ts(38,14): error TS2783: 'researchDecisionVersion' is specified more than once, so this usage will be overwritten.

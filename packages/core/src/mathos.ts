@@ -128,7 +128,7 @@ import {
   LiteratureSearchRepository,
 } from "@mathos/storage"
 import { createWorkspaceLayout, findWorkspaceRoot, tryFindWorkspaceRoot } from "@mathos/workspace"
-import { buildDoctorReport } from "./doctor.ts"
+import { buildDoctorReport, inspectPlatformCapabilities } from "./doctor.ts"
 import {
   writeReport,
 } from "./product-ux.ts"
@@ -632,7 +632,7 @@ export class MathOS {
     } catch {
       queryOk = false
     }
-    const base = buildDoctorReport(this.root, queryOk)
+    const base = buildDoctorReport(this.root, queryOk, await inspectPlatformCapabilities())
     const modelChecks = await modelDoctorChecks(resolveModelConfig({ workspaceRoot: this.root }), {
       probe: this.probeModel,
     })
