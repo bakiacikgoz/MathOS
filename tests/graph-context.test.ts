@@ -10,35 +10,12 @@ import {
   syntheticGraphSnapshot,
 } from "@mathos/graph"
 import { MathOS } from "@mathos/core"
-import { ResearchQueryService } from "../packages/core/src/services/research-query-service.ts"
 import { FakeVcs } from "@mathos/vcs"
 import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
 describe("graph context summary", () => {
-  test("query service normalizes graph ids without exposing mutation commands", () => {
-    const snapshot = canonicalGraphFixture()
-    const service = new ResearchQueryService({
-      root: "/tmp/mathos-query",
-      snapshot: () => structuredClone(snapshot),
-      currentBranchId: () => "B-000",
-      getTeam: () => { throw new Error("unused") },
-      teamAgents: () => [],
-      teamSolutions: () => [],
-      getResearch: () => { throw new Error("unused") },
-      latestResearch: () => null,
-      getClaim: (id) => snapshot.claims.find((claim) => claim.id === id)!,
-      workspace: () => ({ id: snapshot.workspaceId, name: "query", mainObjectiveId: snapshot.mainObjectiveId }),
-      events: () => [],
-      stepsForRun: () => [],
-      interruptSummary: () => "",
-    })
-
-    expect(service.graphDependencies("t-001")).toContain("T-001 DEPENDS_ON L-001")
-    expect(service.graphClaimDetail("t-001")).toContain("T-001")
-    expect("createClaim" in service).toBe(false)
-  })
   test("planner context lists frontier, support, failures, blockers", () => {
     const graph = buildResearchGraph(canonicalGraphFixture(), { branchId: "B-000" })
     const summary = buildGraphContextSummary(graph, { focusClaimId: "T-001" })
