@@ -86,6 +86,7 @@ import { VerificationService } from "./services/verification-service.ts"
 import { ExperimentService } from "./services/experiment-service.ts"
 import { LiteratureService } from "./services/literature-service.ts"
 import { ResearchEngine } from "./services/research-engine.ts"
+import { TeamResearchCoordinator } from "./services/team-research-coordinator.ts"
 import {
   buildResearchGraph,
   formatClaimDetail,
@@ -214,6 +215,7 @@ export class MathOS {
   private experimentService!: ExperimentService
   private literatureService!: LiteratureService
   private researchEngine!: ResearchEngine
+  private teamResearchCoordinator!: TeamResearchCoordinator
   private constructor(
     readonly root: string,
     private readonly client: DatabaseClient,
@@ -251,13 +253,9 @@ export class MathOS {
   ) {}
 
   lastExperimentPid: number | null = null
-  private teamPauseRequested = new Set<string>()
-  private teamCancelRequested = new Set<string>()
-  readonly parallelTimings: Array<{ agentId: string; start: number; end: number }> = []
-  peakConcurrency = 0
-  private liveLeases = 0
+  get parallelTimings() { return this.teamResearchCoordinator.parallelTimings }
+  get peakConcurrency() { return this.teamResearchCoordinator.peakConcurrency }
   get lastPlannerContextByRun() { return this.researchEngine.lastPlannerContextByRun }
-  private frozenDigestBySession = new Map<string, SharedResearchDigest | null>()
 
   private currentAccounting(): ResearchRun | null { return this.researchEngine?.currentAccounting() ?? null }
 
@@ -379,6 +377,7 @@ export class MathOS {
       allocateId: (prefix) => instance.allocateId(prefix),
       recordEvent: (action, event) => instance.record(action, event),
     })
+    instance.teamResearchCoordinator = new TeamResearchCoordinator(instance as unknown as import("./services/team-research-coordinator.ts").TeamResearchCoordinatorDependencies)
     instance.researchEngine = new ResearchEngine({
       runs: new ResearchRunRepository(client.db),
       steps: new ResearchStepRepository(client.db),
@@ -397,9 +396,9 @@ export class MathOS {
       currentFormal: (claimId) => instance.formalStatements.currentForClaim(claimId),
       graphContext: (run, worker) => buildGraphContextSummary(instance.buildGraph({ branchId: run.branchId, includeImports: true }), {
         focusClaimId: run.strategy.focusClaimId ?? run.objectiveClaimId ?? null,
-        digestClaimIds: worker ? (instance.frozenDigestBySession.get(worker.sessionId)?.verifiedFindings ?? []).map((item) => item.claimId) : [],
+        digestClaimIds: worker ? (instance.teamResearchCoordinator.digestForSession(worker.sessionId)?.verifiedFindings ?? []).map((item) => item.claimId) : [],
       }),
-      digestVerifiedFindings: (worker) => instance.frozenDigestBySession.get(worker.sessionId)?.verifiedFindings ?? [],
+      digestVerifiedFindings: (worker) => instance.teamResearchCoordinator.digestForSession(worker.sessionId)?.verifiedFindings ?? [],
       consumeModelBudget: (kind) => instance.chargeModel(kind),
       consumeProofBudget: () => instance.chargeProofAttempt(),
       recordEvent: (action, event) => instance.record(action, event),
@@ -1477,630 +1476,28 @@ export class MathOS {
   registerRunPlanner(runId: string, planner: ResearchPlanner) { return this.researchEngine.registerPlanner(runId, planner) }
   restorePersistentPlanners() { return this.researchEngine.restorePersistentPlanners() }
 
-  private teamStores() {
-    return {
-      sessions: new MultiAgentSessionRepository(this.client.db),
-      agents: new ResearchAgentRepository(this.client.db),
-      rounds: new MultiAgentRoundRepository(this.client.db),
-      solutions: new SolutionCandidateRepository(this.client.db),
-      digests: new SharedDigestRepository(this.client.db),
-      imports: new ArtifactImportRepository(this.client.db),
-    }
-  }
+  private teamStores() { return this.teamResearchCoordinator.stores() }
 
-  getTeam(id: string): MultiAgentResearchSession {
-    const session = this.teamStores().sessions.get(id.toUpperCase())
-    if (!session) throw new Error(`Team session ${id} was not found.`)
-    return session
-  }
-
-  listTeamSessions() {
-    return this.teamStores().sessions.ids(this.requireWorkspace().id).map((id) => this.getTeam(id))
-  }
-
-  teamAgents(sessionId: string) {
-    return this.teamStores().agents.list(this.getTeam(sessionId).id)
-  }
-
-  teamSolutions(sessionId: string) {
-    return this.teamStores().solutions.list(this.getTeam(sessionId).id)
-  }
-
-  teamHistory(sessionId: string) {
-    return this.teamStores().rounds.list(this.getTeam(sessionId).id)
-  }
-
-  teamDigest(sessionId: string, round?: number) {
-    const session = this.getTeam(sessionId)
-    return this.teamStores().digests.get(session.id, round ?? session.currentRound)
-  }
-
-  async startTeam(input: { planners?: ResearchPlanner[]; limits?: Partial<MultiAgentBudget>; workerLimits?: Array<Partial<import("@mathos/domain").ResearchBudget>>; executionMode?: MultiAgentExecutionMode; maxParallelWorkers?: number } = {}): Promise<MultiAgentResearchSession> {
-    const workspace = this.requireWorkspace()
-    const source = this.requireCurrentBranch()
-    const mode = input.executionMode ?? "SEQUENTIAL"
-    if (mode !== "SEQUENTIAL" && mode !== "BOUNDED_PARALLEL") throw new Error("INVALID_EXECUTION_MODE")
-    const parallel = input.maxParallelWorkers ?? DEFAULT_MAX_PARALLEL_WORKERS
-    if (!Number.isInteger(parallel) || parallel < 1 || parallel > HARD_MAX_PARALLEL_WORKERS) throw new Error("INVALID_PARALLEL_WORKERS")
-    const objectiveId = workspace.mainObjectiveId
-    if (!objectiveId) throw new Error("Team research requires an objective claim.")
-    const stores = this.teamStores()
-    const timestamp = nowIso()
-    const sessionId = nextPrefixedId(stores.sessions.ids(workspace.id), "MR")
-    const planner = this.multiAgentPlanner ?? new FakeMultiAgentPlanner()
-    let plan = await planner.planAssignments(objectiveId)
-    const diversity = assignmentDiversity(plan)
-    if (!diversity.ok) plan = { ...fallbackAssignmentPlan(objectiveId), warning: "LOW_ASSIGNMENT_DIVERSITY" }
-    const created: ResearchAgentWorker[] = []
-    try {
-      for (const assignment of plan.assignments.slice(0, input.limits?.maxAgents ?? DEFAULT_MULTI_AGENT_BUDGET.maxAgents)) {
-        this.switchBranch(source.id)
-        const agentId = nextPrefixedId(stores.agents.ids(), "A")
-        const branch = await this.createBranch(`${sessionId.toLowerCase()}-${assignment.approach.toLowerCase()}`, assignment.goalSummary)
-        this.switchBranch(branch.id)
-        const local = this.cloneObjectiveForWorker(objectiveId, agentId)
-        const localLimits = input.workerLimits?.[created.length] ?? {}
-        const run = this.startResearch({
-          objectiveClaimId: local.id,
-          limits: { maxSteps: localLimits.maxSteps ?? 8, maxProofAttempts: localLimits.maxProofAttempts ?? 4, maxModelCalls: localLimits.maxModelCalls ?? 10, maxLeanCalls: localLimits.maxLeanCalls ?? 6 },
-        })
-        const workerPlanner = input.planners?.[created.length]
-        if (workerPlanner) this.registerRunPlanner(run.id, workerPlanner)
-        const note = join(branch.worktreePath ?? join(this.root, "research"), `${agentId}.lean`)
-        mkdirSync(join(note, ".."), { recursive: true })
-        writeFileSync(note, `-- ${agentId} ${assignment.role}\ntheorem ${agentId.replace("-", "").toLowerCase()}_note : True := trivial\n`, "utf8")
-        const worker: ResearchAgentWorker = {
-          id: agentId,
-          sessionId,
-          role: assignment.role,
-          branchId: branch.id,
-          researchRunId: run.id,
-          localClaimId: local.id,
-          status: "READY",
-          assignment: {
-            objectiveClaimId: objectiveId,
-            targetClaimId: local.id,
-            role: assignment.role,
-            goalSummary: assignment.goalSummary,
-            approach: assignment.approach,
-            sourceArtifactIds: [objectiveId],
-          },
-          createdAt: timestamp,
-        }
-        stores.agents.insert(worker)
-        created.push(worker)
-        this.record("agent_created", { target: agentId, metadata: { sessionId, agentId, branchId: branch.id } })
-      }
-    } catch (error) {
-      for (const worker of created) {
-        try { this.abandonBranch(worker.branchId) } catch { /* ignore */ }
-      }
-      throw error
-    }
-    this.switchBranch(source.id)
-    const session: MultiAgentResearchSession = {
-      id: sessionId,
-      workspaceId: workspace.id,
-      sourceBranchId: source.id,
-      sourceRevision: null,
-      objectiveClaimId: objectiveId,
-      status: "READY",
-      strategy: "DIVERSE_BRANCHES",
-      limits: { ...DEFAULT_MULTI_AGENT_BUDGET, ...input.limits, maxAgents: Math.min(5, input.limits?.maxAgents ?? DEFAULT_MULTI_AGENT_BUDGET.maxAgents) },
-      usage: { rounds: 0, steps: 0, modelCalls: 0, leanCalls: 0, proofAttempts: 0 },
-      currentRound: 0,
-      sourceStale: false,
-      executionMode: mode,
-      maxParallelWorkers: parallel,
-      createdAt: timestamp,
-      startedAt: null,
-      stoppedAt: null,
-      stopReason: null,
-    }
-    stores.sessions.insert(session)
-    this.record("multi_agent_session_created", { target: session.id, metadata: { sessionId: session.id, branchId: source.id } })
-    return session
-  }
-
-  private async executeAgentRoundStep(session: MultiAgentResearchSession, sequence: number, agent: ResearchAgentWorker) {
-    const stores = this.teamStores()
-    const before = this.getResearch(agent.researchRunId)
-    const active = this.client.db.query<{ lease_id: string }, [string]>("SELECT lease_id FROM execution_leases WHERE run_id = ? AND status IN ('RESERVED','RUNNING')").get(agent.researchRunId)
-    if (active) throw new Error("WORKER_ALREADY_EXECUTING")
-    const leaseId = createId("lease")
-    this.client.db.query(
-      "INSERT INTO execution_leases (lease_id, session_id, agent_id, run_id, branch_id, round_sequence, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    ).run(leaseId, session.id, agent.id, agent.researchRunId, agent.branchId, sequence, "RUNNING", nowIso())
-    this.liveLeases += 1
-    this.peakConcurrency = Math.max(this.peakConcurrency, this.liveLeases)
-    const start = Date.now()
-    this.record("agent_round_step_started", { target: agent.id, metadata: { sessionId: session.id, agentId: agent.id, branchId: agent.branchId } })
-    if (this.teamCrashAfterAgent === agent.id) throw new Error("crash")
-    if (this.teamCrashTwoRunning) {
-      const n = this.client.db.query<{ n: number }, [string]>("SELECT COUNT(*) as n FROM execution_leases WHERE session_id = ? AND status = 'RUNNING'").get(session.id)
-      if (n && n.n >= 2) throw new Error("crash")
-    }
-    const ac = new AbortController()
-    const timer = setTimeout(() => ac.abort(), this.maxStepWallClockMs)
-    try {
-      const after = await this.researchEngine.withAbortSignal(ac.signal, async () => {
-        let done = false
-        try {
-          return await Promise.race([
-            this.stepResearch(agent.researchRunId).finally(() => { done = true }),
-            new Promise<never>((_, reject) => {
-              ac.signal.addEventListener("abort", () => { if (!done) reject(new Error("STEP_TIMEOUT")) })
-            }),
-          ])
-        } finally {
-          done = true
-        }
-      })
-      this.client.db.query("INSERT OR IGNORE INTO agent_round_progress (session_id, sequence, agent_id) VALUES (?, ?, ?)").run(session.id, sequence, agent.id)
-      const fresh = this.getTeam(session.id)
-      fresh.usage.steps += Math.max(0, after.usage.steps - before.usage.steps)
-      stores.sessions.update(fresh)
-      agent.status = after.status === "BLOCKED" || after.status === "FAILED" ? "BLOCKED" : "RUNNING"
-      if (after.stopReason === "BLOCKED_NEEDS_HUMAN" || after.stopReason === "STEP_TIMEOUT") agent.status = "BLOCKED"
-      stores.agents.update(agent)
-      this.record("agent_round_step_completed", { target: agent.id, metadata: { sessionId: session.id, agentId: agent.id, branchId: agent.branchId } })
-      const local = this.getClaim(agent.localClaimId)
-      if (local.status === "KERNEL_VERIFIED" && !stores.solutions.list(session.id).some((item) => item.agentId === agent.id)) {
-        if (this.teamCrashAt === "before_sc") throw new Error("crash")
-        try {
-          stores.solutions.insert({
-            id: this.allocateId("SC"),
-            sessionId: session.id,
-            agentId: agent.id,
-            branchId: agent.branchId,
-            claimId: local.id,
-            verificationRunId: this.verificationRuns.latestForFormal(this.formalStatements.currentForClaim(local.id)?.id ?? "")?.id ?? null,
-            formalRevision: this.formalStatements.currentForClaim(local.id)?.id ?? null,
-            discoveredAt: nowIso(),
-          })
-        } catch { /* unique */ }
-        if (this.teamCrashAt === "after_sc") throw new Error("crash")
-        this.record("solution_candidate_found", { target: agent.id, metadata: { sessionId: session.id, agentId: agent.id, branchId: agent.branchId } })
-      }
-      if (this.teamCrashBoundary === "after_step") throw new Error("crash")
-    } catch (error) {
-      if (error instanceof Error && error.message === "STEP_TIMEOUT") {
-        this.stopRun(this.getResearch(agent.researchRunId), "STEP_TIMEOUT")
-        agent.status = "BLOCKED"
-        stores.agents.update(agent)
-      } else {
-        throw error
-      }
-    } finally {
-      clearTimeout(timer)
-      this.liveLeases = Math.max(0, this.liveLeases - 1)
-      this.parallelTimings.push({ agentId: agent.id, start, end: Date.now() })
-      this.client.db.query("UPDATE execution_leases SET status = 'RELEASED' WHERE lease_id = ?").run(leaseId)
-    }
-  }
-
-  private cloneObjectiveForWorker(sourceId: string, agentId: string) {
-    const source = this.getClaim(sourceId)
-    const formal = this.formalStatements.currentForClaim(source.id)
-    const clone = this.createClaim({
-      kind: source.kind === "theorem" ? "conjecture" : source.kind,
-      title: `${source.title} · ${agentId}`,
-      statement: source.naturalStatement,
-    })
-    if (formal) {
-      const declarationName = `${formal.declarationName}_${agentId.replaceAll("-", "").toLowerCase()}`
-      this.formalStatements.markOthersNotCurrent(clone.id)
-      this.formalStatements.insert({
-        ...formal,
-        id: nextSequentialId(this.formalStatements.ids(this.requireWorkspace().id), "FS"),
-        claimId: clone.id,
-        declarationName,
-        sourceText: formal.sourceText.replace(formal.declarationName, declarationName),
-        isCurrent: true,
-        fidelityStatus: formal.fidelityStatus === "REJECTED" ? "AI_REVIEWED" : formal.fidelityStatus,
-      })
-    }
-    return clone
-  }
-
-  pauseTeam(id: string) {
-    const session = this.getTeam(id)
-    this.teamPauseRequested.add(session.id)
-    const busy = this.client.db.query<{ n: number }, [string]>("SELECT COUNT(*) as n FROM execution_leases WHERE session_id = ? AND status IN ('RESERVED','RUNNING')").get(session.id)
-    if (busy && busy.n > 0) return session
-    session.status = "PAUSED"
-    session.stopReason = "USER_PAUSED"
-    session.stoppedAt = nowIso()
-    this.teamStores().sessions.update(session)
-    this.record("multi_agent_session_paused", { target: session.id, metadata: { sessionId: session.id } })
-    return session
-  }
-
-  resumeTeam(id: string) {
-    const session = this.getTeam(id)
-    for (const round of this.teamStores().rounds.list(session.id).filter((item) => item.status === "RUNNING")) {
-      round.status = "INTERRUPTED"
-      round.finishedAt = nowIso()
-      this.teamStores().rounds.update(round)
-    }
-    this.client.db.query("UPDATE execution_leases SET status = 'INTERRUPTED' WHERE session_id = ? AND status IN ('RESERVED','RUNNING')").run(session.id)
-    this.teamPauseRequested.delete(session.id)
-    session.status = "READY"
-    session.stopReason = null
-    session.stoppedAt = null
-    this.teamStores().sessions.update(session)
-    this.record("multi_agent_session_resumed", { target: session.id, metadata: { sessionId: session.id } })
-    return session
-  }
-
-  cancelTeam(id: string) {
-    const session = this.getTeam(id)
-    this.teamCancelRequested.add(session.id)
-    const busy = this.client.db.query<{ n: number }, [string]>("SELECT COUNT(*) as n FROM execution_leases WHERE session_id = ? AND status IN ('RESERVED','RUNNING')").get(session.id)
-    if (busy && busy.n > 0) return session
-    session.status = "CANCELLED"
-    session.stopReason = "USER_CANCELLED"
-    session.stoppedAt = nowIso()
-    this.teamStores().sessions.update(session)
-    return session
-  }
-
-  async stepTeam(id: string): Promise<MultiAgentResearchSession> {
-    const stores = this.teamStores()
-    let session = this.getTeam(id)
-    if (["SOLUTION_FOUND", "COMPLETED", "CANCELLED", "FAILED"].includes(session.status)) return session
-    if (session.usage.rounds >= session.limits.maxRounds) return this.stopTeam(session, "MAX_ROUNDS")
-    if (session.usage.leanCalls >= session.limits.maxTotalLeanCalls || session.usage.modelCalls >= session.limits.maxTotalModelCalls || session.usage.steps >= session.limits.maxTotalSteps) {
-      return this.stopTeam(session, "GLOBAL_BUDGET_EXHAUSTED")
-    }
-    const sequence = session.currentRound + 1
-    const existing = stores.rounds.getByKey(session.id, sequence)
-    if (existing && existing.status === "COMPLETED") return session
-    const round = existing ?? { id: nextRoundId(session.id, sequence), sessionId: session.id, sequence, status: "RUNNING" as const, startedAt: nowIso(), finishedAt: null }
-    if (!existing) stores.rounds.insert(round)
-    else {
-      round.status = "RUNNING"
-      stores.rounds.update(round)
-    }
-    this.record("multi_agent_round_started", { target: round.id, metadata: { sessionId: session.id } })
-    const source = this.requireCurrentBranch()
-    const agents = stores.agents.list(session.id)
-    const eligible: ResearchAgentWorker[] = []
-    const localStop = ["LOCAL_LEAN_BUDGET_EXHAUSTED", "LOCAL_MODEL_BUDGET_EXHAUSTED", "LOCAL_PROOF_BUDGET_EXHAUSTED", "LEAN_CALL_BUDGET_EXHAUSTED", "MODEL_CALL_BUDGET_EXHAUSTED", "PROOF_ATTEMPT_BUDGET_EXHAUSTED"]
-    for (const agent of agents) {
-      if (!["READY", "RUNNING"].includes(agent.status)) continue
-      const before = this.getResearch(agent.researchRunId)
-      if (before.status === "COMPLETED" || before.stopReason === "OBJECTIVE_KERNEL_VERIFIED") continue
-      if (before.status === "BLOCKED" || localStop.includes(before.stopReason ?? "")) {
-        agent.status = "BLOCKED"
-        stores.agents.update(agent)
-        continue
-      }
-      const done = this.client.db.query<{ agent_id: string }, [string, number, string]>("SELECT agent_id FROM agent_round_progress WHERE session_id = ? AND sequence = ? AND agent_id = ?").get(session.id, sequence, agent.id)
-      if (done) continue
-      eligible.push(agent)
-    }
-    this.frozenDigestBySession.set(session.id, stores.digests.get(session.id, session.currentRound))
-    this.client.db.query("INSERT OR REPLACE INTO round_plans (session_id, sequence, plan_json) VALUES (?, ?, ?)").run(session.id, sequence, JSON.stringify({
-      sessionId: session.id,
-      roundSequence: sequence,
-      workers: eligible.map((agent, plannedIndex) => ({ agentId: agent.id, runId: agent.researchRunId, branchId: agent.branchId, plannedIndex })),
-      executionMode: session.executionMode,
-      maxParallelWorkers: session.maxParallelWorkers,
-    }))
-    try {
-      const runOne = async (agent: ResearchAgentWorker) => this.executeAgentRoundStep(session, sequence, agent)
-      if (session.executionMode === "BOUNDED_PARALLEL") {
-        const width = Math.min(session.maxParallelWorkers || DEFAULT_MAX_PARALLEL_WORKERS, HARD_MAX_PARALLEL_WORKERS)
-        for (let i = 0; i < eligible.length; i += width) {
-          if (this.teamPauseRequested.has(session.id) || this.teamCancelRequested.has(session.id)) break
-          await Promise.all(eligible.slice(i, i + width).map((agent) => runOne(agent)))
-        }
-      } else {
-        for (const agent of eligible) {
-          if (this.teamPauseRequested.has(session.id) || this.teamCancelRequested.has(session.id)) break
-          await runOne(agent)
-        }
-      }
-    } catch (error) {
-      if (error instanceof Error && error.message === "crash") {
-        round.status = "INTERRUPTED"
-        stores.rounds.update(round)
-        this.client.db.query("UPDATE execution_leases SET status = 'INTERRUPTED' WHERE session_id = ? AND status IN ('RESERVED','RUNNING')").run(session.id)
-        throw error
-      }
-      round.status = "FAILED"
-      stores.rounds.update(round)
-      return this.stopTeam(session, "FATAL_EXECUTION_ERROR")
-    } finally {
-      if (source.id !== this.requireCurrentBranch().id) this.switchBranch(source.id)
-    }
-    session = this.getTeam(session.id)
-    round.status = "COMPLETED"
-    round.finishedAt = nowIso()
-    stores.rounds.update(round)
-    session.currentRound = sequence
-    session.usage.rounds = sequence
-    session.status = "RUNNING"
-    session.startedAt = session.startedAt ?? nowIso()
-    const digest = this.buildDigest(session, agents)
-    stores.digests.upsert(digest)
-    this.record("shared_digest_updated", { target: session.id, metadata: { sessionId: session.id } })
-    const solutions = stores.solutions.list(session.id)
-    const live = stores.agents.list(session.id)
-    if (this.teamPauseRequested.has(session.id)) return this.pauseTeam(session.id)
-    if (this.teamCancelRequested.has(session.id)) return this.cancelTeam(session.id)
-    if (solutions.length) {
-      if (this.teamCrashAt === "before_solution_found") throw new Error("crash")
-      const stopped = this.stopTeam(session, "SOLUTION_FOUND", "SOLUTION_FOUND")
-      if (this.teamCrashAt === "after_solution_found") throw new Error("crash")
-      return stopped
-    }
-    if (live.every((agent) => agent.status === "BLOCKED" || agent.status === "FAILED")) return this.stopTeam(session, "ALL_AGENTS_BLOCKED")
-    stores.sessions.update(session)
-    return session
-  }
-
-  async runTeam(id: string): Promise<MultiAgentResearchSession> {
-    this.record("multi_agent_session_started", { target: id, metadata: { sessionId: id } })
-    let session = this.getTeam(id)
-    session.status = "RUNNING"
-    session.startedAt = session.startedAt ?? nowIso()
-    this.teamStores().sessions.update(session)
-    while (!["SOLUTION_FOUND", "COMPLETED", "CANCELLED", "FAILED", "BLOCKED", "PAUSED"].includes(this.getTeam(id).status)) {
-      session = await this.stepTeam(id)
-      if (["SOLUTION_FOUND", "BLOCKED", "FAILED", "CANCELLED", "COMPLETED"].includes(session.status)) break
-      if (session.currentRound >= session.limits.maxRounds) return this.stopTeam(session, "MAX_ROUNDS")
-    }
-    return this.getTeam(id)
-  }
-
-  teamMergePreview(sessionId: string, agentId: string) {
-    const agent = this.teamStores().agents.get(agentId.toUpperCase())
-    if (!agent || agent.sessionId !== this.getTeam(sessionId).id) throw new Error(`Agent ${agentId} was not found.`)
-    const run = this.getResearch(agent.researchRunId)
-    if (run.status === "RUNNING") throw new Error(`ACTIVE_RESEARCH_RUN_EXISTS:${run.id}`)
-    return this.previewMerge(agent.branchId)
-  }
-
-  private stopTeam(session: MultiAgentResearchSession, reason: import("@mathos/domain").MultiAgentStopReason, status: MultiAgentResearchSession["status"] = "BLOCKED"): MultiAgentResearchSession {
-    session.status = reason === "SOLUTION_FOUND" ? "SOLUTION_FOUND" : status
-    session.stopReason = reason
-    session.stoppedAt = nowIso()
-    this.teamStores().sessions.update(session)
-    this.record(reason === "SOLUTION_FOUND" ? "multi_agent_solution_found" : "multi_agent_session_blocked", { target: session.id, metadata: { sessionId: session.id, reason } })
-    return session
-  }
-
-  private buildDigest(session: MultiAgentResearchSession, agents: ResearchAgentWorker[]): SharedResearchDigest {
-    const verified: SharedResearchDigest["verifiedFindings"] = []
-    const unverified: SharedResearchDigest["unverifiedFindings"] = []
-    const approachesTried: SharedResearchDigest["approachesTried"] = []
-    const failedApproaches: SharedResearchDigest["failedApproaches"] = []
-    for (const agent of agents) {
-      const claim = this.getClaim(agent.localClaimId)
-      if (claim.status === "KERNEL_VERIFIED") verified.push({ claimId: claim.id, branchId: agent.branchId, title: claim.title })
-      else unverified.push({ claimId: claim.id, branchId: agent.branchId, status: claim.status })
-      approachesTried.push({ agentId: agent.id, approach: agent.assignment.approach, summary: agent.assignment.goalSummary })
-      const last = this.researchHistory(agent.researchRunId).at(-1)
-      if (last?.status === "FAILED") failedApproaches.push({ agentId: agent.id, approach: agent.assignment.approach, summary: last.summary ?? last.action })
-    }
-    return {
-      sessionId: session.id,
-      round: session.currentRound,
-      verifiedFindings: verified,
-      unverifiedFindings: unverified,
-      openBlockers: this.researchStores().blockers.open(session.sourceBranchId).map((item) => ({ id: item.id, summary: item.summary })),
-      approachesTried,
-      failedApproaches,
-      solutionCandidates: this.teamStores().solutions.list(session.id).map((item) => ({ id: item.id, agentId: item.agentId, claimId: item.claimId })),
-    }
-  }
-
-  teamOverview(sessionId: string) {
-    const session = this.getTeam(sessionId)
-    const agents = this.teamAgents(session.id)
-    return {
-      session,
-      agents: agents.map((agent) => {
-        const run = this.getResearch(agent.researchRunId)
-        const local = this.getClaim(agent.localClaimId)
-        return { agent, run, localStatus: local.status, verified: local.status === "KERNEL_VERIFIED", recentSteps: this.researchHistory(agent.researchRunId).slice(-5) }
-      }),
-      imports: this.teamStores().imports.list(session.id),
-      solutions: this.teamSolutions(session.id),
-      digest: this.teamDigest(session.id),
-    }
-  }
-
-  teamImports(sessionId: string) {
-    return this.teamStores().imports.list(this.getTeam(sessionId).id)
-  }
-
-  getImport(id: string) {
-    const row = this.teamStores().imports.get(id.toUpperCase())
-    if (!row) throw new Error(`Import ${id} was not found.`)
-    return row
-  }
-
-  previewImport(id: string): import("@mathos/domain").ImportPreview {
-    const item = this.getImport(id)
-    const deps = this.dependencyClosure(item.sourceClaimId)
-    return {
-      importId: item.id,
-      sourceAgentId: item.sourceAgentId,
-      sourceBranchId: item.sourceBranchId,
-      targetAgentId: item.targetAgentId,
-      targetBranchId: item.targetBranchId,
-      requestedClaimId: item.sourceClaimId,
-      requiredDependencies: deps,
-      files: 1 + deps.length,
-      allVerified: [item.sourceClaimId, ...deps].every((claimId) => this.getClaim(claimId).status === "KERNEL_VERIFIED"),
-      conflicts: this.declarationConflicts(item.targetBranchId, item.sourceClaimId),
-    }
-  }
-
-  proposeImport(sessionId: string, sourceAgentId: string, targetAgentId: string, sourceClaimId: string) {
-    const session = this.getTeam(sessionId)
-    const sourceAgent = this.teamStores().agents.get(sourceAgentId.toUpperCase())
-    const targetAgent = this.teamStores().agents.get(targetAgentId.toUpperCase())
-    if (!sourceAgent || !targetAgent || sourceAgent.sessionId !== session.id || targetAgent.sessionId !== session.id) throw new Error("Agent not in session")
-    const claim = this.getClaim(sourceClaimId)
-    const formal = this.formalStatements.currentForClaim(claim.id)
-    const item: import("@mathos/domain").VerifiedArtifactImport = {
-      id: nextPrefixedId(this.teamStores().imports.ids(), "IMP"),
-      sessionId: session.id,
-      sourceAgentId: sourceAgent.id,
-      sourceBranchId: sourceAgent.branchId,
-      targetAgentId: targetAgent.id,
-      targetBranchId: targetAgent.branchId,
-      sourceClaimId: claim.id,
-      targetClaimId: null,
-      sourceVerificationRunId: formal ? this.verificationRuns.latestForFormal(formal.id)?.id ?? null : null,
-      sourceFormalRevision: formal?.id ?? "missing",
-      status: "PROPOSED",
-      failureCode: null,
-      createdAt: nowIso(),
-      approvedAt: null,
-      appliedAt: null,
-    }
-    this.teamStores().imports.insert(item)
-    for (const dep of this.dependencyClosure(claim.id)) this.teamStores().imports.addDependency(item.id, dep)
-    this.record("artifact_import_proposed", { target: item.id, metadata: { sessionId: session.id, agentId: sourceAgent.id, branchId: sourceAgent.branchId } })
-    return item
-  }
-
-  rejectImport(id: string) {
-    const item = this.getImport(id)
-    item.status = "REJECTED"
-    this.teamStores().imports.update(item)
-    this.record("artifact_import_rejected", { target: item.id, metadata: { sessionId: item.sessionId } })
-    return item
-  }
-
-  async applyImport(id: string) {
-    const item = this.getImport(id)
-    if (item.status === "APPLIED") return item
-    const busy = this.client.db.query<{ n: number }, [string]>("SELECT COUNT(*) as n FROM execution_leases WHERE agent_id = ? AND status IN ('RESERVED','RUNNING')").get(item.targetAgentId)
-    if (busy && busy.n > 0) throw new Error("TARGET_WORKER_BUSY")
-    const source = this.getClaim(item.sourceClaimId)
-    if (source.status !== "KERNEL_VERIFIED") {
-      item.status = "FAILED"
-      item.failureCode = "SOURCE_NOT_KERNEL_VERIFIED"
-      this.teamStores().imports.update(item)
-      this.record("artifact_import_failed", { target: item.id, metadata: { sessionId: item.sessionId, code: item.failureCode } })
-      return item
-    }
-    const formal = this.formalStatements.currentForClaim(source.id)
-    if (!formal || formal.id !== item.sourceFormalRevision) {
-      item.status = "REVERIFY_REQUIRED"
-      item.failureCode = "REVERIFY_REQUIRED"
-      this.teamStores().imports.update(item)
-      this.record("artifact_import_failed", { target: item.id, metadata: { sessionId: item.sessionId, code: "REVERIFY_REQUIRED" } })
-      return item
-    }
-    let deps: string[]
-    try {
-      deps = this.dependencyClosure(source.id)
-    } catch (error) {
-      if (error instanceof Error && error.message === "IMPORT_DEPENDENCY_CYCLE") {
-        item.status = "FAILED"
-        item.failureCode = "IMPORT_DEPENDENCY_CYCLE"
-        this.teamStores().imports.update(item)
-        return item
-      }
-      throw error
-    }
-    if (deps.some((dep) => this.getClaim(dep).status !== "KERNEL_VERIFIED")) {
-      item.status = "FAILED"
-      item.failureCode = "DEPENDENCY_IMPORT_REQUIRED"
-      this.teamStores().imports.update(item)
-      return item
-    }
-    const conflicts = this.declarationConflicts(item.targetBranchId, source.id)
-    if (conflicts.length) {
-      item.status = "CONFLICT"
-      item.failureCode = "DECLARATION_CONFLICT"
-      this.teamStores().imports.update(item)
-      this.record("artifact_import_conflict", { target: item.id, metadata: { sessionId: item.sessionId } })
-      return item
-    }
-    item.status = "APPLYING"
-    item.approvedAt = nowIso()
-    this.teamStores().imports.update(item)
-    this.record("artifact_import_started", { target: item.id, metadata: { sessionId: item.sessionId } })
-    const previous = this.requireCurrentBranch()
-    try {
-      this.switchBranch(item.targetBranchId)
-      const clone = this.createClaim({ kind: "conjecture", title: `${source.title} (imported)`, statement: source.naturalStatement })
-      this.claims.updateStatus(clone.id, "FORMALIZED_UNVERIFIED", nowIso())
-      const declarationName = formal.declarationName
-      this.formalStatements.insert({
-        ...formal,
-        id: nextSequentialId(this.formalStatements.ids(this.requireWorkspace().id), "FS"),
-        claimId: clone.id,
-        declarationName,
-        isCurrent: true,
-        fidelityStatus: "HUMAN_APPROVED",
-        verificationStatus: "ELABORATES",
-      })
-      const proof = this.proofs.latestAccepted(source.id)
-      if (proof) {
-        this.storeAttempt(this.requireWorkspace().id, clone.id, this.formalStatements.currentForClaim(clone.id)!.id, 1, proof.proofSource, "KERNEL_ACCEPTED", proof.leanVersion, [])
-      }
-      const targetFormal = this.formalStatements.currentForClaim(clone.id)!
-      const worktree = this.getBranch(item.targetBranchId).worktreePath
-      if (worktree) writeFileSync(join(worktree, `${clone.id}.lean`), `${targetFormal.sourceText}\n`, "utf8")
-      this.record("artifact_import_reverify_started", { target: item.id, metadata: { sessionId: item.sessionId } })
-      const report = await this.verify(clone.id)
-      if (!report.passed) {
-        item.status = "FAILED"
-        item.failureCode = "TARGET_VERIFICATION_FAILED"
-        item.targetClaimId = clone.id
-        this.teamStores().imports.update(item)
-        this.record("artifact_import_failed", { target: item.id, metadata: { sessionId: item.sessionId, code: item.failureCode } })
-        return item
-      }
-      item.status = "APPLIED"
-      item.targetClaimId = clone.id
-      item.appliedAt = nowIso()
-      this.teamStores().imports.update(item)
-      this.record("artifact_import_applied", { target: item.id, metadata: { sessionId: item.sessionId, agentId: item.targetAgentId, branchId: item.targetBranchId } })
-      return item
-    } finally {
-      if (previous.id !== this.requireCurrentBranch().id) this.switchBranch(previous.id)
-    }
-  }
-
-  private dependencyClosure(claimId: string): string[] {
-    const seen = new Set<string>()
-    const stack = new Set<string>()
-    const walk = (id: string) => {
-      if (stack.has(id)) throw new Error("IMPORT_DEPENDENCY_CYCLE")
-      stack.add(id)
-      for (const dep of this.dependencies.listForClaim(this.requireWorkspace().id, id)) {
-        if (dep.fromClaimId !== id) continue
-        if (seen.has(dep.toClaimId)) continue
-        seen.add(dep.toClaimId)
-        walk(dep.toClaimId)
-      }
-      stack.delete(id)
-    }
-    walk(claimId)
-    return [...seen]
-  }
-
-  private declarationConflicts(targetBranchId: string, sourceClaimId: string): string[] {
-    const sourceFormal = this.formalStatements.currentForClaim(sourceClaimId)
-    if (!sourceFormal) return []
-    const conflicts: string[] = []
-    for (const claim of this.claims.listVisible(targetBranchId)) {
-      const formal = this.formalStatements.currentForClaim(claim.id)
-      if (!formal) continue
-      if (formal.declarationName === sourceFormal.declarationName && formal.sourceText !== sourceFormal.sourceText) conflicts.push(formal.declarationName)
-    }
-    return conflicts
-  }
+  getTeam(id: string): MultiAgentResearchSession { return this.teamResearchCoordinator.getTeam(id) }
+  listTeamSessions() { return this.teamResearchCoordinator.listTeamSessions() }
+  teamAgents(sessionId: string) { return this.teamResearchCoordinator.teamAgents(sessionId) }
+  teamSolutions(sessionId: string) { return this.teamResearchCoordinator.teamSolutions(sessionId) }
+  teamHistory(sessionId: string) { return this.teamResearchCoordinator.teamHistory(sessionId) }
+  teamDigest(sessionId: string, round?: number) { return this.teamResearchCoordinator.teamDigest(sessionId, round) }
+  startTeam(input: { planners?: ResearchPlanner[]; limits?: Partial<MultiAgentBudget>; workerLimits?: Array<Partial<import("@mathos/domain").ResearchBudget>>; executionMode?: MultiAgentExecutionMode; maxParallelWorkers?: number } = {}) { return this.teamResearchCoordinator.startTeam(input) }
+  pauseTeam(id: string) { return this.teamResearchCoordinator.pauseTeam(id) }
+  resumeTeam(id: string) { return this.teamResearchCoordinator.resumeTeam(id) }
+  cancelTeam(id: string) { return this.teamResearchCoordinator.cancelTeam(id) }
+  stepTeam(id: string) { return this.teamResearchCoordinator.stepTeam(id) }
+  runTeam(id: string) { return this.teamResearchCoordinator.runTeam(id) }
+  teamMergePreview(sessionId: string, agentId: string) { return this.teamResearchCoordinator.teamMergePreview(sessionId, agentId) }
+  teamOverview(sessionId: string) { return this.teamResearchCoordinator.teamOverview(sessionId) }
+  teamImports(sessionId: string) { return this.teamResearchCoordinator.teamImports(sessionId) }
+  getImport(id: string) { return this.teamResearchCoordinator.getImport(id) }
+  previewImport(id: string) { return this.teamResearchCoordinator.previewImport(id) }
+  proposeImport(sessionId: string, sourceAgentId: string, targetAgentId: string, sourceClaimId: string) { return this.teamResearchCoordinator.proposeImport(sessionId, sourceAgentId, targetAgentId, sourceClaimId) }
+  rejectImport(id: string) { return this.teamResearchCoordinator.rejectImport(id) }
+  applyImport(id: string) { return this.teamResearchCoordinator.applyImport(id) }
 
   graphSnapshot(): ResearchGraphSnapshot {
     const workspace = this.requireWorkspace()
