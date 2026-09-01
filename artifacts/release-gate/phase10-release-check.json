@@ -1,17 +1,17 @@
 {
   "version": "0.1.0-alpha.1",
-  "gitRevision": "7919740b200c34d2fc78f404072a4ff493e7936f",
+  "gitRevision": "6d58981395f33bad3a1bd4afe65023fc827cd3c7",
   "checks": [
     {
       "name": "version",
       "status": "PASS",
-      "durationMs": 103,
+      "durationMs": 109,
       "command": [
         "bun",
         "apps/tui/src/cli.ts",
         "--version"
       ],
-      "evidence": "MathOS 0.1.0-alpha.1 commit 7919740 schema 20",
+      "evidence": "MathOS 0.1.0-alpha.1 commit 6d58981 schema 20",
       "exitCode": 0,
       "timedOut": false
     },
@@ -31,7 +31,7 @@
     {
       "name": "unit-integration-tests",
       "status": "PASS",
-      "durationMs": 7035,
+      "durationMs": 7858,
       "command": [
         "bun",
         "test",
@@ -51,6 +51,7 @@
         "tests/multi-agent-quality-benchmark.test.ts",
         "tests/multi-agent-quality.test.ts",
         "tests/multi-agent.test.ts",
+        "tests/pilot-validation.test.ts",
         "tests/portability.test.ts",
         "tests/product-ux.test.ts",
         "tests/proof.test.ts",
@@ -74,54 +75,39 @@
         "tests/tui-smoke.test.tsx",
         "tests/vcs.test.ts"
       ],
-      "evidence": "(pass) multi-agent orchestration > all agents blocked [45.59ms]\n(pass) multi-agent orchestration > global lean budget [46.47ms]\n(pass) multi-agent orchestration > multiple solutions do not verify MAIN [62.82ms]\n(pass) multi-agent orchestration > crash recovery does not duplicate first agent [39.07ms]\n(pass) multi-agent orchestration > worker files isolated from MAIN [29.23ms]\n1 tests skipped:\n(skip) dual real Lean worktrees > MAIN and B-001 both check independently\n276 pass\n1 skip\n0 fail\n1284 expect() calls\nRan 277 tests across 38 files. [7.03s]",
+      "evidence": "(pass) multi-agent orchestration > crash recovery does not duplicate first agent [40.96ms]\n(pass) multi-agent orchestration > worker files isolated from MAIN [27.97ms]\ntests/pilot-validation.test.ts:\n(pass) fresh-user pilot validation > redacts credential-shaped values [0.17ms]\n(pass) fresh-user pilot validation > uses a fresh workspace and records honest capability blocks [600.20ms]\n1 tests skipped:\n(skip) dual real Lean worktrees > MAIN and B-001 both check independently\n278 pass\n1 skip\n0 fail\n1291 expect() calls\nRan 279 tests across 39 files. [7.85s]",
       "exitCode": 0,
       "timedOut": false
     },
     {
       "name": "verification-trust-tests",
       "status": "PASS",
-      "durationMs": 161,
+      "durationMs": 160,
       "command": [
         "bun",
         "test",
         "tests/verification-trust.test.ts"
       ],
-      "evidence": "(pass) VerificationGate trust matrix > accepts immutable toolchain v4.33.1\n(pass) VerificationGate trust matrix > accepts immutable toolchain v4.34.0-rc1\n(pass) VerificationGate trust matrix > accepts immutable toolchain v4.34.0-rc.1\n(pass) VerificationGate trust matrix > accepts immutable toolchain leanprover/lean4:0123456789abcdef\n(pass) VerificationGate trust matrix > accepts immutable toolchain 0123456789abcdef\n(pass) KERNEL_VERIFIED assignment authority > production writes are confined to VerificationGate, VerificationService, and the guarded storage sink [16.25ms]\n(pass) ClaimRepository trust boundary > rejects repository and raw SQL bypasses and downgrades unbacked legacy rows [25.48ms]\n(pass) public claim creation trust boundary > cannot create a KERNEL_VERIFIED claim directly [14.94ms]\n25 pass\n0 fail\n51 expect() calls\nRan 25 tests across 1 file. [156.00ms]",
+      "evidence": "(pass) VerificationGate trust matrix > accepts immutable toolchain v4.33.1\n(pass) VerificationGate trust matrix > accepts immutable toolchain v4.34.0-rc1\n(pass) VerificationGate trust matrix > accepts immutable toolchain v4.34.0-rc.1\n(pass) VerificationGate trust matrix > accepts immutable toolchain leanprover/lean4:0123456789abcdef\n(pass) VerificationGate trust matrix > accepts immutable toolchain 0123456789abcdef\n(pass) KERNEL_VERIFIED assignment authority > production writes are confined to VerificationGate, VerificationService, and the guarded storage sink [16.22ms]\n(pass) ClaimRepository trust boundary > rejects repository and raw SQL bypasses and downgrades unbacked legacy rows [25.55ms]\n(pass) public claim creation trust boundary > cannot create a KERNEL_VERIFIED claim directly [15.55ms]\n25 pass\n0 fail\n51 expect() calls\nRan 25 tests across 1 file. [155.00ms]",
       "exitCode": 0,
       "timedOut": false
     },
     {
       "name": "sandbox-security-tests",
       "status": "PASS",
-      "durationMs": 1011,
+      "durationMs": 991,
       "command": [
         "bun",
         "test",
         "tests/sandbox.test.ts",
         "tests/sandbox-security.test.ts"
       ],
-      "evidence": "(pass) timeout kills the process group [104.56ms]\n(pass) output is bounded in bytes and marked truncated [69.05ms]\n(pass) model code cannot escape its private cwd [71.02ms]\n(pass) unavailable sandbox blocks instead of running [0.56ms]\n(pass) trusted builtin still uses the sandbox [70.13ms]\n(pass) model code cannot fork [70.70ms]\n(pass) output limit is aggregate across stdout and stderr [68.96ms]\n(pass) model code cannot inspect host SSH metadata [71.73ms]\n14 pass\n0 fail\n29 expect() calls\nRan 14 tests across 2 files. [1006.00ms]",
+      "evidence": "(pass) timeout kills the process group [104.17ms]\n(pass) output is bounded in bytes and marked truncated [67.28ms]\n(pass) model code cannot escape its private cwd [69.29ms]\n(pass) unavailable sandbox blocks instead of running [0.58ms]\n(pass) trusted builtin still uses the sandbox [70.05ms]\n(pass) model code cannot fork [68.73ms]\n(pass) output limit is aggregate across stdout and stderr [66.96ms]\n(pass) model code cannot inspect host SSH metadata [67.95ms]\n14 pass\n0 fail\n29 expect() calls\nRan 14 tests across 2 files. [987.00ms]",
       "exitCode": 0,
       "timedOut": false
     },
     {
       "name": "migrations",
-      "status": "PASS",
-      "durationMs": 126,
-      "command": [
-        "bun",
-        "test",
-        "tests/release.test.ts",
-        "-t",
-        "fresh migrate is idempotent"
-      ],
-      "evidence": "bun test v1.4.0 (34cbb9a40)\ntests/release.test.ts:\n(pass) release hardening > fresh migrate is idempotent and records schema epoch [21.59ms]\n1 pass\n6 filtered out\n0 fail\n2 expect() calls\nRan 1 test across 1 file. [121.00ms]",
-      "exitCode": 0,
-      "timedOut": false
-    },
-    {
-      "name": "schema-too-new",
       "status": "PASS",
       "durationMs": 121,
       "command": [
@@ -129,16 +115,31 @@
         "test",
         "tests/release.test.ts",
         "-t",
+        "fresh migrate is idempotent"
+      ],
+      "evidence": "bun test v1.4.0 (34cbb9a40)\ntests/release.test.ts:\n(pass) release hardening > fresh migrate is idempotent and records schema epoch [19.17ms]\n1 pass\n6 filtered out\n0 fail\n2 expect() calls\nRan 1 test across 1 file. [116.00ms]",
+      "exitCode": 0,
+      "timedOut": false
+    },
+    {
+      "name": "schema-too-new",
+      "status": "PASS",
+      "durationMs": 119,
+      "command": [
+        "bun",
+        "test",
+        "tests/release.test.ts",
+        "-t",
         "newer schema guard"
       ],
-      "evidence": "bun test v1.4.0 (34cbb9a40)\ntests/release.test.ts:\n(pass) release hardening > newer schema guard [17.44ms]\n1 pass\n6 filtered out\n0 fail\n1 expect() calls\nRan 1 test across 1 file. [116.00ms]",
+      "evidence": "bun test v1.4.0 (34cbb9a40)\ntests/release.test.ts:\n(pass) release hardening > newer schema guard [17.57ms]\n1 pass\n6 filtered out\n0 fail\n1 expect() calls\nRan 1 test across 1 file. [114.00ms]",
       "exitCode": 0,
       "timedOut": false
     },
     {
       "name": "fresh-init",
       "status": "PASS",
-      "durationMs": 119,
+      "durationMs": 115,
       "command": [
         "bun",
         "test",
@@ -146,14 +147,14 @@
         "-t",
         "creates layout, database, and event log"
       ],
-      "evidence": "bun test v1.4.0 (34cbb9a40)\ntests/core.test.ts:\n(pass) workspace init > creates layout, database, and event log [15.76ms]\n1 pass\n9 filtered out\n0 fail\n8 expect() calls\nRan 1 test across 1 file. [115.00ms]",
+      "evidence": "bun test v1.4.0 (34cbb9a40)\ntests/core.test.ts:\n(pass) workspace init > creates layout, database, and event log [15.29ms]\n1 pass\n9 filtered out\n0 fail\n8 expect() calls\nRan 1 test across 1 file. [111.00ms]",
       "exitCode": 0,
       "timedOut": false
     },
     {
       "name": "backup-restore",
       "status": "PASS",
-      "durationMs": 158,
+      "durationMs": 151,
       "command": [
         "bun",
         "test",
@@ -161,7 +162,7 @@
         "-t",
         "backup restore semantic equivalence"
       ],
-      "evidence": "bun test v1.4.0 (34cbb9a40)\ntests/release.test.ts:\n(pass) release hardening > backup restore semantic equivalence and no overwrite [52.46ms]\n1 pass\n6 filtered out\n0 fail\n5 expect() calls\nRan 1 test across 1 file. [152.00ms]",
+      "evidence": "bun test v1.4.0 (34cbb9a40)\ntests/release.test.ts:\n(pass) release hardening > backup restore semantic equivalence and no overwrite [49.89ms]\n1 pass\n6 filtered out\n0 fail\n5 expect() calls\nRan 1 test across 1 file. [146.00ms]",
       "exitCode": 0,
       "timedOut": false
     },
@@ -176,14 +177,14 @@
         "-t",
         "secret canary does not leak"
       ],
-      "evidence": "bun test v1.4.0 (34cbb9a40)\ntests/release.test.ts:\n(pass) release hardening > secret canary does not leak into diagnostics/report/backup manifest [35.88ms]\n1 pass\n6 filtered out\n0 fail\n5 expect() calls\nRan 1 test across 1 file. [134.00ms]",
+      "evidence": "bun test v1.4.0 (34cbb9a40)\ntests/release.test.ts:\n(pass) release hardening > secret canary does not leak into diagnostics/report/backup manifest [37.07ms]\n1 pass\n6 filtered out\n0 fail\n5 expect() calls\nRan 1 test across 1 file. [133.00ms]",
       "exitCode": 0,
       "timedOut": false
     },
     {
       "name": "event-rebuild",
       "status": "PASS",
-      "durationMs": 291,
+      "durationMs": 292,
       "command": [
         "bun",
         "test",
@@ -191,27 +192,27 @@
         "-t",
         "rebuild"
       ],
-      "evidence": "bun test v1.4.0 (34cbb9a40)\ntests/event-projection.test.ts:\n(pass) canonical event projection > rebuild atomically replaces drift with deterministic ordered JSONL without duplicates [19.83ms]\n(pass) rebuild serializes with a live cross-process writer [127.43ms]\n(pass) events rebuild is available through the CLI [41.85ms]\n3 pass\n7 filtered out\n0 fail\n10 expect() calls\nRan 3 tests across 1 file. [286.00ms]",
+      "evidence": "bun test v1.4.0 (34cbb9a40)\ntests/event-projection.test.ts:\n(pass) canonical event projection > rebuild atomically replaces drift with deterministic ordered JSONL without duplicates [20.08ms]\n(pass) rebuild serializes with a live cross-process writer [128.60ms]\n(pass) events rebuild is available through the CLI [42.16ms]\n3 pass\n7 filtered out\n0 fail\n10 expect() calls\nRan 3 tests across 1 file. [288.00ms]",
       "exitCode": 0,
       "timedOut": false
     },
     {
       "name": "package-smoke",
       "status": "PASS",
-      "durationMs": 203,
+      "durationMs": 202,
       "command": [
         "bun",
         "test",
         "tests/package-smoke.test.ts"
       ],
-      "evidence": "bun test v1.4.0 (34cbb9a40)\ntests/package-smoke.test.ts:\n(pass) package smoke > all public workspace packages import and the CLI bin starts [101.88ms]\n1 pass\n0 fail\n3 expect() calls\nRan 1 test across 1 file. [198.00ms]",
+      "evidence": "bun test v1.4.0 (34cbb9a40)\ntests/package-smoke.test.ts:\n(pass) package smoke > all public workspace packages import and the CLI bin starts [102.00ms]\n1 pass\n0 fail\n3 expect() calls\nRan 1 test across 1 file. [198.00ms]",
       "exitCode": 0,
       "timedOut": false
     },
     {
       "name": "lean-smoke",
       "status": "PASS",
-      "durationMs": 250,
+      "durationMs": 284,
       "command": [
         "bun",
         "scripts/lean-smoke.ts"
@@ -223,7 +224,7 @@
     {
       "name": "research-regression",
       "status": "PASS",
-      "durationMs": 1083,
+      "durationMs": 1120,
       "command": [
         "bun",
         "scripts/research-regression.ts"
@@ -235,7 +236,7 @@
     {
       "name": "ux-regression",
       "status": "PASS",
-      "durationMs": 418,
+      "durationMs": 422,
       "command": [
         "bun",
         "scripts/ux-regression.ts"
@@ -247,7 +248,7 @@
     {
       "name": "retrieval-regression",
       "status": "FAIL",
-      "durationMs": 89,
+      "durationMs": 92,
       "command": [
         "bun",
         "scripts/retrieval-regression.ts"
