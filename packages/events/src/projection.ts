@@ -3,7 +3,7 @@ import type { ResearchEvent } from "@mathos/domain"
 import { nowIso } from "@mathos/shared"
 import { EventLog } from "./jsonl.ts"
 
-export type EventProjectionPoint = "before_db_event" | "after_db_event" | "before_jsonl_append" | "after_jsonl_append"
+export type EventProjectionPoint = "before_domain_mutation" | "after_domain_mutation" | "before_db_event" | "after_db_event" | "after_transaction" | "before_jsonl_append" | "after_jsonl_append"
 export type EventProjectionStatus = "HEALTHY" | "EVENT_PROJECTION_DEGRADED"
 export interface EventProjectionHealth { status: EventProjectionStatus; detail: string; eventCount: number; projectedCount: number }
 
@@ -20,21 +20,34 @@ export class EventProjection {
     private readonly rows: CanonicalEvents,
     private readonly log: EventLog,
     private readonly hook?: (point: EventProjectionPoint, event: ResearchEvent) => void,
+    private readonly unitOfWork: <T>(work: () => T) => T = (work) => work(),
   ) {}
 
   record(event: ResearchEvent): void {
-    this.hook?.("before_db_event", event)
-    this.rows.insert(this.workspaceId, event)
-    this.hook?.("after_db_event", event)
+    this.mutateAndRecord(event, () => undefined)
+  }
+
+  mutateAndRecord<T>(event: ResearchEvent, mutation: () => T): T {
+    const result = this.unitOfWork(() => {
+      this.hook?.("before_domain_mutation", event)
+      const value = mutation()
+      this.hook?.("after_domain_mutation", event)
+      this.hook?.("before_db_event", event)
+      this.rows.insert(this.workspaceId, event)
+      this.hook?.("after_db_event", event)
+      return value
+    })
+    this.hook?.("after_transaction", event)
     try {
       this.hook?.("before_jsonl_append", event)
       this.log.append(event)
       this.hook?.("after_jsonl_append", event)
-      this.rows.setProjectionHealth(this.workspaceId, "HEALTHY", "JSONL matches canonical SQLite events", nowIso())
+      try { this.rows.setProjectionHealth(this.workspaceId, "HEALTHY", "JSONL matches canonical SQLite events", nowIso()) } catch {}
     } catch (error) {
       const detail = error instanceof Error ? error.message : String(error)
-      this.rows.setProjectionHealth(this.workspaceId, "EVENT_PROJECTION_DEGRADED", `JSONL append failed after durable DB event: ${detail}`, nowIso())
+      try { this.rows.setProjectionHealth(this.workspaceId, "EVENT_PROJECTION_DEGRADED", `JSONL append failed after durable DB event: ${detail}`, nowIso()) } catch {}
     }
+    return result
   }
 
   inspect(): EventProjectionHealth {

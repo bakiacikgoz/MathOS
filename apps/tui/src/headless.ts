@@ -20,7 +20,7 @@ export async function runHeadless(argv: string[]): Promise<number> {
   try {
     if (!command || command === "help" || command === "--help" || command === "-h") {
       process.stdout.write(
-        `${HELP_TEXT}\nAlso:\n  mathos init [name]\n  mathos status\n  mathos doctor\n  mathos claim create --type conjecture --title "..." --statement "..."\n  mathos claims\n  mathos objective set C-001\n  mathos ingest --text "..." [--json]\n`,
+        `${HELP_TEXT}\nAlso:\n  mathos init [name]\n  mathos status\n  mathos doctor\n  mathos events rebuild\n  mathos claim create --type conjecture --title "..." --statement "..."\n  mathos claims\n  mathos objective set C-001\n  mathos ingest --text "..." [--json]\n`,
       )
       return 0
     }

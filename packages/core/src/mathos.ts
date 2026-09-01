@@ -295,7 +295,7 @@ export class MathOS {
       modelProvider: instance.modelProvider,
       logger: instance.logger,
       allocateId: (prefix) => instance.allocateId(prefix),
-      recordEvent: (action, event) => instance.record(action, event),
+      recorder: instance.mutationRecorder(),
     })
     instance.formalizationService = new FormalizationService({
       root: workspaceRoot,
@@ -311,7 +311,7 @@ export class MathOS {
         workspaceRoot: instance.leanContext().workspaceRoot,
         tmpDir: `${instance.root}/.mathos/tmp`,
       }),
-      recordEvent: (action, event) => instance.record(action, event),
+      recorder: instance.mutationRecorder(),
     })
     instance.verificationService = new VerificationService({
       root: workspaceRoot,
@@ -324,7 +324,7 @@ export class MathOS {
       leanAdapter: instance.leanAdapter,
       leanContext: () => instance.leanContext(),
       consumeLeanBudget: (reason) => instance.chargeLean(reason),
-      recordEvent: (action, event) => instance.record(action, event),
+      recorder: instance.mutationRecorder(),
     })
     instance.retrievalService = new RetrievalService({
       root: workspaceRoot,
@@ -351,7 +351,7 @@ export class MathOS {
       crashBoundary: () => instance.teamCrashBoundary,
       allocateId: (prefix) => instance.allocateId(prefix),
       verify: (claimId) => instance.verify(claimId),
-      recordEvent: (action, event) => instance.record(action, event),
+      recorder: instance.mutationRecorder(),
     })
     instance.experimentService = new ExperimentService({
       root: workspaceRoot,
@@ -363,7 +363,7 @@ export class MathOS {
       results: new ExperimentResultRepository(client.db),
       computationRuntime: instance.computationRuntime,
       allocateId: (prefix) => instance.allocateId(prefix),
-      recordEvent: (action, event) => instance.record(action, event),
+      recorder: instance.mutationRecorder(),
       recordPid: (pid) => { instance.lastExperimentPid = pid },
     })
     instance.literatureService = new LiteratureService({
@@ -379,7 +379,7 @@ export class MathOS {
       searches: new LiteratureSearchRepository(client.db),
       provider: instance.literatureProvider,
       allocateId: (prefix) => instance.allocateId(prefix),
-      recordEvent: (action, event) => instance.record(action, event),
+      recorder: instance.mutationRecorder(),
     })
     instance.branchService = new BranchService({
       root: workspaceRoot,
@@ -391,7 +391,7 @@ export class MathOS {
       blockers: instance.blockers,
       runs: new ResearchRunRepository(client.db),
       vcs: instance.vcs,
-      recordEvent: (action, event = {}) => instance.record(action, event),
+      recorder: instance.mutationRecorder(),
     })
     instance.researchEngine = new ResearchEngine({
       runs: new ResearchRunRepository(client.db),
@@ -416,7 +416,7 @@ export class MathOS {
       digestVerifiedFindings: (worker) => instance.teamResearchCoordinator.digestForSession(worker.sessionId)?.verifiedFindings ?? [],
       consumeModelBudget: (kind) => instance.chargeModel(kind),
       consumeProofBudget: () => instance.chargeProofAttempt(),
-      recordEvent: (action, event) => instance.record(action, event),
+      recorder: instance.mutationRecorder(),
       crashHook: instance.crashHook,
       searchPremises: (claimId) => instance.premisesForClaim(claimId, { skipInspect: true }),
       createSubclaim: (input) => instance.createClaim({ kind: "lemma", ...input }),
@@ -451,7 +451,7 @@ export class MathOS {
       getClaim: (id) => instance.getClaim(id),
       getResearch: (id) => instance.getResearch(id),
       previewMerge: (id) => instance.previewMerge(id),
-      record: (action, options) => instance.record(action, options),
+      recorder: instance.mutationRecorder(),
       registerRunPlanner: (runId, planner) => instance.registerRunPlanner(runId, planner),
       requireCurrentBranch: () => instance.requireCurrentBranch(),
       requireWorkspace: () => instance.requireWorkspace(),
@@ -493,7 +493,8 @@ export class MathOS {
     const workspaceId = createId("ws")
     const branchId = MAIN_BRANCH_ID
 
-    const run = this.client.db.transaction(() => {
+    const initialized = makeEvent("workspace_initialized", { target: name, metadata: { workspaceId, branchId } })
+    new EventProjection(workspaceId, this.eventRows, this.events, this.eventProjectionHook, (work) => this.client.unitOfWork(work)).mutateAndRecord(initialized, () => {
       this.workspaces.insert({
         id: workspaceId,
         name,
@@ -520,9 +521,7 @@ export class MathOS {
         updatedAt: timestamp,
       })
     })
-    run()
 
-    this.record("workspace_initialized", { target: name, metadata: { workspaceId, branchId } })
     this.record("branch_initialized", { target: MAIN_BRANCH_NAME, metadata: { branchId } })
     this.logger.info("workspace initialized", { root: this.root, name })
   }
@@ -537,7 +536,24 @@ export class MathOS {
       ...options,
       metadata: { ...options.metadata, branchId: branch?.id ?? MAIN_BRANCH_ID },
     })
-    new EventProjection(workspace.id, this.eventRows, this.events, this.eventProjectionHook).record(event)
+    new EventProjection(workspace.id, this.eventRows, this.events, this.eventProjectionHook, (work) => this.client.unitOfWork(work)).record(event)
+  }
+
+  private mutateAndRecord<T>(action: string, options: MutationEvent, mutation: () => T): T {
+    const workspace = this.requireWorkspace()
+    const branch = this.branches.current(workspace.id)
+    const event = makeEvent(action, {
+      ...options,
+      metadata: { ...options.metadata, branchId: branch?.id ?? MAIN_BRANCH_ID },
+    })
+    return new EventProjection(workspace.id, this.eventRows, this.events, this.eventProjectionHook, (work) => this.client.unitOfWork(work)).mutateAndRecord(event, mutation)
+  }
+
+  private mutationRecorder(): MutationRecorder {
+    return {
+      record: (action, event = {}) => this.record(action, event),
+      mutate: (action, event, mutation) => this.mutateAndRecord(action, event, mutation),
+    }
   }
 
   eventProjectionHealth(): EventProjectionHealth {

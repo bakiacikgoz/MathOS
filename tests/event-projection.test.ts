@@ -51,7 +51,7 @@ describe("canonical event projection", () => {
 
   test("crash after durable DB event is detected and recoverable", async () => {
     const created = await MathOS.init(tempDir(), "crash")
-    const app = MathOS.open(created.root, { eventProjectionHook: (point, event) => { if (point === "after_db_event" && event.action === "claim_created") throw new Error("crash") } })
+    const app = MathOS.open(created.root, { eventProjectionHook: (point, event) => { if (point === "after_transaction" && event.action === "claim_created") throw new Error("crash") } })
     expect(() => app.createClaim({ kind: "conjecture", title: "Crash", naturalStatement: "x" })).toThrow("crash")
     app.close()
     const recovered = MathOS.open(created.root)
@@ -66,6 +66,7 @@ describe("canonical event projection", () => {
     const app = MathOS.open(created.root, { eventProjectionHook: (point, event) => { if (point === "before_db_event" && event.action === "claim_created") throw new Error("before db") } })
     expect(() => app.createClaim({ kind: "lemma", title: "Boundary", naturalStatement: "x" })).toThrow("before db")
     expect(app.rebuildEventProjection().eventCount).toBe(2)
+    expect(app.listClaims()).toHaveLength(0)
     app.close()
   })
 
@@ -79,4 +80,41 @@ describe("canonical event projection", () => {
     expect(new Set(ids).size).toBe(ids.length)
     app.close()
   })
+})
+
+test("hard process exits recover deterministically at every transaction/projection boundary", async () => {
+  const boundaries = [
+    ["before_domain_mutation", false, false],
+    ["after_domain_mutation", false, false],
+    ["after_transaction", true, false],
+    ["before_jsonl_append", true, false],
+    ["after_jsonl_append", true, true],
+  ] as const
+  for (const [point, committed, projected] of boundaries) {
+    const created = await MathOS.init(tempDir(), `hard-${point}`)
+    const child = Bun.spawnSync([process.execPath, join(process.cwd(), "tests/fixtures/event-crash-child.ts"), created.root, point], { cwd: process.cwd(), stdout: "pipe", stderr: "pipe" })
+    expect(child.exitCode).toBe(77)
+    const db = new DatabaseClient(databasePath(created.root)); const workspace = db.db.query<{id:string},[]>("SELECT id FROM workspaces").get()!
+    const claimCount = Number(db.db.query<{n:number},[]>("SELECT COUNT(*) AS n FROM claims").get()!.n)
+    const eventCount = new EventRepository(db.db).list(workspace.id).length
+    db.close()
+    const lines = readFileSync(eventLogPath(created.root), "utf8").split("\n").filter(Boolean).length
+    expect(claimCount).toBe(committed ? 1 : 0)
+    expect(eventCount).toBe(committed ? 3 : 2)
+    expect(lines).toBe(projected ? 3 : 2)
+    const recovered = MathOS.open(created.root)
+    if (committed && !projected) expect(recovered.eventProjectionHealth().status).toBe("EVENT_PROJECTION_DEGRADED")
+    recovered.rebuildEventProjection()
+    expect(recovered.eventProjectionHealth().status).toBe("HEALTHY")
+    recovered.close()
+  }
+})
+
+test("events rebuild is available through the CLI", async () => {
+  const created = await MathOS.init(tempDir(), "cli-rebuild")
+  writeFileSync(eventLogPath(created.root), "drift\n", "utf8")
+  const cli = join(process.cwd(), "apps/tui/src/cli.ts")
+  const result = Bun.spawnSync([process.execPath, cli, "events", "rebuild"], { cwd: created.root, stdout: "pipe", stderr: "pipe" })
+  expect(result.exitCode).toBe(0)
+  expect(result.stdout.toString()).toContain("Event projection rebuilt")
 })

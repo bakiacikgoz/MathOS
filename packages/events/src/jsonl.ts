@@ -1,5 +1,6 @@
 import { appendFileSync, existsSync, mkdirSync, renameSync, rmSync, writeFileSync } from "node:fs"
 import { dirname } from "node:path"
+import { randomUUID } from "node:crypto"
 import type { ResearchEvent } from "@mathos/domain"
 import { EventWriteFailed } from "@mathos/shared"
 
@@ -44,7 +45,7 @@ export class EventLog {
 
   replace(events: ResearchEvent[]): void {
     this.ensure()
-    const temporary = `${this.filePath}.tmp-${process.pid}`
+    const temporary = `${this.filePath}.tmp-${process.pid}-${randomUUID()}`
     try {
       writeFileSync(temporary, events.map((event) => this.serialize(event)).join("\n") + (events.length ? "\n" : ""), "utf8")
       renameSync(temporary, this.filePath)
