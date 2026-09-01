@@ -31,7 +31,7 @@ describe("computational experiments", () => {
       kind: "SANITY_CHECK",
       code: "print(sum(range(101)))\nassert sum(range(101)) == 5050\n",
     })
-    const result = await app.runExperiment(exp.id)
+    const result = await app.runExperiment(exp.id, { allowUserAuthored: true })
     expect(result.outcome).not.toBe("EXECUTION_FAILED")
     expect(app.getClaim(claim.id).status).not.toBe("KERNEL_VERIFIED")
     expect(app.formatExperiment(exp.id)).toContain("NOT PROOF")
@@ -45,7 +45,7 @@ describe("computational experiments", () => {
       kind: "FINITE_VERIFICATION",
       parameters: { property: "n + 0 == n", domainStart: 0, domainEnd: 20 },
     })
-    const result = await app.runExperiment(exp.id)
+    const result = await app.runExperiment(exp.id, { allowUserAuthored: true })
     expect(result.outcome).toBe("NO_COUNTEREXAMPLE_FOUND")
     expect(app.getClaim(claim.id).status).not.toBe("KERNEL_VERIFIED")
     expect(["HEURISTIC_SUPPORT", "COMPUTATIONALLY_SUPPORTED", "CONJECTURE"]).toContain(app.getClaim(claim.id).status)
@@ -59,7 +59,7 @@ describe("computational experiments", () => {
       kind: "COUNTEREXAMPLE_SEARCH",
       parameters: { property: "n > 0", domainStart: -2, domainEnd: 2 },
     })
-    const result = await app.runExperiment(exp.id)
+    const result = await app.runExperiment(exp.id, { allowUserAuthored: true })
     expect(result.outcome).toBe("COUNTEREXAMPLE_FOUND")
     expect(app.getClaim(claim.id).status).not.toBe("DISPROVED")
     expect(app.getClaim(claim.id).status).not.toBe("KERNEL_VERIFIED")
@@ -69,10 +69,10 @@ describe("computational experiments", () => {
   test("python failure and timeout cleanup", async () => {
     const { app } = await boot()
     const fail = await app.createExperiment({ kind: "GENERAL", code: "raise RuntimeError('boom')\n" })
-    const failed = await app.runExperiment(fail.id)
+    const failed = await app.runExperiment(fail.id, { allowUserAuthored: true })
     expect(failed.outcome).toBe("EXECUTION_FAILED")
     const sleeper = await app.createExperiment({ kind: "GENERAL", code: "import time\ntime.sleep(30)\n" })
-    const timed = await app.runExperiment(sleeper.id, { timeoutMs: 400 })
+    const timed = await app.runExperiment(sleeper.id, { timeoutMs: 400, allowUserAuthored: true })
     expect(app.getExperiment(sleeper.id).status).toBe("TIMED_OUT")
     expect(timed.summary).toBe("EXPERIMENT_TIMEOUT")
     if (app.lastExperimentPid && app.lastExperimentPid > 0) {
@@ -86,21 +86,21 @@ describe("computational experiments", () => {
     expect(allowedEnv({ MATHOS_API_KEY: "secret-value" }).MATHOS_API_KEY).toBeUndefined()
     const { app, claim } = await boot()
     const huge = await app.createExperiment({ kind: "GENERAL", code: "print('x'*200000)\n" })
-    const hugeResult = await app.runExperiment(huge.id)
+    const hugeResult = await app.runExperiment(huge.id, { allowUserAuthored: true })
     expect(hugeResult.stdoutTruncated).toBe(true)
     const exp = await app.createExperiment({
       claimId: claim.id,
       kind: "FINITE_VERIFICATION",
       parameters: { property: "n == n", domainStart: 0, domainEnd: 3, randomSeed: 1 },
     })
-    const first = await app.runExperiment(exp.id)
-    const second = await app.rerunExperiment(exp.id)
+    const first = await app.runExperiment(exp.id, { allowUserAuthored: true })
+    const second = await app.rerunExperiment(exp.id, { allowUserAuthored: true })
     expect(second.id).not.toBe(first.id)
     expect(second.codeHash).toBe(first.codeHash)
     expect(second.inputHash).toBe(first.inputHash)
     expect(second.runtimeFingerprint).toBe(first.runtimeFingerprint)
     writeFileSync(exp.codeArtifactId, "print('mutated')\n", "utf8")
-    await expect(app.runExperiment(exp.id)).rejects.toThrow("EXPERIMENT_CODE_MUTATED")
+    await expect(app.runExperiment(exp.id, { allowUserAuthored: true })).rejects.toThrow("EXPERIMENT_CODE_MUTATED")
     expect(app.experimentResults(exp.id)[0]!.codeHash).toBe(first.codeHash)
     app.close()
   })

@@ -67,3 +67,14 @@ test("runtime launch failure records a blocked experiment", async () => {
     expect(result.summary).toBe("EXPERIMENT_BLOCKED_SANDBOX_FAILURE")
   } finally { app.close() }
 })
+test("user authored code is blocked unless explicitly enabled", async () => {
+  const { PythonRuntime } = await import("@mathos/computation")
+  const app = await boot(new PythonRuntime())
+  try {
+    const exp = await app.createExperiment({ code: "print(1)" })
+    expect((await app.runExperiment(exp.id)).summary).toBe("EXPERIMENT_BLOCKED_POLICY")
+    const allowed = await app.createExperiment({ code: "print(1)" })
+    const result = await app.runExperiment(allowed.id, { allowUserAuthored: true })
+    if (process.platform === "darwin") expect(result.summary).not.toBe("EXPERIMENT_BLOCKED_POLICY")
+  } finally { app.close() }
+})

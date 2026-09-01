@@ -1,6 +1,12 @@
 import { createHash } from "node:crypto"
 import { platform } from "node:os"
-import type { ExperimentKind } from "@mathos/domain"
+import type { ExperimentKind, ExperimentOrigin } from "@mathos/domain"
+
+import { allowedEnv } from "./environment"
+import { createSandboxRuntime, type SandboxRuntime, type ExperimentSecurityReport } from "./sandbox"
+export * from "./policy"
+export * from "./sandbox"
+export { allowedEnv } from "./environment"
 
 export interface RuntimeEnvironmentReport {
   pythonAvailable: boolean
@@ -19,9 +25,13 @@ export interface ComputationalExecutionRequest {
   timeoutMs: number
   maxOutputBytes: number
   extraEnv?: Record<string, string>
+  origin?: ExperimentOrigin
+  allowUserAuthored?: boolean
 }
 
 export interface ComputationalExecutionResult {
+  blockedReason?: string
+  securityReport?: ExperimentSecurityReport
   exitCode: number | null
   timedOut: boolean
   stdout: string
@@ -37,25 +47,6 @@ export interface ComputationalRuntime {
   execute(request: ComputationalExecutionRequest): Promise<ComputationalExecutionResult>
 }
 
-const SECRET_KEYS = ["MATHOS_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "XAI_API_KEY", "API_KEY", "TOKEN", "SECRET"]
-
-export function allowedEnv(extra: Record<string, string> = {}): Record<string, string> {
-  const env: Record<string, string> = {
-    PATH: process.env.PATH ?? "",
-    LANG: process.env.LANG ?? "C",
-    LC_ALL: process.env.LC_ALL ?? "C",
-    PYTHONDONTWRITEBYTECODE: "1",
-    PYTHONUNBUFFERED: "1",
-    MATHOS_EXPERIMENT_NETWORK: "false",
-  }
-  if (process.env.HOME) env.HOME = process.env.HOME
-  for (const [key, value] of Object.entries(extra)) {
-    if (SECRET_KEYS.some((secret) => key.toUpperCase().includes(secret))) continue
-    env[key] = value
-  }
-  return env
-}
-
 export function sha256Text(value: string): string {
   return createHash("sha256").update(value).digest("hex")
 }
@@ -67,13 +58,8 @@ export function canonicalJson(value: unknown): string {
   return `{${Object.keys(record).sort().map((key) => `${JSON.stringify(key)}:${canonicalJson(record[key])}`).join(",")}}`
 }
 
-function truncate(text: string, max: number): { text: string; truncated: boolean } {
-  if (text.length <= max) return { text, truncated: false }
-  return { text: text.slice(0, max), truncated: true }
-}
-
 export class PythonRuntime implements ComputationalRuntime {
-  constructor(private readonly executable = process.env.MATHOS_PYTHON ?? "python3") {}
+  constructor(private readonly executable = process.env.MATHOS_PYTHON ?? "python3", private readonly sandbox: SandboxRuntime = createSandboxRuntime()) {}
 
   async inspectEnvironment(): Promise<RuntimeEnvironmentReport> {
     const blob = await this.probe([this.executable, "-c", "import sys; print(sys.version.split()[0]);\ntry:\n import sympy\n print(sympy.__version__)\nexcept Exception:\n print('NONE')"])
@@ -91,39 +77,7 @@ export class PythonRuntime implements ComputationalRuntime {
   }
 
   async execute(request: ComputationalExecutionRequest): Promise<ComputationalExecutionResult> {
-    const started = Date.now()
-    const proc = Bun.spawn([request.executable, request.scriptPath], {
-      cwd: request.cwd,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: allowedEnv(request.extraEnv),
-    })
-    let timedOut = false
-    const timer = setTimeout(() => {
-      timedOut = true
-      proc.kill()
-    }, request.timeoutMs)
-    try {
-      const [stdoutRaw, stderrRaw, exitCode] = await Promise.all([
-        new Response(proc.stdout).text(),
-        new Response(proc.stderr).text(),
-        proc.exited,
-      ])
-      const stdout = truncate(stdoutRaw, request.maxOutputBytes)
-      const stderr = truncate(stderrRaw, request.maxOutputBytes)
-      return {
-        exitCode: timedOut ? null : exitCode,
-        timedOut,
-        stdout: stdout.text,
-        stderr: stderr.text,
-        stdoutTruncated: stdout.truncated,
-        stderrTruncated: stderr.truncated,
-        durationMs: Date.now() - started,
-        pid: proc.pid,
-      }
-    } finally {
-      clearTimeout(timer)
-    }
+    return this.sandbox.execute(request)
   }
 
   private async probe(argv: string[]): Promise<string | null> {

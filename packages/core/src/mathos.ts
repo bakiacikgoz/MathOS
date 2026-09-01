@@ -2895,7 +2895,7 @@ export class MathOS {
     return this.experimentStores().results.list(this.getExperiment(id).id)
   }
 
-  async runExperiment(id: string, opts: { timeoutMs?: number; stepId?: string } = {}): Promise<ExperimentResult> {
+  async runExperiment(id: string, opts: { timeoutMs?: number; stepId?: string; allowUserAuthored?: boolean } = {}): Promise<ExperimentResult> {
     const experiment = this.getExperiment(id)
     if (experiment.status === "RUNNING") throw new Error("EXPERIMENT_ALREADY_RUNNING")
     const budget = DEFAULT_COMPUTATIONAL_BUDGET
@@ -2913,6 +2913,7 @@ export class MathOS {
       executed = await this.computationRuntime.execute({
         executable: experiment.runtime.executable,
         origin: experiment.origin,
+        allowUserAuthored: opts.allowUserAuthored,
         scriptPath: experiment.codeArtifactId,
         cwd: dir,
         timeoutMs: opts.timeoutMs ?? budget.maxWallClockMsPerExperiment,
@@ -2923,9 +2924,18 @@ export class MathOS {
         exitCode: null, timedOut: false, stdout: "", stderr: "", stdoutTruncated: false,
         stderrTruncated: false, durationMs: 0, pid: null,
         blockedReason: "EXPERIMENT_BLOCKED_SANDBOX_FAILURE",
+        securityReport: {
+          sandboxAvailable: false, sandboxBackend: null, networkAllowed: false,
+          filesystemMode: "PRIVATE_TEMP_ONLY", timeoutMs: opts.timeoutMs ?? budget.maxWallClockMsPerExperiment,
+          outputLimitBytes: budget.maxOutputBytes, blockedReason: "EXPERIMENT_BLOCKED_SANDBOX_FAILURE",
+          executionPolicyVersion: "sandbox-v1",
+        },
       }
     }
     this.lastExperimentPid = executed.pid
+    experiment.sandboxMode = executed.securityReport?.sandboxBackend ?? null
+    experiment.networkPolicy = executed.securityReport ? (executed.securityReport.networkAllowed ? "NETWORK_ALLOW" : "NETWORK_DENY") : null
+    experiment.executionPolicyVersion = executed.securityReport?.executionPolicyVersion ?? null
     writeFileSync(join(dir, "stdout.txt"), executed.stdout, "utf8")
     writeFileSync(join(dir, "stderr.txt"), executed.stderr, "utf8")
     const structured = parseStructured(executed.stdout)
@@ -2940,7 +2950,9 @@ export class MathOS {
       id: this.allocateId("ER"),
       experimentId: experiment.id,
       outcome: executed.timedOut ? "EXECUTION_FAILED" : outcome,
-      summary: executed.blockedReason ?? (executed.timedOut
+      summary: executed.blockedReason ?? (executed.stdoutTruncated || executed.stderrTruncated
+        ? "OUTPUT_TRUNCATED"
+        : executed.timedOut
         ? "EXPERIMENT_TIMEOUT"
         : executed.exitCode === 0
           ? String(structured.outcome ?? "SUPPORTING_EVIDENCE")
@@ -2964,7 +2976,7 @@ export class MathOS {
     experiment.status = executed.blockedReason ? "BLOCKED" : executed.timedOut ? "TIMED_OUT" : executed.exitCode === 0 ? "SUCCEEDED" : "FAILED"
     experiment.finishedAt = result.finishedAt
     this.experimentStores().experiments.update(experiment)
-    this.record(executed.timedOut ? "experiment_timed_out" : executed.exitCode === 0 ? "experiment_completed" : "experiment_failed", { target: experiment.id, metadata: { experimentId: experiment.id, branchId: experiment.branchId, resultId: result.id } })
+    this.record(executed.blockedReason ? "experiment_blocked" : executed.timedOut ? "experiment_timed_out" : executed.exitCode === 0 ? "experiment_completed" : "experiment_failed", { target: experiment.id, metadata: { experimentId: experiment.id, branchId: experiment.branchId, resultId: result.id, blockedReason: executed.blockedReason ?? null, securityReport: executed.securityReport ?? null, outputTruncated: executed.stdoutTruncated || executed.stderrTruncated } })
     this.record("experiment_result_recorded", { target: result.id, metadata: { experimentId: experiment.id, branchId: experiment.branchId } })
     if (experiment.claimId && !executed.blockedReason) {
       const kind = result.outcome === "COUNTEREXAMPLE_FOUND" ? "counterexample" : "computation"
@@ -2982,8 +2994,8 @@ export class MathOS {
     return result
   }
 
-  async rerunExperiment(id: string) {
-    return this.runExperiment(id)
+  async rerunExperiment(id: string, opts: { allowUserAuthored?: boolean } = {}) {
+    return this.runExperiment(id, opts)
   }
 
   private applyComputationalStatus(claimId: string, outcome: ExperimentResult["outcome"]) {

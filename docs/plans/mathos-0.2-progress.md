@@ -5,7 +5,7 @@ User plan: [mathos-0.2.md](mathos-0.2.md). Work is incomplete; do not claim 0.2 
 ## Phase order and status
 
 - Phase 0: baseline commands attempted and captured; frozen V2 copied. Typecheck failed (existing configuration/type errors); tests 229 pass, 23 fail, 3 errors; release-check failed. Native Lean/Mathlib and portable index fixtures missing.
-- Phase 1: in progress. Origin migration, planner classification and BLOCKED persistence implemented; integration regressions observed failing then passing (3 tests). Native sandbox implementation delegated to sandbox_runtime.
+- Phase 1: PASS after security review. Origin migration, policy, real macOS Seatbelt sandbox, fail-closed adapters, bounded aggregate output, process-tree timeout, environment/network/filesystem isolation, resource limits, audit persistence and focused security regressions implemented. Focused suite: 26 pass; reviewer found no Critical/Important residuals.
 - Phases 2–11: pending, blocked on phase 1 acceptance per user plan.
 
 ## Decisions
