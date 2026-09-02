@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 import { MathOS } from "@mathos/core"
-import { currentBuildIdentity, formatUserError, isMathOSError } from "@mathos/shared"
+import { cliExitCode, currentBuildIdentity, formatCliError, formatUserError } from "@mathos/shared"
 import { runHeadless } from "./headless.ts"
 
 const args = process.argv.slice(2)
@@ -36,7 +36,8 @@ if (args.length === 0) {
     const code = await runHeadless(args.filter((item) => item !== "--debug"))
     process.exit(code)
   } catch (error) {
-    process.stderr.write(`${formatUserError(error)}\n`)
-    process.exit(isMathOSError(error) ? 1 : 2)
+    if (args.includes("--json")) process.stderr.write(`${JSON.stringify(formatCliError(error, { debug: process.env.MATHOS_DEBUG === "1" }))}\n`)
+    else process.stderr.write(`${formatUserError(error)}${process.env.MATHOS_DEBUG === "1" && error instanceof Error && error.stack ? `\n${error.stack}` : ""}\n`)
+    process.exit(cliExitCode(error))
   }
 }

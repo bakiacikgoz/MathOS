@@ -103,3 +103,36 @@ export function formatUserError(error: unknown): string {
   if (error instanceof Error) return error.message
   return "An unexpected error occurred."
 }
+
+export type CliExitCode = 1 | 2 | 3 | 4 | 5
+
+const matches = (code: string, words: string[]) => words.some((word) => code.includes(word))
+
+export function cliExitCode(error: unknown): CliExitCode {
+  const code = isMathOSError(error) ? error.code.toUpperCase() : ""
+  if (matches(code, ["WORKSPACE_CONFLICT", "VERSION_MISMATCH", "SCHEMA_TOO_NEW", "PROTOCOL_MISMATCH"])) return 5
+  if (matches(code, ["TRUST", "VERIFICATION", "PROOF_FAILED", "FIDELITY", "HUMAN_APPROVAL"])) return 4
+  if (matches(code, ["UNAVAILABLE", "NOT_INSTALLED", "BLOCKED", "CAPABILITY", "SANDBOX"])) return 3
+  if (matches(code, ["CONFIG", "USAGE", "INVALID", "REQUIRED", "UNKNOWN_COMMAND"])) return 2
+  return 1
+}
+
+const REMEDIATION: Record<number, string> = {
+  1: "Retry the operation; use MATHOS_DEBUG=1 only when diagnostic detail is needed.",
+  2: "Check command usage and configuration, then retry.",
+  3: "Install or configure the reported capability, then retry.",
+  4: "Review the trust or verification evidence; no proof status was promoted.",
+  5: "Resolve the workspace or protocol version conflict before retrying.",
+}
+
+export function formatCliError(error: unknown, options: { debug?: boolean } = {}) {
+  const exitCode = cliExitCode(error)
+  const code = isMathOSError(error) ? error.code : "OPERATION_FAILED"
+  const message = formatUserError(error)
+  return {
+    schemaVersion: "mathos.cli-error.v1" as const,
+    error: { code, message, exitCode },
+    remediation: REMEDIATION[exitCode],
+    ...(options.debug && error instanceof Error ? { stack: error.stack } : {}),
+  }
+}

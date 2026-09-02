@@ -12,6 +12,9 @@ export {
   BackupIntegrityFailed,
   isMathOSError,
   formatUserError,
+  cliExitCode,
+  formatCliError,
+  type CliExitCode,
 } from "./errors.ts"
 export {
   LeanNotInstalled,

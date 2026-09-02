@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "
 import { dirname, extname, join, resolve } from "node:path"
 import { homedir } from "node:os"
 import { exportBlueprintLatex, importBlueprintLatex, parseMathosMarkdown } from "@mathos/notebook"
-import { formatUserError, isMathOSError, resolveRuntimeLayout, withWorkspaceOperationLock } from "@mathos/shared"
+import { MathOSError, cliExitCode, formatCliError, resolveRuntimeLayout, withWorkspaceOperationLock } from "@mathos/shared"
 import { repairWorkspaceRuntimeState } from "@mathos/workspace"
 import { SCHEMA_EPOCH } from "@mathos/storage"
 import { FileModelUsageLedger, ModelProfileRegistry, createSecretStore, loadConfigFiles, parseMathOSConfig, parseModelProfiles, probeModelProfile, serializeConfigValues, serializeModelProfiles, type ConfigScalar, type ModelProfile } from "@mathos/models"
@@ -32,10 +32,28 @@ function flag(args: string[], name: string): string | undefined {
   return args[index + 1]
 }
 
+export const CLI_COMMAND_CATEGORIES = {
+  workspace: ["init", "demo", "workspace", "backup", "restore", "events", "status"],
+  claims: ["claim", "claims", "objective"],
+  formal: ["formalize", "formal", "prove", "verify", "search-theorem", "premises", "index"],
+  research: ["research", "graph", "ledger", "why", "report"],
+  literature: ["literature", "source", "citation", "external", "ingest"],
+  experiments: ["experiment", "solver"],
+  team: ["branch", "team", "review", "agenda", "conjecture"],
+  notebook: ["notebook", "context", "align", "portfolio", "failures"],
+  atlas: ["atlas"],
+  distribution: ["plugin", "capsule", "publication"],
+  setup: ["setup", "config", "provider", "secrets", "usage"],
+  diagnostics: ["doctor", "diagnostics", "version", "--version", "help", "--help", "-h"],
+} as const
+
+const CLI_COMMANDS = new Set<string>(Object.values(CLI_COMMAND_CATEGORIES).flat())
+
 export async function runHeadless(argv: string[]): Promise<number> {
   const [command, ...rest] = argv
 
   try {
+    if (command && !CLI_COMMANDS.has(command)) throw new MathOSError("USAGE_UNKNOWN_COMMAND", `Unknown command: ${command}`)
     if (!command || command === "help" || command === "--help" || command === "-h") {
       process.stdout.write(
         `${HELP_TEXT}\nAlso:\n  mathos init [name]\n  mathos status\n  mathos doctor\n  mathos events rebuild\n  mathos claim create --type conjecture --title "..." --statement "..."\n  mathos claims\n  mathos objective set C-001\n  mathos ingest --text "..." [--json]\n`,
@@ -880,13 +898,14 @@ export async function runHeadless(argv: string[]): Promise<number> {
         return 1
       }
 
-      process.stderr.write(`Unknown command: ${command}\n`)
-      return 1
+      throw new MathOSError("USAGE_UNKNOWN_COMMAND", `Unknown command: ${command}`)
     } finally {
       app.close()
     }
   } catch (error) {
-    process.stderr.write(`${formatTypedUserError(error).text}\n`)
-    return isMathOSError(error) ? 1 : 2
+    const code = cliExitCode(error)
+    if (argv.includes("--json")) process.stderr.write(`${JSON.stringify(formatCliError(error, { debug: process.env.MATHOS_DEBUG === "1" }))}\n`)
+    else process.stderr.write(`${formatTypedUserError(error).text}${process.env.MATHOS_DEBUG === "1" && error instanceof Error && error.stack ? `\n${error.stack}` : ""}\n`)
+    return code
   }
 }

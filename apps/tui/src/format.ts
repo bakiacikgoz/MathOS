@@ -1,6 +1,26 @@
 import type { BranchDetail, Claim, ClaimDetail, DoctorReport, MergePreview, ResearchBranch, StatusProjection } from "@mathos/domain"
 import { branchGlyph } from "@mathos/domain"
 
+export const TRUST_LANGUAGE = [
+  "KERNEL_VERIFIED",
+  "FORMAL_PROOF_FAILED",
+  "HUMAN_APPROVAL_REQUIRED",
+  "COMPUTATIONAL_EVIDENCE",
+  "EXTERNAL_SOURCE",
+  "CANDIDATE_CONJECTURE",
+  "STALE",
+  "BLOCKED",
+] as const
+
+export function formatLongOperation(input: { label: string; elapsedMs: number; checkpoint?: string | null }): string {
+  return [
+    input.label,
+    `Elapsed ${(input.elapsedMs / 1000).toFixed(1)}s`,
+    `Last durable checkpoint: ${input.checkpoint ?? "none"}`,
+    "Ctrl+C to cancel · retry resumes from the last durable checkpoint",
+  ].join("\n")
+}
+
 export const HELP_TEXT = `MathOS commands
 
   /claim       Create a mathematical claim
