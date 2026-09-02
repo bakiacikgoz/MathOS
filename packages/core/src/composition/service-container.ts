@@ -16,12 +16,14 @@ import type { ArtifactStorePort } from "../ports/artifact-store-port.ts"
 import type { ClockPort } from "../ports/clock-port.ts"
 import { claimReadAdapter, FileArtifactStore, formalReadAdapter, graphReadAdapter, systemClock } from "./built-in-adapters.ts"
 import { MathematicalContextService } from "../services/mathematical-context-service.ts"
+import { ResearchNotebookService } from "../services/research-notebook-service.ts"
 
 export interface ServiceContainerOverrides { clock: ClockPort; artifacts: ArtifactStorePort; claims: ClaimReadPort; formals: FormalReadPort; graph: GraphReadPort }
 export interface ServiceContainer {
   clock: ClockPort; artifacts: ArtifactStorePort; claims: ClaimReadPort; formals: FormalReadPort; graph: GraphReadPort
   repositories: ReturnType<typeof createV1Repositories>
   mathematicalContext: MathematicalContextService
+  researchNotebook: ResearchNotebookService
 }
 
 function createV1Repositories(db: Database) {
@@ -50,6 +52,7 @@ export function createServiceContainer(root: string, db: Database, overrides: Pa
     graph: overrides.graph ?? graphReadAdapter(new DependencyRepository(db)),
     repositories,
     mathematicalContext: new MathematicalContextService({ items: repositories.contextItems, revisions: repositories.contextRevisions, clock, nextId: (prefix) => `${prefix}-${clock.now().replace(/\D/g, "")}-${++sequence}`, writeEvent: () => {} }),
+    researchNotebook: new ResearchNotebookService({ root, documents:repositories.researchDocuments, blocks:repositories.researchBlocks, clock, unitOfWork:(work) => db.transaction(work)(), entityExists:(type,id) => type === "claim" ? Boolean(new ClaimRepository(db).get(id)) : true }),
   }
   return container
 }

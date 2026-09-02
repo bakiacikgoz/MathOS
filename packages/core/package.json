@@ -18,5 +18,6 @@
     "@mathos/graph": "workspace:*",
     "@mathos/computation": "workspace:*",
     "@mathos/literature": "workspace:*"
+    ,"@mathos/notebook": "workspace:*"
   }
 }

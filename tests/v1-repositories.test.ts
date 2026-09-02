@@ -29,7 +29,7 @@ describe("MathOS v1 repositories", () => {
     const client = database()
     const blocks = new ResearchBlockRepository(client.db)
     for (const [id, sequence] of [["RB-2", 2], ["RB-1", 1]] as const) {
-      blocks.insert({ id, documentId: "D-1", parentBlockId: null, sequence, kind: "MARKDOWN", markdown: id, entityType: null, entityId: null, attributes: { sequence }, revision: 1, contentHash: id, createdAt: "2026-01-01", updatedAt: "2026-01-01" })
+      blocks.insert({ id, documentId: "D-1", parentBlockId: null, sequence, kind: "NARRATIVE", markdown: id, entityType: null, entityId: null, attributes: { sequence }, revision: 1, contentHash: id, createdAt: "2026-01-01", updatedAt: "2026-01-01" })
     }
     expect(blocks.list("D-1", { limit: 1, offset: 0 })).toEqual([
       expect.objectContaining({ id: "RB-1", attributes: { sequence: 1 } }),
