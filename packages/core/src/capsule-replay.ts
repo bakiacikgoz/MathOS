@@ -17,3 +17,10 @@ export function applyCapsuleReplay(plan:ReturnType<typeof planCapsuleReplay>,inp
   input.write()
   return {applied:true,currentVerificationAuthority:"LOCAL_VERIFICATION_GATE_REQUIRED"}
 }
+
+export function planCapsuleImport(manifest:{formatVersion:number;workspaceSchemaVersion:number;hashesValid:boolean;plugins:string[];toolchains:Record<string,string>},environment:{workspaceSchemaVersion:number;plugins:string[];toolchains:Record<string,string>},options:{targetEmpty:boolean}){
+  if(manifest.formatVersion>1)throw new Error("CapsuleFormatUnsupported")
+  const missing=[...manifest.plugins.filter(item=>!environment.plugins.includes(item)).map(item=>`PLUGIN:${item}`),...Object.keys(manifest.toolchains).filter(name=>!environment.toolchains[name]).map(name=>`TOOLCHAIN:${name}`)]
+  const blocked=manifest.workspaceSchemaVersion>environment.workspaceSchemaVersion||!manifest.hashesValid
+  return{dryRun:true,status:blocked?"BLOCKED" as const:options.targetEmpty?"READY" as const:"CONFLICT" as const,missing,allowedTargets:options.targetEmpty?["NEW_WORKSPACE"]:["NEW_WORKSPACE","NEW_BRANCH"],mutationCount:0}
+}

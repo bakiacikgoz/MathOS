@@ -1,0 +1,3 @@
+import { expect, test } from "bun:test"
+import { PublicationService } from "../packages/core/src/services/publication-service.ts"
+test("publication never presents an unverified claim as a verified theorem",()=>{const model:any={title:"P",blocks:[],claims:[{id:"C1",status:"DRAFT"},{id:"C2",status:"COMPUTATIONALLY_SUPPORTED"},{id:"C3",status:"KERNEL_VERIFIED"}],citations:[],references:[],capsuleHash:"h"};const markdown=new PublicationService().render(model).outputs.markdown;expect(markdown).toContain("C1: DRAFT — UNVERIFIED");expect(markdown).toContain("C2: COMPUTATIONALLY_SUPPORTED — UNVERIFIED");expect(markdown).toContain("C3: KERNEL_VERIFIED")})
