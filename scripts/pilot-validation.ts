@@ -187,7 +187,9 @@ export async function runPilotValidation(options: { output?: string; keepWorkspa
   }
   const manual = (id: string, reason: string, rerun: string, status: PilotStatus = "BLOCKED", evidence?: string) => steps.push({ id, status, reason, evidence, rerun })
   const capabilityBlock = (runResult: RawRun, capabilityMissing: boolean, codes: string[], reason: string): void => {
-    const codeMatched = codes.some((code) => runResult.rawStderr.includes(`Error code: ${code}`) || runResult.rawStderr.includes(code))
+    const normalizeCode = (code: string) => code.replace(/[^a-z0-9]/gi, "").toUpperCase()
+    const reportedCodes = [...runResult.rawStderr.matchAll(/(?:Error code:\s*|"code"\s*:\s*")([A-Za-z0-9_-]+)/g)].map(match => normalizeCode(match[1]!))
+    const codeMatched = codes.some((code) => reportedCodes.includes(normalizeCode(code)))
     if (runResult.step.status === "FAIL" && capabilityMissing && codeMatched) {
       runResult.step.status = "BLOCKED"
       runResult.step.reason = reason

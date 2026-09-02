@@ -42,6 +42,8 @@ describe("fresh-user pilot validation", () => {
     expect(result.provenance.environment).toBe("credential-free-allowlist")
     expect(result.steps.every((step) => step.reason.length > 0 && step.rerun.length > 0)).toBe(true)
     expect(result.steps.find((step) => step.id === "doctor")?.status).toBe("BLOCKED")
+    expect(result.summary.FAIL).toBe(0)
+    expect(result.overall).toBe("BLOCKED")
     expect(result.steps.find((step) => step.id === "restore")?.evidence).toContain("semantic state equivalent")
     expect(result.steps.find((step) => step.id === "report")?.evidence).toContain("trust labels present")
     expect(JSON.stringify(result)).not.toContain(workspaceRoot)
