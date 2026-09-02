@@ -795,6 +795,103 @@ export const MIGRATIONS: Migration[] = [
       );
     `,
   },
+  {
+    id: "021_context_registry",
+    sql: `
+      CREATE TABLE context_items (id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, branch_id TEXT NOT NULL, scope_kind TEXT NOT NULL, scope_id TEXT NOT NULL, kind TEXT NOT NULL, canonical_name TEXT NOT NULL, display_text TEXT NOT NULL, normalized_value TEXT NOT NULL DEFAULT '', lean_expression TEXT, source_claim_id TEXT, status TEXT NOT NULL, origin TEXT NOT NULL, revision INTEGER NOT NULL, content_hash TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+      CREATE UNIQUE INDEX idx_context_active_name ON context_items(scope_kind, scope_id, kind, canonical_name) WHERE status='ACTIVE';
+      CREATE INDEX idx_context_scope ON context_items(workspace_id, branch_id, scope_kind, scope_id, status);
+      CREATE INDEX idx_context_name ON context_items(workspace_id, canonical_name, status);
+      CREATE TABLE context_revisions (id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, branch_id TEXT NOT NULL, snapshot_hash TEXT NOT NULL, parent_revision_id TEXT, changed_item_ids_json TEXT NOT NULL, created_by TEXT NOT NULL, created_at TEXT NOT NULL);
+    `,
+  },
+  {
+    id: "022_research_notebooks",
+    sql: `
+      CREATE TABLE research_documents (id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, branch_id TEXT NOT NULL, title TEXT NOT NULL, slug TEXT NOT NULL, format TEXT NOT NULL, status TEXT NOT NULL, source_path TEXT NOT NULL, revision INTEGER NOT NULL, content_hash TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(workspace_id, branch_id, slug));
+      CREATE TABLE research_blocks (id TEXT PRIMARY KEY, document_id TEXT NOT NULL, parent_block_id TEXT, sequence INTEGER NOT NULL, kind TEXT NOT NULL, markdown TEXT NOT NULL, entity_type TEXT, entity_id TEXT, attributes_json TEXT NOT NULL DEFAULT '{}', revision INTEGER NOT NULL, content_hash TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(document_id, sequence));
+      CREATE INDEX idx_research_blocks_entity ON research_blocks(entity_type, entity_id);
+      CREATE TABLE notebook_sync_records (id TEXT PRIMARY KEY, source_kind TEXT NOT NULL, source_id TEXT NOT NULL, target_kind TEXT NOT NULL, target_id TEXT NOT NULL, source_revision INTEGER NOT NULL, target_revision INTEGER NOT NULL, source_hash TEXT NOT NULL, target_hash TEXT NOT NULL, direction TEXT NOT NULL, status TEXT NOT NULL, diff_summary TEXT NOT NULL, created_at TEXT NOT NULL, applied_at TEXT);
+    `,
+  },
+  {
+    id: "023_alignment_and_staleness",
+    sql: `
+      CREATE TABLE statement_revisions (id TEXT PRIMARY KEY, claim_id TEXT NOT NULL, kind TEXT NOT NULL, source_entity_id TEXT NOT NULL, text TEXT NOT NULL, context_revision_id TEXT NOT NULL, revision INTEGER NOT NULL, content_hash TEXT NOT NULL, created_by TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(claim_id, kind, revision));
+      CREATE TABLE formal_alignments (id TEXT PRIMARY KEY, claim_id TEXT NOT NULL, natural_revision_id TEXT NOT NULL, formal_revision_id TEXT NOT NULL, context_revision_id TEXT NOT NULL, status TEXT NOT NULL, verdict TEXT NOT NULL, back_translation TEXT NOT NULL, symbol_mapping_json TEXT NOT NULL, auditor_provider TEXT, auditor_model TEXT, prompt_hash TEXT, created_at TEXT NOT NULL, decided_at TEXT);
+      CREATE INDEX idx_alignments_claim ON formal_alignments(claim_id, created_at);
+      CREATE TABLE alignment_findings (id TEXT PRIMARY KEY, alignment_id TEXT NOT NULL, dimension TEXT NOT NULL, severity TEXT NOT NULL, natural_fragment TEXT NOT NULL, formal_fragment TEXT NOT NULL, message TEXT NOT NULL, resolution_status TEXT NOT NULL, reviewer_note TEXT);
+      CREATE TABLE stale_markers (id TEXT PRIMARY KEY, target_type TEXT NOT NULL, target_id TEXT NOT NULL, source_type TEXT NOT NULL, source_id TEXT NOT NULL, reason_code TEXT NOT NULL, detected_at TEXT NOT NULL, resolved_at TEXT, required_action TEXT NOT NULL, previous_status TEXT, projection_status TEXT NOT NULL);
+      CREATE UNIQUE INDEX idx_stale_unresolved ON stale_markers(target_type,target_id,source_type,source_id,reason_code) WHERE resolved_at IS NULL;
+    `,
+  },
+  {
+    id: "024_proof_portfolios",
+    sql: `
+      CREATE TABLE proof_portfolios (id TEXT PRIMARY KEY, claim_id TEXT NOT NULL, formal_statement_id TEXT NOT NULL, formal_revision_hash TEXT NOT NULL, branch_id TEXT NOT NULL, status TEXT NOT NULL, selection_policy_json TEXT NOT NULL, limits_json TEXT NOT NULL, usage_json TEXT NOT NULL, retrieval_index_revision TEXT, context_revision_id TEXT, winner_candidate_id TEXT, revision INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, started_at TEXT, stopped_at TEXT, stop_reason TEXT);
+      CREATE TABLE proof_jobs (id TEXT PRIMARY KEY, portfolio_id TEXT NOT NULL, adapter_id TEXT NOT NULL, adapter_version TEXT NOT NULL, strategy TEXT NOT NULL, worker_branch_id TEXT, worktree_path TEXT, status TEXT NOT NULL, idempotency_key TEXT NOT NULL UNIQUE, budget_json TEXT NOT NULL, provider TEXT, model TEXT, prompt_hash TEXT, created_at TEXT NOT NULL, started_at TEXT, finished_at TEXT, error_code TEXT);
+      CREATE TABLE proof_candidates (id TEXT PRIMARY KEY, proof_job_id TEXT NOT NULL, source_artifact_id TEXT NOT NULL, normalized_proof_hash TEXT NOT NULL, declaration_hash TEXT NOT NULL, compile_result TEXT NOT NULL, diagnostics_json TEXT NOT NULL, axioms_json TEXT NOT NULL, forbidden_json TEXT NOT NULL, verification_report_id TEXT, status TEXT NOT NULL, score REAL NOT NULL DEFAULT 0, created_at TEXT NOT NULL);
+      CREATE UNIQUE INDEX idx_proof_candidate_dedup ON proof_candidates(proof_job_id, normalized_proof_hash);
+      CREATE TABLE proof_repair_attempts (id TEXT PRIMARY KEY, candidate_id TEXT NOT NULL, failure_fingerprint_id TEXT, attempt_number INTEGER NOT NULL, input_artifact_hash TEXT NOT NULL, output_artifact_hash TEXT, status TEXT NOT NULL, prompt_hash TEXT, diagnostics_delta_json TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(candidate_id, attempt_number));
+    `,
+  },
+  {
+    id: "025_failure_memory",
+    sql: `
+      CREATE TABLE failure_fingerprints (id TEXT PRIMARY KEY, domain TEXT NOT NULL, goal_hash TEXT, context_hash TEXT, failure_class TEXT NOT NULL, normalized_diagnostic TEXT NOT NULL, attempted_approach TEXT NOT NULL, premise_set_hash TEXT, fingerprint TEXT NOT NULL UNIQUE, occurrence_count INTEGER NOT NULL, first_seen_at TEXT NOT NULL, last_seen_at TEXT NOT NULL);
+      CREATE TABLE failure_occurrences (id TEXT PRIMARY KEY, failure_id TEXT NOT NULL, run_id TEXT, job_id TEXT, step_id TEXT, candidate_id TEXT, artifact_refs_json TEXT NOT NULL, environment_fingerprint TEXT NOT NULL, created_at TEXT NOT NULL);
+      CREATE INDEX idx_failure_lookup ON failure_fingerprints(domain, goal_hash, context_hash, last_seen_at);
+    `,
+  },
+  {
+    id: "026_solver_lab",
+    sql: `
+      CREATE TABLE solver_jobs (id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, branch_id TEXT NOT NULL, claim_id TEXT, solver_id TEXT NOT NULL, solver_version TEXT, problem_kind TEXT NOT NULL, request_artifact_id TEXT NOT NULL, status TEXT NOT NULL, policy_snapshot_json TEXT NOT NULL, revision INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, started_at TEXT, finished_at TEXT);
+      CREATE TABLE solver_results (id TEXT PRIMARY KEY, job_id TEXT NOT NULL UNIQUE, outcome TEXT NOT NULL, trust_class TEXT NOT NULL, structured_json TEXT NOT NULL, witness_artifact_id TEXT, certificate_artifact_id TEXT, replay_status TEXT NOT NULL, exact INTEGER NOT NULL, deterministic INTEGER NOT NULL, runtime_fingerprint TEXT NOT NULL, input_hash TEXT NOT NULL, output_hash TEXT NOT NULL, evidence_id TEXT, created_at TEXT NOT NULL);
+    `,
+  },
+  {
+    id: "027_literature_ingestion",
+    sql: `
+      ALTER TABLE sources ADD COLUMN file_hash TEXT;
+      ALTER TABLE sources ADD COLUMN media_type TEXT;
+      ALTER TABLE sources ADD COLUMN ingestion_status TEXT;
+      ALTER TABLE sources ADD COLUMN extraction_version TEXT;
+      ALTER TABLE sources ADD COLUMN page_count INTEGER;
+      ALTER TABLE sources ADD COLUMN language TEXT;
+      ALTER TABLE sources ADD COLUMN license_note TEXT;
+      ALTER TABLE sources ADD COLUMN attachment_policy TEXT;
+      CREATE TABLE source_document_pages (id TEXT PRIMARY KEY, source_id TEXT NOT NULL, page_number INTEGER NOT NULL, text TEXT NOT NULL, text_hash TEXT NOT NULL, extraction_method TEXT NOT NULL, char_count INTEGER NOT NULL, extraction_confidence REAL NOT NULL, UNIQUE(source_id,page_number));
+      CREATE TABLE extraction_candidates (id TEXT PRIMARY KEY, source_id TEXT NOT NULL, excerpt_id TEXT, page_locator TEXT, kind TEXT NOT NULL, name TEXT, raw_statement TEXT NOT NULL, normalized_summary TEXT NOT NULL, status TEXT NOT NULL, provider TEXT, model TEXT, prompt_hash TEXT, duplication_target_id TEXT, created_at TEXT NOT NULL);
+      CREATE TABLE claim_source_assessments (id TEXT PRIMARY KEY, claim_id TEXT NOT NULL, source_id TEXT NOT NULL, external_result_id TEXT, relation TEXT NOT NULL, strength TEXT NOT NULL, human_reviewed INTEGER NOT NULL, rationale TEXT NOT NULL, invalidated INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL);
+    `,
+  },
+  {
+    id: "028_conjectures_and_agenda",
+    sql: `
+      CREATE TABLE conjecture_proposals (id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, branch_id TEXT NOT NULL, generator TEXT NOT NULL, source_entity_ids_json TEXT NOT NULL, natural_statement TEXT NOT NULL, rationale TEXT NOT NULL, context_revision_id TEXT NOT NULL, status TEXT NOT NULL, formal_candidate_id TEXT, created_claim_id TEXT, revision INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, decided_at TEXT);
+      CREATE TABLE conjecture_triage_results (id TEXT PRIMARY KEY, proposal_id TEXT NOT NULL, gate TEXT NOT NULL, result TEXT NOT NULL, detail_json TEXT NOT NULL, created_at TEXT NOT NULL);
+      CREATE TABLE agenda_items (id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, branch_id TEXT NOT NULL, kind TEXT NOT NULL, title TEXT NOT NULL, description TEXT NOT NULL, status TEXT NOT NULL, priority INTEGER NOT NULL, expected_information_gain TEXT NOT NULL, estimated_cost TEXT NOT NULL, claim_id TEXT, run_id TEXT, dependency_ids_json TEXT NOT NULL, owner_type TEXT, owner_id TEXT, due_at TEXT, revision INTEGER NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, completed_at TEXT);
+      CREATE INDEX idx_agenda_status ON agenda_items(workspace_id,branch_id,status,priority);
+    `,
+  },
+  {
+    id: "029_review_capsules_publications",
+    sql: `
+      CREATE TABLE review_packets (id TEXT PRIMARY KEY, source_branch_id TEXT NOT NULL, target_branch_id TEXT NOT NULL, source_revision TEXT NOT NULL, target_revision TEXT NOT NULL, semantic_diff_hash TEXT NOT NULL, included_entities_json TEXT NOT NULL, status TEXT NOT NULL, generated_by TEXT NOT NULL, revision INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL);
+      CREATE TABLE review_findings (id TEXT PRIMARY KEY, packet_id TEXT NOT NULL, entity_type TEXT NOT NULL, entity_id TEXT NOT NULL, entity_revision INTEGER NOT NULL, category TEXT NOT NULL, severity TEXT NOT NULL, message TEXT NOT NULL, status TEXT NOT NULL, reviewer_identity TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+      CREATE TABLE review_attestations (id TEXT PRIMARY KEY, packet_id TEXT NOT NULL, packet_hash TEXT NOT NULL, reviewer_identity_id TEXT NOT NULL, decision TEXT NOT NULL, signature_mode TEXT, note TEXT, created_at TEXT NOT NULL);
+      CREATE TABLE capsule_records (id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, manifest_json TEXT NOT NULL, manifest_hash TEXT NOT NULL, artifact_path TEXT NOT NULL, status TEXT NOT NULL, revision INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, verified_at TEXT);
+      CREATE TABLE publication_records (id TEXT PRIMARY KEY, document_id TEXT NOT NULL, formats_json TEXT NOT NULL, artifact_paths_json TEXT NOT NULL, warnings_json TEXT NOT NULL, status TEXT NOT NULL, revision INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL);
+    `,
+  },
+  {
+    id: "030_plugins_and_projections",
+    sql: `
+      CREATE TABLE plugin_records (id TEXT PRIMARY KEY, name TEXT NOT NULL, version TEXT NOT NULL, protocol TEXT NOT NULL, kind TEXT NOT NULL, manifest_json TEXT NOT NULL, manifest_hash TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'DISABLED', violation_count INTEGER NOT NULL DEFAULT 0, revision INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+      CREATE TABLE projection_records (id TEXT PRIMARY KEY, kind TEXT NOT NULL, workspace_id TEXT NOT NULL, branch_id TEXT NOT NULL, schema_version TEXT NOT NULL, source_event_sequence INTEGER NOT NULL, content_json TEXT NOT NULL, content_hash TEXT NOT NULL, generated_at TEXT NOT NULL, UNIQUE(kind,workspace_id,branch_id));
+    `,
+  },
 ]
 
 export const SCHEMA_EPOCH = MIGRATIONS.length
