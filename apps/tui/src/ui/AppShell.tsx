@@ -31,6 +31,7 @@ import { Toast } from "./Toast.tsx"
 import { portfolioSnapshot,type PortfolioSnapshot } from "./PortfolioViews.tsx"
 import { failureMemorySnapshot } from "./FailureMemoryViews.tsx"
 import { solverSnapshot } from "./SolverViews.tsx"
+import { literatureDeskSnapshot } from "./LiteratureDeskViews.tsx"
 
 export function AppShell(props: { mathos: MathOS }) {
   const renderer = useRenderer()
@@ -75,6 +76,7 @@ export function AppShell(props: { mathos: MathOS }) {
   const [portfolio, setPortfolio] = createSignal<PortfolioSnapshot|null>(null)
   const [failureMemory, setFailureMemory] = createSignal<ReturnType<typeof failureMemorySnapshot>|null>(null)
   const [solver, setSolver] = createSignal<ReturnType<typeof solverSnapshot>|null>(null)
+  const [literatureDesk, setLiteratureDesk] = createSignal<ReturnType<typeof literatureDeskSnapshot>|null>(null)
   const [paletteOpen, setPaletteOpen] = createSignal(false)
   const [toast, setToast] = createSignal<{ message: string; kind: "info" | "success" | "error" } | null>(null)
   const [history, setHistory] = createSignal<string[]>([])
@@ -465,8 +467,9 @@ export function AppShell(props: { mathos: MathOS }) {
       }
       if (name === "literature") {
         if (!rest.trim()) {
-          setProductText(props.mathos.literatureHome())
-          setView("literature-home")
+          const sources = props.mathos.listSources()
+          setLiteratureDesk(literatureDeskSnapshot({ sources, excerpts: sources.flatMap((source) => props.mathos.listExcerpts(source.id)), candidates: props.mathos.listExternal(), assessments: props.mathos.listCitations() }))
+          setView("literature-desk")
           return
         }
         const query = rest.trim()
@@ -791,7 +794,7 @@ export function AppShell(props: { mathos: MathOS }) {
     <box width="100%" height="100%" flexDirection="column" backgroundColor={theme.background}>
       <Header status={status()} compact={mode() === "compact"} />
       <box flexGrow={1} flexDirection="row">
-        <MainPanel
+      <MainPanel
           view={view()}
           status={status()}
           doctor={doctor()}
@@ -904,7 +907,8 @@ export function AppShell(props: { mathos: MathOS }) {
           alignmentFindings={alignmentFindings()}
           portfolio={portfolio()}
           failureMemory={failureMemory()}
-          solver={solver()}
+        solver={solver()}
+        literatureDesk={literatureDesk()}
         />
         <Sidebar status={status()} visible={showSidebar()} branches={props.mathos.listBranches()} />
       </box>

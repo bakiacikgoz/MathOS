@@ -18,7 +18,7 @@ export const SLASH_COMMANDS: SlashCommand[] = [
   { name: "team", description: "Start or step a multi-agent research session" },
   { name: "graph", description: "Show the research / proof graph" },
   { name: "experiment", description: "Experiments" },
-  { name: "literature", description: "Literature" },
+  { name: "literature", description: "Open the literature intelligence desk" },
   { name: "context", description: "Mathematical context registry" },
   { name: "notebook", description: "Research notebook workflow" },
   { name: "align", description: "Formal/informal alignment workshop" },

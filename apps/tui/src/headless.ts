@@ -7,6 +7,7 @@ import { formatBranchDetail, formatBranches, formatClaims, formatDoctor, formatM
 import { portfolioSnapshot } from "./ui/PortfolioViews.tsx"
 import { failureMemorySnapshot } from "./ui/FailureMemoryViews.tsx"
 import { solverSnapshot } from "./ui/SolverViews.tsx"
+import { literatureDeskCommand, literatureDeskSnapshot } from "./ui/LiteratureDeskViews.tsx"
 
 function joinCwdBackups(): string {
   return join(process.cwd(), "backups")
@@ -741,6 +742,13 @@ export async function runHeadless(argv: string[]): Promise<number> {
           const search = await app.searchLiterature(query)
           const hits = app.literatureHits(search.id)
           process.stdout.write(json ? `${JSON.stringify({ search, hits }, null, 2)}\n` : `EXTERNAL SOURCE\nNOT A PROOF\n${hits.map((hit, i) => `${i}. ${hit.title} (${hit.year ?? "?"})`).join("\n")}\n`)
+          return 0
+        }
+        if (command === "literature" && (sub === "desk" || sub === "pages")) {
+          const parsed = literatureDeskCommand(rest.filter((item) => item !== "--json"))
+          const sources = app.listSources()
+          const excerpts = parsed.action === "PAGES" && parsed.args[0] ? app.listExcerpts(parsed.args[0]) : sources.flatMap((source) => app.listExcerpts(source.id))
+          process.stdout.write(`${JSON.stringify(literatureDeskSnapshot({ sources, excerpts, candidates: app.listExternal(), assessments: app.listCitations() }), null, 2)}\n`)
           return 0
         }
         if (command === "source" && sub === "list") {
