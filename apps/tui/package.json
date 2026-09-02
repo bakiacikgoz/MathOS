@@ -15,6 +15,7 @@
     "@mathos/shared": "workspace:*",
     "@mathos/notebook": "workspace:*",
     "@mathos/plugins": "workspace:*",
+    "@mathos/update": "workspace:*",
     "@opentui/core": "^0.5.7",
     "@opentui/keymap": "^0.5.7",
     "@opentui/solid": "^0.5.7",

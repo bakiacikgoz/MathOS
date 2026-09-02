@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "
 import { dirname, extname, join, resolve } from "node:path"
 import { homedir } from "node:os"
 import { exportBlueprintLatex, importBlueprintLatex, parseMathosMarkdown } from "@mathos/notebook"
-import { MathOSError, cliExitCode, formatCliError, resolveRuntimeLayout, withWorkspaceOperationLock } from "@mathos/shared"
+import { MATHOS_PRODUCT_VERSION, MathOSError, cliExitCode, formatCliError, resolveRuntimeLayout, withWorkspaceOperationLock } from "@mathos/shared"
 import { repairWorkspaceRuntimeState } from "@mathos/workspace"
 import { SCHEMA_EPOCH } from "@mathos/storage"
 import { FileModelUsageLedger, ModelProfileRegistry, createSecretStore, loadConfigFiles, parseMathOSConfig, parseModelProfiles, probeModelProfile, serializeConfigValues, serializeModelProfiles, type ConfigScalar, type ModelProfile } from "@mathos/models"
@@ -22,6 +22,7 @@ import { pluginCommand } from "./ui/PluginViews.tsx"
 import { projectAtlas, blockerCriticalPath } from "@mathos/graph"
 import { createProductionLiteratureProvider } from "@mathos/literature"
 import { PersistentPluginRegistry } from "@mathos/plugins"
+import { applyAtomicUpdate, checkUpdate, rollbackUpdate, verifyUpdateArtifact, type UpdateManifest } from "@mathos/update"
 
 function joinCwdBackups(): string {
   return join(process.cwd(), "backups")
@@ -45,7 +46,7 @@ export const CLI_COMMAND_CATEGORIES = {
   atlas: ["atlas"],
   distribution: ["plugin", "capsule", "publication"],
   setup: ["setup", "config", "provider", "secrets", "usage"],
-  diagnostics: ["doctor", "diagnostics", "version", "--version", "help", "--help", "-h"],
+  diagnostics: ["doctor", "diagnostics", "update", "version", "--version", "help", "--help", "-h"],
 } as const
 
 const CLI_COMMANDS = new Set<string>(Object.values(CLI_COMMAND_CATEGORIES).flat())
@@ -162,6 +163,13 @@ export async function runHeadless(argv: string[]): Promise<number> {
       const layout=resolveRuntimeLayout({executablePath:process.execPath,platform:process.platform,home:homedir(),env:process.env}),registry=new PersistentPluginRegistry(layout.userDataRoot),action=rest[0]??"list",id=rest[1],actor=flag(rest,"--actor")??"local-user";let result:unknown
       if(action==="install"){if(!id)throw new Error("PLUGIN_SOURCE_REQUIRED");result=registry.install(id)}else if(action==="update"){if(!id||!rest[2])throw new Error("PLUGIN_UPDATE_ARGUMENTS_REQUIRED");result=registry.update(id,rest[2])}else if(action==="list")result=registry.list();else if(action==="info"||action==="inspect"){if(!id)throw new Error("PLUGIN_ID_REQUIRED");result=registry.info(id)}else if(action==="enable"){if(!id)throw new Error("PLUGIN_ID_REQUIRED");result=registry.enable(id,actor)}else if(action==="disable"){if(!id)throw new Error("PLUGIN_ID_REQUIRED");result=registry.disable(id,actor)}else if(action==="remove"){if(!id)throw new Error("PLUGIN_ID_REQUIRED");registry.remove(id);result={removed:id}}else if(action==="doctor")result=registry.doctor();else throw new Error(`PLUGIN_ACTION_UNKNOWN: ${action}`)
       process.stdout.write(`${JSON.stringify({schemaVersion:"mathos.plugin-cli.v1",securityBoundary:"OUT_OF_PROCESS",verificationAuthority:false,result},null,2)}\n`);return 0
+    }
+
+    if(command==="update"){
+      const action=rest[0]??"check",manifestPath=flag(rest,"--manifest")
+      if(action==="check"){if(!manifestPath)throw new Error("UPDATE_MANIFEST_REQUIRED");const manifest=JSON.parse(readFileSync(resolve(manifestPath),"utf8"))as UpdateManifest,result=checkUpdate({currentVersion:MATHOS_PRODUCT_VERSION,channel:rest.includes("--stable")?"stable":"rc",manifest,schemaVersion:SCHEMA_EPOCH});process.stdout.write(`${JSON.stringify(result,null,2)}\n`);return result.compatible?0:5}
+      if(action==="apply"){const candidate=flag(rest,"--candidate"),sha=flag(rest,"--sha256"),current=flag(rest,"--current")??process.execPath;if(!candidate||!sha)throw new Error("UPDATE_CANDIDATE_AND_CHECKSUM_REQUIRED");verifyUpdateArtifact(readFileSync(resolve(candidate)),sha);const smoke=(path:string)=>Bun.spawnSync([path,"--version","--json"],{stdout:"pipe",stderr:"pipe"}).exitCode===0;process.stdout.write(`${JSON.stringify(applyAtomicUpdate({current,candidate,preSmoke:smoke,postSmoke:smoke}),null,2)}\n`);return 0}
+      if(action==="rollback"){const current=flag(rest,"--current")??process.execPath;process.stdout.write(`${JSON.stringify(rollbackUpdate(current),null,2)}\n`);return 0}throw new Error(`UPDATE_ACTION_UNKNOWN:${action}`)
     }
 
     const app = MathOS.open(process.cwd(), { literatureOffline: command === "literature" && rest.includes("--offline") })

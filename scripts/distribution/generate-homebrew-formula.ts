@@ -1,0 +1,4 @@
+import { mkdirSync, writeFileSync } from "node:fs"
+import { dirname, resolve } from "node:path"
+const [version,url,sha256,output="dist/Formula/mathos.rb"]=process.argv.slice(2);if(!version||!url||!/^[a-f0-9]{64}$/.test(sha256??""))throw new Error("Usage: generate-homebrew-formula <version> <url> <sha256> [output]")
+const text=`class Mathos < Formula\n  desc "Professional mathematical research operating system"\n  homepage "https://github.com/bakiacikgoz/MathOS"\n  url "${url}"\n  version "${version}"\n  sha256 "${sha256}"\n  license "MIT"\n  def install\n    bin.install "root/bin/mathos"\n  end\n  test do\n    system bin/"mathos", "--version", "--json"\n  end\nend\n`;const path=resolve(output);mkdirSync(dirname(path),{recursive:true});writeFileSync(path,text);process.stdout.write(`${path}\n`)

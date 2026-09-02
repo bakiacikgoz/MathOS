@@ -32,7 +32,8 @@
       "@mathos/literature": ["./packages/literature/src/index.ts"],
       "@mathos/notebook": ["./packages/notebook/src/index.ts"],
       "@mathos/solvers": ["./packages/solvers/src/index.ts"],
-      "@mathos/plugins": ["./packages/plugins/src/index.ts"]
+      "@mathos/plugins": ["./packages/plugins/src/index.ts"],
+      "@mathos/update": ["./packages/update/src/index.ts"]
     }
   },
   "include": ["apps/**/*", "packages/**/*", "scripts/**/*", "tests/**/*"]
