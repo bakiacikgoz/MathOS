@@ -39,6 +39,7 @@ export class ModelResponseTooLarge extends MathOSError {
   constructor(detail = "MODEL_RESPONSE_TOO_LARGE") { super("ModelResponseTooLarge", detail); this.name = "ModelResponseTooLarge" }
 }
 export class ProviderQuotaExhausted extends MathOSError { constructor(detail="PROVIDER_QUOTA_EXHAUSTED"){super("ProviderQuotaExhausted",detail);this.name="ProviderQuotaExhausted"} }
+export class ProviderRateLimited extends MathOSError { constructor(detail="PROVIDER_RATE_LIMITED"){super("ProviderRateLimited",detail);this.name="ProviderRateLimited"} }
 
 export class ResearchIntakeFailed extends MathOSError {
   constructor(detail = "Research intake failed.") {

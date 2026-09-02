@@ -26,3 +26,5 @@ export const CORE_PROVIDER_PRESETS:ProviderDescriptor[]=[
 ]
 const kimiCode=CORE_PROVIDER_PRESETS.find(item=>item.id==="kimi-code-membership")!;kimiCode.endpointPresets.push({id:"anthropic",baseUrl:"https://api.kimi.com/coding/v1",protocol:"anthropic"});kimiCode.defaultModels=["k3","k3-256k","kimi-for-coding","kimi-for-coding-highspeed"]
 const kimiPayg=CORE_PROVIDER_PRESETS.find(item=>item.id==="kimi-platform-payg")!;kimiPayg.endpointPresets.push({id:"anthropic",baseUrl:"https://api.moonshot.ai/anthropic",protocol:"anthropic"})
+const minimaxGlobal=CORE_PROVIDER_PRESETS.find(item=>item.id==="minimax-token-plan-global")!;minimaxGlobal.endpointPresets.push({id:"openai",baseUrl:"https://api.minimax.io/v1",protocol:"openai"});minimaxGlobal.defaultModels=["MiniMax-M2.7","MiniMax-M2.7-highspeed"]
+const minimaxPayg=CORE_PROVIDER_PRESETS.find(item=>item.id==="minimax-payg")!;minimaxPayg.endpointPresets.push({id:"anthropic",baseUrl:"https://api.minimax.io/anthropic",protocol:"anthropic"});minimaxPayg.defaultModels=["MiniMax-M2.7","MiniMax-M2.7-highspeed","MiniMax-M2.5","MiniMax-M2.5-highspeed","MiniMax-M2.1","MiniMax-M2.1-highspeed","MiniMax-M2"]

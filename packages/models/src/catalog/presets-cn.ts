@@ -8,3 +8,4 @@ export const CN_PROVIDER_PRESETS:ProviderDescriptor[]=[
  descriptor({id:"qwen-code-acp",name:"Qwen Code ACP",vendor:"Alibaba/Qwen",category:"subscription",transport:"external-acp",billing:"unknown",source:"https://qwenlm.github.io/qwen-code-docs/en/developers/architecture/",policy:"OFFICIAL_CLIENT_BRIDGE",auth:["upstream-client"],client:{id:"qwen",executableNames:["qwen"],protocol:"acp",ownsCredentials:true}}),
  descriptor({id:"qwen-portal-oauth-legacy",name:"Qwen Portal OAuth Legacy",vendor:"Alibaba/Qwen",category:"subscription",transport:"external-acp",billing:"unknown",source:"https://qwenlm.github.io/qwen-code-docs/en/users/configuration/auth/",policy:"RETIRED",auth:["none"],discovery:{kind:"manual"}}),
 ]
+const minimaxCn=CN_PROVIDER_PRESETS.find(item=>item.id==="minimax-token-plan-cn")!;minimaxCn.endpointPresets.push({id:"openai",baseUrl:"https://api.minimaxi.com/v1",protocol:"openai"});minimaxCn.defaultModels=["MiniMax-M2.7","MiniMax-M2.7-highspeed"]
