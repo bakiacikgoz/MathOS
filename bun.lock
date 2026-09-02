@@ -58,6 +58,7 @@
         "@mathos/lean": "workspace:*",
         "@mathos/literature": "workspace:*",
         "@mathos/models": "workspace:*",
+        "@mathos/notebook": "workspace:*",
         "@mathos/retrieval": "workspace:*",
         "@mathos/shared": "workspace:*",
         "@mathos/storage": "workspace:*",
@@ -113,6 +114,10 @@
     "packages/notebook": {
       "name": "@mathos/notebook",
       "version": "0.1.0",
+      "dependencies": {
+        "@mathos/domain": "workspace:*",
+        "@mathos/graph": "workspace:*",
+      },
     },
     "packages/plugins": {
       "name": "@mathos/plugins",

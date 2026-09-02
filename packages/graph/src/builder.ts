@@ -404,3 +404,9 @@ export function toProofGraph(graph: ResearchGraph): import("./types.ts").ProofGr
     blockers: graph.nodes.filter((node) => node.kind === "BLOCKER"),
   }
 }
+
+export function withNotebookProjection(graph: ResearchGraph, projection: Pick<ResearchGraph, "nodes" | "edges">): ResearchGraph {
+  const nodes = [...graph.nodes, ...projection.nodes].sort((a, b) => a.id.localeCompare(b.id))
+  const edges = [...graph.edges, ...projection.edges].sort((a, b) => a.id.localeCompare(b.id))
+  return { ...graph, nodes, edges, metadata:{ ...graph.metadata, graphHash:semanticGraphHash(nodes, edges) } }
+}

@@ -39,6 +39,7 @@ export const RESEARCH_GRAPH_NODE_KINDS = [
   "SOURCE",
   "EXTERNAL_RESULT",
   "CITATION",
+  "NOTEBOOK_BLOCK",
 ] as const
 export type ResearchGraphNodeKind = (typeof RESEARCH_GRAPH_NODE_KINDS)[number]
 
@@ -65,6 +66,7 @@ export const RESEARCH_GRAPH_EDGE_KINDS = [
   "KNOWN_FROM",
   "COUNTERPOINT_FROM",
   "CITES",
+  "REFERENCES",
 ] as const
 export type ResearchGraphEdgeKind = (typeof RESEARCH_GRAPH_EDGE_KINDS)[number]
 

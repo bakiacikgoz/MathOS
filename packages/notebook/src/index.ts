@@ -8,3 +8,5 @@ export function createNotebookRegistry(): NotebookRegistry {
 export { parseMathosMarkdown, type MathosMarkdownDocument, type NotebookBlock, type SourceRange } from "./parser.ts"
 export { renderMathosMarkdown } from "./renderer.ts"
 export { referencedEntities, type NotebookEntityReference } from "./references.ts"
+export { projectNotebook, type NotebookProjection } from "./projection.ts"
+export { NotebookSyncEngine, type NotebookSyncInput, type NotebookSyncPlan } from "./sync.ts"

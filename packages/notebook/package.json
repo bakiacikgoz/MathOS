@@ -2,5 +2,9 @@
   "name": "@mathos/notebook",
   "version": "0.1.0",
   "type": "module",
-  "exports": { ".": "./src/index.ts" }
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "@mathos/domain": "workspace:*",
+    "@mathos/graph": "workspace:*"
+  }
 }
