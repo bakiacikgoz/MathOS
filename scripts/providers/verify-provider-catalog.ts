@@ -1,0 +1,2 @@
+import { PROVIDER_DESCRIPTOR_IDS, providerCatalog, validateProviderCatalog } from "@mathos/models"
+const descriptors=providerCatalog.list();validateProviderCatalog(descriptors);if(descriptors.length!==PROVIDER_DESCRIPTOR_IDS.length)throw new Error("PROVIDER_CATALOG_INCOMPLETE");console.log(JSON.stringify({schemaVersion:"mathos.provider-catalog-verification.v1",passed:true,descriptors:descriptors.length}))
