@@ -24,3 +24,5 @@ export const CORE_PROVIDER_PRESETS:ProviderDescriptor[]=[
  descriptor({id:"generic-openai-compatible",name:"Generic OpenAI-compatible",vendor:"Generic",category:"generic",transport:"openai-chat",billing:"unknown",source:"https://platform.openai.com/docs/api-reference",discovery:{kind:"manual"}}),
  descriptor({id:"generic-anthropic-compatible",name:"Generic Anthropic-compatible",vendor:"Generic",category:"generic",transport:"anthropic-messages",billing:"unknown",source:"https://docs.anthropic.com/en/api/messages",discovery:{kind:"manual"}}),
 ]
+const kimiCode=CORE_PROVIDER_PRESETS.find(item=>item.id==="kimi-code-membership")!;kimiCode.endpointPresets.push({id:"anthropic",baseUrl:"https://api.kimi.com/coding/v1",protocol:"anthropic"});kimiCode.defaultModels=["k3","k3-256k","kimi-for-coding","kimi-for-coding-highspeed"]
+const kimiPayg=CORE_PROVIDER_PRESETS.find(item=>item.id==="kimi-platform-payg")!;kimiPayg.endpointPresets.push({id:"anthropic",baseUrl:"https://api.moonshot.ai/anthropic",protocol:"anthropic"})
