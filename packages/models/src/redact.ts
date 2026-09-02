@@ -2,8 +2,9 @@ const SECRET_KEYS = ["apiKey", "api_key", "authorization", "MATHOS_API_KEY", "to
 
 export function collectKnownSecrets(extra: string[] = []): string[] {
   const values = [...extra]
-  const envKey = process.env.MATHOS_API_KEY
-  if (envKey) values.push(envKey)
+  for (const [name, value] of Object.entries(process.env)) {
+    if (/(api[_-]?key|secret|token|password|authorization|credential)/i.test(name) && value) values.push(value)
+  }
   return values.filter((item) => item.length > 0)
 }
 
@@ -24,7 +25,7 @@ export function redactValue(value: unknown, secrets: string[] = collectKnownSecr
   if (value && typeof value === "object") {
     const output: Record<string, unknown> = {}
     for (const [key, nested] of Object.entries(value)) {
-      if (SECRET_KEYS.includes(key)) {
+      if (SECRET_KEYS.includes(key) || /(api[_-]?key|secret|token|password|authorization|credential)/i.test(key)) {
         output[key] = nested ? "[redacted]" : ""
       } else {
         output[key] = redactValue(nested, secrets)

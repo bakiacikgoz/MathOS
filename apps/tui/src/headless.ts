@@ -1,8 +1,10 @@
 import { MathOS, createDemoWorkspace, experimentTrustLabels, formatInitReport, formatTypedUserError, formatConfigShow, inspectHostEnvironment } from "@mathos/core"
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
-import { extname, join, resolve } from "node:path"
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import { dirname, extname, join, resolve } from "node:path"
+import { homedir } from "node:os"
 import { exportBlueprintLatex, importBlueprintLatex, parseMathosMarkdown } from "@mathos/notebook"
-import { formatUserError, isMathOSError } from "@mathos/shared"
+import { formatUserError, isMathOSError, resolveRuntimeLayout } from "@mathos/shared"
+import { createSecretStore, loadConfigFiles, parseMathOSConfig, serializeConfigValues, type ConfigScalar } from "@mathos/models"
 import { formatBranchDetail, formatBranches, formatClaims, formatDoctor, formatMergePreview, formatResearchRun, formatStatus, HELP_TEXT } from "./format.ts"
 import { portfolioSnapshot } from "./ui/PortfolioViews.tsx"
 import { failureMemorySnapshot } from "./ui/FailureMemoryViews.tsx"
@@ -54,9 +56,28 @@ export async function runHeadless(argv: string[]): Promise<number> {
       return 0
     }
 
-    if (command === "config" && rest[0] === "show") {
-      process.stdout.write(`${formatConfigShow(MathOS.tryLocate(process.cwd()) ?? process.cwd())}\n`)
-      return 0
+    if (command === "config") {
+      const action = rest[0] ?? "list", json = rest.includes("--json")
+      if (action === "show") { process.stdout.write(`${formatConfigShow(MathOS.tryLocate(process.cwd()) ?? process.cwd())}\n`); return 0 }
+      const layout = resolveRuntimeLayout({ executablePath: process.execPath, platform: process.platform, home: homedir(), env: process.env })
+      const userPath = join(layout.userConfigRoot, "config.toml"), workspaceRoot = MathOS.tryLocate(process.cwd()) ?? undefined
+      if (action === "path") { process.stdout.write(`${json ? JSON.stringify({ user: userPath, workspace: workspaceRoot ? join(workspaceRoot, "mathos.toml") : null }) : userPath}\n`); return 0 }
+      const loaded = loadConfigFiles({ userPath, workspaceRoot })
+      if (action === "list") { process.stdout.write(`${JSON.stringify({ config: loaded.config, sources: loaded.sources }, null, 2)}\n`); return 0 }
+      if (action === "get") { const path = rest[1]; if (!path) throw new Error("CONFIG_PATH_REQUIRED"); const value = path.split(".").reduce<any>((v, key) => v?.[key], loaded.config); if (value === undefined) throw new Error(`CONFIG_UNKNOWN_KEY: ${path}`); process.stdout.write(`${json ? JSON.stringify({ path, value, source: loaded.sources[path] }) : typeof value === "string" ? value : JSON.stringify(value)}\n`); return 0 }
+      if (action === "set") { const path = rest[1], raw = rest[2]; if (!path || raw === undefined) throw new Error("Usage: mathos config set <path> <value>"); const existing = existsSync(userPath) ? parseMathOSConfig(readFileSync(userPath, "utf8")) : {}; const value: ConfigScalar = raw === "true" || raw === "false" ? raw === "true" : raw.startsWith("[") ? JSON.parse(raw) : raw; const text = serializeConfigValues({ ...existing, [path]: value }); mkdirSync(dirname(userPath), { recursive: true }); writeFileSync(userPath, text, { encoding: "utf8", mode: 0o600 }); process.stdout.write(`${path} updated in ${userPath}\n`); return 0 }
+      if (action === "validate" || action === "doctor") { const report = { ok: true, userPath, workspace: workspaceRoot ?? null, secretValuesPersisted: false }; process.stdout.write(`${JSON.stringify(report, null, 2)}\n`); return 0 }
+      throw new Error(`Unknown config action: ${action}`)
+    }
+
+    if (command === "secrets") {
+      const action = rest[0] ?? "list", ref = rest[1], store = createSecretStore(), capability = await store.capability()
+      if (action === "doctor") { process.stdout.write(`${JSON.stringify(capability, null, 2)}\n`); return capability.readable ? 0 : 1 }
+      if (action === "list") { const refs = rest.slice(1).filter(value => !value.startsWith("--")); process.stdout.write(`${JSON.stringify({ capability, secrets: await store.listMetadata(refs) }, null, 2)}\n`); return 0 }
+      if (!ref) throw new Error("SECRET_REF_REQUIRED")
+      if (action === "delete") { await store.delete(ref); process.stdout.write(`Deleted ${ref}\n`); return 0 }
+      if (action === "set") { if (!capability.writable) throw new Error(`SECRET_STORE_BLOCKED: ${capability.detail}; set ${ref} using ${`MATHOS_SECRET_${ref.toUpperCase().replace(/[^A-Z0-9]+/g, "_")}`}`); throw new Error("SECRET_INTERACTIVE_INPUT_UNAVAILABLE") }
+      throw new Error(`Unknown secrets action: ${action}`)
     }
 
     if (command === "restore") {

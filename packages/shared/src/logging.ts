@@ -15,7 +15,7 @@ function debugEnabled(): boolean {
 }
 
 function redact(text: string): string {
-  const secrets = [process.env.MATHOS_API_KEY ?? "", process.env.OPENAI_API_KEY ?? ""].filter((item) => item.length > 3)
+  const secrets = Object.entries(process.env).filter(([name, value]) => /(api[_-]?key|secret|token|password|authorization|credential)/i.test(name) && Boolean(value)).map(([, value]) => value!).filter((item) => item.length > 3)
   let out = text
   for (const secret of secrets) out = out.split(secret).join("[redacted]")
   out = out.replace(/Bearer\s+\S+/gi, "Bearer [redacted]")
@@ -26,16 +26,14 @@ function writeLine(filePath: string | undefined, level: LogLevel, message: strin
   if (!filePath) return
   if (level === "debug" && !debugEnabled()) return
   mkdirSync(dirname(filePath), { recursive: true })
-  const safeExtra = extra
-    ? Object.fromEntries(
-        Object.entries(extra).map(([key, value]) => {
-          if (["apiKey", "api_key", "authorization", "MATHOS_API_KEY", "token", "password"].includes(key)) {
-            return [key, "[redacted]"]
-          }
-          return [key, typeof value === "string" ? redact(value) : value]
-        }),
-      )
-    : undefined
+  const sanitize = (value: unknown, key = ""): unknown => {
+    if (/(api[_-]?key|secret|token|password|authorization|credential)/i.test(key)) return value ? "[redacted]" : value
+    if (typeof value === "string") return redact(value)
+    if (Array.isArray(value)) return value.map(item => sanitize(item))
+    if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([nestedKey, nested]) => [nestedKey, sanitize(nested, nestedKey)]))
+    return value
+  }
+  const safeExtra = extra ? sanitize(extra) as Record<string, unknown> : undefined
   const line = JSON.stringify({
     timestamp: new Date().toISOString(),
     level,
