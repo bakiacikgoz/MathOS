@@ -1,0 +1,1 @@
+{"schemaVersion":"alignment-benchmark-v1","frozen":true,"caseCount":64,"dimensions":["QUANTIFIER","DOMAIN","HYPOTHESIS","CONCLUSION","NOTATION","EDGE_CASE","EQUIVALENCE","STRENGTH"],"splits":{"dev":48,"holdout":16},"labels":"independent-human-fixture","datasetHash":"computed-by-runner"}
