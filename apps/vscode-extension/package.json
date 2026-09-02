@@ -4,5 +4,5 @@
   "private": true,
   "type": "module",
   "main": "./dist/extension.js",
-  "scripts": { "build": "bun ../../scripts/build-vscode.ts" }
+  "scripts": { "build": "bun ../../scripts/build-vscode.ts", "test": "bun test src" }
 }
