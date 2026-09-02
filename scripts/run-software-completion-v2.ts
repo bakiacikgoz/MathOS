@@ -17,7 +17,7 @@ G05:[[bun,"run","release:build"],[bun,"test","tests/package-smoke.test.ts"]],G06
 G07:[[bun,"test","tests/distribution-layout.test.ts","tests/no-source-tree-runtime-dependency.test.ts"]],
 G08:[[bun,"test","tests/setup-state.test.ts","tests/setup-resume.test.ts","tests/setup-doctor.test.ts"]],
 G09:[[bun,"test","tests/config-layering.test.ts","tests/secret-store.test.ts","tests/secret-redaction-e2e.test.ts","tests/capsule-secret-scan.test.ts","tests/diagnostics-redaction.test.ts"]],
-G10:[[bun,"test","tests/lean-setup-contract.test.ts","tests/lean-version-check.test.ts","tests/verification-trust.test.ts"]],
+G10:[[bun,"test","tests/lean-setup-contract.test.ts","tests/version-contract.test.ts","tests/verification-trust.test.ts"]],
 G11:[[bun,"test","tests/sandbox.test.ts","tests/sandbox-security.test.ts"]],
 G12:[[bun,"test","tests/model-profile.test.ts","tests/model-routing.test.ts","tests/model-retry.test.ts","tests/model-cancellation.test.ts","tests/model-privacy.test.ts","tests/model-secret-redaction.test.ts"]],
 G13:[[bun,"test","tests/literature-providers.test.ts","tests/literature-dedupe.test.ts","tests/literature-cache.test.ts","tests/literature-offline.test.ts","tests/literature-registry.test.ts"]],
