@@ -21,6 +21,7 @@ import {
 import { reviewFidelity } from "../fidelity.ts"
 import { draftFormalization } from "../formalize.ts"
 import type { MutationRecorder } from "../mutation-recorder.ts"
+import type { StatementRevisionService } from "./statement-revision-service.ts"
 
 interface FormalizationServiceDependencies {
   root: string
@@ -34,6 +35,8 @@ interface FormalizationServiceDependencies {
   leanAdapter: LeanAdapter
   leanContext: () => LeanContext
   recorder: MutationRecorder
+  statementRevisions?: StatementRevisionService
+  contextRevisionId?: (claimId:string)=>string
 }
 
 export class FormalizationService {
@@ -110,6 +113,9 @@ export class FormalizationService {
       target: statement.id,
       metadata: { result: "ELABORATES", repairs },
     })
+    const contextRevisionId=this.dependencies.contextRevisionId?.(claim.id)??"CR-UNBOUND"
+    this.dependencies.statementRevisions?.capture({claimId:claim.id,kind:"NATURAL",sourceEntityId:claim.id,text:claim.naturalStatement,contextRevisionId,createdBy:claim.createdBy})
+    this.dependencies.statementRevisions?.capture({claimId:claim.id,kind:"FORMAL",sourceEntityId:statement.id,text:statement.sourceText,contextRevisionId,createdBy:statement.createdBy})
 
     const reviewed = await reviewFidelity(this.dependencies.auditorProvider, {
       claimId: claim.id,

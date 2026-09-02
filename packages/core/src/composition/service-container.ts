@@ -17,6 +17,7 @@ import type { ClockPort } from "../ports/clock-port.ts"
 import { claimReadAdapter, FileArtifactStore, formalReadAdapter, graphReadAdapter, systemClock } from "./built-in-adapters.ts"
 import { MathematicalContextService } from "../services/mathematical-context-service.ts"
 import { ResearchNotebookService } from "../services/research-notebook-service.ts"
+import { StatementRevisionService } from "../services/statement-revision-service.ts"
 
 export interface ServiceContainerOverrides { clock: ClockPort; artifacts: ArtifactStorePort; claims: ClaimReadPort; formals: FormalReadPort; graph: GraphReadPort }
 export interface ServiceContainer {
@@ -24,6 +25,7 @@ export interface ServiceContainer {
   repositories: ReturnType<typeof createV1Repositories>
   mathematicalContext: MathematicalContextService
   researchNotebook: ResearchNotebookService
+  statementRevisions: StatementRevisionService
 }
 
 function createV1Repositories(db: Database) {
@@ -44,6 +46,9 @@ export function createServiceContainer(root: string, db: Database, overrides: Pa
   const clock = overrides.clock ?? systemClock
   const repositories = createV1Repositories(db)
   let sequence = 0
+  const statementRevisions=new StatementRevisionService({revisions:repositories.statementRevisions,clock,nextId:()=>`SR-${clock.now().replace(/\D/g,"")}-${++sequence}`,writeEvent:()=>{}})
+  const claimRepository=new ClaimRepository(db),formalRepository=new FormalStatementRepository(db)
+  for(const {id} of db.query<{id:string},[]>("SELECT id FROM workspaces").all())statementRevisions.backfillLegacy(claimRepository.list(id),formalRepository.list(id),"CR-LEGACY")
   const container = {
     clock,
     artifacts: overrides.artifacts ?? new FileArtifactStore(root),
@@ -53,6 +58,7 @@ export function createServiceContainer(root: string, db: Database, overrides: Pa
     repositories,
     mathematicalContext: new MathematicalContextService({ items: repositories.contextItems, revisions: repositories.contextRevisions, clock, nextId: (prefix) => `${prefix}-${clock.now().replace(/\D/g, "")}-${++sequence}`, writeEvent: () => {} }),
     researchNotebook: new ResearchNotebookService({ root, documents:repositories.researchDocuments, blocks:repositories.researchBlocks, clock, unitOfWork:(work) => db.transaction(work)(), entityExists:(type,id) => type === "claim" ? Boolean(new ClaimRepository(db).get(id)) : true }),
+    statementRevisions,
   }
   return container
 }

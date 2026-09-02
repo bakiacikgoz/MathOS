@@ -323,6 +323,8 @@ export class MathOS {
         tmpDir: `${instance.root}/.mathos/tmp`,
       }),
       recorder: instance.mutationRecorder(),
+      statementRevisions:instance.services.statementRevisions,
+      contextRevisionId:(claimId)=>instance.services.mathematicalContext.resolveSnapshot({workspaceId:instance.requireWorkspace().id,branchId:instance.currentBranch().id,claimId}).revisionId,
     })
     instance.verificationService = new VerificationService({
       root: workspaceRoot,
@@ -698,7 +700,11 @@ export class MathOS {
 
   confirmIntake(draft: ResearchDraft, options: { asMainObjective?: boolean } = {}) { return this.claimService.confirmIntake(draft, options) }
 
-  createClaim(input: CreateClaimInput): Claim { return this.claimService.create(input) }
+  createClaim(input: CreateClaimInput): Claim {
+    const claim=this.claimService.create(input),branch=this.currentBranch()
+    this.services.statementRevisions.capture({claimId:claim.id,kind:"NATURAL",sourceEntityId:claim.id,text:claim.naturalStatement,contextRevisionId:this.services.mathematicalContext.resolveSnapshot({workspaceId:claim.workspaceId,branchId:branch.id,claimId:claim.id}).revisionId,createdBy:claim.createdBy})
+    return claim
+  }
 
   listClaims(): Claim[] { return this.claimService.list() }
 
