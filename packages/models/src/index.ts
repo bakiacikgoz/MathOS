@@ -31,7 +31,7 @@ export {
 export { OpenAICompatibleProvider } from "./openai.ts"
 export { FakeModelProvider } from "./fake.ts"
 export { modelDoctorChecks } from "./doctor.ts"
-export { redactText, redactValue, containsSecret, collectKnownSecrets } from "./redact.ts"
+export { redactText, redactValue, containsSecret, collectKnownSecrets, redactedProviderSummary, type RedactedProviderSummary } from "./redact.ts"
 export * from "./unified-config.ts"
 export * from "./secret-store.ts"
 export * from "./transports/types.ts"

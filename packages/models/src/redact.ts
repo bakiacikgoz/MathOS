@@ -1,4 +1,9 @@
 const SECRET_KEYS = ["apiKey", "api_key", "authorization", "MATHOS_API_KEY", "token", "password"]
+import type { ProviderDescriptor } from "./catalog/types.ts"
+import type { ModelProfileV2 } from "./profiles/types.ts"
+
+export interface RedactedProviderSummary { profile: string; descriptor: string; connection: string; model: string; billing: string; terms: string; quota: string; roles: string[] }
+export function redactedProviderSummary(profile: ModelProfileV2, descriptor: ProviderDescriptor, input: { connection?: string; quota?: string } = {}): RedactedProviderSummary { return { profile: profile.id, descriptor: descriptor.id, connection: input.connection ?? (profile.enabled ? "CONFIGURED" : "DISCONNECTED"), model: profile.model, billing: descriptor.billingClass, terms: descriptor.terms.policy, quota: input.quota ?? "unknown", roles: [...profile.allowedRoles] } }
 
 export function collectKnownSecrets(extra: string[] = []): string[] {
   const values = [...extra]

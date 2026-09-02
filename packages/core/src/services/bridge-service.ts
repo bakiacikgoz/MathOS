@@ -3,8 +3,8 @@ import { resolve } from "node:path"
 import { parseBridgeHello, type BridgeRequest, type BridgeResponse } from "@mathos/domain"
 import { BRIDGE_PROTOCOL_VERSION, MATHOS_PRODUCT_VERSION, WORKSPACE_SCHEMA_VERSION } from "@mathos/shared"
 
-const capabilities = new Set(["claims.read", "graph.read", "events.subscribe", "claims.create", "research.run"])
-const methods = new Set(["shutdown", "events.subscribe", "claims.create", "claims.list", "graph.snapshot", "research.run"])
+const capabilities = new Set(["claims.read", "graph.read", "events.subscribe", "claims.create", "research.run", "providers.read", "providers.select"])
+const methods = new Set(["shutdown", "events.subscribe", "claims.create", "claims.list", "graph.snapshot", "research.run", "providers.list", "providers.select", "providers.refresh", "providers.quota"])
 type Handler = (params: unknown, signal: AbortSignal, progress: (value: unknown) => void) => Promise<unknown>
 export interface BridgeServiceOptions { workspaceRoot: string; workspaceId: string; trusted: boolean; handlers?: Record<string, Handler>; maxInflight?: number; maxResponseBytes?: number; onProgress?: (notification: { method: "progress"; params: { requestId: string; value: unknown } }) => void }
 function canonical(path: string): string { try { return realpathSync(path) } catch { return resolve(path) } }
@@ -27,6 +27,8 @@ export class BridgeService {
     if (request.method === "events.subscribe") { this.requireCapability("events.subscribe"); return this.response(request.id, { subscriptionId: `sub-${request.id}` }) }
     if (request.method === "claims.list") this.requireCapability("claims.read")
     if (request.method === "graph.snapshot") this.requireCapability("graph.read")
+    if (["providers.list", "providers.refresh", "providers.quota"].includes(request.method)) this.requireCapability("providers.read")
+    if (request.method === "providers.select") { if (!this.options.trusted) throw new Error("UNTRUSTED_WORKSPACE_MUTATION"); this.requireCapability("providers.select") }
     if (request.method === "research.run") this.requireCapability("research.run")
     if (request.method === "claims.create") { if (!this.options.trusted) throw new Error("UNTRUSTED_WORKSPACE_MUTATION"); this.requireCapability("claims.create") }
     const controller = new AbortController(); this.active.set(request.id, controller)
