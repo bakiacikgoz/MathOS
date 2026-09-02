@@ -1,0 +1,1 @@
+import{GovernedPluginRegistry,type PluginProcessHost}from"@mathos/plugins";export class PluginHostService{constructor(readonly registry:GovernedPluginRegistry,readonly host:PluginProcessHost){}async invoke(id:string,schema:string,input:any){this.registry.require(id,schema);return await this.host.invoke(input)}}
