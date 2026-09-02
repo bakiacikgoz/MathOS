@@ -17,3 +17,4 @@ export function createSandboxRuntime(targetPlatform: NodeJS.Platform = process.p
 export const inspectSandbox = () => createSandboxRuntime().inspect()
 export const executeSandboxed = (request:SandboxedExecutionRequest) => createSandboxRuntime().execute(request)
 export { resolveLinuxSandboxBackend } from "./platform/linux-sandbox"
+export { buildBwrapCommand, type BwrapCommandInput } from "./platform/linux-bwrap"
