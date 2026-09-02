@@ -221,6 +221,13 @@ export async function runPilotValidation(options: { output?: string; keepWorkspa
     const missing = (name: string) => doctorChecks.some((check) => check.name === name && check.status !== "PASS")
     const detail = (name: string) => doctorChecks.find((check) => check.name === name)?.detail ?? "unreported"
 
+    const providerCatalog = run("provider_catalog", ["provider", "catalog", "--json"])
+    if (providerCatalog.step.status === "PASS") { try { const value=JSON.parse(providerCatalog.rawStdout);if(value.schemaVersion!=="mathos.providers.catalog.v1"||!Array.isArray(value.providers)||value.providers.length<1)throw new Error("catalog contract missing");providerCatalog.step.evidence=`${value.providers.length} provider descriptors; live accounts not inferred` } catch(error){providerCatalog.step.status="FAIL";providerCatalog.step.reason=`Provider catalog validation failed: ${String(error)}` } }
+    const providerConfigure=run("provider_configure_local",["provider","configure","ollama","--profile","pilot-local","--model","auto"])
+    if(providerConfigure.step.status==="PASS")providerConfigure.step.evidence="fresh local profile configured without secret material"
+    const providerStatus=run("provider_status",["provider","status","pilot-local","--json"])
+    if(providerStatus.step.status==="PASS") { try { const value=JSON.parse(providerStatus.rawStdout);if(value.schemaVersion!=="mathos.providers.status.v1"||value.profiles?.[0]?.profile!=="pilot-local")throw new Error("status contract missing");providerStatus.step.evidence="fresh profile reopened with redacted status" } catch(error){providerStatus.step.status="FAIL";providerStatus.step.reason=`Provider status validation failed: ${String(error)}` } }
+
     manual("tui_launch", "Interactive TUI launch and visual interaction require a human terminal; the built entrypoint was proven executable by the headless steps.", "mathos", "BLOCKED", "manual terminal action explicitly retained in checklist")
 
     const claim = run("create_conjecture", ["claim", "create", "--type", "conjecture", "--title", "Pilot identity", "--statement", "For every natural number n, n equals n."])

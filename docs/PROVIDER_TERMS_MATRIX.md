@@ -15,7 +15,8 @@ Reviewed on **2026-09-02**. A stale review produces a warning after 90 days and 
 | Antigravity consumer | Prohibited for third-party integration | Official product only | Subscription | https://antigravity.google/terms |
 | Kimi Code membership | Terms review required | MathOS secure store | Subscription plan | https://www.kimi.com/code/docs/en/ |
 | MiniMax Token Plan | Terms review required | MathOS secure store | Subscription plan | https://platform.minimax.io/docs/token-plan/other-tools |
-| Alibaba Token/Coding Plan | Terms review required per plan scope | MathOS secure store | Subscription plan | https://www.alibabacloud.com/help/en/model-studio/token-plan-overview |
+| Alibaba Token/Coding Plan | Terms review required; custom application/automation use is blocked until explicitly permitted | MathOS secure store | Subscription plan | https://www.alibabacloud.com/help/en/model-studio/token-plan-overview |
+| Alibaba Model Studio | Permitted API path | MathOS secure store | PAYG | https://www.alibabacloud.com/help/en/model-studio/ |
 | Qwen Code ACP | Permitted through documented ACP mode | Official client | Client account | https://qwenlm.github.io/qwen-code-docs/en/developers/architecture/ |
 | Qwen Portal OAuth legacy | Retired | None | Retired | https://qwenlm.github.io/qwen-code-docs/en/users/configuration/auth/ |
 | Z.AI PAYG | Permitted | MathOS secure store | PAYG | https://docs.z.ai/guides/develop/http/introduction |
@@ -25,4 +26,4 @@ Reviewed on **2026-09-02**. A stale review produces a warning after 90 days and 
 | Ollama | Permitted on loopback | None | Local | https://docs.ollama.com/api/chat |
 | LM Studio | Permitted on loopback | None or local token | Local | https://lmstudio.ai/docs/developer/openai-compat |
 
-`PROHIBITED_THIRD_PARTY`, `RETIRED`, and `TERMS_REVIEW_REQUIRED` are product policy states. User configuration cannot convert them into verified support.
+`PROHIBITED_THIRD_PARTY`, `RETIRED`, `REQUIRES_VENDOR_APPROVAL`, and `TERMS_REVIEW_REQUIRED` are product policy states. User configuration cannot convert them into live authorized support. A catalog/contract implementation may be complete while live use remains blocked.

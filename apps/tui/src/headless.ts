@@ -325,7 +325,28 @@ export async function runHeadless(argv: string[]): Promise<number> {
 
       if (command === "doctor") {
         const report = await app.doctor()
-        if (rest.includes("--json")) process.stdout.write(`${JSON.stringify(report, null, 2)}\n`)
+        if (rest.includes("--json")) {
+          const layout = resolveRuntimeLayout({ executablePath: process.execPath, platform: process.platform, home: homedir(), env: process.env })
+          const secretStore = await createSecretStore().capability()
+          const localEngines = await discoverLocalEngines()
+          const clients = (names: string[]) => names.map(name => Bun.which(name)).find(Boolean) ?? null
+          const providerDiagnostics = {
+            providerCatalog: { state: "AVAILABLE", descriptors: providerCatalog.list().length },
+            profileSchema: "mathos.model-profile.v2",
+            secretStore,
+            externalClients: {
+              codex: { state: clients(process.platform === "win32" ? ["codex.exe", "codex"] : ["codex"]) ? "AVAILABLE" : "NOT_INSTALLED" },
+              claude: { state: clients(process.platform === "win32" ? ["claude.exe", "claude"] : ["claude"]) ? "AVAILABLE" : "NOT_INSTALLED" },
+              copilot: { state: "SDK_MANAGED" },
+              gemini: { state: clients(process.platform === "win32" ? ["gemini.cmd", "gemini.exe", "gemini"] : ["gemini"]) ? "AVAILABLE" : "NOT_INSTALLED" },
+              qwen: { state: clients(process.platform === "win32" ? ["qwen.cmd", "qwen.exe", "qwen"] : ["qwen"]) ? "AVAILABLE" : "NOT_INSTALLED" },
+            },
+            localEngines: Object.fromEntries(localEngines.map(engine => [engine.descriptorId === "lm-studio" ? "lmStudio" : engine.descriptorId === "llama-cpp" ? "llamaCpp" : engine.descriptorId, { state: engine.state, models: engine.models.length }])),
+            providerPolicyReview: { state: providerCatalog.list().every(descriptor => descriptor.terms.lastReviewedAt && descriptor.terms.officialSources.length > 0) ? "CURRENT" : "REVIEW_REQUIRED" },
+            profileStore: join(layout.userConfigRoot, "model-profiles.json"),
+          }
+          process.stdout.write(`${JSON.stringify({ ...report, providers: providerDiagnostics }, null, 2)}\n`)
+        }
         else process.stdout.write(`${formatDoctor(report)}\n`)
         return report.ok ? 0 : 1
       }

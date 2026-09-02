@@ -1,9 +1,10 @@
 #!/usr/bin/env bun
 import { MathOS } from "@mathos/core"
 import { cliExitCode, currentBuildIdentity, formatCliError, formatUserError, resolveRuntimeLayout } from "@mathos/shared"
-import { loadModelProfileStore, providerCatalog, redactedProviderSummary } from "@mathos/models"
+import { loadModelProfileStore, parseMathOSConfig, providerCatalog, redactedProviderSummary, serializeConfigValues } from "@mathos/models"
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { homedir } from "node:os"
-import { join } from "node:path"
+import { dirname, join } from "node:path"
 import { runHeadless } from "./headless.ts"
 
 const args = process.argv.slice(2)
@@ -18,7 +19,7 @@ if (args[0] === "bridge" && args[1] === "stdio") {
     "providers.list": async () => summaries(),
     "providers.refresh": async () => summaries(),
     "providers.quota": async params => ({ profile: String((params as {profile?:unknown})?.profile ?? ""), state: "unknown", remaining: null, limit: null, unit: null, resetsAt: null }),
-    "providers.select": async params => { const profile=String((params as {profile?:unknown})?.profile??"");if(!summaries().some(row=>row.profile===profile))throw new Error("MODEL_PROFILE_NOT_FOUND");return{selected:profile} },
+    "providers.select": async params => { const profile=String((params as {profile?:unknown})?.profile??"");if(!summaries().some(row=>row.profile===profile))throw new Error("MODEL_PROFILE_NOT_FOUND");const configPath=join(layout.userConfigRoot,"config.toml"),existing=existsSync(configPath)?parseMathOSConfig(readFileSync(configPath,"utf8")):{};mkdirSync(dirname(configPath),{recursive:true});writeFileSync(configPath,serializeConfigValues({...existing,"model.default_profile":profile}),{encoding:"utf8",mode:0o600});return{selected:profile,persisted:true} },
     "research.run": async (params, signal, progress) => { const id = String((params as {id?:unknown})?.id ?? ""); if (!id) throw new Error("BRIDGE_PARAMS_INVALID"); signal.addEventListener("abort", () => { try { app.pauseResearch(id) } catch {} }, { once: true }); progress({ phase: "started" }); const result = await app.runResearch(id); progress({ phase: "finished", status: result.status }); return result },
   } }) } finally { app.close() }
   process.exit(0)

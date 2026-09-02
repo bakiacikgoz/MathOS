@@ -28,6 +28,19 @@ mathos atlas --no-open
 
 Atlas remains read-only. Stop its local loopback server with Ctrl+C. Continue with the [quickstart](docs/QUICKSTART.md) or inspect the [professional demo](examples/professional-demo/README.md).
 
+## Model providers
+
+List the provider catalog, configure a named profile, and assign it as the default without putting credentials on the command line:
+
+```sh
+mathos provider catalog
+mathos provider configure openai-codex-chatgpt --profile codex-personal
+mathos provider login codex-personal
+mathos provider use codex-personal
+```
+
+API credentials go through `mathos secrets set <secret-ref>`. Local Ollama, LM Studio, and llama.cpp profiles remain on loopback. Subscription plans and PAYG APIs are distinct profiles; fallback never crosses billing or local/remote boundaries unless explicitly enabled. See [provider setup](docs/PROVIDERS.md), [provider security](docs/PROVIDER_SECURITY.md), and the [terms matrix](docs/PROVIDER_TERMS_MATRIX.md).
+
 ## Product boundaries
 
 - Lean is the proof authority; models only propose.
@@ -39,6 +52,6 @@ Atlas remains read-only. Stop its local loopback server with Ctrl+C. Continue wi
 
 ## Documentation
 
-[Features](docs/FEATURES.md) · [providers](docs/PROVIDERS.md) · [trust](docs/TRUST_MODEL_V1.md) · [operations](docs/OPERATIONS.md) · [error codes](docs/ERROR_CODES.md) · [security](docs/SECURITY_MODEL_V1.md) · [support](docs/SUPPORT.md)
+[Features](docs/FEATURES.md) · [providers](docs/PROVIDERS.md) · [provider security](docs/PROVIDER_SECURITY.md) · [provider terms](docs/PROVIDER_TERMS_MATRIX.md) · [trust](docs/TRUST_MODEL_V1.md) · [operations](docs/OPERATIONS.md) · [error codes](docs/ERROR_CODES.md) · [security](docs/SECURITY_MODEL_V1.md) · [support](docs/SUPPORT.md)
 
 Developers working from source need Bun 1.2 or newer: `bun install`, `bun run typecheck`, `bun test`, and `bun run build`.

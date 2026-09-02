@@ -11,6 +11,7 @@ export const RELEASE_CHECK_ORDER = [
   "lean-smoke", "research-regression", "ux-regression", "retrieval-regression",
   "v1-qualification",
   "provider-security",
+  "provider-contract",
   "final-product-capabilities",
 ] as const
 
@@ -121,6 +122,7 @@ function commands(): Record<ReleaseCheckName, string[]> {
     "retrieval-regression": [bun, "scripts/retrieval-regression.ts"],
     "v1-qualification": [bun, "scripts/run-v1-qualification.ts", "--json"],
     "provider-security": [bun, "scripts/providers/security-scan.ts"],
+    "provider-contract": [bun, "scripts/providers/contract-test.ts"],
     "final-product-capabilities": [bun, "scripts/final-product-capabilities.ts"],
   }
 }
@@ -133,7 +135,7 @@ function unsupportedPlatform(name: ReleaseCheckName, platform: NodeJS.Platform):
 function validatesEvidence(name: ReleaseCheckName, result: CommandResult): boolean {
   const output = result.stdout + "\n" + result.stderr
   if (name === "version") return result.stdout.includes(mathosVersion())
-  if (name === "typecheck" || name === "provider-security") return true
+  if (name === "typecheck" || name === "provider-security" || name === "provider-contract") return true
   if (name === "v1-qualification") {
     try { return JSON.parse(result.stdout).ready === true } catch { return false }
   }
