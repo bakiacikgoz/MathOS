@@ -15,11 +15,13 @@ import type { GraphReadPort } from "../ports/graph-read-port.ts"
 import type { ArtifactStorePort } from "../ports/artifact-store-port.ts"
 import type { ClockPort } from "../ports/clock-port.ts"
 import { claimReadAdapter, FileArtifactStore, formalReadAdapter, graphReadAdapter, systemClock } from "./built-in-adapters.ts"
+import { MathematicalContextService } from "../services/mathematical-context-service.ts"
 
 export interface ServiceContainerOverrides { clock: ClockPort; artifacts: ArtifactStorePort; claims: ClaimReadPort; formals: FormalReadPort; graph: GraphReadPort }
 export interface ServiceContainer {
   clock: ClockPort; artifacts: ArtifactStorePort; claims: ClaimReadPort; formals: FormalReadPort; graph: GraphReadPort
   repositories: ReturnType<typeof createV1Repositories>
+  mathematicalContext: MathematicalContextService
 }
 
 function createV1Repositories(db: Database) {
@@ -37,12 +39,17 @@ function createV1Repositories(db: Database) {
 }
 
 export function createServiceContainer(root: string, db: Database, overrides: Partial<ServiceContainerOverrides> = {}): ServiceContainer {
-  return {
-    clock: overrides.clock ?? systemClock,
+  const clock = overrides.clock ?? systemClock
+  const repositories = createV1Repositories(db)
+  let sequence = 0
+  const container = {
+    clock,
     artifacts: overrides.artifacts ?? new FileArtifactStore(root),
     claims: overrides.claims ?? claimReadAdapter(new ClaimRepository(db)),
     formals: overrides.formals ?? formalReadAdapter(new FormalStatementRepository(db)),
     graph: overrides.graph ?? graphReadAdapter(new DependencyRepository(db)),
-    repositories: createV1Repositories(db),
+    repositories,
+    mathematicalContext: new MathematicalContextService({ items: repositories.contextItems, revisions: repositories.contextRevisions, clock, nextId: (prefix) => `${prefix}-${clock.now().replace(/\D/g, "")}-${++sequence}`, writeEvent: () => {} }),
   }
+  return container
 }

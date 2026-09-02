@@ -40,7 +40,7 @@ describe("MathOS v1 repositories", () => {
   test("enforces unique constraints and optimistic revisions", () => {
     const client = database()
     const contexts = new ContextItemRepository(client.db)
-    const item = { id: "CTX-1", workspaceId: "W-1", branchId: "B-1", scopeKind: "BRANCH", scopeId: "B-1", kind: "DEFINITION", canonicalName: "x", displayText: "x", normalizedValue: "x", leanExpression: null, sourceClaimId: null, status: "ACTIVE", origin: "USER", revision: 1, contentHash: "h1", createdAt: "2026-01-01", updatedAt: "2026-01-01" }
+    const item = { id: "CTX-1", workspaceId: "W-1", branchId: "B-1", scopeKind: "BRANCH", scopeId: "B-1", kind: "DEFINITION_REF", canonicalName: "x", displayText: "x", normalizedValue: "x", leanExpression: null, sourceClaimId: "C-1", status: "ACTIVE", origin: "USER", revision: 1, contentHash: "h1", createdAt: "2026-01-01", updatedAt: "2026-01-01" } as const
     contexts.insert(item)
     expect(() => contexts.insert({ ...item, id: "CTX-2" })).toThrow()
     expect(contexts.updateExpectedRevision("CTX-1", 1, { displayText: "X", contentHash: "h2", updatedAt: "2026-01-02" })).toEqual(expect.objectContaining({ revision: 2, displayText: "X" }))
@@ -56,7 +56,7 @@ describe("MathOS v1 repositories", () => {
   test("activates context and selects a portfolio winner atomically", () => {
     const client = database()
     const contexts = new ContextItemRepository(client.db)
-    const base = { workspaceId: "W-1", branchId: "B-1", scopeKind: "BRANCH", scopeId: "B-1", kind: "DEFINITION", canonicalName: "x", displayText: "x", normalizedValue: "x", leanExpression: null, sourceClaimId: null, origin: "USER", revision: 1, createdAt: "2026-01-01", updatedAt: "2026-01-01" }
+    const base = { workspaceId: "W-1", branchId: "B-1", scopeKind: "BRANCH", scopeId: "B-1", kind: "SYMBOL", canonicalName: "x", displayText: "x", normalizedValue: "x", leanExpression: null, sourceClaimId: null, origin: "USER", revision: 1, createdAt: "2026-01-01", updatedAt: "2026-01-01" } as const
     contexts.insert({ ...base, id: "CTX-1", status: "PROPOSED", contentHash: "h1" })
     contexts.insert({ ...base, id: "CTX-2", status: "PROPOSED", contentHash: "h2" })
     contexts.activateAndSupersede("CTX-1")
