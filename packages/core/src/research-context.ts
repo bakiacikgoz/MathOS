@@ -12,6 +12,7 @@ export function buildResearchContext(input: {
   fidelityBlocked?: boolean
   digestVerifiedFindings?: Array<{ claimId: string; branchId: string; title: string }>
   graph?: import("@mathos/graph").GraphContextSummary
+  agenda?: Array<{ id: string; title: string; status: string }>
 }): ResearchContextView {
   const claims = input.claims.slice(-12)
   return {
@@ -33,5 +34,6 @@ export function buildResearchContext(input: {
     fidelityBlocked: input.fidelityBlocked,
     digestVerifiedFindings: input.digestVerifiedFindings ?? [],
     graph: input.graph,
+    agenda: input.agenda?.slice(0, 5),
   }
 }

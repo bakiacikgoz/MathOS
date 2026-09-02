@@ -18,6 +18,7 @@ export interface ResearchContextView {
   fidelityBlocked?: boolean
   digestVerifiedFindings?: Array<{ claimId: string; branchId: string; title: string }>
   graph?: GraphContextSummary
+  agenda?: Array<{ id: string; title: string; status: string }>
 }
 
 export interface ResearchPlanner {
