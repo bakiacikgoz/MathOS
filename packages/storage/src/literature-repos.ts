@@ -1,4 +1,5 @@
 import type { Database } from "bun:sqlite"
+import { V1Repository } from "./v1-repository-utils.ts"
 import type { Citation, ExternalResult, LiteratureSearchHit, LiteratureSearchRecord, Source, SourceExcerpt, SourceLocator } from "@mathos/domain"
 
 function loc(raw: unknown): SourceLocator | null {
@@ -92,6 +93,12 @@ export class ExternalResultRepository {
     if (branchId) return this.db.query<Record<string, unknown>, [string, string]>("SELECT * FROM external_results WHERE workspace_id = ? AND branch_id = ? ORDER BY id").all(workspaceId, branchId).map(mapExt)
     return this.db.query<Record<string, unknown>, [string]>("SELECT * FROM external_results WHERE workspace_id = ? ORDER BY id").all(workspaceId).map(mapExt)
   }
+}
+
+type ExtractionCandidateRow = { id: string; sourceId: string; excerptId: string | null; pageLocator: string | null; kind: string; name: string | null; rawStatement: string; normalizedSummary: string; status: string; provider: string | null; model: string | null; promptHash: string | null; duplicationTargetId: string | null; createdAt: string }
+export class ExtractionCandidateRepository extends V1Repository<ExtractionCandidateRow> {
+  constructor(db: Database) { super(db, "extraction_candidates", ["id", "sourceId", "excerptId", "pageLocator", "kind", "name", "rawStatement", "normalizedSummary", "status", "provider", "model", "promptHash", "duplicationTargetId", "createdAt"], [], "created_at") }
+  updateStatus(id: string, status: string): void { if (this.db.query("UPDATE extraction_candidates SET status=? WHERE id=?").run(status, id).changes !== 1) throw new Error("EXTRACTION_CANDIDATE_NOT_FOUND") }
 }
 
 function mapExt(row: Record<string, unknown>): ExternalResult {

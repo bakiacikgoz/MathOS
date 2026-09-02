@@ -30,7 +30,7 @@ export {
 } from "./multi-agent-repos.ts"
 export { RunPlannerRepository, ArtifactImportRepository } from "./hardening-repos.ts"
 export { ExperimentRepository, ExperimentResultRepository } from "./experiment-repos.ts"
-export { SourceRepository, SourceExcerptRepository, ExternalResultRepository, CitationRepository, LiteratureSearchRepository } from "./literature-repos.ts"
+export { SourceRepository, SourceExcerptRepository, ExternalResultRepository, ExtractionCandidateRepository, CitationRepository, LiteratureSearchRepository } from "./literature-repos.ts"
 export { V1StorageDecodeError, V1RevisionConflictError, type Page } from "./v1-repository-utils.ts"
 export { ContextItemRepository, ContextRevisionRepository } from "./context-repos.ts"
 export { ResearchDocumentRepository, ResearchBlockRepository, NotebookSyncRepository } from "./notebook-repos.ts"
