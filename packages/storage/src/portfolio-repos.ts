@@ -12,7 +12,42 @@ export class ProofPortfolioRepository extends V1Repository<Row> {
       return this.get(portfolioId)!
     })()
   }
+  findActive(claimId: string, formalRevisionHash: string): Row | null {
+    const row = this.db.query<Record<string, unknown>, [string,string]>("SELECT * FROM proof_portfolios WHERE claim_id=? AND formal_revision_hash=? AND status IN ('PENDING','RUNNING') ORDER BY created_at,id LIMIT 1").get(claimId,formalRevisionHash)
+    return row ? this.decode(row) : null
+  }
 }
-export class ProofJobRepository extends V1Repository<Row> { constructor(db: Database) { super(db,"proof_jobs",["id","portfolioId","adapterId","adapterVersion","strategy","workerBranchId","worktreePath","status","idempotencyKey","budget","provider","model","promptHash","createdAt","startedAt","finishedAt","errorCode"],["budget"],"created_at") } }
-export class ProofCandidateRepository extends V1Repository<Row> { constructor(db: Database) { super(db,"proof_candidates",["id","proofJobId","sourceArtifactId","normalizedProofHash","declarationHash","compileResult","diagnostics","axioms","forbidden","verificationReportId","status","score","createdAt"],["diagnostics","axioms","forbidden"],"score DESC") } }
+export class ProofJobRepository extends V1Repository<Row> {
+  constructor(db: Database) { super(db,"proof_jobs",["id","portfolioId","adapterId","adapterVersion","strategy","workerBranchId","worktreePath","status","idempotencyKey","budget","provider","model","promptHash","createdAt","startedAt","finishedAt","errorCode"],["budget"],"created_at") }
+  getByIdempotencyKey(key:string):Row|null { const row=this.db.query<Record<string,unknown>,[string]>("SELECT * FROM proof_jobs WHERE idempotency_key=?").get(key); return row ? this.decode(row) : null }
+  updateRuntime(id:string, patch:{status?:string;workerBranchId?:string|null;worktreePath?:string|null;startedAt?:string|null;finishedAt?:string|null;errorCode?:string|null}):Row {
+    const entries=Object.entries(patch); if(!entries.length)return this.get(id)!
+    const snake=(key:string)=>key.replace(/[A-Z]/g,(letter)=>`_${letter.toLowerCase()}`)
+    this.db.query(`UPDATE proof_jobs SET ${entries.map(([key])=>`${snake(key)}=?`).join(",")} WHERE id=?`).run(...entries.map(([,value])=>value) as never[],id)
+    return this.get(id)!
+  }
+}
+export class ProofCandidateRepository extends V1Repository<Row> {
+  constructor(db: Database) { super(db,"proof_candidates",["id","proofJobId","sourceArtifactId","normalizedProofHash","declarationHash","compileResult","diagnostics","axioms","forbidden","verificationReportId","status","score","createdAt"],["diagnostics","axioms","forbidden"],"score DESC") }
+  firstForJob(jobId:string):Row|null { return this.list(jobId,{limit:1})[0] ?? null }
+}
 export class ProofRepairAttemptRepository extends V1Repository<Row> { constructor(db: Database) { super(db,"proof_repair_attempts",["id","candidateId","failureFingerprintId","attemptNumber","inputArtifactHash","outputArtifactHash","status","promptHash","diagnosticsDelta","createdAt"],["diagnosticsDelta"],"attempt_number") } }
+
+export class PortfolioBudgetRepository {
+  constructor(private readonly db:Database){}
+  reserve(input:{id:string;portfolioId:string;jobId:string;amount:number;createdAt:string}):void {
+    this.db.query("INSERT OR IGNORE INTO budget_reservations (id,session_id,agent_id,resource,amount,round_sequence,status,created_at) VALUES (?,?,?,'PROOF_ATTEMPT',?,0,'RESERVED',?)").run(input.id,input.portfolioId,input.jobId,input.amount,input.createdAt)
+  }
+  has(portfolioId:string,jobId:string):boolean { return Boolean(this.db.query("SELECT 1 FROM budget_reservations WHERE session_id=? AND agent_id=? AND resource='PROOF_ATTEMPT'").get(portfolioId,jobId)) }
+  count(portfolioId:string):number { return this.db.query<{n:number},[string]>("SELECT COUNT(*) n FROM budget_reservations WHERE session_id=? AND resource='PROOF_ATTEMPT'").get(portfolioId)?.n ?? 0 }
+}
+
+export class PortfolioLeaseRepository {
+  constructor(private readonly db:Database){}
+  reserve(input:{id:string;portfolioId:string;jobId:string;branchId:string;createdAt:string}):void {
+    this.db.query("INSERT OR IGNORE INTO execution_leases (lease_id,session_id,agent_id,run_id,branch_id,round_sequence,status,created_at) VALUES (?,?,?,?,?,0,'RESERVED',?)").run(input.id,input.portfolioId,input.jobId,input.jobId,input.branchId,input.createdAt)
+  }
+  markRunning(jobId:string):void { this.db.query("UPDATE execution_leases SET status='RUNNING' WHERE run_id=? AND status='RESERVED'").run(jobId) }
+  hasActive(jobId:string):boolean { return Boolean(this.db.query("SELECT 1 FROM execution_leases WHERE run_id=? AND status IN ('RESERVED','RUNNING')").get(jobId)) }
+  activeCount(portfolioId:string):number { return this.db.query<{n:number},[string]>("SELECT COUNT(*) n FROM execution_leases WHERE session_id=? AND status IN ('RESERVED','RUNNING')").get(portfolioId)?.n ?? 0 }
+}

@@ -4,6 +4,7 @@ import {
   ConjectureTriageRepository, ContextItemRepository, ContextRevisionRepository, FailureFingerprintRepository,
   FailureOccurrenceRepository, FormalAlignmentRepository, NotebookSyncRepository, PluginRecordRepository,
   ProjectionRecordRepository, ProofCandidateRepository, ProofJobRepository, ProofPortfolioRepository,
+  PortfolioBudgetRepository, PortfolioLeaseRepository,
   ProofRepairAttemptRepository, PublicationRecordRepository, ResearchBlockRepository, ResearchDocumentRepository,
   ReviewAttestationRepository, ReviewFindingRepository, ReviewPacketRepository, SolverJobRepository,
   SolverResultRepository, StaleMarkerRepository, StatementRevisionRepository,
@@ -20,8 +21,9 @@ import { ResearchNotebookService } from "../services/research-notebook-service.t
 import { StatementRevisionService } from "../services/statement-revision-service.ts"
 import { AlignmentService } from "../services/alignment-service.ts"
 import { ImpactStalenessService } from "../services/impact-staleness-service.ts"
+import { ProofPortfolioService, type ProofPortfolioDependencies } from "../services/proof-portfolio-service.ts"
 
-export interface ServiceContainerOverrides { clock: ClockPort; artifacts: ArtifactStorePort; claims: ClaimReadPort; formals: FormalReadPort; graph: GraphReadPort }
+export interface ServiceContainerOverrides { clock: ClockPort; artifacts: ArtifactStorePort; claims: ClaimReadPort; formals: FormalReadPort; graph: GraphReadPort; proofPortfolioRuntime: Pick<ProofPortfolioDependencies,"createWorker"|"startProcess"|"crashHook"> }
 export interface ServiceContainer {
   clock: ClockPort; artifacts: ArtifactStorePort; claims: ClaimReadPort; formals: FormalReadPort; graph: GraphReadPort
   repositories: ReturnType<typeof createV1Repositories>
@@ -30,6 +32,7 @@ export interface ServiceContainer {
   statementRevisions: StatementRevisionService
   alignment:AlignmentService
   impactStaleness:ImpactStalenessService
+  proofPortfolio:ProofPortfolioService
 }
 
 function createV1Repositories(db: Database) {
@@ -37,7 +40,7 @@ function createV1Repositories(db: Database) {
     contextItems: new ContextItemRepository(db), contextRevisions: new ContextRevisionRepository(db),
     researchDocuments: new ResearchDocumentRepository(db), researchBlocks: new ResearchBlockRepository(db), notebookSync: new NotebookSyncRepository(db),
     statementRevisions: new StatementRevisionRepository(db), formalAlignments: new FormalAlignmentRepository(db), alignmentFindings: new AlignmentFindingRepository(db), staleMarkers: new StaleMarkerRepository(db),
-    proofPortfolios: new ProofPortfolioRepository(db), proofJobs: new ProofJobRepository(db), proofCandidates: new ProofCandidateRepository(db), proofRepairAttempts: new ProofRepairAttemptRepository(db),
+    proofPortfolios: new ProofPortfolioRepository(db), proofJobs: new ProofJobRepository(db), proofCandidates: new ProofCandidateRepository(db), proofRepairAttempts: new ProofRepairAttemptRepository(db), portfolioBudgets:new PortfolioBudgetRepository(db), portfolioLeases:new PortfolioLeaseRepository(db),
     solverJobs: new SolverJobRepository(db), solverResults: new SolverResultRepository(db),
     conjectureProposals: new ConjectureProposalRepository(db), conjectureTriage: new ConjectureTriageRepository(db), agendaItems: new AgendaItemRepository(db),
     failureFingerprints: new FailureFingerprintRepository(db), failureOccurrences: new FailureOccurrenceRepository(db),
@@ -65,6 +68,7 @@ export function createServiceContainer(root: string, db: Database, overrides: Pa
     statementRevisions,
     alignment:new AlignmentService({revisions:repositories.statementRevisions,alignments:repositories.formalAlignments,findings:repositories.alignmentFindings,clock,nextId:(prefix)=>`${prefix}-${clock.now().replace(/\D/g,"")}-${++sequence}`}),
     impactStaleness:new ImpactStalenessService({markers:repositories.staleMarkers,clock,nextId:()=>`SM-${clock.now().replace(/\D/g,"")}-${++sequence}`}),
+    proofPortfolio:new ProofPortfolioService({root,portfolios:repositories.proofPortfolios,jobs:repositories.proofJobs,candidates:repositories.proofCandidates,budgets:repositories.portfolioBudgets,leases:repositories.portfolioLeases,unitOfWork:(work)=>db.transaction(work)(),now:()=>clock.now(),nextId:(prefix)=>`${prefix}-${clock.now().replace(/\D/g,"")}-${++sequence}`,createWorker:overrides.proofPortfolioRuntime?.createWorker ?? (async()=>{throw new Error("PROOF_PORTFOLIO_VCS_RUNTIME_REQUIRED")}),startProcess:overrides.proofPortfolioRuntime?.startProcess ?? (async()=>{throw new Error("PROOF_PORTFOLIO_PROCESS_RUNTIME_REQUIRED")}),crashHook:overrides.proofPortfolioRuntime?.crashHook}),
   }
   return container
 }

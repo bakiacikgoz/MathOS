@@ -35,7 +35,7 @@ export { V1StorageDecodeError, V1RevisionConflictError, type Page } from "./v1-r
 export { ContextItemRepository, ContextRevisionRepository } from "./context-repos.ts"
 export { ResearchDocumentRepository, ResearchBlockRepository, NotebookSyncRepository } from "./notebook-repos.ts"
 export { StatementRevisionRepository, FormalAlignmentRepository, AlignmentFindingRepository, StaleMarkerRepository } from "./alignment-repos.ts"
-export { ProofPortfolioRepository, ProofJobRepository, ProofCandidateRepository, ProofRepairAttemptRepository } from "./portfolio-repos.ts"
+export { ProofPortfolioRepository, ProofJobRepository, ProofCandidateRepository, ProofRepairAttemptRepository, PortfolioBudgetRepository, PortfolioLeaseRepository } from "./portfolio-repos.ts"
 export { SolverJobRepository, SolverResultRepository } from "./solver-repos.ts"
 export { ConjectureProposalRepository, ConjectureTriageRepository, AgendaItemRepository } from "./agenda-repos.ts"
 export { FailureFingerprintRepository, FailureOccurrenceRepository } from "./failure-memory-repos.ts"

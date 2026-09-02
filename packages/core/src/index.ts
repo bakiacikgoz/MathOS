@@ -36,6 +36,7 @@ export { StatementRevisionService, type StatementRevisionDependencies, type Capt
 export { AlignmentService, alignmentAuthorizesVerification, type AlignmentDependencies, type AlignmentAuditor, type AlignmentAuditOutput } from "./services/alignment-service.ts"
 export { ImpactStalenessService,type ImpactStalenessDependencies } from "./services/impact-staleness-service.ts"
 export { ProverRegistry,type ProverAdapter,type ProverRequest,type ProverEnvironment,type ProverCapability } from "./services/prover-registry.ts"
+export { ProofPortfolioService,MAX_PROOF_PORTFOLIO_WORKERS,type ProofPortfolioDependencies,type ProofPortfolioStartInput,type ProofPortfolioCrashPoint,type ProofRecipe } from "./services/proof-portfolio-service.ts"
 export { LeanNativeProver } from "./provers/lean-native-prover.ts"
 export { ModelProofProver } from "./provers/model-proof-prover.ts"
 export { ModelPlanProveProver } from "./provers/model-plan-prove-prover.ts"
