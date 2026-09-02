@@ -42,4 +42,4 @@ export { FailureFingerprintRepository, FailureOccurrenceRepository } from "./fai
 export { ReviewPacketRepository, ReviewFindingRepository, ReviewAttestationRepository } from "./review-repos.ts"
 export { CapsuleRecordRepository, PublicationRecordRepository } from "./capsule-repos.ts"
 export { PluginRecordRepository } from "./plugin-repos.ts"
-export { ProjectionRecordRepository } from "./projection-repos.ts"
+export { ProjectionRecordRepository, AtlasProjectionRepository } from "./projection-repos.ts"

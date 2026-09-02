@@ -1,0 +1,2 @@
+import { projectAtlas, changesSince, type ResearchGraph } from "@mathos/graph"
+export class AtlasProjectionService { private latest: ReturnType<typeof projectAtlas>|null=null; project(graph:ResearchGraph){const next=projectAtlas(graph);const changes=this.latest?changesSince(this.latest,next,this.latest.eventSequence):{fullRefresh:true,created:[],updated:[],removed:[]};this.latest=next;return{snapshot:next,changes}} }
