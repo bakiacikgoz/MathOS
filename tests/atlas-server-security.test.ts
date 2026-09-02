@@ -1,0 +1,9 @@
+import { describe, expect, test } from "bun:test"
+import { createAtlasHandler, redactAtlasSession } from "../packages/core/src/atlas-server.ts"
+const snapshot = { schemaVersion: "atlas-snapshot-v1", workspaceId: "W", eventSequence: 1, hash: "h", nodes: [], edges: [], coverage: {} }
+describe("Atlas server security", () => {
+  const handler = createAtlasHandler({ token: "secret", snapshot: () => snapshot as any, changes: () => ({ fullRefresh: false }), maxResponseBytes: 2048 })
+  test("requires token and loopback-safe origin", async () => { expect((await handler(new Request("http://127.0.0.1/snapshot"))).status).toBe(401); const ok = await handler(new Request("http://127.0.0.1/snapshot", { headers: { authorization: "Bearer secret", origin: "http://127.0.0.1" } })); expect(ok.status).toBe(200); expect(ok.headers.get("content-security-policy")).toContain("default-src 'none'"); expect((await handler(new Request("http://127.0.0.1/snapshot", { headers: { authorization: "Bearer secret", origin: "https://evil.test" } }))).status).toBe(403) })
+  test("has no mutation endpoint and rejects traversal", async () => { expect((await handler(new Request("http://127.0.0.1/snapshot", { method: "POST", headers: { authorization: "Bearer secret" } }))).status).toBe(405); expect((await handler(new Request("http://127.0.0.1/entity/%2e%2e%2fsecret", { headers: { authorization: "Bearer secret" } }))).status).toBe(400) })
+  test("redacts tokens and enforces response limits", async () => { expect(redactAtlasSession({ url: "http://127.0.0.1:1", token: "abcdef" }).token).toBe("***cdef"); const small = createAtlasHandler({ token: "s", snapshot: () => ({ ...snapshot, nodes: [{ label: "x".repeat(100) }] }) as any, maxResponseBytes: 10 }); expect((await small(new Request("http://127.0.0.1/snapshot", { headers: { authorization: "Bearer s" } }))).status).toBe(413) })
+})
