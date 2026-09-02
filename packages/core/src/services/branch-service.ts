@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync } from "node:fs"
+export function governedMergePlan(input:{packetFresh:boolean;highFindings:number;targetReverified:boolean;sourceBranch:string;targetBranch:string}){const reasons=[!input.packetFresh?"PACKET_STALE":null,input.highFindings>0?"HIGH_FINDING_OPEN":null,!input.targetReverified?"TARGET_REVERIFY_REQUIRED":null].filter((x):x is string=>Boolean(x));return{status:reasons.length?"BLOCKED" as const:"SAFE_TO_APPLY" as const,reasons,automatic:false,commands:[`git switch ${input.targetBranch}`,`git merge --no-ff ${input.sourceBranch}`]}}
 import { join } from "node:path"
 import {
   gitRefForBranch,

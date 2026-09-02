@@ -28,6 +28,7 @@ export const SLASH_COMMANDS: SlashCommand[] = [
   { name: "atlas", description: "Open or inspect the read-only theorem atlas" },
   { name: "conjecture", description: "Generate and triage governed conjecture proposals" },
   { name: "agenda", description: "Inspect the long-horizon research agenda" },
+  { name: "review", description: "Create and attest semantic review packets" },
   { name: "ledger", description: "Epistemic ledger for a claim" },
   { name: "why", description: "Why verified / not verified" },
   { name: "history", description: "Session timeline" },

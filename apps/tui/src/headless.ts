@@ -11,6 +11,7 @@ import { literatureDeskCommand, literatureDeskSnapshot } from "./ui/LiteratureDe
 import { atlasTextCommand } from "./ui/AtlasViews.tsx"
 import { conjectureCommand } from "./ui/ConjectureViews.tsx"
 import { agendaCommand } from "./ui/AgendaViews.tsx"
+import { reviewCommand } from "./ui/ReviewViews.tsx"
 import { projectAtlas, blockerCriticalPath } from "@mathos/graph"
 
 function joinCwdBackups(): string {
@@ -738,7 +739,7 @@ export async function runHeadless(argv: string[]): Promise<number> {
         return 1
       }
 
-      if(command==="conjecture"){process.stdout.write(`${JSON.stringify({...conjectureCommand(rest),trust:"PROPOSAL — HUMAN ACCEPTANCE REQUIRED"},null,2)}\n`);return 0}if(command==="agenda"){process.stdout.write(`${JSON.stringify({...agendaCommand(rest),mode:"RESEARCH_STATE"},null,2)}\n`);return 0}
+      if(command==="review"){process.stdout.write(`${JSON.stringify({...reviewCommand(rest),authority:"HUMAN_ATTESTATION"},null,2)}\n`);return 0}if(command==="conjecture"){process.stdout.write(`${JSON.stringify({...conjectureCommand(rest),trust:"PROPOSAL — HUMAN ACCEPTANCE REQUIRED"},null,2)}\n`);return 0}if(command==="agenda"){process.stdout.write(`${JSON.stringify({...agendaCommand(rest),mode:"RESEARCH_STATE"},null,2)}\n`);return 0}
       if(command==="atlas"){const parsed=atlasTextCommand(rest.filter(x=>x!=="--json")),graph=app.buildGraph({includeLiterature:true}),snapshot=projectAtlas(graph);if(parsed.action==="critical-path"){process.stdout.write(`${JSON.stringify(blockerCriticalPath(graph,parsed.args[0]??graph.metadata.focusNodeId??""),null,2)}\n`);return 0}if(parsed.action==="impact"){const id=parsed.args[0];process.stdout.write(`${JSON.stringify({id,edges:graph.edges.filter(e=>e.fromNodeId===id||e.toNodeId===id)},null,2)}\n`);return 0}if(parsed.action==="export"){const out=parsed.args[0]??"atlas-snapshot.json";writeFileSync(out,JSON.stringify(snapshot,null,2));process.stdout.write(`Atlas exported ${out}\n`);return 0}process.stdout.write(`${JSON.stringify(snapshot,null,2)}\n`);return 0}
 
       if (command === "literature" || command === "source" || command === "citation" || command === "external") {
