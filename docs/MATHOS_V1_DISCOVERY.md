@@ -4,7 +4,7 @@
 
 - Plan discovery base: `main@9ae4a305acd38fcf92689eaaf36e5969bb0e285a`.
 - Implementation branch: `codex/mathos-0.2-hardening`.
-- MathOS package version at program start: `0.1.0-alpha.1`.
+- MathOS package version at program start: `1.0.0-rc.1`.
 - Schema epoch at program start: `20`.
 - MathOS 0.2 closure commit at program start: `51518714460a289203281537629cf8a8fd2f726d`.
 

@@ -22,8 +22,8 @@ afterEach(() => {
 
 describe("release hardening", () => {
   test("version comes from root package.json", () => {
-    expect(mathosVersion()).toBe("0.1.0-alpha.1")
-    expect(MathOS.versionText()).toContain("0.1.0-alpha.1")
+    expect(mathosVersion()).toBe("1.0.0-rc.1")
+    expect(MathOS.versionText()).toContain("1.0.0-rc.1")
   })
 
   test("fresh migrate is idempotent and records schema epoch", async () => {

@@ -19,7 +19,7 @@ export async function runReleaseEval(): Promise<ReleaseRow[]> {
   const rows: ReleaseRow[] = []
   const parent = mkdtempSync(join(tmpdir(), "mathos-rel-eval-"))
   try {
-    rows.push(mathosVersion() === "0.1.0-alpha.1" ? pass("version") : fail("version", mathosVersion()))
+    rows.push(mathosVersion() === "1.0.0-rc.1" ? pass("version") : fail("version", mathosVersion()))
 
     const fresh = await MathOS.init(parent, "fresh")
     rows.push(existsSync(join(fresh.root, "mathos.toml")) ? pass("fresh-init") : fail("fresh-init", "missing toml"))

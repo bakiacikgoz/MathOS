@@ -5,7 +5,7 @@ import { spawnSync } from "node:child_process"
 import { BRIDGE_PROTOCOL_VERSION, CAPSULE_FORMAT_VERSION, PLUGIN_API_VERSION, PUBLICATION_FORMAT_VERSION, WORKSPACE_SCHEMA_VERSION, assertProductVersionAlignment as assertAlignment } from "./compatibility.ts"
 
 export const MATHOS_RELEASE_NAME = "MathOS"
-export const MATHOS_PRODUCT_VERSION = "0.1.0-alpha.1"
+export const MATHOS_PRODUCT_VERSION = "1.0.0-rc.1"
 
 export interface MathOSBuildIdentity {
   productVersion:string;gitRevision:string;buildId:string;schemaVersion:number;bridgeProtocolVersion:number;pluginApiVersion:number;capsuleFormatVersion:number;publicationFormatVersion:number

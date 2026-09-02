@@ -16,7 +16,7 @@ describe("MathOS v1 feature program preflight", () => {
   test("is ready only when every 0.2 hardening prerequisite passes", () => {
     const report = featureProgramPreflight({
       gitRevision: "abc123",
-      version: "0.1.0-alpha.1",
+      version: "1.0.0-rc.1",
       schemaEpoch: 20,
       evidence: passingEvidence,
     })
@@ -35,7 +35,7 @@ describe("MathOS v1 feature program preflight", () => {
   ] as const)("fails closed when %s is missing", (gate, checkId) => {
     const report = featureProgramPreflight({
       gitRevision: "abc123",
-      version: "0.1.0-alpha.1",
+      version: "1.0.0-rc.1",
       schemaEpoch: 20,
       evidence: { ...passingEvidence, [gate]: "MISSING" },
     })
@@ -47,7 +47,7 @@ describe("MathOS v1 feature program preflight", () => {
   test("rejects a release artifact from another revision", () => {
     const report = featureProgramPreflight({
       gitRevision: "abc123",
-      version: "0.1.0-alpha.1",
+      version: "1.0.0-rc.1",
       schemaEpoch: 20,
       evidence: { ...passingEvidence, releaseGitRevision: "stale456" },
     })

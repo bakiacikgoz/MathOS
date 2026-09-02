@@ -7,7 +7,7 @@ import { createReleaseManifest,verifyReleaseManifest } from "@mathos/shared"
 describe("release manifest",()=>{
   test("canonicalizes files and verifies size and SHA-256",()=>{
     const root=mkdtempSync(join(tmpdir(),"mathos-release-manifest-"));mkdirSync(join(root,"bin"));mkdirSync(join(root,"share"));writeFileSync(join(root,"bin","mathos"),"binary");writeFileSync(join(root,"share","atlas.js"),"atlas")
-    const manifest=createReleaseManifest({root,target:"linux-x64",productVersion:"0.1.0-alpha.1",gitRevision:"0123456789abcdef0123456789abcdef01234567",buildId:"b1",paths:["share/atlas.js","bin/mathos"]})
+    const manifest=createReleaseManifest({root,target:"linux-x64",productVersion:"1.0.0-rc.1",gitRevision:"0123456789abcdef0123456789abcdef01234567",buildId:"b1",paths:["share/atlas.js","bin/mathos"]})
     expect(manifest.files.map(file=>file.path)).toEqual(["bin/mathos","share/atlas.js"])
     expect(manifest.files[0]?.sha256).toMatch(/^[a-f0-9]{64}$/)
     expect(verifyReleaseManifest(root,manifest)).toEqual({ok:true,errors:[]})
