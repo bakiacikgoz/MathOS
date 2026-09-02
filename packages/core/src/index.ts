@@ -35,3 +35,7 @@ export { ResearchNotebookService, type ResearchNotebookDependencies, type Create
 export { StatementRevisionService, type StatementRevisionDependencies, type CaptureStatementRevision } from "./services/statement-revision-service.ts"
 export { AlignmentService, alignmentAuthorizesVerification, type AlignmentDependencies, type AlignmentAuditor, type AlignmentAuditOutput } from "./services/alignment-service.ts"
 export { ImpactStalenessService,type ImpactStalenessDependencies } from "./services/impact-staleness-service.ts"
+export { ProverRegistry,type ProverAdapter,type ProverRequest,type ProverEnvironment,type ProverCapability } from "./services/prover-registry.ts"
+export { LeanNativeProver } from "./provers/lean-native-prover.ts"
+export { ModelProofProver } from "./provers/model-proof-prover.ts"
+export { ModelPlanProveProver } from "./provers/model-plan-prove-prover.ts"

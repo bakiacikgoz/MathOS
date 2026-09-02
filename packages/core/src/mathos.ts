@@ -769,7 +769,9 @@ export class MathOS {
   }
 
   approveFormal(formalId: string): FormalStatement {
-    return this.formalizationService.approveFormal(formalId)
+    const statement=this.formalizationService.approveFormal(formalId)
+    this.services.alignment.recordExplicitHumanApproval(statement.claimId,"local-formal-reviewer")
+    return statement
   }
 
   rejectFormal(formalId: string): FormalStatement {

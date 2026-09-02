@@ -1,0 +1,4 @@
+import type { ModelProvider } from "@mathos/models"
+import { parseProofCandidateDraft } from "@mathos/domain"
+import type { ProverAdapter,ProverRequest } from "../services/prover-registry.ts"
+export class ModelProofProver implements ProverAdapter{readonly descriptor={id:"model-proof",kind:"MODEL" as const,version:"1",capabilities:{plans:false,generatesProof:true,repairsProof:true,streams:false,requiresNetwork:true},health:"READY" as const};readonly languages=["lean4"];constructor(private readonly model:ModelProvider){}generate(request:ProverRequest){return this.model.generateStructured({schemaName:"proof_candidate_draft",messages:[{role:"system",content:"Generate a proof candidate only. Never claim verification authority."},{role:"user",content:JSON.stringify(request)}],parse:(value)=>parseProofCandidateDraft(value as Record<string,unknown>)})}}

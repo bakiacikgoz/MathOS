@@ -6,6 +6,11 @@ import type { GraphReadPort } from "../ports/graph-read-port.ts"
 import type { ArtifactStorePort } from "../ports/artifact-store-port.ts"
 import type { ClockPort } from "../ports/clock-port.ts"
 import type { ClaimRepository, DependencyRepository, FormalStatementRepository } from "@mathos/storage"
+import type { ModelProvider } from "@mathos/models"
+import { ProverRegistry } from "../services/prover-registry.ts"
+import { LeanNativeProver } from "../provers/lean-native-prover.ts"
+import { ModelProofProver } from "../provers/model-proof-prover.ts"
+import { ModelPlanProveProver } from "../provers/model-plan-prove-prover.ts"
 
 export const systemClock: ClockPort = { now: () => new Date().toISOString() }
 
@@ -32,3 +37,4 @@ export class FileArtifactStore implements ArtifactStorePort {
     return target
   }
 }
+export function createBuiltInProverRegistry(model?:ModelProvider):ProverRegistry{const adapters=[new LeanNativeProver()];if(model)adapters.push(new ModelProofProver(model) as never,new ModelPlanProveProver(model) as never);return new ProverRegistry(adapters)}
