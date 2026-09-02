@@ -65,7 +65,7 @@ export class SourceExcerptRepository {
     this.db.query("INSERT INTO source_excerpts (id, source_id, locator_json, text, text_hash, extraction_method, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)").run(row.id, row.sourceId, row.locator ? JSON.stringify(row.locator) : null, row.text, row.textHash, row.extractionMethod, row.createdAt)
   }
   list(sourceId: string): SourceExcerpt[] {
-    return this.db.query<Record<string, unknown>, [string]>("SELECT * FROM source_excerpts WHERE source_id = ? ORDER BY id").all(sourceId).map((row) => ({
+    return this.db.query<Record<string, unknown>, [string]>("SELECT * FROM source_excerpts WHERE source_id = ? ORDER BY CASE WHEN json_extract(locator_json,'$.kind')='PAGE' THEN json_extract(locator_json,'$.pageStart') ELSE 2147483647 END, id").all(sourceId).map((row) => ({
       id: String(row.id), sourceId: String(row.source_id), locator: loc(row.locator_json), text: String(row.text), textHash: String(row.text_hash), extractionMethod: row.extraction_method as SourceExcerpt["extractionMethod"], createdAt: String(row.created_at),
     }))
   }
@@ -73,6 +73,7 @@ export class SourceExcerptRepository {
     const row = this.db.query<Record<string, unknown>, [string]>("SELECT * FROM source_excerpts WHERE id = ?").get(id)
     return row ? { id: String(row.id), sourceId: String(row.source_id), locator: loc(row.locator_json), text: String(row.text), textHash: String(row.text_hash), extractionMethod: row.extraction_method as SourceExcerpt["extractionMethod"], createdAt: String(row.created_at) } : null
   }
+  deleteForSource(sourceId:string):void { this.db.query("DELETE FROM source_excerpts WHERE source_id=?").run(sourceId) }
 }
 
 export class ExternalResultRepository {

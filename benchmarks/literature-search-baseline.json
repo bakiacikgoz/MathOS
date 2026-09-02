@@ -1,0 +1,1 @@
+{"schemaVersion":"mathos.literature-search-benchmark.v1","fixtureExcerpts":100000,"queryP95BudgetMs":250,"backend":"FALLBACK_OR_FTS5","status":"BASELINE_CONTRACT"}
