@@ -34,6 +34,7 @@ import { PortfolioView,type PortfolioSnapshot } from "./PortfolioViews.tsx"
 import { FailureMemoryView,failureMemorySnapshot } from "./FailureMemoryViews.tsx"
 import { SolverLabView,solverSnapshot } from "./SolverViews.tsx"
 import { LiteratureDeskView,literatureDeskSnapshot } from "./LiteratureDeskViews.tsx"
+import { AtlasView } from "./AtlasViews.tsx"
 
 export type MainView =
   | "home"
@@ -81,6 +82,7 @@ export type MainView =
   | "failures"
   | "solver"
   | "literature-desk"
+  | "atlas"
 
 export function MainPanel(props: {
   view: MainView
@@ -360,6 +362,7 @@ export function MainPanel(props: {
       <Show when={props.view === "failures" && props.failureMemory}><FailureMemoryView snapshot={props.failureMemory!}/></Show>
       <Show when={props.view === "solver" && props.solver}><SolverLabView snapshot={props.solver!}/></Show>
       <Show when={props.view === "literature-desk" && props.literatureDesk}><LiteratureDeskView snapshot={props.literatureDesk!}/></Show>
+      <Show when={props.view === "atlas"}><AtlasView text={props.productText??"Atlas ready"}/></Show>
       <Show when={["experiments", "literature-home", "blockers", "ledger", "why", "history", "environment", "verification-detail"].includes(props.view) && props.productText}>
         <TextPanel text={props.productText!} onBack={props.onCancelOverlay} />
       </Show>

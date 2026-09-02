@@ -25,6 +25,7 @@ export const SLASH_COMMANDS: SlashCommand[] = [
   { name: "portfolio", description: "Proof portfolio cockpit" },
   { name: "failures", description: "Failure memory and changed-since" },
   { name: "solver", description: "Governed mathematical solver lab" },
+  { name: "atlas", description: "Open or inspect the read-only theorem atlas" },
   { name: "ledger", description: "Epistemic ledger for a claim" },
   { name: "why", description: "Why verified / not verified" },
   { name: "history", description: "Session timeline" },

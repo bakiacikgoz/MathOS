@@ -484,6 +484,7 @@ export function AppShell(props: { mathos: MathOS }) {
         })()
         return
       }
+      if(name==="atlas"){const graph=props.mathos.buildGraph({includeLiterature:true});setProductText(`Health READY · nodes ${graph.nodes.length} · ${rest.trim()||"snapshot"}`);setView("atlas");return}
       if (name === "ledger" || name === "why" || name === "history" || name === "blockers" || name === "resume") {
         const id = rest.trim() || status().mainObjective?.id
         if (name === "blockers") {
