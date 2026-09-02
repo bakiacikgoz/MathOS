@@ -34,3 +34,4 @@ export { ContextBindingService, type ContextBindingScope } from "./services/cont
 export { ResearchNotebookService, type ResearchNotebookDependencies, type CreateNotebookInput, type NotebookMutationResult } from "./services/research-notebook-service.ts"
 export { StatementRevisionService, type StatementRevisionDependencies, type CaptureStatementRevision } from "./services/statement-revision-service.ts"
 export { AlignmentService, alignmentAuthorizesVerification, type AlignmentDependencies, type AlignmentAuditor, type AlignmentAuditOutput } from "./services/alignment-service.ts"
+export { ImpactStalenessService,type ImpactStalenessDependencies } from "./services/impact-staleness-service.ts"

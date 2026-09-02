@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite"
-import type { AlignmentFinding, FormalAlignment, StatementRevision } from "@mathos/domain"
+import type { AlignmentFinding, FormalAlignment, StaleMarker, StatementRevision } from "@mathos/domain"
 import { V1Repository } from "./v1-repository-utils.ts"
 type Row = { id: string; revision?: number; [key: string]: unknown }
 export class StatementRevisionRepository extends V1Repository<StatementRevision> {
@@ -15,4 +15,9 @@ export class AlignmentFindingRepository extends V1Repository<AlignmentFinding> {
   constructor(db: Database) { super(db,"alignment_findings",["id","alignmentId","dimension","severity","naturalFragment","formalFragment","message","resolutionStatus","reviewerNote"],[],"id") }
   listByAlignment(alignmentId:string):AlignmentFinding[]{return this.db.query<Record<string,unknown>,[string]>("SELECT * FROM alignment_findings WHERE alignment_id=? ORDER BY id").all(alignmentId).map((row)=>this.decode(row))}
 }
-export class StaleMarkerRepository extends V1Repository<Row> { constructor(db: Database) { super(db,"stale_markers",["id","targetType","targetId","sourceType","sourceId","reasonCode","detectedAt","resolvedAt","requiredAction","previousStatus","projectionStatus"],[],"detected_at") } }
+export class StaleMarkerRepository extends V1Repository<StaleMarker> {
+  constructor(db: Database) { super(db,"stale_markers",["id","targetType","targetId","sourceType","sourceId","reasonCode","detectedAt","resolvedAt","requiredAction","previousStatus","projectionStatus"],[],"detected_at") }
+  unresolved():StaleMarker[]{return this.db.query<Record<string,unknown>,[]>("SELECT * FROM stale_markers WHERE resolved_at IS NULL ORDER BY target_type,target_id,reason_code").all().map((row)=>this.decode(row))}
+  findUnresolved(targetType:string,targetId:string,sourceType:string,sourceId:string,reasonCode:string):StaleMarker|null{const row=this.db.query<Record<string,unknown>,[string,string,string,string,string]>("SELECT * FROM stale_markers WHERE target_type=? AND target_id=? AND source_type=? AND source_id=? AND reason_code=? AND resolved_at IS NULL").get(targetType,targetId,sourceType,sourceId,reasonCode);return row?this.decode(row):null}
+  resolve(id:string,at:string):StaleMarker{const result=this.db.query("UPDATE stale_markers SET resolved_at=?,projection_status='CURRENT' WHERE id=? AND resolved_at IS NULL").run(at,id);if(result.changes!==1)throw new Error(`STALE_MARKER_NOT_OPEN: ${id}`);return this.get(id)!}
+}

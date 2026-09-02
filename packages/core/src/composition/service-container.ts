@@ -19,6 +19,7 @@ import { MathematicalContextService } from "../services/mathematical-context-ser
 import { ResearchNotebookService } from "../services/research-notebook-service.ts"
 import { StatementRevisionService } from "../services/statement-revision-service.ts"
 import { AlignmentService } from "../services/alignment-service.ts"
+import { ImpactStalenessService } from "../services/impact-staleness-service.ts"
 
 export interface ServiceContainerOverrides { clock: ClockPort; artifacts: ArtifactStorePort; claims: ClaimReadPort; formals: FormalReadPort; graph: GraphReadPort }
 export interface ServiceContainer {
@@ -28,6 +29,7 @@ export interface ServiceContainer {
   researchNotebook: ResearchNotebookService
   statementRevisions: StatementRevisionService
   alignment:AlignmentService
+  impactStaleness:ImpactStalenessService
 }
 
 function createV1Repositories(db: Database) {
@@ -62,6 +64,7 @@ export function createServiceContainer(root: string, db: Database, overrides: Pa
     researchNotebook: new ResearchNotebookService({ root, documents:repositories.researchDocuments, blocks:repositories.researchBlocks, clock, unitOfWork:(work) => db.transaction(work)(), entityExists:(type,id) => type === "claim" ? Boolean(new ClaimRepository(db).get(id)) : true }),
     statementRevisions,
     alignment:new AlignmentService({revisions:repositories.statementRevisions,alignments:repositories.formalAlignments,findings:repositories.alignmentFindings,clock,nextId:(prefix)=>`${prefix}-${clock.now().replace(/\D/g,"")}-${++sequence}`}),
+    impactStaleness:new ImpactStalenessService({markers:repositories.staleMarkers,clock,nextId:()=>`SM-${clock.now().replace(/\D/g,"")}-${++sequence}`}),
   }
   return container
 }
