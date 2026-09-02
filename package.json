@@ -30,8 +30,8 @@
     "release:build": "$npm_execpath scripts/distribution/build-release.ts",
     "release:verify": "$npm_execpath scripts/distribution/verify-release.ts",
     "test:v1": "$npm_execpath test tests/feature-program-preflight.test.ts tests/v1-doc-contract.test.ts tests/workspace-boundaries.test.ts",
-    "qualification:v1": "$npm_execpath scripts/run-v1-qualification.ts --json"
-    ,"software-completion-v2": "$npm_execpath scripts/run-software-completion-v2.ts"
+    "qualification:v1": "$npm_execpath scripts/run-v1-qualification.ts --json",
+    "software-completion-v2": "$npm_execpath scripts/run-software-completion-v2.ts"
   },
   "engines": {
     "bun": ">=1.2.0"
@@ -42,6 +42,7 @@
     "typescript": "5.9.3"
   },
   "dependencies": {
+    "@github/copilot-sdk": "1.0.11",
     "@opentui/core": "^0.5.7",
     "@opentui/keymap": "^0.5.7",
     "@opentui/solid": "^0.5.7",

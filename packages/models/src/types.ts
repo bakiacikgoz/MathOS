@@ -29,6 +29,7 @@ export interface ModelResponse {
   text: string
   provider: string
   model: string
+  usage?: { inputTokens?: number; outputTokens?: number }
 }
 
 export interface StructuredModelRequest<T> extends ModelRequest {
