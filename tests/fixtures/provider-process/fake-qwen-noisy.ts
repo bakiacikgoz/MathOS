@@ -1,0 +1,1 @@
+export{};console.log("unexpected banner");for await(const line of console){const m=JSON.parse(line);if(m.id!==undefined)console.log(JSON.stringify({jsonrpc:"2.0",id:m.id,result:{protocolVersion:1}}))}
