@@ -1,6 +1,8 @@
 export { MathOS, type MathOSOptions } from "./mathos.ts"
 export { buildDoctorReport, inspectPlatformCapabilities } from "./doctor.ts"
 export type { PlatformCapabilityReport, PlatformReleaseClaim } from "./doctor.ts"
+export { SetupService, probeSetupCapability, leanSetupPlan, type SetupCapabilityName, type SetupProbeRuntime } from "./services/setup-service.ts"
+export type { SetupReport, SetupCapability, SetupState, SetupCapabilityState } from "@mathos/domain"
 export { runResearchIntake } from "./intake.ts"
 export { parseFormalizationDraft } from "./formalize.ts"
 export { parseFidelityPayload } from "./fidelity.ts"

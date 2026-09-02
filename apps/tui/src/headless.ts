@@ -1,4 +1,4 @@
-import { MathOS, createDemoWorkspace, experimentTrustLabels, formatInitReport, formatTypedUserError, formatConfigShow, inspectHostEnvironment } from "@mathos/core"
+import { MathOS, SetupService, createDemoWorkspace, experimentTrustLabels, formatInitReport, formatTypedUserError, formatConfigShow, inspectHostEnvironment, type SetupCapabilityName, type SetupReport } from "@mathos/core"
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, extname, join, resolve } from "node:path"
 import { homedir } from "node:os"
@@ -68,6 +68,15 @@ export async function runHeadless(argv: string[]): Promise<number> {
       if (action === "set") { const path = rest[1], raw = rest[2]; if (!path || raw === undefined) throw new Error("Usage: mathos config set <path> <value>"); const existing = existsSync(userPath) ? parseMathOSConfig(readFileSync(userPath, "utf8")) : {}; const value: ConfigScalar = raw === "true" || raw === "false" ? raw === "true" : raw.startsWith("[") ? JSON.parse(raw) : raw; const text = serializeConfigValues({ ...existing, [path]: value }); mkdirSync(dirname(userPath), { recursive: true }); writeFileSync(userPath, text, { encoding: "utf8", mode: 0o600 }); process.stdout.write(`${path} updated in ${userPath}\n`); return 0 }
       if (action === "validate" || action === "doctor") { const report = { ok: true, userPath, workspace: workspaceRoot ?? null, secretValuesPersisted: false }; process.stdout.write(`${JSON.stringify(report, null, 2)}\n`); return 0 }
       throw new Error(`Unknown config action: ${action}`)
+    }
+
+    if (command === "setup") {
+      const layout = resolveRuntimeLayout({ executablePath: process.execPath, platform: process.platform, home: homedir(), env: process.env }), statePath = join(layout.userDataRoot, "setup-state.json")
+      const service = new SetupService({ load: () => existsSync(statePath) ? JSON.parse(readFileSync(statePath, "utf8")) as SetupReport : null, save: report => { mkdirSync(dirname(statePath), { recursive: true }); writeFileSync(statePath, JSON.stringify(report, null, 2), { encoding: "utf8", mode: 0o600 }) }, probe: async name => (await import("@mathos/core")).probeSetupCapability(name) })
+      if (rest[0] === "status") { process.stdout.write(`${JSON.stringify(service.status(), null, 2)}\n`); return 0 }
+      const requested = rest[0] && !rest[0].startsWith("--") ? [rest[0] as SetupCapabilityName] : ["git", "lean", "elan", "lake", "python", "model", "literature", "computation", "vscode", "secret-store"] as SetupCapabilityName[]
+      if (rest.includes("--install") && requested.includes("lean") && !rest.some(value => value.startsWith("--accept-downloads="))) throw new Error("SETUP_CONSENT_REQUIRED: use --accept-downloads=lean,mathlib")
+      const report = await service.run(requested); process.stdout.write(`${JSON.stringify(report, null, 2)}\n`); return report.state === "READY" ? 0 : 2
     }
 
     if (command === "secrets") {
