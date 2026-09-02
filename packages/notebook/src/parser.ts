@@ -11,7 +11,7 @@ export interface NotebookBlock {
 export interface MathosMarkdownDocument { blocks: NotebookBlock[] }
 
 const KNOWN = new Set(["claim-ref","proof-sketch","context-ref","experiment-ref","source-excerpt-ref","decision"])
-const ENTITY_PATTERNS: Record<string, RegExp> = { "claim-ref":/^C-\d+$/, "proof-sketch":/^C-\d+$/, "context-ref":/^CTX-[A-Za-z0-9-]+$/, "experiment-ref":/^EXP-[A-Za-z0-9-]+$/ }
+const ENTITY_PATTERNS: Record<string, RegExp> = { "claim-ref":/^[A-Z]{1,4}-\d+$/, "proof-sketch":/^[A-Z]{1,4}-\d+$/, "context-ref":/^CTX-[A-Za-z0-9-]+$/, "experiment-ref":/^EXP-[A-Za-z0-9-]+$/ }
 
 function attributes(source: string): Record<string, string> {
   const result: Record<string, string> = {}
