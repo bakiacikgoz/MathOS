@@ -26,10 +26,12 @@ export class ProofJobRepository extends V1Repository<Row> {
     this.db.query(`UPDATE proof_jobs SET ${entries.map(([key])=>`${snake(key)}=?`).join(",")} WHERE id=?`).run(...entries.map(([,value])=>value) as never[],id)
     return this.get(id)!
   }
+  updateBudget(id:string,budget:Record<string,unknown>):Row { this.db.query("UPDATE proof_jobs SET budget_json=? WHERE id=?").run(JSON.stringify(budget),id);return this.get(id)! }
 }
 export class ProofCandidateRepository extends V1Repository<Row> {
   constructor(db: Database) { super(db,"proof_candidates",["id","proofJobId","sourceArtifactId","normalizedProofHash","declarationHash","compileResult","diagnostics","axioms","forbidden","verificationReportId","status","score","createdAt"],["diagnostics","axioms","forbidden"],"score DESC") }
   firstForJob(jobId:string):Row|null { return this.list(jobId,{limit:1})[0] ?? null }
+  findByNormalizedHash(portfolioId:string,normalizedProofHash:string):Row|null { const row=this.db.query<Record<string,unknown>,[string,string]>("SELECT c.* FROM proof_candidates c JOIN proof_jobs j ON j.id=c.proof_job_id WHERE j.portfolio_id=? AND c.normalized_proof_hash=? ORDER BY c.id LIMIT 1").get(portfolioId,normalizedProofHash);return row?this.decode(row):null }
 }
 export class ProofRepairAttemptRepository extends V1Repository<Row> { constructor(db: Database) { super(db,"proof_repair_attempts",["id","candidateId","failureFingerprintId","attemptNumber","inputArtifactHash","outputArtifactHash","status","promptHash","diagnosticsDelta","createdAt"],["diagnosticsDelta"],"attempt_number") } }
 
@@ -48,6 +50,7 @@ export class PortfolioLeaseRepository {
     this.db.query("INSERT OR IGNORE INTO execution_leases (lease_id,session_id,agent_id,run_id,branch_id,round_sequence,status,created_at) VALUES (?,?,?,?,?,0,'RESERVED',?)").run(input.id,input.portfolioId,input.jobId,input.jobId,input.branchId,input.createdAt)
   }
   markRunning(jobId:string):void { this.db.query("UPDATE execution_leases SET status='RUNNING' WHERE run_id=? AND status='RESERVED'").run(jobId) }
+  release(jobId:string):void { this.db.query("UPDATE execution_leases SET status='RELEASED' WHERE run_id=? AND status IN ('RESERVED','RUNNING')").run(jobId) }
   hasActive(jobId:string):boolean { return Boolean(this.db.query("SELECT 1 FROM execution_leases WHERE run_id=? AND status IN ('RESERVED','RUNNING')").get(jobId)) }
   activeCount(portfolioId:string):number { return this.db.query<{n:number},[string]>("SELECT COUNT(*) n FROM execution_leases WHERE session_id=? AND status IN ('RESERVED','RUNNING')").get(portfolioId)?.n ?? 0 }
 }

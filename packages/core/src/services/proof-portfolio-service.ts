@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto"
 import { join } from "node:path"
 import type { PortfolioBudgetRepository, PortfolioLeaseRepository, ProofCandidateRepository, ProofJobRepository, ProofPortfolioRepository } from "@mathos/storage"
+import { declarationsMatch, scanForbidden, type ProofCandidateEvaluation, type ProofCandidateRecord } from "@mathos/domain"
 
 type StoredRow={id:string;[key:string]:unknown}
 export type ProofPortfolioCrashPoint="after_reservation"|"after_process_start"|"after_candidate_write"
@@ -17,6 +18,8 @@ export interface ProofPortfolioDependencies {
   createWorker(input:{jobId:string;gitRef:string;worktreePath:string}):Promise<{branchId:string;worktreePath:string}>
   startProcess(input:{jobId:string;recipe:ProofRecipe;worktreePath:string}):Promise<{processId:string}>
   crashHook?:(point:ProofPortfolioCrashPoint)=>void
+  storeProofArtifact?:(candidateId:string,source:string)=>string
+  abortJob?:(jobId:string)=>Promise<void>
 }
 export const MAX_PROOF_PORTFOLIO_WORKERS=8
 const hash=(value:string)=>createHash("sha256").update(value).digest("hex")
@@ -45,6 +48,33 @@ export class ProofPortfolioService {
     const portfolio=this.d.portfolios.get(portfolioId);if(!portfolio)throw new Error(`PROOF_PORTFOLIO_NOT_FOUND:${portfolioId}`)
     for(const job of this.d.jobs.list(portfolioId))if(this.d.budgets.has(portfolioId,job.id)&&this.d.leases.hasActive(job.id)&&job.status==="PENDING")this.d.jobs.updateRuntime(job.id,{status:"RUNNING",startedAt:this.d.now()})
     return {portfolio:this.d.portfolios.get(portfolioId)!,jobs:this.d.jobs.list(portfolioId),runningJobs:this.d.leases.activeCount(portfolioId)}
+  }
+  async evaluateCandidate(input:{id?:string;portfolioId:string;jobId:string;formalDeclaration:string;proofSource:string;modelCallCost:number;compile:ProofCandidateEvaluation;verificationGatePassed:boolean;verificationReportId?:string|null}):Promise<ProofCandidateRecord>{
+    const portfolio=this.d.portfolios.get(input.portfolioId),job=this.d.jobs.get(input.jobId)
+    if(!portfolio||!job||job.portfolioId!==input.portfolioId)throw new Error("PROOF_CANDIDATE_SCOPE_MISMATCH")
+    const normalized=input.proofSource.normalize("NFC").trim().replace(/\s+/g," "),normalizedProofHash=hash(normalized)
+    const existing=this.d.candidates.findByNormalizedHash(input.portfolioId,normalizedProofHash)
+    if(existing)return existing as unknown as ProofCandidateRecord
+    const id=input.id??this.d.nextId("PC"),forbidden=scanForbidden(input.proofSource),declarationMatches=declarationsMatch(input.formalDeclaration,input.proofSource)
+    const axiomClean=input.compile.axioms.length===0,kernel=input.compile.result==="KERNEL_ACCEPTED"
+    const valid=declarationMatches&&forbidden.length===0&&kernel&&axiomClean&&input.verificationGatePassed
+    const compileResult=!declarationMatches?"STATEMENT_MUTATED":input.compile.result
+    const sourceArtifactId=this.d.storeProofArtifact?.(id,input.proofSource)??`proof-candidate:${id}`
+    const row:ProofCandidateRecord={id,proofJobId:input.jobId,sourceArtifactId,normalizedProofHash,declarationHash:String(portfolio.formalRevisionHash),compileResult,diagnostics:input.compile.diagnostics,axioms:input.compile.axioms,forbidden,verificationReportId:input.verificationReportId??null,status:valid?"VERIFIED":"REJECTED",score:normalized.length,createdAt:this.d.now()}
+    this.d.unitOfWork(()=>{this.d.candidates.insert(row as unknown as StoredRow);this.d.jobs.updateBudget(input.jobId,{...(job.budget as Record<string,unknown>),modelCallCost:input.modelCallCost});this.d.jobs.updateRuntime(input.jobId,{status:valid?"DONE":"FAILED",finishedAt:this.d.now(),errorCode:valid?null:compileResult})})
+    this.d.leases.release(input.jobId)
+    return row
+  }
+  async finalizeWinner(portfolioId:string,userCandidateId?:string):Promise<ProofCandidateRecord>{
+    const portfolio=this.d.portfolios.get(portfolioId);if(!portfolio)throw new Error(`PROOF_PORTFOLIO_NOT_FOUND:${portfolioId}`)
+    const valid=this.d.jobs.list(portfolioId).flatMap(job=>this.d.candidates.list(job.id,{limit:10_000}).filter(candidate=>candidate.status==="VERIFIED").map(candidate=>({candidate,job})))
+    if(userCandidateId&&!valid.some(({candidate})=>candidate.id===userCandidateId))throw new Error("INVALID_USER_SELECTED_CANDIDATE")
+    valid.sort((a,b)=>Number(a.candidate.score)-Number(b.candidate.score)||Number((a.job.budget as Record<string,unknown>).modelCallCost??0)-Number((b.job.budget as Record<string,unknown>).modelCallCost??0)||a.candidate.id.localeCompare(b.candidate.id))
+    const selected=userCandidateId?valid.find(({candidate})=>candidate.id===userCandidateId):valid[0]
+    if(!selected)throw new Error("NO_VALID_PROOF_CANDIDATE")
+    this.d.portfolios.selectWinner(portfolioId,selected.candidate.id,Number(portfolio.revision))
+    for(const job of this.d.jobs.list(portfolioId))if(job.id!==selected.job.id&&(job.status==="RUNNING"||job.status==="PENDING")){await this.d.abortJob?.(job.id);this.d.jobs.updateRuntime(job.id,{status:"CANCELLED",finishedAt:this.d.now(),errorCode:"PORTFOLIO_WINNER_SELECTED"});this.d.leases.release(job.id)}
+    return selected.candidate as unknown as ProofCandidateRecord
   }
   private async dispatch(input:ProofPortfolioStartInput,recipe:ProofRecipe,index:number):Promise<void>{
     const jobId=`${input.id}-J${String(index+1).padStart(3,"0")}`,job=this.d.jobs.get(jobId)!;const now=this.d.now()
