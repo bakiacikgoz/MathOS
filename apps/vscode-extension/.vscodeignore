@@ -1,0 +1,8 @@
+src/**
+**/*.test.ts
+**/*.map
+node_modules/**
+.env*
+*.log
+*.vsix
+coverage/**

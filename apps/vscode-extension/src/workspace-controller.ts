@@ -1,1 +1,3 @@
-export class WorkspaceController{constructor(readonly root:string,readonly trusted:boolean){}canMutate(){return this.trusted}}
+const READ_ONLY=["claims.read","docs.read","graph.read","status.read"] as const
+const TRUSTED=[...READ_ONLY,"claim.write","experiment.run","lean.run","model.call","plugin.run"] as const
+export class WorkspaceController{constructor(readonly root:string,readonly trusted:boolean){}canMutate(){return this.trusted}allowedCapabilities(){return [...(this.trusted?TRUSTED:READ_ONLY)]}assertAllowed(operation:string){if(!this.allowedCapabilities().includes(operation as never))throw new Error(`WORKSPACE_UNTRUSTED: ${operation}`)}explainBlocked(operation:string){return `${operation} is blocked by VS Code Workspace Trust. Trust the workspace explicitly before MathOS can execute tools or mutate state.`}}
