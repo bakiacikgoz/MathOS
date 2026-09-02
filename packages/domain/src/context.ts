@@ -11,6 +11,10 @@ export interface MathematicalContextSnapshot { revisionId:string; snapshotHash:s
 export interface ContextConflict { kind:string; itemIds:string[]; message:string }
 export interface ContextImpactReport { itemId:string; affectedEntityIds:string[] }
 export interface ContextApplyResult { item:MathematicalContextItem; supersededItemId:string|null }
+export type ContextConflictReasonCode = "LATEX_ALIAS_COLLISION" | "CIRCULAR_ALIAS" | "MISSING_DEFINITION_REF"
+export interface ContextBindingConflict { reasonCode:ContextConflictReasonCode; itemIds:string[]; message:string }
+export interface ContextBinding { contextItemId:string; fromClaimId:string; toClaimId:string; relation:"depends_on" }
+export interface ContextBindingResult { effective:MathematicalContextItem[]; conflicts:ContextBindingConflict[]; bindings:ContextBinding[] }
 export function parseContextItemDraft(value: ContextItemDraft): ContextItemDraft & { status: ContextItemStatus } {
   if (!value.canonicalName?.trim()) throw new Error("CONTEXT_CANONICAL_NAME_REQUIRED")
   if ((value.kind === "SYMBOL" || value.kind === "NOTATION") && !value.normalizedValue?.trim()) throw new Error("CONTEXT_NORMALIZED_VALUE_REQUIRED")
