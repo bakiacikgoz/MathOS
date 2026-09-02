@@ -1,0 +1,7 @@
+import { describe, expect, test } from "bun:test"
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
+import { exportCapsuleArchive, verifyCapsuleArchive } from "../packages/core/src/capsule-archive.ts"
+const dir=()=>mkdtempSync(join(tmpdir(),"capsule-roundtrip-"))
+describe("capsule archive roundtrip",()=>{test("exports stable ordering and verifies hashes",()=>{const root=dir();writeFileSync(join(root,"b.txt"),"b");writeFileSync(join(root,"a.txt"),"a");const out=join(root,"x.mathos-capsule");exportCapsuleArchive({root,output:out,paths:["b.txt","a.txt"]});expect(verifyCapsuleArchive(out)).toMatchObject({ok:true,warnings:[]});const payload=JSON.parse(readFileSync(out,"utf8"));expect(payload.files.map((x:any)=>x.path)).toEqual(["a.txt","b.txt"])});test("tampered missing extra and traversal fail safely",()=>{const root=dir();writeFileSync(join(root,"a.txt"),"a");const out=join(root,"x.mathos-capsule");exportCapsuleArchive({root,output:out,paths:["a.txt"]});const p=JSON.parse(readFileSync(out,"utf8"));p.files[0].data=Buffer.from("changed").toString("base64");writeFileSync(out,JSON.stringify(p));expect(verifyCapsuleArchive(out).ok).toBe(false);p.files=[];writeFileSync(out,JSON.stringify(p));expect(verifyCapsuleArchive(out).errors).toContain("CAPSULE_FILE_MISSING:a.txt");p.files=[{path:"../escape",sha256:"x",data:""}];writeFileSync(out,JSON.stringify(p));expect(()=>verifyCapsuleArchive(out)).toThrow("CAPSULE_PATH_UNSAFE")})})
