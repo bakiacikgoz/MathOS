@@ -26,6 +26,8 @@ export const SLASH_COMMANDS: SlashCommand[] = [
   { name: "failures", description: "Failure memory and changed-since" },
   { name: "solver", description: "Governed mathematical solver lab" },
   { name: "atlas", description: "Open or inspect the read-only theorem atlas" },
+  { name: "conjecture", description: "Generate and triage governed conjecture proposals" },
+  { name: "agenda", description: "Inspect the long-horizon research agenda" },
   { name: "ledger", description: "Epistemic ledger for a claim" },
   { name: "why", description: "Why verified / not verified" },
   { name: "history", description: "Session timeline" },
