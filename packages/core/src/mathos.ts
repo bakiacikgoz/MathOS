@@ -142,6 +142,7 @@ import { createPlannerFromDescriptor, plannerDescriptorFrom, PersistentScriptedP
 import { PythonRuntime, sha256Text, type ComputationalRuntime } from "@mathos/computation"
 import { FakeLiteratureProvider, type LiteratureProvider } from "@mathos/literature"
 import { DEFAULT_COMPUTATIONAL_BUDGET, type Experiment, type ExperimentResult, type CitationPurpose, type SourceLocator, type Source, type SourceExcerpt, type ExternalResult } from "@mathos/domain"
+import { createServiceContainer, type ServiceContainer, type ServiceContainerOverrides } from "./composition/service-container.ts"
 
 export interface MathOSOptions {
   logger?: Logger
@@ -164,6 +165,7 @@ export interface MathOSOptions {
   literatureProvider?: LiteratureProvider
   /** Test/fault-injection boundary around canonical DB persistence and JSONL projection. */
   eventProjectionHook?: (point: EventProjectionPoint, event: import("@mathos/domain").ResearchEvent) => void
+  serviceOverrides?: Partial<ServiceContainerOverrides>
 }
 
 export class MathOS {
@@ -213,6 +215,7 @@ export class MathOS {
     private readonly computationRuntime: ComputationalRuntime,
     private readonly literatureProvider: LiteratureProvider,
     private readonly eventProjectionHook: MathOSOptions["eventProjectionHook"],
+    readonly services: ServiceContainer,
   ) {}
 
   lastExperimentPid: number | null = null
@@ -222,10 +225,10 @@ export class MathOS {
 
   private currentAccounting(): ResearchRun | null { return this.researchEngine?.currentAccounting() ?? null }
 
-  static async init(cwd = process.cwd(), name?: string): Promise<{ root: string; name: string }> {
+  static async init(cwd = process.cwd(), name?: string, options: MathOSOptions = {}): Promise<{ root: string; name: string }> {
     const target = name ? resolve(cwd, name) : resolve(cwd)
     const created = createWorkspaceLayout(target, name ?? basename(target))
-    const instance = MathOS.open(created.root)
+    const instance = MathOS.open(created.root, options)
     instance.bootstrap(created.name)
     instance.close()
     return created
@@ -289,6 +292,7 @@ export class MathOS {
       options.computationRuntime ?? new PythonRuntime(),
       options.literatureProvider ?? new FakeLiteratureProvider(),
       options.eventProjectionHook,
+      createServiceContainer(workspaceRoot, client.db, options.serviceOverrides),
     )
     instance.claimService = new ClaimService({
       client,
