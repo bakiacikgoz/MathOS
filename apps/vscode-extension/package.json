@@ -4,5 +4,8 @@
   "private": true,
   "type": "module",
   "main": "./dist/extension.js",
-  "scripts": { "build": "bun ../../scripts/build-vscode.ts", "test": "bun test src" }
+  "scripts": { "build": "bun ../../scripts/build-vscode.ts", "test": "bun test src" },
+  "contributes": { "commands": [
+    {"command":"mathos.openClaim","title":"MathOS: Open Claim"},{"command":"mathos.sendLean","title":"MathOS: Send Selected Lean Declaration"},{"command":"mathos.inspectPremises","title":"MathOS: Inspect Premises"},{"command":"mathos.startPortfolio","title":"MathOS: Start Proof Portfolio"},{"command":"mathos.showAlignment","title":"MathOS: Show Alignment"},{"command":"mathos.openAtlas","title":"MathOS: Open Atlas"},{"command":"mathos.showNextActions","title":"MathOS: Show Next Research Actions"}
+  ]}
 }
