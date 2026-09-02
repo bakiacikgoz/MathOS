@@ -1,0 +1,1 @@
+{"schemaVersion":"professional-workflow-benchmark-v1","frozen":true,"baselinePlatform":"fresh-macos-clean-workspace","requiredScenarios":["notebook-proof-publication","literature-assessment","solver-counterexample","branch-review-merge","pause-agenda-memory","capsule-roundtrip","vscode-bridge","plugin-governance"]}
