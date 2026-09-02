@@ -5,3 +5,5 @@ export interface PluginRegistry {
 export function createPluginRegistry(): PluginRegistry {
   return Object.freeze({ plugins: Object.freeze([]) })
 }
+export * from "./manifest.ts"
+export * from "./permissions.ts"
