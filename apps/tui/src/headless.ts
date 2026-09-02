@@ -1,10 +1,10 @@
 import { MathOS, SetupService, createDemoWorkspace, experimentTrustLabels, formatInitReport, formatTypedUserError, formatConfigShow, inspectHostEnvironment, type SetupCapabilityName, type SetupReport } from "@mathos/core"
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
 import { dirname, extname, join, resolve } from "node:path"
 import { homedir } from "node:os"
 import { exportBlueprintLatex, importBlueprintLatex, parseMathosMarkdown } from "@mathos/notebook"
 import { formatUserError, isMathOSError, resolveRuntimeLayout } from "@mathos/shared"
-import { createSecretStore, loadConfigFiles, parseMathOSConfig, serializeConfigValues, type ConfigScalar } from "@mathos/models"
+import { FileModelUsageLedger, ModelProfileRegistry, createSecretStore, loadConfigFiles, parseMathOSConfig, parseModelProfiles, probeModelProfile, serializeConfigValues, serializeModelProfiles, type ConfigScalar, type ModelProfile } from "@mathos/models"
 import { formatBranchDetail, formatBranches, formatClaims, formatDoctor, formatMergePreview, formatResearchRun, formatStatus, HELP_TEXT } from "./format.ts"
 import { portfolioSnapshot } from "./ui/PortfolioViews.tsx"
 import { failureMemorySnapshot } from "./ui/FailureMemoryViews.tsx"
@@ -87,6 +87,28 @@ export async function runHeadless(argv: string[]): Promise<number> {
       if (action === "delete") { await store.delete(ref); process.stdout.write(`Deleted ${ref}\n`); return 0 }
       if (action === "set") { if (!capability.writable) throw new Error(`SECRET_STORE_BLOCKED: ${capability.detail}; set ${ref} using ${`MATHOS_SECRET_${ref.toUpperCase().replace(/[^A-Z0-9]+/g, "_")}`}`); throw new Error("SECRET_INTERACTIVE_INPUT_UNAVAILABLE") }
       throw new Error(`Unknown secrets action: ${action}`)
+    }
+
+    if (command === "provider") {
+      if (rest.some(value => /^(--api-key|--token|--secret|--password)$/i.test(value))) throw new Error("PROVIDER_SECRET_ARG_FORBIDDEN: use mathos secrets set")
+      const layout = resolveRuntimeLayout({ executablePath: process.execPath, platform: process.platform, home: homedir(), env: process.env }), path = join(layout.userConfigRoot, "model-profiles.json")
+      const registry = new ModelProfileRegistry(existsSync(path) ? parseModelProfiles(readFileSync(path, "utf8")) : [])
+      const save = () => { mkdirSync(dirname(path), { recursive: true }); const temporary = `${path}.${process.pid}.tmp`; writeFileSync(temporary, serializeModelProfiles(registry.list()), { encoding: "utf8", mode: 0o600 }); renameSync(temporary, path) }
+      const action = rest[0] ?? "list", id = rest[1]
+      if (action === "list") { process.stdout.write(`${JSON.stringify({ schemaVersion: "mathos.providers.v1", profiles: registry.list() }, null, 2)}\n`); return 0 }
+      if (!id) throw new Error("MODEL_PROFILE_ID_REQUIRED")
+      if (action === "add") { const baseUrl = flag(rest, "--base-url"), model = flag(rest, "--model"), type = flag(rest, "--type") ?? "openai-compatible"; if (!baseUrl || !model || type !== "openai-compatible") throw new Error("MODEL_PROFILE_ARGUMENTS_INVALID"); const local = rest.includes("--local"), profile: ModelProfile = { id, type, baseUrl, model, secretRef: local ? null : `model.${id}`, remote: !local }; registry.add(profile); save(); process.stdout.write(`${JSON.stringify({ configured: true, profile: registry.get(id) }, null, 2)}\n`); return 0 }
+      if (action === "remove") { if (!registry.remove(id)) throw new Error(`MODEL_PROFILE_NOT_FOUND: ${id}`); save(); process.stdout.write(`${JSON.stringify({ removed: id })}\n`); return 0 }
+      if (action === "test") { const profile = registry.get(id); if (!profile) throw new Error(`MODEL_PROFILE_NOT_FOUND: ${id}`); const health = await probeModelProfile(profile, createSecretStore()); process.stdout.write(`${JSON.stringify({ ...health, privacy: profile.remote ? "REMOTE_PROVIDER" : "LOCAL_PROVIDER" }, null, 2)}\n`); return health.state === "VERIFIED" ? 0 : 2 }
+      if (action === "use") { if (!registry.get(id)) throw new Error(`MODEL_PROFILE_NOT_FOUND: ${id}`); const configPath = join(layout.userConfigRoot, "config.toml"), existing = existsSync(configPath) ? parseMathOSConfig(readFileSync(configPath, "utf8")) : {}; writeFileSync(configPath, serializeConfigValues({ ...existing, "model.default_profile": id }), { encoding: "utf8", mode: 0o600 }); process.stdout.write(`${JSON.stringify({ defaultProfile: id })}\n`); return 0 }
+      throw new Error(`Unknown provider action: ${action}`)
+    }
+
+    if (command === "usage") {
+      const layout = resolveRuntimeLayout({ executablePath: process.execPath, platform: process.platform, home: homedir(), env: process.env }), ledger = new FileModelUsageLedger(join(layout.userDataRoot, "model-usage.jsonl")), action = rest[0] ?? "current"
+      const rows = action === "research" && rest[1] ? ledger.research(rest[1]) : action === "current" ? ledger.current() : null
+      if (!rows) throw new Error("Usage: mathos usage current | research <run-id>")
+      process.stdout.write(`${JSON.stringify({ schemaVersion: "mathos.usage.v1", records: rows }, null, 2)}\n`); return 0
     }
 
     if (command === "restore") {

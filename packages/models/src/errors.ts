@@ -35,6 +35,10 @@ export class InvalidStructuredResponse extends MathOSError {
   }
 }
 
+export class ModelResponseTooLarge extends MathOSError {
+  constructor(detail = "MODEL_RESPONSE_TOO_LARGE") { super("ModelResponseTooLarge", detail); this.name = "ModelResponseTooLarge" }
+}
+
 export class ResearchIntakeFailed extends MathOSError {
   constructor(detail = "Research intake failed.") {
     super("ResearchIntakeFailed", detail)

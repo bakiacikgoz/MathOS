@@ -6,7 +6,7 @@ export interface ModelCapabilities {
   vision: boolean
   contextWindow?: number
 }
-export type ModelRole="primary"|"auditor"|"alignment"|"planner"|"repair"
+export type ModelRole="primary"|"auditor"|"alignment"|"planner"|"repair"|"intake"|"formalizer"|"prover"|"checker"|"literature_synthesis"|"researcher"
 
 export interface ModelMessage {
   role: "system" | "user" | "assistant"
@@ -15,6 +15,8 @@ export interface ModelMessage {
 
 export interface ModelRequest {
   messages: ModelMessage[]
+  role?: ModelRole
+  researchRunId?: string
   temperature?: number
   signal?: AbortSignal
 }
@@ -49,6 +51,8 @@ export interface ModelConfig {
     apiKey: "env" | "missing"
   }
   roles?:Partial<Record<ModelRole,string>>
+  timeoutMs?: number
+  maxResponseBytes?: number
 }
 
 export const DEFAULT_BASE_URL = "https://api.openai.com/v1"
