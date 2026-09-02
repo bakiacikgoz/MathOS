@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
-import { resolve } from "node:path"
-import { homedir } from "node:os"
+import { closeSync, mkdtempSync, openSync, readFileSync, rmSync } from "node:fs"
+import { join, resolve } from "node:path"
+import { homedir, tmpdir } from "node:os"
 import { mathosVersion } from "@mathos/shared"
 
 export const RELEASE_CHECK_ORDER = [
@@ -57,12 +58,17 @@ function summary(stdout: string, stderr: string): string {
 
 export const runReleaseCommand: ReleaseCommandRunner = async (command, options) => {
   const started = Date.now()
+  const outputDir = mkdtempSync(join(tmpdir(), "mathos-release-command-"))
+  const stdoutPath = join(outputDir, "stdout.log")
+  const stderrPath = join(outputDir, "stderr.log")
+  const stdoutFd = openSync(stdoutPath, "w")
+  const stderrFd = openSync(stderrPath, "w")
   const proc = Bun.spawn(command, {
     cwd: options.cwd,
     env: { ...process.env, NO_COLOR: "1", FORCE_COLOR: "0" },
     stdin: "ignore",
-    stdout: "pipe",
-    stderr: "pipe",
+    stdout: stdoutFd,
+    stderr: stderrFd,
   })
   let timedOut = false
   const timer = setTimeout(() => {
@@ -70,16 +76,19 @@ export const runReleaseCommand: ReleaseCommandRunner = async (command, options) 
     proc.kill("SIGKILL")
   }, options.timeoutMs)
   try {
-    const [exitCode, stdout, stderr] = await Promise.all([
-      proc.exited,
-      new Response(proc.stdout).text(),
-      new Response(proc.stderr).text(),
-    ])
+    const exitCode = await proc.exited
+    closeSync(stdoutFd)
+    closeSync(stderrFd)
+    const stdout = readFileSync(stdoutPath, "utf8")
+    const stderr = readFileSync(stderrPath, "utf8")
     return { exitCode: timedOut ? null : exitCode, stdout, stderr, timedOut, durationMs: Date.now() - started }
   } catch (error) {
     return { exitCode: null, stdout: "", stderr: String(error), timedOut, durationMs: Date.now() - started }
   } finally {
     clearTimeout(timer)
+    try { closeSync(stdoutFd) } catch {}
+    try { closeSync(stderrFd) } catch {}
+    rmSync(outputDir, { recursive: true, force: true })
   }
 }
 

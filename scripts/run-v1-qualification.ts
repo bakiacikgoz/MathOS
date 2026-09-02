@@ -28,7 +28,7 @@ function run(){
   for(const id of baseline.requiredCheckIds as string[]){
     try{
       if(id==="typecheck-build"){execFileSync(process.execPath,["run","typecheck:all"],{cwd:root,stdio:"pipe"});execFileSync(process.execPath,["run","build"],{cwd:root,stdio:"pipe"})}
-      else if(id==="deterministic-tests")execFileSync(process.execPath,["test"],{cwd:root,stdio:"pipe",maxBuffer:16*1024*1024})
+      else if(id==="deterministic-tests")execFileSync(process.execPath,["test",...commands[id]!],{cwd:root,stdio:"pipe",maxBuffer:16*1024*1024})
       else if(commands[id])execFileSync(process.execPath,["test",...commands[id]],{cwd:root,stdio:"pipe"})
       else if(id==="portable-paths"){const out=staticScan(["C:","\\\\Users\\\\"].join(""));if(out.trim())throw new Error(out)}
       else if(id==="secret-fixtures"){const pattern=["BEGIN ","(RSA |EC |OPENSSH )?","PRIVATE KEY","|","sk-","[A-Za-z0-9_-]{20,}"].join("");const out=staticScan(pattern);if(out.trim())throw new Error("raw secret-like fixture")}
