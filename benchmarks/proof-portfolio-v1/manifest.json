@@ -1,0 +1,1 @@
+{"schemaVersion":"proof-portfolio-benchmark-v1","frozen":true,"mode":"known-solvable-only","strategies":["single-direct","retrieval-guided","plan-decompose","portfolio-no-repair","portfolio-repair","native-lean"],"globalBudget":{"modelCalls":10,"leanCalls":20,"wallMs":60000}}
