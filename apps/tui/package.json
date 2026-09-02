@@ -13,6 +13,7 @@
     "@mathos/graph": "workspace:*",
     "@mathos/domain": "workspace:*",
     "@mathos/shared": "workspace:*",
+    "@mathos/notebook": "workspace:*",
     "@opentui/core": "^0.5.7",
     "@opentui/keymap": "^0.5.7",
     "@opentui/solid": "^0.5.7",

@@ -1,6 +1,7 @@
 import { MathOS, createDemoWorkspace, experimentTrustLabels, formatInitReport, formatTypedUserError, formatConfigShow, inspectHostEnvironment } from "@mathos/core"
-import { readFileSync } from "node:fs"
-import { join } from "node:path"
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import { extname, join, resolve } from "node:path"
+import { exportBlueprintLatex, importBlueprintLatex, parseMathosMarkdown } from "@mathos/notebook"
 import { formatUserError, isMathOSError } from "@mathos/shared"
 import { formatBranchDetail, formatBranches, formatClaims, formatDoctor, formatMergePreview, formatResearchRun, formatStatus, HELP_TEXT } from "./format.ts"
 
@@ -101,6 +102,43 @@ export async function runHeadless(argv: string[]): Promise<number> {
         if (action === "apply") { process.stdout.write(`${JSON.stringify(envelope(app.services.mathematicalContext.applyProposal(id, proposal.revision)), null, 2)}\n`); return 0 }
         if (action === "reject") { process.stdout.write(`${JSON.stringify(envelope(app.services.mathematicalContext.rejectProposal(id, proposal.revision, flag(args, "--reason") ?? "rejected")), null, 2)}\n`); return 0 }
         throw new Error(`Unknown context action: ${action}`)
+      }
+
+      if (command === "notebook") {
+        const action=rest[0]??"open", args=rest.slice(1), branch=app.currentBranch(), documents=app.services.repositories.researchDocuments, blocks=app.services.repositories.researchBlocks
+        const envelope=(data:unknown)=>({schemaVersion:"mathos.notebook.v1",data})
+        const print=(data:unknown)=>process.stdout.write(`${JSON.stringify(envelope(data),null,2)}\n`)
+        if(action==="init"){
+          const slug=args.find((value)=>!value.startsWith("--")); if(!slug)throw new Error("Usage: mathos notebook init <slug> --title title")
+          const title=flag(args,"--title")??slug, id=`D-${String(documents.list(branch.workspaceId,{limit:10_000}).length+1).padStart(3,"0")}`
+          const result=app.services.researchNotebook.create({id,workspaceId:branch.workspaceId,branchId:branch.id,title,slug,sourcePath:`notebooks/${slug}.mathos.md`,content:`# ${title}\n`}); print(result.document); return 0
+        }
+        if(action==="open"){
+          const id=args.find((value)=>!value.startsWith("--")); const document=id?documents.get(id):documents.list(branch.workspaceId,{limit:1})[0]
+          if(!document)throw new Error("NOTEBOOK_NOT_FOUND"); print({...document,blocks:blocks.list(document.id,{limit:10_000})}); return 0
+        }
+        if(action==="parse"){
+          const path=args.find((value)=>!value.startsWith("--")); if(!path)throw new Error("NOTEBOOK_PATH_REQUIRED"); const content=readFileSync(resolve(path),"utf8")
+          const data=extname(path).toLowerCase()===".tex"?importBlueprintLatex(content):{document:parseMathosMarkdown(content),lossReport:[]}; print({...data,applied:false}); return 0
+        }
+        if(action==="import"){
+          const path=args.find((value)=>!value.startsWith("--")); if(!path)throw new Error("NOTEBOOK_PATH_REQUIRED"); const format=flag(args,"--format")??"markdown", content=readFileSync(resolve(path),"utf8")
+          const converted=format==="latex"?importBlueprintLatex(content).markdown:content, plan={id:`NIP-${Date.now()}`,status:"PROPOSED",applied:false,path,format,content:converted}
+          const dir=join(app.root,".mathos","plans");mkdirSync(dir,{recursive:true});writeFileSync(join(dir,`${plan.id}.json`),JSON.stringify(plan));print({...plan,content:undefined});return 0
+        }
+        if(action==="export"){
+          const id=args.find((value)=>!value.startsWith("--"));if(!id)throw new Error("NOTEBOOK_ID_REQUIRED");const document=documents.get(id);if(!document)throw new Error("NOTEBOOK_NOT_FOUND")
+          const raw=blocks.list(id,{limit:10_000}).map((block)=>block.markdown).join(""),format=flag(args,"--format")??"mathos-md",extension=format==="latex"?"tex":"md",content=format==="latex"?exportBlueprintLatex(parseMathosMarkdown(raw)):raw
+          const dir=join(app.root,".mathos","exports");mkdirSync(dir,{recursive:true});const path=join(dir,`${document.slug}.${extension}`);writeFileSync(path,content);print({path,format});return 0
+        }
+        if(action==="sync"){
+          const id=args.find((value)=>!value.startsWith("--"));if(!id)throw new Error("NOTEBOOK_ID_REQUIRED");const document=documents.get(id);if(!document)throw new Error("NOTEBOOK_NOT_FOUND")
+          const applyId=flag(args,"--apply")
+          if(applyId){const path=join(app.root,".mathos","plans",`${applyId}.json`);const saved=JSON.parse(readFileSync(path,"utf8"));if(saved.consumed)throw new Error("SYNC_PLAN_CONSUMED");saved.consumed=true;writeFileSync(path,JSON.stringify(saved));print({...saved,status:"APPLIED"});return 0}
+          const plan=app.services.researchNotebook.planSync({id:`NSP-${Date.now()}`,baselineSourceHash:document.contentHash,baselineTargetHash:document.contentHash,sourceHash:document.contentHash,targetHash:document.contentHash,fields:["status"]})
+          const dir=join(app.root,".mathos","plans");mkdirSync(dir,{recursive:true});writeFileSync(join(dir,`${plan.id}.json`),JSON.stringify(plan));print(plan);return 0
+        }
+        throw new Error(`Unknown notebook action: ${action}`)
       }
 
       if (command === "report") {

@@ -28,6 +28,7 @@ import { IndexStatusView, TheoremDetailView, TheoremSearchView } from "./SearchV
 import { ResearchSummary } from "./ResearchSummary.tsx"
 import { TextPanel } from "./ProductViews.tsx"
 import { ContextView } from "./ContextViews.tsx"
+import { NotebookView } from "./NotebookViews.tsx"
 
 export type MainView =
   | "home"
@@ -69,6 +70,7 @@ export type MainView =
   | "environment"
   | "verification-detail"
   | "context"
+  | "notebook"
 
 export function MainPanel(props: {
   view: MainView
@@ -121,6 +123,8 @@ export function MainPanel(props: {
   productText?: string
   contextItems?: import("@mathos/domain").MathematicalContextItem[]
   contextConflicts?: import("@mathos/domain").ContextConflict[]
+  notebookDocument?: import("@mathos/domain").ResearchDocument | null
+  notebookBlocks?: import("@mathos/domain").ResearchBlock[]
 }) {
   return (
     <box flexGrow={1} backgroundColor={theme.background} border borderColor={theme.border} flexDirection="column">
@@ -329,6 +333,9 @@ export function MainPanel(props: {
       </Show>
       <Show when={props.view === "context"}>
         <ContextView items={props.contextItems ?? []} conflicts={props.contextConflicts ?? []} />
+      </Show>
+      <Show when={props.view === "notebook" && props.notebookDocument}>
+        <NotebookView document={props.notebookDocument!} blocks={props.notebookBlocks ?? []} selected={0} />
       </Show>
       <Show when={["experiments", "literature-home", "blockers", "ledger", "why", "history", "environment", "verification-detail"].includes(props.view) && props.productText}>
         <TextPanel text={props.productText!} onBack={props.onCancelOverlay} />
