@@ -1,81 +1,44 @@
 # MathOS
 
-Agentic **mathematical research workspace**. Persistent claims, epistemic statuses, Lean verification, retrieval, experiments, and literature — not a chatbot and not a replacement for a proof assistant.
+MathOS is a local-first operating system for serious mathematical research. It keeps claims, dependencies, formalizations, proof attempts, experiments, literature, and provenance in one durable workspace. It is not an automatic open-problem solver, and model output, computation, or citation never becomes proof.
 
-## What it is not
+`KERNEL_VERIFIED` means the current formal revision passed the local VerificationGate, including Lean kernel acceptance, fidelity policy, forbidden-construct checks, and axiom audit.
 
-- MathOS is not an automatic solver of open problems
-- Not a general IDE / desktop app
-- LLM output is not proof
-- Computation is not proof
-- Literature citation is not proof
-- **KERNEL_VERIFIED requires VerificationGate**
+## Install
 
-## Status
+Download the release archive for your platform, verify it against `SHA256SUMS`, and place `mathos` on your path. The official user-scoped installer performs those checks and does not require sudo. See [installation](docs/INSTALLATION.md).
 
-**0.1.0-alpha.1** — early-user / pilot alpha. macOS is the supported development platform. Linux is untested in this tree. Windows is **NOT_TESTED**.
-
-## Requirements
-
-**Required:** [Bun](https://bun.sh) >= 1.2, a writable directory.
-
-**Feature-specific:**
-
-- Git — research branches / worktrees
-- Lean 4.33.1 + Lake + Mathlib — formal verification
-- Python 3 — computational experiments
-- `MATHOS_API_KEY` + `MATHOS_MODEL` — AI planner (optional)
-- Network — live OpenAlex literature (optional)
-
-MathOS still opens if Lean, Python, Git, or a model key are missing. Formal verification / experiments / live search simply stay unavailable.
-
-## Install / quick start
-
-```bash
-bun install
-bun link
-mathos --version
-mathos doctor
-mathos init my-research
-cd my-research
-mathos
+```sh
+mathos --version --json
+mathos help
+mathos setup status
 ```
 
-Users should invoke `mathos` after `bun link` from the repo root. `bun run mathos` also works.
+## Ten-minute start
 
-```text
-mathos init [name]
-mathos status
-mathos doctor [--json]
-mathos backup --out ./backups
-mathos restore <file.tgz> --into ./restored
-mathos report --format md
-mathos diagnostics export
+```sh
+mkdir prime-gap-research && cd prime-gap-research
+mathos init --name prime-gap-research
+mathos doctor --json
+mathos workspace inspect --json
+mathos claim create --type conjecture --title "Bounded prime gaps" --statement "There are infinitely many bounded gaps between consecutive primes."
+mathos claims --json
+mathos atlas --no-open
 ```
 
-See the [professional pilot](docs/PROFESSIONAL_PILOT.md), [product boundary](docs/PRODUCT_BOUNDARY_V1.md), [trust model](docs/TRUST_MODEL_V1.md), and [security model](docs/SECURITY_MODEL_V1.md).
+Atlas remains read-only. Stop its local loopback server with Ctrl+C. Continue with the [quickstart](docs/QUICKSTART.md) or inspect the [professional demo](examples/professional-demo/README.md).
 
-## Trust model
+## Product boundaries
 
-| Status | Meaning |
-| --- | --- |
-| CONJECTURE | Informal claim |
-| COMPUTATIONALLY_SUPPORTED | Experiment evidence — **not** a proof |
-| EXTERNAL_KNOWN | Cited source — **not** a proof |
-| FORMALIZED_UNVERIFIED | Lean statement exists, unverified |
-| KERNEL_VERIFIED | VerificationGate passed (current formal revision, fidelity, compile, axioms, forbidden constructs) |
+- Lean is the proof authority; models only propose.
+- Experiments are `COMPUTATIONAL_EVIDENCE`, not proof.
+- Literature is `EXTERNAL_SOURCE`, not proof.
+- Formalization requires fidelity review before proof promotion.
+- Plugins run out of process and have no verification authority.
+- Missing external capabilities remain visibly blocked.
 
-## Layout
+## Documentation
 
-Workspace-local only (no hidden global config by default):
+[Features](docs/FEATURES.md) · [providers](docs/PROVIDERS.md) · [trust](docs/TRUST_MODEL_V1.md) · [operations](docs/OPERATIONS.md) · [error codes](docs/ERROR_CODES.md) · [security](docs/SECURITY_MODEL_V1.md) · [support](docs/SUPPORT.md)
 
-```text
-mathos.toml          project config (no API keys)
-.mathos/mathos.db    SQLite
-.mathos/events.jsonl append-only events
-formal/              Lean artifacts
-experiments/         computation recipes
-reports/             exported markdown reports
-```
-
-API keys live in the environment (`MATHOS_API_KEY`), never SQLite, events, reports, logs, or backups.
+Developers working from source need Bun 1.2 or newer: `bun install`, `bun run typecheck`, `bun test`, and `bun run build`.
