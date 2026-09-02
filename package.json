@@ -32,6 +32,9 @@
     "test:v1": "$npm_execpath test tests/feature-program-preflight.test.ts tests/v1-doc-contract.test.ts tests/workspace-boundaries.test.ts",
     "qualification:v1": "$npm_execpath scripts/run-v1-qualification.ts --json",
     "software-completion-v2": "$npm_execpath scripts/run-software-completion-v2.ts"
+    ,"providers:contract": "$npm_execpath scripts/providers/contract-test.ts"
+    ,"providers:live-smoke": "$npm_execpath scripts/providers/live-smoke.ts"
+    ,"providers:qualification": "$npm_execpath scripts/providers/qualification.ts --json"
   },
   "engines": {
     "bun": ">=1.2.0"
