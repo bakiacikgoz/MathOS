@@ -63,6 +63,8 @@ export function AppShell(props: { mathos: MathOS }) {
     const run = props.mathos.latestResearch()
     return run?.status === "PAUSED" ? `${props.mathos.reopenSummary()}\n\n${home}` : home
   })())
+  const [contextItems, setContextItems] = createSignal<import("@mathos/domain").MathematicalContextItem[]>([])
+  const [contextConflicts, setContextConflicts] = createSignal<import("@mathos/domain").ContextConflict[]>([])
   const [paletteOpen, setPaletteOpen] = createSignal(false)
   const [toast, setToast] = createSignal<{ message: string; kind: "info" | "success" | "error" } | null>(null)
   const [history, setHistory] = createSignal<string[]>([])
@@ -126,6 +128,13 @@ export function AppShell(props: { mathos: MathOS }) {
       }
       if (name === "help") {
         setView("help")
+        return
+      }
+      if (name === "context") {
+        const branch = props.mathos.currentBranch()
+        setContextItems(props.mathos.services.repositories.contextItems.list(branch.workspaceId, { limit:10_000 }))
+        setContextConflicts(props.mathos.services.mathematicalContext.detectConflicts({ workspaceId:branch.workspaceId, branchId:branch.id }))
+        setView("context")
         return
       }
       if (name === "quit") {
@@ -860,6 +869,8 @@ export function AppShell(props: { mathos: MathOS }) {
           teamDetailOn={teamDetailOn()}
           graphView={graphView()}
           productText={productText()}
+          contextItems={contextItems()}
+          contextConflicts={contextConflicts()}
         />
         <Sidebar status={status()} visible={showSidebar()} branches={props.mathos.listBranches()} />
       </box>

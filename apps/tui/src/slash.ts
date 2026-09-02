@@ -19,6 +19,7 @@ export const SLASH_COMMANDS: SlashCommand[] = [
   { name: "graph", description: "Show the research / proof graph" },
   { name: "experiment", description: "Experiments" },
   { name: "literature", description: "Literature" },
+  { name: "context", description: "Mathematical context registry" },
   { name: "ledger", description: "Epistemic ledger for a claim" },
   { name: "why", description: "Why verified / not verified" },
   { name: "history", description: "Session timeline" },

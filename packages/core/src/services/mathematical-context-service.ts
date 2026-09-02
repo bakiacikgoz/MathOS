@@ -46,6 +46,14 @@ export class MathematicalContextService {
     return applied
   }
 
+  rejectProposal(id: string, expectedRevision: number, reason: string): MathematicalContextItem {
+    const item = this.d.items.get(id)
+    if (!item || item.status !== "PROPOSED") throw new Error(`REVISION_CONFLICT: ${id}`)
+    const rejected = this.d.items.updateExpectedRevision(id, expectedRevision, { status:"REJECTED", updatedAt:this.d.clock.now() })
+    this.d.writeEvent("context.item.rejected", { itemId:id, revision:rejected.revision, reasonHash:digest(reason) })
+    return rejected
+  }
+
   resolveSnapshot(scope: ContextScope): MathematicalContextSnapshot {
     const chain: Array<[ContextScopeKind, string | undefined]> = [["WORKSPACE", scope.workspaceId], ["BRANCH", scope.branchId], ["DOCUMENT", scope.documentId], ["CLAIM", scope.claimId]]
     const all = this.d.items.list(scope.workspaceId, { limit: 10_000 }).filter((item) => item.status === "ACTIVE")

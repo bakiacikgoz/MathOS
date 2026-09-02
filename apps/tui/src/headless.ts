@@ -73,6 +73,36 @@ export async function runHeadless(argv: string[]): Promise<number> {
         return 0
       }
 
+      if (command === "context") {
+        const action = rest[0] ?? "list"
+        const args = rest.slice(1)
+        const branch = app.currentBranch()
+        const repository = app.services.repositories.contextItems
+        const envelope = (data: unknown) => ({ schemaVersion:"mathos.context.v1", data })
+        if (action === "list") {
+          const scope = flag(args, "--scope")?.toUpperCase()
+          const rows = repository.list(branch.workspaceId, { limit:10_000 }).filter((item) => !scope || item.scopeKind === scope)
+          process.stdout.write(`${JSON.stringify(envelope(rows), null, 2)}\n`)
+          return 0
+        }
+        if (action === "propose") {
+          const claimId = flag(args, "--claim")
+          const kind = flag(args, "--kind") as import("@mathos/domain").ContextItemKind | undefined
+          const name = flag(args, "--name"), value = flag(args, "--value")
+          if (!kind || !name || value === undefined) throw new Error("Usage: mathos context propose --kind SYMBOL --name x --value value")
+          const proposal = app.services.mathematicalContext.proposeItem({ workspaceId:branch.workspaceId, branchId:branch.id, scopeKind:claimId ? "CLAIM" : "BRANCH", scopeId:claimId ?? branch.id, draft:{ kind, canonicalName:name, displayText:value, normalizedValue:value, origin:"USER" } })
+          process.stdout.write(`${JSON.stringify(envelope(proposal), null, 2)}\n`); return 0
+        }
+        if (action === "conflicts") { process.stdout.write(`${JSON.stringify(envelope(app.services.mathematicalContext.detectConflicts({ workspaceId:branch.workspaceId, branchId:branch.id })), null, 2)}\n`); return 0 }
+        const id = args.find((value) => !value.startsWith("--"))
+        if (!id) throw new Error(`Usage: mathos context ${action} <proposal-id>`)
+        const proposal = repository.get(id)
+        if (!proposal) throw new Error(`CONTEXT_NOT_FOUND: ${id}`)
+        if (action === "apply") { process.stdout.write(`${JSON.stringify(envelope(app.services.mathematicalContext.applyProposal(id, proposal.revision)), null, 2)}\n`); return 0 }
+        if (action === "reject") { process.stdout.write(`${JSON.stringify(envelope(app.services.mathematicalContext.rejectProposal(id, proposal.revision, flag(args, "--reason") ?? "rejected")), null, 2)}\n`); return 0 }
+        throw new Error(`Unknown context action: ${action}`)
+      }
+
       if (command === "report") {
         const format = rest.includes("--json") || flag(rest, "--format") === "json" ? "json" : "md"
         const written = app.exportReport(format)
