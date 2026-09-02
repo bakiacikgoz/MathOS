@@ -16,7 +16,7 @@ describe("capsule manifest", () => {
     expect(JSON.stringify(a.manifest)).not.toContain("secret"); expect(a.manifest.models[0]?.configHash).toMatch(/^[a-f0-9]{64}$/)
   })
   test("blocks known secrets, entropy tokens, private keys, unsafe paths, and requires scoped allowlist reasons", async () => {
-    const dir = root(); writeFileSync(join(dir, "bad.txt"), "OPENAI_API_KEY=sk-abcdefghijklmnopqrstuvwxyz123456\n-----BEGIN PRIVATE KEY-----")
+    const dir = root(); writeFileSync(join(dir, "bad.txt"), "OPENAI_API_KEY=" + "sk-" + "abcdefghijklmnopqrstuvwxyz123456\n-----BEGIN " + "PRIVATE KEY-----")
     const service = new CapsuleService({ root: dir, now: () => "2030" })
     await expect(service.inventory(["bad.txt"])).rejects.toThrow("CAPSULE_SECRET_DETECTED")
     await expect(service.inventory(["../bad.txt"])).rejects.toThrow("CAPSULE_PATH_UNSAFE")
