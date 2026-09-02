@@ -24,6 +24,8 @@
     "typecheck:all": "$npm_execpath x tsc --noEmit -p tsconfig.json",
     "build:atlas": "$npm_execpath scripts/build-atlas.ts",
     "build:vscode": "$npm_execpath scripts/build-vscode.ts",
+    "release:build": "$npm_execpath scripts/distribution/build-release.ts",
+    "release:verify": "$npm_execpath scripts/distribution/verify-release.ts",
     "test:v1": "$npm_execpath test tests/feature-program-preflight.test.ts tests/v1-doc-contract.test.ts tests/workspace-boundaries.test.ts"
     ,"qualification:v1": "$npm_execpath scripts/run-v1-qualification.ts --json"
   },

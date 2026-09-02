@@ -1,0 +1,6 @@
+#!/usr/bin/env bun
+import { mkdtempSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
+export async function smokeRelease(executable:string){const home=mkdtempSync(join(tmpdir(),"mathos-clean-home-")),cwd=mkdtempSync(join(tmpdir(),"mathos-release-cwd-")),env={PATH:process.env.PATH??"",HOME:home,USERPROFILE:home,XDG_CONFIG_HOME:join(home,"config"),XDG_DATA_HOME:join(home,"data"),XDG_CACHE_HOME:join(home,"cache"),XDG_STATE_HOME:join(home,"state"),NO_COLOR:"1"};const run=async(args:string[])=>{const proc=Bun.spawn([executable,...args],{cwd,env,stdin:"ignore",stdout:"pipe",stderr:"pipe"});const[exitCode,stdout,stderr]=await Promise.all([proc.exited,new Response(proc.stdout).text(),new Response(proc.stderr).text()]);return{exitCode,stdout,stderr}};const version=await run(["--version","--json"]);if(version.exitCode!==0)throw new Error(`RELEASE_VERSION_SMOKE_FAILED:${version.stderr}`);const identity=JSON.parse(version.stdout);if(!identity.productVersion||identity.gitRevision==="UNKNOWN")throw new Error("RELEASE_IDENTITY_MISSING");return{ok:true,identity,home,cwd}}
+if(import.meta.main){const executable=process.argv[2];if(!executable)throw new Error("USAGE: smoke-release <executable>");console.log(JSON.stringify(await smokeRelease(executable),null,2))}
