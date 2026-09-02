@@ -5,6 +5,8 @@ import { runHeadless } from "./headless.ts"
 
 const args = process.argv.slice(2)
 
+if(args[0]==="bridge"&&args[1]==="stdio"){const{runBridgeStdio}=await import("@mathos/core/bridge-stdio");await runBridgeStdio({workspaceRoot:process.cwd(),workspaceId:"local",trusted:true});process.exit(0)}
+
 if (args.includes("--version") || args[0] === "version" || args[0] === "--version") {
   process.stdout.write(`${MathOS.versionText()}\n`)
   process.exit(0)
