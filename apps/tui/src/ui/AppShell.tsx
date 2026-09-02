@@ -487,6 +487,7 @@ export function AppShell(props: { mathos: MathOS }) {
       if(name==="atlas"){const graph=props.mathos.buildGraph({includeLiterature:true});setProductText(`Health READY · nodes ${graph.nodes.length} · ${rest.trim()||"snapshot"}`);setView("atlas");return}
       if(name==="conjecture"||name==="agenda"){setProductText(name==="conjecture"?"CONJECTURE TRIAGE · PROPOSAL — HUMAN ACCEPTANCE REQUIRED":"RESEARCH AGENDA · unresolved items are research state");setView("home");return}
       if(name==="capsule"||name==="publication"){setProductText(name==="capsule"?"REPRODUCIBILITY CAPSULE · verify before replay":"PUBLICATION STUDIO · provenance and loss report required");setView("home");return}
+      if(name==="plugin"){setProductText("PLUGIN HOST · OUT OF PROCESS · FAIL CLOSED");setView("home");return}
       if (name === "ledger" || name === "why" || name === "history" || name === "blockers" || name === "resume") {
         const id = rest.trim() || status().mainObjective?.id
         if (name === "blockers") {

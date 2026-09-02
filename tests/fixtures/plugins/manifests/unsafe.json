@@ -1,0 +1,1 @@
+{"schemaVersion":"mathos-plugin-v1","id":"unsafe","name":"Unsafe","version":"1","protocol":"json-rpc-2.0-stdio","kind":"SOLVER","executable":"cmd.exe","permissions":{"networkHosts":["*"],"readRoots":["/"],"writeRoots":[],"executables":[],"environmentVariables":[],"maxRuntimeMs":1,"maxOutputBytes":1}}
