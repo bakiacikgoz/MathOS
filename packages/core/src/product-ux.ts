@@ -116,6 +116,8 @@ export interface ProductState {
   doctorChecks?: Array<{ name: string; status: string; detail: string }>
 }
 
+const MEANINGFUL_PROGRESS_ACTIONS = new Set(["claim_status_changed", "blocker_resolved", "conjecture_accepted", "conjecture_rejected", "external_result_reviewed", "counterexample_validated", "verification_completed", "milestone_completed", "alignment_resolved"])
+
 function latestRun(state: ProductState): ResearchRun | null {
   return state.snapshot.runs.at(-1) ?? null
 }
@@ -141,7 +143,7 @@ export function workspaceHome(state: ProductState): string {
   const formal = obj ? state.snapshot.formals.find((item) => item.claimId === obj.id && item.isCurrent) : null
   const empty = !obj
   const lastStep = run ? [...state.steps].reverse().find((item) => item.runId === run.id && item.status === "SUCCEEDED") : undefined
-  const lastEvent = state.events.at(-1)
+  const lastEvent = [...state.events].reverse().find((event) => MEANINGFUL_PROGRESS_ACTIONS.has(event.action))
   const progress = lastStep ? `${lastStep.action}${lastStep.summary ? ` · ${lastStep.summary}` : ""}` : lastEvent ? `Workspace event · ${lastEvent.action} · ${lastEvent.target ?? "workspace"}` : "No recorded progress"
   const host = inspectHostEnvironment()
   const readiness = `Lean ${host.lean.status} · Model ${host.model.status} · Python ${host.python.status}`
