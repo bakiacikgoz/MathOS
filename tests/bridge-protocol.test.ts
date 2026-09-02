@@ -13,6 +13,7 @@ describe("bridge protocol", () => {
   test("rejects version mismatch and malformed method", async () => {
     const bridge = new BridgeService({ workspaceRoot: "C:/w", workspaceId: "W", trusted: true })
     await expect(bridge.handle({ id: "1", method: "hello", params: { protocol: "v0" } })).rejects.toThrow("BRIDGE_PROTOCOL_UNSUPPORTED")
+    await bridge.handle({ protocolVersion: 1, id: "ok", method: "hello", params: { protocol: "mathos-bridge-v1", client: { name: "v", version: "1" }, workspaceRoot: "C:/w", requestedCapabilities: [] } })
     await expect(bridge.handle({ id: "2", method: "unknown", params: {} })).rejects.toThrow("BRIDGE_METHOD_UNKNOWN")
   })
 })
