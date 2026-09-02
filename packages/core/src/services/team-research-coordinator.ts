@@ -79,6 +79,7 @@ export interface TeamResearchCoordinatorDependencies {
   allocateId: (prefix: string) => string
   createBranch: (name: string, goal?: string) => Promise<ResearchBranch>
   createClaim: (input: { kind: string; title: string; naturalStatement?: string; statement?: string; status?: string; asMainObjective?: boolean }) => Claim
+  authorizeClonedFormal: (claimId:string,formalId:string,sourceText:string,createdBy:string) => void
   getBranch: (id: string) => ResearchBranch
   getClaim: (id: string) => Claim
   getResearch: (id: string) => ResearchRun
@@ -356,6 +357,8 @@ export class TeamResearchCoordinator {
           fidelityStatus: formal.fidelityStatus === "REJECTED" ? "AI_REVIEWED" : formal.fidelityStatus,
         })
       })
+      const cloned=this.d.formalStatements.currentForClaim(clone.id)!
+      this.d.authorizeClonedFormal(clone.id,cloned.id,cloned.sourceText,cloned.createdBy)
     }
     return clone
   }
@@ -745,6 +748,7 @@ export class TeamResearchCoordinator {
       })
       if (proof) this.d.storeAttempt(this.d.requireWorkspace().id, clone.id, this.d.formalStatements.currentForClaim(clone.id)!.id, 1, proof.proofSource, "KERNEL_ACCEPTED", proof.leanVersion, [])
       const targetFormal = this.d.formalStatements.currentForClaim(clone.id)!
+      this.d.authorizeClonedFormal(clone.id,targetFormal.id,targetFormal.sourceText,targetFormal.createdBy)
       const worktree = this.d.getBranch(item.targetBranchId).worktreePath
       if (worktree) writeFileSync(join(worktree, `${clone.id}.lean`), `${targetFormal.sourceText}\n`, "utf8")
       const report = await this.d.verify(clone.id)

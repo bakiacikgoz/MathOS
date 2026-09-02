@@ -461,6 +461,12 @@ export class MathOS {
       allocateId: (prefix) => instance.allocateId(prefix),
       createBranch: (name, goal) => instance.createBranch(name, goal),
       createClaim: (input) => instance.createClaim(input),
+      authorizeClonedFormal: (claimId,formalId,sourceText,createdBy) => {
+        const natural=instance.services.repositories.statementRevisions.latest(claimId,"NATURAL")
+        if(!natural)throw new Error("CLONED_NATURAL_REVISION_REQUIRED")
+        instance.services.statementRevisions.capture({claimId,kind:"FORMAL",sourceEntityId:formalId,text:sourceText,contextRevisionId:natural.contextRevisionId,createdBy})
+        instance.services.alignment.recordExplicitHumanApproval(claimId,"multi-agent-clone")
+      },
       getBranch: (id) => instance.getBranch(id),
       getClaim: (id) => instance.getClaim(id),
       getResearch: (id) => instance.getResearch(id),
