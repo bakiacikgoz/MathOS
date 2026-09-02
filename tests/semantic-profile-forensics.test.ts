@@ -9,7 +9,7 @@ const ROOT = resolve(import.meta.dir, "..")
 const immutable = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-experiments/semantic-v1-immutable.json`, "utf8"))
 const regressions = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-experiments/semantic-v1-regressions.json`, "utf8"))
 const candidate = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-experiments/semantic-operator-profile-v2-candidate.json`, "utf8"))
-const sha256 = (path: string) => createHash("sha256").update(readFileSync(`${ROOT}/${path}`)).digest("hex")
+const sha256 = (path: string) => createHash("sha256").update(readFileSync(`${ROOT}/${path}`, "utf8").replaceAll("\r\n", "\n")).digest("hex")
 
 describe("semantic profile regression forensics", () => {
   test("V1 spec and closed holdout artifacts are immutable", () => {

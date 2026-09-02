@@ -61,10 +61,10 @@ export function normalizePilotText(value: string, temporaryRoot: string, repo: s
   let output = value
   for (const [path, replacement] of [[temporaryRoot, "<pilot-root>"], [repo, "<repo>"]] as const) {
     if (!path) continue
-    const escaped = path.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-    output = output.replace(new RegExp(`${escaped}(?=$|[/\\\\])`, "g"), replacement)
-    const windows = path.replaceAll("/", "\\").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-    output = output.replace(new RegExp(`${windows}(?=$|[/\\\\])`, "g"), replacement)
+    for (const variant of new Set([path, path.replaceAll("\\", "/"), path.replaceAll("/", "\\"), path.replaceAll("\\", "\\\\")])) {
+      const escaped = variant.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      output = output.replace(new RegExp(`${escaped}(?=$|[/\\\\])`, "g"), replacement)
+    }
   }
   output = output
     .replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z/g, "<timestamp>")

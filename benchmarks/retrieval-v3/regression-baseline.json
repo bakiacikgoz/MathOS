@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "retrieval-v3-regression-baseline-v1",
+  "fixtureSource": "benchmarks/retrieval-v3/development/manifest.json",
+  "ranker": "production-baseline",
+  "metrics": {
+    "candidateRecall": 0.5,
+    "top200": 0.5,
+    "inspect30": 0.5,
+    "final20": 0.5,
+    "hit10": 0.5,
+    "mrr": 0.2222222222222222
+  }
+}

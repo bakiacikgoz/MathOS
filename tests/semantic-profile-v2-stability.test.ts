@@ -13,7 +13,7 @@ const stability = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-experime
 const spec = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-experiments/semantic-operator-profile-v2.json`, "utf8"))
 const hashes = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-experiments/semantic-operator-profile-v2-frozen-hashes.json`, "utf8"))
 const immutable = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-experiments/semantic-v1-immutable.json`, "utf8"))
-const sha = (path: string) => createHash("sha256").update(readFileSync(`${ROOT}/${path}`)).digest("hex")
+const sha = (path: string) => createHash("sha256").update(readFileSync(`${ROOT}/${path}`, "utf8").replaceAll("\r\n", "\n")).digest("hex")
 const declaration = (name: string, signature: string) => ({ name, signature, kind: "theorem" as const, origin: "mathlib" as const })
 
 describe("semantic operator profile V2 stability and freeze", () => {

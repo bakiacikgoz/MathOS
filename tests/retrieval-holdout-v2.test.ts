@@ -14,7 +14,7 @@ import { assertFrozenManifest, bootstrapPaired, classifyPaired } from "../script
 const ROOT = resolve(import.meta.dir, "..")
 const DATASET = "packages/retrieval/src/holdout-v2-fixtures.ts"
 const manifest = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-holdout-v2-manifest.json`, "utf8"))
-const sha = (path: string) => createHash("sha256").update(readFileSync(`${ROOT}/${path}`)).digest("hex")
+const sha = (path: string) => createHash("sha256").update(readFileSync(`${ROOT}/${path}`, "utf8").replaceAll("\r\n", "\n")).digest("hex")
 const chunk = <T>(items: T[], size: number) => Array.from({ length: Math.ceil(items.length / size) }, (_, index) => items.slice(index * size, index * size + size))
 const names = (fixtures: Array<{ expectedAnyOf?: string[]; expected?: string[] }>) => new Set(fixtures.flatMap((item) => item.expectedAnyOf ?? item.expected ?? []).map((name) => name.toLowerCase()))
 

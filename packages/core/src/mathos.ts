@@ -242,7 +242,12 @@ export class MathOS {
   static open(root = process.cwd(), options: MathOSOptions = {}): MathOS {
     const workspaceRoot = findWorkspaceRoot(root)
     const client = new DatabaseClient(databasePath(workspaceRoot))
-    client.migrate()
+    try {
+      client.migrate()
+    } catch (error) {
+      client.close()
+      throw error
+    }
     const events = new EventLog(eventLogPath(workspaceRoot))
     events.ensure()
     const logger = options.logger ?? createLogger(debugLogPath(workspaceRoot))

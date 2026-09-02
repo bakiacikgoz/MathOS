@@ -10,7 +10,7 @@ describe("retrieval closeout artifacts", () => {
     const root = ROOT
     const decision = JSON.parse(readFileSync(`${root}/benchmarks/retrieval-experiments/semantic-operator-profile-v2-decision.json`, "utf8"))
     const governance = JSON.parse(readFileSync(`${root}/benchmarks/retrieval-governance.json`, "utf8"))
-    const sha = (path: string) => createHash("sha256").update(readFileSync(`${root}/${path}`)).digest("hex")
+    const sha = (path: string) => createHash("sha256").update(readFileSync(`${root}/${path}`, "utf8").replaceAll("\r\n", "\n")).digest("hex")
     expect(decision.decision).toBe("REJECTED")
     expect(decision.productionIntegrated).toBe(false)
     expect(decision.reasonCodes).toContain("NO_UPSTREAM_GAIN")

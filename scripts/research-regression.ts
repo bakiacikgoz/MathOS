@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs"
+import { fileURLToPath } from "node:url"
 import { runResearchEval } from "../packages/core/src/research-eval.ts"
 
-const BASELINE = new URL("../benchmarks/research-loop-baseline.json", import.meta.url).pathname
+const BASELINE = fileURLToPath(new URL("../benchmarks/research-loop-baseline.json", import.meta.url))
 
 export async function compareResearchBaseline() {
   const baseline = JSON.parse(readFileSync(BASELINE, "utf8")) as { scenarios: Array<{ id: string; expectedOutcome: string }> }

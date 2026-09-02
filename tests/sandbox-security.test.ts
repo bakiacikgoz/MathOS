@@ -1,8 +1,9 @@
-import { afterEach, expect, test } from "bun:test"
+import { afterEach, expect, test as bunTest } from "bun:test"
 import { mkdtemp, readFile, rm, writeFile, access } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { PythonRuntime, type SandboxRuntime, type SandboxedExecutionRequest } from "@mathos/computation"
+const test = process.platform === "win32" ? bunTest.skip : bunTest
 const dirs:string[]=[]
 afterEach(async()=>{for(const d of dirs.splice(0)) await rm(d,{recursive:true,force:true})})
 async function run(code:string, options:Partial<SandboxedExecutionRequest>={}) {

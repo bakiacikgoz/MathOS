@@ -58,12 +58,14 @@ export class EventLog {
     this.ensure()
     const temporary = `${this.filePath}.tmp-${process.pid}-${randomUUID()}`
     try {
-      writeFileSync(temporary, events.map((event) => this.serialize(event)).join("\n") + (events.length ? "\n" : ""), "utf8")
-      const temporaryDescriptor = openSync(temporary, "r")
-      try { fsyncSync(temporaryDescriptor) } finally { closeSync(temporaryDescriptor) }
+      const payload = events.map((event) => this.serialize(event)).join("\n") + (events.length ? "\n" : "")
+      const temporaryDescriptor = openSync(temporary, "w")
+      try { writeSync(temporaryDescriptor, payload, undefined, "utf8"); fsyncSync(temporaryDescriptor) } finally { closeSync(temporaryDescriptor) }
       renameSync(temporary, this.filePath)
-      const directoryDescriptor = openSync(dirname(this.filePath), "r")
-      try { fsyncSync(directoryDescriptor) } finally { closeSync(directoryDescriptor) }
+      if (process.platform !== "win32") {
+        const directoryDescriptor = openSync(dirname(this.filePath), "r")
+        try { fsyncSync(directoryDescriptor) } finally { closeSync(directoryDescriptor) }
+      }
     } catch (error) {
       rmSync(temporary, { force: true })
       const reason = error instanceof Error ? error.message : String(error)

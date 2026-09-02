@@ -67,7 +67,7 @@ test("runtime launch failure records a blocked experiment", async () => {
     expect(result.summary).toBe("EXPERIMENT_BLOCKED_SANDBOX_FAILURE")
   } finally { app.close() }
 })
-test("user authored code is blocked unless explicitly enabled", async () => {
+test.skipIf(process.platform === "win32")("user authored code is blocked unless explicitly enabled", async () => {
   const { PythonRuntime } = await import("@mathos/computation")
   const app = await boot(new PythonRuntime())
   try {

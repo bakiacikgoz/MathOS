@@ -26,7 +26,7 @@ export interface RealResearchManifest {
   manifestHash: string
 }
 
-const sha256 = (text: string) => createHash("sha256").update(text).digest("hex")
+const sha256 = (text: string) => createHash("sha256").update(text.replaceAll("\r\n", "\n")).digest("hex")
 
 export function loadRealResearchDataset(root = REAL_RESEARCH_ROOT): { manifest: RealResearchManifest; cases: RealResearchCase[] } {
   const manifest = JSON.parse(readFileSync(resolve(root, "manifest.json"), "utf8")) as RealResearchManifest

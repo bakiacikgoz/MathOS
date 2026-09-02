@@ -111,7 +111,8 @@ function commands(): Record<ReleaseCheckName, string[]> {
 }
 
 function unsupportedPlatform(name: ReleaseCheckName, platform: NodeJS.Platform): boolean {
-  return name === "lean-smoke" && platform !== "darwin"
+  return (name === "lean-smoke" && platform !== "darwin")
+    || (name === "sandbox-security-tests" && platform === "win32")
 }
 
 function validatesEvidence(name: ReleaseCheckName, result: CommandResult): boolean {
@@ -147,7 +148,10 @@ export async function executeReleaseCheck(options: {
       continue
     }
     if (unsupportedPlatform(name, platform)) {
-      checks.push({ name, status: "SKIPPED_UNSUPPORTED_PLATFORM", durationMs: 0, command: reportedCommand, evidence: `${platform} is not a supported Lean release platform`, exitCode: null, timedOut: false })
+      const evidence = name === "sandbox-security-tests"
+        ? `${platform} has no MathOS 0.2 supported OS sandbox release backend`
+        : `${platform} is not a supported Lean release platform`
+      checks.push({ name, status: "SKIPPED_UNSUPPORTED_PLATFORM", durationMs: 0, command: reportedCommand, evidence, exitCode: null, timedOut: false })
       continue
     }
     const result = await runner(command, { cwd: repositoryRoot, timeoutMs: options.timeoutMs ?? DEFAULT_TIMEOUT_MS })

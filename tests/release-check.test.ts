@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test"
 import { resolve } from "node:path"
 import { executeReleaseCheck, RELEASE_CHECK_ORDER, type ReleaseCommandRunner } from "../scripts/release-check.ts"
+import { compareResearchBaseline } from "../scripts/research-regression.ts"
+import { runRetrievalRegression } from "../scripts/retrieval-regression.ts"
 
 const successfulRunner: ReleaseCommandRunner = async (command) => ({
   exitCode: 0,
@@ -40,6 +42,23 @@ describe("release check contract", () => {
     expect(report.checks.every((check) => ["PASS", "SKIPPED_UNSUPPORTED_PLATFORM"].includes(check.status))).toBe(true)
   })
 
+  test("Windows skips only checks that require a supported OS sandbox or Lean release platform", async () => {
+    const report = await executeReleaseCheck({ runner: successfulRunner, platform: "win32" })
+    expect(report.checks.filter((check) => check.status === "SKIPPED_UNSUPPORTED_PLATFORM").map((check) => check.name)).toEqual([
+      "sandbox-security-tests",
+      "lean-smoke",
+    ])
+    expect(report.ready).toBe(true)
+  })
+
+  test("research and retrieval regressions run from tracked immutable fixtures", async () => {
+    expect((await compareResearchBaseline()).passed).toBe(true)
+    const retrieval = await runRetrievalRegression()
+    expect(retrieval.passed).toBe(true)
+    expect(retrieval.fixtureSource).toBe("retrieval-v3-development-frozen")
+    expect(retrieval.candidateDecision).toBe("INCONCLUSIVE")
+  })
+
   test("version output must match package version", async () => {
     const runner: ReleaseCommandRunner = async (command, options) => {
       const result = await successfulRunner(command, options)
@@ -63,7 +82,7 @@ describe("release check contract", () => {
     expect(report.ready).toBe(false)
   })
 
-  test("package script starts without a global bun on PATH", () => {
+  test.skipIf(process.platform === "win32")("package script starts without a global bun on PATH", () => {
     const root = resolve(import.meta.dir, "..")
     const result = Bun.spawnSync([process.execPath, "run", "release-check", "--contract-probe"], {
       cwd: root,

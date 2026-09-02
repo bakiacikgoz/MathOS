@@ -6,6 +6,7 @@ import { FakeModelProvider } from "@mathos/models"
 import { FakeLeanAdapter, NativeLeanAdapter } from "@mathos/lean"
 import { FakeVcs } from "@mathos/vcs"
 import { InMemoryPremiseRetriever } from "@mathos/retrieval"
+import { FakeComputationalRuntime } from "@mathos/computation"
 import type { ResearchDecision, ResearchStopReason } from "@mathos/domain"
 
 export interface ResearchEvalScenario {
@@ -247,7 +248,13 @@ async function runExperimentResearchCase(id: string): Promise<ResearchEvalRow> {
   const started = Date.now()
   try {
     const created = await MathOS.init(root, "eval")
-    const app = MathOS.open(created.root, { vcs: new FakeVcs() })
+    const computationRuntime = new FakeComputationalRuntime()
+    computationRuntime.next = id === "experiment-counterexample"
+      ? { ...computationRuntime.next, stdout: '{"ok":true,"outcome":"COUNTEREXAMPLE_FOUND","witness":{"n":-2},"exact":true}\n' }
+      : id === "experiment-timeout"
+        ? { ...computationRuntime.next, exitCode: null, timedOut: true, stdout: "", durationMs: 300 }
+        : { ...computationRuntime.next, stdout: '{"ok":true,"outcome":"NO_COUNTEREXAMPLE_FOUND","exact":true}\n' }
+    const app = MathOS.open(created.root, { vcs: new FakeVcs(), computationRuntime })
     const claim = app.createClaim({ kind: "conjecture", title: "T", statement: "P", asMainObjective: true })
     let pass = false
     if (id === "experiment-support-not-proof") {

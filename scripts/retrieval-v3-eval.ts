@@ -11,7 +11,7 @@ interface FixtureInput { id: string; domain: string; goal: string; declarations:
 interface GoldLabel { expectedPremises: string[]; proofSource: string }
 interface Loaded { fixtures: EvaluationFixture[]; labels: Record<string, GoldLabel>; corpusSizes: Record<string, number>; pipelineStageSizes: Record<string, number> }
 const ROOT = resolve(import.meta.dir, "..")
-const sha256 = (path: string) => createHash("sha256").update(readFileSync(path)).digest("hex")
+const sha256 = (path: string) => createHash("sha256").update(readFileSync(path, "utf8").replaceAll("\r\n", "\n")).digest("hex")
 export function semanticTargetFingerprint(goal: string): string {
   const binders = new Map<string, string>()
   for (const match of goal.matchAll(/[({]([^:)}]+):/g)) for (const name of match[1]!.trim().split(/\s+/)) if (/^[a-z][a-z0-9_']*$/i.test(name)) binders.set(name, `$${binders.size}`)

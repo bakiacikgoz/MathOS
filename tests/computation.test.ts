@@ -23,7 +23,7 @@ async function boot() {
   return { app, claim }
 }
 
-describe("computational experiments", () => {
+describe.skipIf(process.platform === "win32")("computational experiments", () => {
   test("python smoke does not verify", async () => {
     const { app, claim } = await boot()
     const exp = await app.createExperiment({

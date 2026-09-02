@@ -203,7 +203,7 @@ function reciprocal(rankValue: number | null) { return rankValue ? 1 / rankValue
 function rank(names: string[], target: string) { const index = names.indexOf(target); return index < 0 ? null : index + 1 }
 function percentile(values: number[], p: number) { if (!values.length) return 0; const sorted = [...values].sort((a, b) => a - b); return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))]! }
 function readManifest() { return JSON.parse(readFileSync(MANIFEST, "utf8")) }
-function sha(path: string) { return createHash("sha256").update(readFileSync(path)).digest("hex") }
+function sha(path: string) { return createHash("sha256").update(readFileSync(path, "utf8").replaceAll("\r\n", "\n")).digest("hex") }
 export function assertFrozenManifest() { const manifest = readManifest(); if (sha(`${ROOT}/${manifest.v2Spec.path}`) !== manifest.v2Spec.sha256) throw new Error("V2 spec hash guard failed"); if (sha(`${ROOT}/${manifest.v2Implementation.path}`) !== manifest.v2Implementation.sha256) throw new Error("V2 implementation hash guard failed"); if (sha(`${ROOT}/${manifest.holdoutV2.path}`) !== manifest.holdoutV2.sha256) throw new Error("holdout-v2 dataset hash guard failed"); return true }
 
 if (import.meta.main) {
