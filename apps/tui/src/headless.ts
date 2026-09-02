@@ -4,6 +4,8 @@ import { extname, join, resolve } from "node:path"
 import { exportBlueprintLatex, importBlueprintLatex, parseMathosMarkdown } from "@mathos/notebook"
 import { formatUserError, isMathOSError } from "@mathos/shared"
 import { formatBranchDetail, formatBranches, formatClaims, formatDoctor, formatMergePreview, formatResearchRun, formatStatus, HELP_TEXT } from "./format.ts"
+import { portfolioSnapshot } from "./ui/PortfolioViews.tsx"
+import { failureMemorySnapshot } from "./ui/FailureMemoryViews.tsx"
 
 function joinCwdBackups(): string {
   return join(process.cwd(), "backups")
@@ -151,6 +153,17 @@ export async function runHeadless(argv: string[]): Promise<number> {
         if(action==="reject"){print(app.services.alignment.reject(id!,flag(args,"--reason")??"rejected"));return 0}
         if(action==="impact"){const claimId=args.find((value)=>!value.startsWith("--"));print(app.services.repositories.staleMarkers.unresolved().filter((marker)=>!claimId||marker.targetId===claimId||marker.sourceId===claimId));return 0}
         throw new Error(`Unknown align action: ${action}`)
+      }
+      if(command==="portfolio"){
+        const action=rest[0]??"status",args=rest.slice(1),id=args.find(value=>!value.startsWith("--"));if(!id)throw new Error("PORTFOLIO_ID_REQUIRED")
+        if(action==="status"){process.stdout.write(`${JSON.stringify(portfolioSnapshot(app.services.proofPortfolio.status(id)),null,2)}\n`);return 0}
+        if(action==="cancel"){await app.services.proofPortfolio.cancel(id);process.stdout.write(`${JSON.stringify(portfolioSnapshot(app.services.proofPortfolio.status(id)),null,2)}\n`);return 0}
+        if(action==="verify"){const candidate=flag(args,"--candidate");const winner=await app.services.proofPortfolio.finalizeWinner(id,candidate);process.stdout.write(`${JSON.stringify({schemaVersion:"mathos.proof-portfolio.v1",winner,trust:{promotionAuthority:"VerificationGate"}},null,2)}\n`);return 0}
+        if(action==="repair")throw new Error("PROOF_REPAIR_REQUIRES_CONFIGURED_MODEL_AND_LEAN_RUNTIME")
+        throw new Error(`Unknown portfolio action: ${action}`)
+      }
+      if(command==="failures"){
+        const id=rest.find(value=>!value.startsWith("--"));if(!id)throw new Error("FAILURE_ID_REQUIRED");const failure=app.services.repositories.failureFingerprints.get(id);if(!failure)throw new Error("FAILURE_NOT_FOUND");process.stdout.write(`${JSON.stringify(failureMemorySnapshot(failure,app.services.failureMemory.occurrences(id)),null,2)}\n`);return 0
       }
 
       if (command === "report") {
