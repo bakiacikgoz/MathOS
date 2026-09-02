@@ -32,6 +32,7 @@ import { NotebookView } from "./NotebookViews.tsx"
 import { AlignmentView } from "./AlignmentViews.tsx"
 import { PortfolioView,type PortfolioSnapshot } from "./PortfolioViews.tsx"
 import { FailureMemoryView,failureMemorySnapshot } from "./FailureMemoryViews.tsx"
+import { SolverLabView,solverSnapshot } from "./SolverViews.tsx"
 
 export type MainView =
   | "home"
@@ -77,6 +78,7 @@ export type MainView =
   | "alignment"
   | "portfolio"
   | "failures"
+  | "solver"
 
 export function MainPanel(props: {
   view: MainView
@@ -135,6 +137,7 @@ export function MainPanel(props: {
   alignmentFindings?: import("@mathos/domain").AlignmentFinding[]
   portfolio?: PortfolioSnapshot|null
   failureMemory?: ReturnType<typeof failureMemorySnapshot>|null
+  solver?: ReturnType<typeof solverSnapshot>|null
 }) {
   return (
     <box flexGrow={1} backgroundColor={theme.background} border borderColor={theme.border} flexDirection="column">
@@ -352,6 +355,7 @@ export function MainPanel(props: {
       </Show>
       <Show when={props.view === "portfolio" && props.portfolio}><PortfolioView snapshot={props.portfolio!}/></Show>
       <Show when={props.view === "failures" && props.failureMemory}><FailureMemoryView snapshot={props.failureMemory!}/></Show>
+      <Show when={props.view === "solver" && props.solver}><SolverLabView snapshot={props.solver!}/></Show>
       <Show when={["experiments", "literature-home", "blockers", "ledger", "why", "history", "environment", "verification-detail"].includes(props.view) && props.productText}>
         <TextPanel text={props.productText!} onBack={props.onCancelOverlay} />
       </Show>

@@ -6,6 +6,7 @@ import { formatUserError, isMathOSError } from "@mathos/shared"
 import { formatBranchDetail, formatBranches, formatClaims, formatDoctor, formatMergePreview, formatResearchRun, formatStatus, HELP_TEXT } from "./format.ts"
 import { portfolioSnapshot } from "./ui/PortfolioViews.tsx"
 import { failureMemorySnapshot } from "./ui/FailureMemoryViews.tsx"
+import { solverSnapshot } from "./ui/SolverViews.tsx"
 
 function joinCwdBackups(): string {
   return join(process.cwd(), "backups")
@@ -164,6 +165,14 @@ export async function runHeadless(argv: string[]): Promise<number> {
       }
       if(command==="failures"){
         const id=rest.find(value=>!value.startsWith("--"));if(!id)throw new Error("FAILURE_ID_REQUIRED");const failure=app.services.repositories.failureFingerprints.get(id);if(!failure)throw new Error("FAILURE_NOT_FOUND");process.stdout.write(`${JSON.stringify(failureMemorySnapshot(failure,app.services.failureMemory.occurrences(id)),null,2)}\n`);return 0
+      }
+      if(command==="solver"){
+        const action=rest[0]??"list",args=rest.slice(1)
+        if(action==="list"||action==="doctor"){process.stdout.write(`${JSON.stringify(solverSnapshot({adapters:app.services.solverRegistry.list()}),null,2)}\n`);return 0}
+        if(action==="result"){const id=args.find(value=>!value.startsWith("--"));if(!id)throw new Error("SOLVER_RESULT_ID_REQUIRED");const result=app.services.repositories.solverResults.get(id);if(!result)throw new Error("SOLVER_RESULT_NOT_FOUND");process.stdout.write(`${JSON.stringify(solverSnapshot({job:app.services.repositories.solverJobs.get(String(result.jobId)),result}),null,2)}\n`);return 0}
+        if(action==="replay"){const id=args.find(value=>!value.startsWith("--"));if(!id)throw new Error("SOLVER_RESULT_ID_REQUIRED");const result=await app.services.solverLab.replay(id);process.stdout.write(`${JSON.stringify(solverSnapshot({job:app.services.repositories.solverJobs.get(String(result.jobId)),result}),null,2)}\n`);return 0}
+        if(action==="run")throw new Error("SOLVER_RUN_REQUIRES_CONFIGURED_ADAPTER")
+        throw new Error(`Unknown solver action: ${action}`)
       }
 
       if (command === "report") {

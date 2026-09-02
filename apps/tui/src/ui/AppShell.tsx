@@ -30,6 +30,7 @@ import { StatusBar } from "./StatusBar.tsx"
 import { Toast } from "./Toast.tsx"
 import { portfolioSnapshot,type PortfolioSnapshot } from "./PortfolioViews.tsx"
 import { failureMemorySnapshot } from "./FailureMemoryViews.tsx"
+import { solverSnapshot } from "./SolverViews.tsx"
 
 export function AppShell(props: { mathos: MathOS }) {
   const renderer = useRenderer()
@@ -73,6 +74,7 @@ export function AppShell(props: { mathos: MathOS }) {
   const [alignmentFindings, setAlignmentFindings] = createSignal<import("@mathos/domain").AlignmentFinding[]>([])
   const [portfolio, setPortfolio] = createSignal<PortfolioSnapshot|null>(null)
   const [failureMemory, setFailureMemory] = createSignal<ReturnType<typeof failureMemorySnapshot>|null>(null)
+  const [solver, setSolver] = createSignal<ReturnType<typeof solverSnapshot>|null>(null)
   const [paletteOpen, setPaletteOpen] = createSignal(false)
   const [toast, setToast] = createSignal<{ message: string; kind: "info" | "success" | "error" } | null>(null)
   const [history, setHistory] = createSignal<string[]>([])
@@ -93,7 +95,7 @@ export function AppShell(props: { mathos: MathOS }) {
     "claim-form", "claims", "claim-detail", "objective", "analyzing", "research-draft", "intake-edit", "ask-objective",
     "formalize-select", "formalizing", "formal-draft", "formal-view", "prove-select", "proving", "prove-result", "proof-view",
     "search", "premises", "theorem-detail", "index", "branches", "branch-detail", "merge-preview", "research", "team", "graph",
-    "experiments", "literature-home", "blockers", "ledger", "why", "history", "environment", "verification-detail", "portfolio", "failures",
+    "experiments", "literature-home", "blockers", "ledger", "why", "history", "environment", "verification-detail", "portfolio", "failures", "solver",
   ])
   const overlayOpen = () => OVERLAY_VIEWS.has(view()) || paletteOpen()
 
@@ -161,6 +163,7 @@ export function AppShell(props: { mathos: MathOS }) {
       if(name==="failures"){
         const id=rest.trim();if(!id){showToast("Usage: /failures FF-1","error");return}const failure=props.mathos.services.repositories.failureFingerprints.get(id);if(!failure){showToast("Failure not found","error");return}setFailureMemory(failureMemorySnapshot(failure,props.mathos.services.failureMemory.occurrences(id)));setView("failures");return
       }
+      if(name==="solver"){setSolver(solverSnapshot({adapters:props.mathos.services.solverRegistry.list()}));setView("solver");return}
       if (name === "quit") {
         renderer.destroy()
         return
@@ -901,6 +904,7 @@ export function AppShell(props: { mathos: MathOS }) {
           alignmentFindings={alignmentFindings()}
           portfolio={portfolio()}
           failureMemory={failureMemory()}
+          solver={solver()}
         />
         <Sidebar status={status()} visible={showSidebar()} branches={props.mathos.listBranches()} />
       </box>
