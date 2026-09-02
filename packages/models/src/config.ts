@@ -64,6 +64,7 @@ export function resolveModelConfig(options: {
       baseUrl: envUrl ? "env" : tomlUrl ? "toml" : "default",
       apiKey: envKey ? "env" : "missing",
     },
+    roles:{alignment:env.MATHOS_ALIGNMENT_MODEL?.trim()||toml.alignment_model?.trim()||undefined},
   }
 }
 

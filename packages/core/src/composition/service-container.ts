@@ -18,6 +18,7 @@ import { claimReadAdapter, FileArtifactStore, formalReadAdapter, graphReadAdapte
 import { MathematicalContextService } from "../services/mathematical-context-service.ts"
 import { ResearchNotebookService } from "../services/research-notebook-service.ts"
 import { StatementRevisionService } from "../services/statement-revision-service.ts"
+import { AlignmentService } from "../services/alignment-service.ts"
 
 export interface ServiceContainerOverrides { clock: ClockPort; artifacts: ArtifactStorePort; claims: ClaimReadPort; formals: FormalReadPort; graph: GraphReadPort }
 export interface ServiceContainer {
@@ -26,6 +27,7 @@ export interface ServiceContainer {
   mathematicalContext: MathematicalContextService
   researchNotebook: ResearchNotebookService
   statementRevisions: StatementRevisionService
+  alignment:AlignmentService
 }
 
 function createV1Repositories(db: Database) {
@@ -59,6 +61,7 @@ export function createServiceContainer(root: string, db: Database, overrides: Pa
     mathematicalContext: new MathematicalContextService({ items: repositories.contextItems, revisions: repositories.contextRevisions, clock, nextId: (prefix) => `${prefix}-${clock.now().replace(/\D/g, "")}-${++sequence}`, writeEvent: () => {} }),
     researchNotebook: new ResearchNotebookService({ root, documents:repositories.researchDocuments, blocks:repositories.researchBlocks, clock, unitOfWork:(work) => db.transaction(work)(), entityExists:(type,id) => type === "claim" ? Boolean(new ClaimRepository(db).get(id)) : true }),
     statementRevisions,
+    alignment:new AlignmentService({revisions:repositories.statementRevisions,alignments:repositories.formalAlignments,findings:repositories.alignmentFindings,clock,nextId:(prefix)=>`${prefix}-${clock.now().replace(/\D/g,"")}-${++sequence}`}),
   }
   return container
 }

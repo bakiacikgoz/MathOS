@@ -6,6 +6,7 @@ export interface ModelCapabilities {
   vision: boolean
   contextWindow?: number
 }
+export type ModelRole="primary"|"auditor"|"alignment"|"planner"|"repair"
 
 export interface ModelMessage {
   role: "system" | "user" | "assistant"
@@ -47,6 +48,7 @@ export interface ModelConfig {
     baseUrl: "env" | "toml" | "default"
     apiKey: "env" | "missing"
   }
+  roles?:Partial<Record<ModelRole,string>>
 }
 
 export const DEFAULT_BASE_URL = "https://api.openai.com/v1"
