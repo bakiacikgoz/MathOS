@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 import { MathOS } from "@mathos/core"
-import { formatUserError, isMathOSError } from "@mathos/shared"
+import { currentBuildIdentity, formatUserError, isMathOSError } from "@mathos/shared"
 import { runHeadless } from "./headless.ts"
 
 const args = process.argv.slice(2)
@@ -8,9 +8,11 @@ const args = process.argv.slice(2)
 if(args[0]==="bridge"&&args[1]==="stdio"){const{runBridgeStdio}=await import("@mathos/core/bridge-stdio");await runBridgeStdio({workspaceRoot:process.cwd(),workspaceId:"local",trusted:true});process.exit(0)}
 
 if (args.includes("--version") || args[0] === "version" || args[0] === "--version") {
-  process.stdout.write(`${MathOS.versionText()}\n`)
+  process.stdout.write(args.includes("--json")?`${JSON.stringify(currentBuildIdentity())}\n`:`${MathOS.versionText()}\n`)
   process.exit(0)
 }
+
+if(args[0]==="about"&&args.includes("--json")){process.stdout.write(`${JSON.stringify(currentBuildIdentity())}\n`);process.exit(0)}
 
 if (args.includes("--debug")) {
   process.env.MATHOS_DEBUG = "1"

@@ -1,6 +1,6 @@
 {
   "name": "@mathos/atlas",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.1",
   "private": true,
   "type": "module",
   "scripts": { "build": "bun ../../scripts/build-atlas.ts", "test:e2e": "bun test e2e/atlas.spec.ts" },

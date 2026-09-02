@@ -42,4 +42,5 @@ export {
   WORKSPACE_DIRECTORIES,
 } from "./paths.ts"
 export { createLogger, silentLogger, type Logger, type LogLevel } from "./logging.ts"
-export { mathosVersion, mathosRepoRoot, gitCommitShort, formatMathosVersion, MATHOS_RELEASE_NAME } from "./version.ts"
+export { mathosVersion, mathosRepoRoot, gitCommitShort, gitCommitFull, formatMathosVersion, currentBuildIdentity, assertProductVersionAlignment, MATHOS_RELEASE_NAME, MATHOS_PRODUCT_VERSION, type MathOSBuildIdentity } from "./version.ts"
+export { WORKSPACE_SCHEMA_VERSION, MINIMUM_WORKSPACE_SCHEMA_VERSION, BRIDGE_PROTOCOL_VERSION, PLUGIN_API_VERSION, CAPSULE_FORMAT_VERSION, PUBLICATION_FORMAT_VERSION, CompatibilityError, compatibilityMatrix, assertMathOSCompatibility, readProductSurfaceVersions, type MathOSCompatibilityInput } from "./compatibility.ts"
