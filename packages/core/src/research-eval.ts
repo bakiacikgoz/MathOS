@@ -8,6 +8,7 @@ import { FakeVcs } from "@mathos/vcs"
 import { InMemoryPremiseRetriever } from "@mathos/retrieval"
 import { FakeComputationalRuntime } from "@mathos/computation"
 import type { ResearchDecision, ResearchStopReason } from "@mathos/domain"
+import { FakeLiteratureProvider } from "@mathos/literature"
 
 export interface ResearchEvalScenario {
   id: string
@@ -214,7 +215,7 @@ async function runGraphAwareResearchCase(id: string): Promise<ResearchEvalRow> {
   const started = Date.now()
   try {
     const created = await MathOS.init(root, "eval")
-    const app = MathOS.open(created.root, { vcs: new FakeVcs() })
+    const app = MathOS.open(created.root, { vcs: new FakeVcs(), literatureProvider: new FakeLiteratureProvider() })
     const t = app.createClaim({ kind: "theorem", title: "T", statement: "P", asMainObjective: true, status: "FORMALIZED_UNVERIFIED" })
     // Fake graph harness input: externally checked support without forging a VerificationGate result.
     const l1 = app.createClaim({ kind: "lemma", title: "L1", statement: "Q", status: "INDEPENDENTLY_CHECKED" })
@@ -292,7 +293,7 @@ async function runLiteratureResearchCase(id: string): Promise<ResearchEvalRow> {
   const started = Date.now()
   try {
     const created = await MathOS.init(root, "eval")
-    const app = MathOS.open(created.root, { vcs: new FakeVcs() })
+    const app = MathOS.open(created.root, { vcs: new FakeVcs(), literatureProvider: new FakeLiteratureProvider() })
     const claim = app.createClaim({ kind: "conjecture", title: "T", statement: "P", asMainObjective: true })
     let pass = false
     if (id === "literature-search-action") {
@@ -301,7 +302,7 @@ async function runLiteratureResearchCase(id: string): Promise<ResearchEvalRow> {
         { action: "STOP", rationaleSummary: "stop", parameters: {}, researchDecisionVersion: "v1", stop: { shouldStop: true, reason: "NO_PRODUCTIVE_ACTION" } },
       ])
       app.close()
-      const loop = MathOS.open(created.root, { vcs: new FakeVcs(), researchPlanner: planner })
+      const loop = MathOS.open(created.root, { vcs: new FakeVcs(), researchPlanner: planner, literatureProvider: new FakeLiteratureProvider() })
       loop.createClaim({ kind: "conjecture", title: "Obj", statement: "P", asMainObjective: true })
       const run = loop.startResearch()
       await loop.runResearch(run.id)

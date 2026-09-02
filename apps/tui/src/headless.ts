@@ -18,6 +18,7 @@ import { capsuleCommand } from "./ui/CapsuleViews.tsx"
 import { publicationCommand } from "./ui/PublicationViews.tsx"
 import { pluginCommand } from "./ui/PluginViews.tsx"
 import { projectAtlas, blockerCriticalPath } from "@mathos/graph"
+import { createProductionLiteratureProvider } from "@mathos/literature"
 
 function joinCwdBackups(): string {
   return join(process.cwd(), "backups")
@@ -111,6 +112,14 @@ export async function runHeadless(argv: string[]): Promise<number> {
       process.stdout.write(`${JSON.stringify({ schemaVersion: "mathos.usage.v1", records: rows }, null, 2)}\n`); return 0
     }
 
+    if (command === "literature" && rest.includes("doctor")) {
+      const provider = createProductionLiteratureProvider({ offline: rest.includes("--offline") }), probe = rest.includes("--probe")
+      if (probe) await provider.search({ text: "mathematics", maxResults: 1 })
+      const byName = new Map(provider.lastReport?.providers.map(item => [item.name, item]))
+      const providers = provider.providerNames.map(name => ({ name, enabled: true, configured: true, reachable: byName.get(name)?.state ?? "NOT_PROBED", detail: byName.get(name)?.detail ?? "use --probe for live evidence", testOnly: false }))
+      process.stdout.write(`${JSON.stringify({ schemaVersion: "mathos.literature-doctor.v1", state: probe ? provider.lastReport?.state ?? "UNAVAILABLE" : "AVAILABLE", providers }, null, 2)}\n`); return probe && provider.lastReport?.state === "UNAVAILABLE" ? 2 : 0
+    }
+
     if (command === "restore") {
       const archive = rest.find((item) => !item.startsWith("--"))
       const dest = flag(rest, "--into")
@@ -128,7 +137,7 @@ export async function runHeadless(argv: string[]): Promise<number> {
       return 0
     }
 
-    const app = MathOS.open(process.cwd())
+    const app = MathOS.open(process.cwd(), { literatureOffline: command === "literature" && rest.includes("--offline") })
     try {
       if (command === "status") {
         const json = rest.includes("--json")

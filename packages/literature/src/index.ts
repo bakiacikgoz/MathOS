@@ -69,6 +69,10 @@ export type { GovernedHttpOptions } from "./providers/http-policy"
 export { OpenAlexLiteratureProvider } from "./providers/openalex"
 export { CrossrefLiteratureProvider } from "./providers/crossref"
 export { ArxivLiteratureProvider } from "./providers/arxiv"
+export { LiteratureProviderRegistry } from "./registry.ts"
+export { LiteratureCache } from "./cache.ts"
+export { LiteratureRuntime, ProductionLiteratureProvider, createProductionLiteratureProvider, type LiteratureProviderHealth, type LiteratureRuntimeReport } from "./runtime.ts"
+export { canonicalLiteratureKey, mergeLiteratureResults, type CanonicalLiteratureResult } from "./dedupe.ts"
 
 export function deduplicateLiteratureResults(results: LiteratureSearchResult[]): LiteratureSearchResult[] {
   const identities = new Set<string>()

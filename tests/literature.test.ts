@@ -4,7 +4,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { MathOS, FakeResearchPlanner } from "@mathos/core"
 import { FakeVcs } from "@mathos/vcs"
-import { isPublicHttpUrl } from "@mathos/literature"
+import { FakeLiteratureProvider, isPublicHttpUrl } from "@mathos/literature"
 
 const dirs: string[] = []
 function temp() {
@@ -18,7 +18,7 @@ afterEach(() => {
 
 async function boot() {
   const created = await MathOS.init(temp(), "lit")
-  const app = MathOS.open(created.root, { vcs: new FakeVcs() })
+  const app = MathOS.open(created.root, { vcs: new FakeVcs(), literatureProvider: new FakeLiteratureProvider() })
   const claim = app.createClaim({ kind: "conjecture", title: "T", statement: "Every contraction on a complete metric space has a unique fixed point.", asMainObjective: true })
   return { app, claim }
 }
@@ -98,7 +98,7 @@ describe("literature provenance", () => {
       { action: "STOP", rationaleSummary: "done", parameters: {}, researchDecisionVersion: "v1", stop: { shouldStop: true, reason: "NO_PRODUCTIVE_ACTION" } },
     ])
     const created = await MathOS.init(temp(), "loop")
-    const loop = MathOS.open(created.root, { vcs: new FakeVcs(), researchPlanner: planner })
+    const loop = MathOS.open(created.root, { vcs: new FakeVcs(), researchPlanner: planner, literatureProvider: new FakeLiteratureProvider() })
     const objective = loop.createClaim({ kind: "conjecture", title: "Obj", statement: "FTA", asMainObjective: true })
     const run = loop.startResearch()
     await loop.runResearch(run.id)

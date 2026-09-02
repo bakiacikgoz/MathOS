@@ -3,7 +3,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { MathOS } from "@mathos/core"
 import { FakeVcs } from "@mathos/vcs"
-import { OpenAlexLiteratureProvider, isPublicHttpUrl } from "@mathos/literature"
+import { FakeLiteratureProvider, OpenAlexLiteratureProvider, isPublicHttpUrl } from "@mathos/literature"
 
 export const LITERATURE_EVAL_SCENARIOS = [
   "provider-search",
@@ -25,7 +25,7 @@ export async function runLiteratureScenario(id: string): Promise<{ id: string; r
   const root = mkdtempSync(join(tmpdir(), `mathos-lit-${id}-`))
   try {
     const created = await MathOS.init(root, "lit")
-    const app = MathOS.open(created.root, { vcs: new FakeVcs() })
+    const app = MathOS.open(created.root, { vcs: new FakeVcs(), literatureProvider: new FakeLiteratureProvider() })
     const claim = app.createClaim({ kind: "conjecture", title: "T", statement: "P", asMainObjective: true })
     let pass = false
     if (id === "provider-search") {

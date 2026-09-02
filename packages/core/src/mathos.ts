@@ -1,4 +1,5 @@
 import { basename, join, resolve } from "node:path"
+import { homedir } from "node:os"
 import { existsSync, writeFileSync } from "node:fs"
 import {
   type Blocker,
@@ -89,6 +90,7 @@ import {
   padSeq,
   formatMathosVersion,
   mathosVersion,
+  resolveRuntimeLayout,
   type Logger,
 } from "@mathos/shared"
 import { GitResearchVcs, type ResearchVcs } from "@mathos/vcs"
@@ -140,7 +142,7 @@ import type { MutationEvent, MutationRecorder } from "./mutation-recorder.ts"
 import { FakeMultiAgentPlanner, type MultiAgentPlanner } from "./multi-agent-planner.ts"
 import { createPlannerFromDescriptor, plannerDescriptorFrom, PersistentScriptedPlanner } from "./planner-factory.ts"
 import { PythonRuntime, sha256Text, type ComputationalRuntime } from "@mathos/computation"
-import { FakeLiteratureProvider, type LiteratureProvider } from "@mathos/literature"
+import { createProductionLiteratureProvider, type LiteratureProvider } from "@mathos/literature"
 import { DEFAULT_COMPUTATIONAL_BUDGET, type Experiment, type ExperimentResult, type CitationPurpose, type SourceLocator, type Source, type SourceExcerpt, type ExternalResult } from "@mathos/domain"
 import { createServiceContainer, type ServiceContainer, type ServiceContainerOverrides } from "./composition/service-container.ts"
 
@@ -163,6 +165,7 @@ export interface MathOSOptions {
   maxStepWallClockMs?: number
   computationRuntime?: ComputationalRuntime
   literatureProvider?: LiteratureProvider
+  literatureOffline?: boolean
   /** Test/fault-injection boundary around canonical DB persistence and JSONL projection. */
   eventProjectionHook?: (point: EventProjectionPoint, event: import("@mathos/domain").ResearchEvent) => void
   serviceOverrides?: Partial<ServiceContainerOverrides>
@@ -290,7 +293,7 @@ export class MathOS {
       options.teamCrashBoundary ?? null,
       options.maxStepWallClockMs ?? 120_000,
       options.computationRuntime ?? new PythonRuntime(),
-      options.literatureProvider ?? new FakeLiteratureProvider(),
+      options.literatureProvider ?? (() => { const layout = resolveRuntimeLayout({ platform: process.platform, home: homedir(), executablePath: process.execPath, env: process.env }); return createProductionLiteratureProvider({ cachePath: join(layout.userCacheRoot, "literature", "search-cache.json"), offline: options.literatureOffline === true || process.env.MATHOS_LITERATURE_OFFLINE === "1" || process.env.MATHOS_LITERATURE_OFFLINE === "true" }) })(),
       options.eventProjectionHook,
       createServiceContainer(workspaceRoot, client.db, options.serviceOverrides),
     )
