@@ -1,4 +1,4 @@
-import { appendFileSync, mkdirSync } from "node:fs"
+import { appendFileSync, existsSync, mkdirSync, renameSync, rmSync, statSync } from "node:fs"
 import { dirname } from "node:path"
 
 export type LogLevel = "debug" | "info" | "warn" | "error"
@@ -19,6 +19,7 @@ function redact(text: string): string {
   let out = text
   for (const secret of secrets) out = out.split(secret).join("[redacted]")
   out = out.replace(/Bearer\s+\S+/gi, "Bearer [redacted]")
+  out = out.replace(/(?:[A-Za-z]:\\|\/)(?:[^\s"']+[\\/])+[^\s"']+/g, "[path]")
   return out
 }
 
@@ -43,12 +44,13 @@ function writeLine(filePath: string | undefined, level: LogLevel, message: strin
   appendFileSync(filePath, `${line}\n`, "utf8")
 }
 
-export function createLogger(filePath?: string): Logger {
+export function createLogger(filePath?: string,options:{maxBytes?:number;maxFiles?:number}={}): Logger {
+  const rotate=()=>{if(!filePath||!existsSync(filePath)||statSync(filePath).size<(options.maxBytes??2_000_000))return;const count=Math.max(1,options.maxFiles??3);rmSync(`${filePath}.${count}`,{force:true});for(let i=count-1;i>=1;i--)if(existsSync(`${filePath}.${i}`))renameSync(`${filePath}.${i}`,`${filePath}.${i+1}`);renameSync(filePath,`${filePath}.1`)}
   return {
-    debug: (message, extra) => writeLine(filePath, "debug", message, extra),
-    info: (message, extra) => writeLine(filePath, "info", message, extra),
-    warn: (message, extra) => writeLine(filePath, "warn", message, extra),
-    error: (message, extra) => writeLine(filePath, "error", message, extra),
+    debug: (message, extra) => {rotate();writeLine(filePath, "debug", message, extra)},
+    info: (message, extra) => {rotate();writeLine(filePath, "info", message, extra)},
+    warn: (message, extra) => {rotate();writeLine(filePath, "warn", message, extra)},
+    error: (message, extra) => {rotate();writeLine(filePath, "error", message, extra)},
   }
 }
 

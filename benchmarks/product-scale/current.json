@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "mathos.product-scale.v1",
+  "fixture": {
+    "claims": 10000,
+    "events": 100000,
+    "edges": 9999
+  },
+  "metrics": {
+    "atlasProjectionMs": 24.22,
+    "eventSerializationMs": 10.2,
+    "eventBytes": 4688890,
+    "snapshotBytes": 1314901,
+    "heapDeltaBytes": 7671355
+  },
+  "bounds": {
+    "atlasProjectionMs": 2000,
+    "eventSerializationMs": 2000
+  },
+  "ready": true
+}
