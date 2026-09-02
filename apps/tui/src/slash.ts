@@ -32,6 +32,7 @@ export const SLASH_COMMANDS: SlashCommand[] = [
   { name: "capsule", description: "Export, verify, or dry-replay a research capsule" },
   { name: "publication", description: "Build and inspect provenance-aware publications" },
   { name: "plugin", description: "Inspect governed plugin health and approvals" },
+  { name: "providers", description: "Manage model providers, profiles, models, and quota" },
   { name: "ledger", description: "Epistemic ledger for a claim" },
   { name: "why", description: "Why verified / not verified" },
   { name: "history", description: "Session timeline" },

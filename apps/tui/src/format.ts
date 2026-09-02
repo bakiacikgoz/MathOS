@@ -1,5 +1,6 @@
 import type { BranchDetail, Claim, ClaimDetail, DoctorReport, MergePreview, ResearchBranch, StatusProjection } from "@mathos/domain"
 import { branchGlyph } from "@mathos/domain"
+import type { ProviderDescriptor, ProviderPolicyResult } from "@mathos/models"
 
 export const TRUST_LANGUAGE = [
   "KERNEL_VERIFIED",
@@ -42,6 +43,14 @@ Keys
   Esc             close overlay
   Ctrl+C          quit
 `
+
+export function formatProviderCatalog(rows: Array<{ descriptor: ProviderDescriptor; policy: ProviderPolicyResult }>): string {
+  return ["MODEL PROVIDERS", "", "ID                            BILLING       AUTH                 TERMS", ...rows.map(({ descriptor, policy }) => `${descriptor.id.padEnd(29)} ${descriptor.billingClass.padEnd(13)} ${(descriptor.authKinds.join(",") || "none").padEnd(20)} ${policy.code}`)].join("\n")
+}
+
+export function formatProviderStatus(row: { profile: string; descriptor: string; connection: string; model: string; billing: string; terms: string; auth: string }): string {
+  return ["MODEL PROVIDER STATUS", "", `Profile     ${row.profile}`, `Descriptor  ${row.descriptor}`, `Connection  ${row.connection}`, `Model       ${row.model}`, `Billing     ${row.billing}`, `Terms       ${row.terms}`, `Auth        ${row.auth}`].join("\n")
+}
 
 export function formatStatus(status: StatusProjection): string {
   const objective = status.mainObjective
