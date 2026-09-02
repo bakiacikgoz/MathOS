@@ -2,7 +2,7 @@
   "name": "@mathos/notebook",
   "version": "0.1.0",
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
+  "exports": { ".": "./src/index.ts", "./templates/article-markdown": "./src/templates/article-markdown.ts", "./templates/article-latex": "./src/templates/article-latex.ts", "./templates/article-html": "./src/templates/article-html.ts" },
   "dependencies": {
     "@mathos/domain": "workspace:*",
     "@mathos/graph": "workspace:*"

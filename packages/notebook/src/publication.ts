@@ -1,0 +1,1 @@
+export interface PublicationModel{title:string;blocks:Array<{id:string;kind:string;text:string;accepted:boolean;claimId?:string}>;claims:Array<{id:string;status:string}>;citations:Array<{id:string;label:string}>;references:string[];capsuleHash:string}
