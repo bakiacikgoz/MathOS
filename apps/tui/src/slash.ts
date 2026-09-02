@@ -29,6 +29,8 @@ export const SLASH_COMMANDS: SlashCommand[] = [
   { name: "conjecture", description: "Generate and triage governed conjecture proposals" },
   { name: "agenda", description: "Inspect the long-horizon research agenda" },
   { name: "review", description: "Create and attest semantic review packets" },
+  { name: "capsule", description: "Export, verify, or dry-replay a research capsule" },
+  { name: "publication", description: "Build and inspect provenance-aware publications" },
   { name: "ledger", description: "Epistemic ledger for a claim" },
   { name: "why", description: "Why verified / not verified" },
   { name: "history", description: "Session timeline" },
