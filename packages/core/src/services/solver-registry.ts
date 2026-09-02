@@ -1,0 +1,3 @@
+import type { SolverTrustClass } from "@mathos/domain"
+export interface SolverLabAdapter{descriptor:{id:string;version:string;health:"READY"|"UNAVAILABLE";problemKinds:string[];maxTrustClass:SolverTrustClass};solve(request:{problemKind:string;payload:Record<string,unknown>;timeoutMs:number}):Promise<Record<string,unknown>>}
+export class SolverAdapterRegistry{private readonly adapters=new Map<string,SolverLabAdapter>();register(adapter:SolverLabAdapter):void{if(this.adapters.has(adapter.descriptor.id))throw new Error(`SOLVER_ADAPTER_DUPLICATE:${adapter.descriptor.id}`);this.adapters.set(adapter.descriptor.id,adapter)}get(id:string):SolverLabAdapter|null{return this.adapters.get(id)??null}list(){return[...this.adapters.values()].map(item=>item.descriptor)}}

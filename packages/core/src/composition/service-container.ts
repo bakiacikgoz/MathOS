@@ -23,6 +23,8 @@ import { AlignmentService } from "../services/alignment-service.ts"
 import { ImpactStalenessService } from "../services/impact-staleness-service.ts"
 import { ProofPortfolioService, type ProofPortfolioDependencies } from "../services/proof-portfolio-service.ts"
 import { FailureMemoryService } from "../services/failure-memory-service.ts"
+import { SolverAdapterRegistry } from "../services/solver-registry.ts"
+import { SolverLabService } from "../services/solver-lab-service.ts"
 
 export interface ServiceContainerOverrides { clock: ClockPort; artifacts: ArtifactStorePort; claims: ClaimReadPort; formals: FormalReadPort; graph: GraphReadPort; proofPortfolioRuntime: Pick<ProofPortfolioDependencies,"createWorker"|"startProcess"|"crashHook"> }
 export interface ServiceContainer {
@@ -35,6 +37,8 @@ export interface ServiceContainer {
   impactStaleness:ImpactStalenessService
   proofPortfolio:ProofPortfolioService
   failureMemory:FailureMemoryService
+  solverRegistry:SolverAdapterRegistry
+  solverLab:SolverLabService
 }
 
 function createV1Repositories(db: Database) {
@@ -55,6 +59,7 @@ export function createServiceContainer(root: string, db: Database, overrides: Pa
   const clock = overrides.clock ?? systemClock
   const repositories = createV1Repositories(db)
   let sequence = 0
+  const solverRegistry=new SolverAdapterRegistry()
   const statementRevisions=new StatementRevisionService({revisions:repositories.statementRevisions,clock,nextId:()=>`SR-${clock.now().replace(/\D/g,"")}-${++sequence}`,writeEvent:()=>{}})
   const claimRepository=new ClaimRepository(db),formalRepository=new FormalStatementRepository(db)
   for(const {id} of db.query<{id:string},[]>("SELECT id FROM workspaces").all())statementRevisions.backfillLegacy(claimRepository.list(id),formalRepository.list(id),"CR-LEGACY")
@@ -72,6 +77,8 @@ export function createServiceContainer(root: string, db: Database, overrides: Pa
     impactStaleness:new ImpactStalenessService({markers:repositories.staleMarkers,clock,nextId:()=>`SM-${clock.now().replace(/\D/g,"")}-${++sequence}`}),
     proofPortfolio:new ProofPortfolioService({root,portfolios:repositories.proofPortfolios,jobs:repositories.proofJobs,candidates:repositories.proofCandidates,budgets:repositories.portfolioBudgets,leases:repositories.portfolioLeases,unitOfWork:(work)=>db.transaction(work)(),now:()=>clock.now(),nextId:(prefix)=>`${prefix}-${clock.now().replace(/\D/g,"")}-${++sequence}`,createWorker:overrides.proofPortfolioRuntime?.createWorker ?? (async()=>{throw new Error("PROOF_PORTFOLIO_VCS_RUNTIME_REQUIRED")}),startProcess:overrides.proofPortfolioRuntime?.startProcess ?? (async()=>{throw new Error("PROOF_PORTFOLIO_PROCESS_RUNTIME_REQUIRED")}),crashHook:overrides.proofPortfolioRuntime?.crashHook}),
     failureMemory:new FailureMemoryService({failures:repositories.failureFingerprints,occurrences:repositories.failureOccurrences,unitOfWork:(work)=>db.transaction(work)(),now:()=>clock.now(),nextId:(prefix)=>`${prefix}-${clock.now().replace(/\D/g,"")}-${++sequence}`}),
+    solverRegistry,
+    solverLab:new SolverLabService({registry:solverRegistry,jobs:repositories.solverJobs,results:repositories.solverResults,artifacts:overrides.artifacts??new FileArtifactStore(root),unitOfWork:(work)=>db.transaction(work)(),now:()=>clock.now(),nextId:(prefix)=>`${prefix}-${clock.now().replace(/\D/g,"")}-${++sequence}`,validateWitness:()=>false,validateCertificate:()=>false,leanReplay:async()=>({passed:false,inputHash:"",outputHash:""}),createEvidence:()=>""}),
   }
   return container
 }

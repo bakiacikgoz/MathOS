@@ -39,6 +39,8 @@ export { ProverRegistry,type ProverAdapter,type ProverRequest,type ProverEnviron
 export { ProofPortfolioService,MAX_PROOF_PORTFOLIO_WORKERS,type ProofPortfolioDependencies,type ProofPortfolioStartInput,type ProofPortfolioCrashPoint,type ProofRecipe } from "./services/proof-portfolio-service.ts"
 export { FailureMemoryService,normalizeFailureDiagnostic,type FailureMemoryDependencies,type FailureOccurrenceContext } from "./services/failure-memory-service.ts"
 export { ProofRepairService,type ProofRepairDependencies,type ProofRepairInput,type ProofRepairResult } from "./services/proof-repair-service.ts"
+export { SolverAdapterRegistry,type SolverLabAdapter } from "./services/solver-registry.ts"
+export { SolverLabService,type SolverLabDependencies,type SolverLabRunInput } from "./services/solver-lab-service.ts"
 export { LeanNativeProver } from "./provers/lean-native-prover.ts"
 export { ModelProofProver } from "./provers/model-proof-prover.ts"
 export { ModelPlanProveProver } from "./provers/model-plan-prove-prover.ts"
