@@ -18,6 +18,10 @@
     "apps/atlas": {
       "name": "@mathos/atlas",
       "version": "0.1.0",
+      "dependencies": {
+        "@mathos/graph": "workspace:*",
+        "solid-js": "^1.9.12",
+      },
     },
     "apps/tui": {
       "name": "@mathos/tui",
@@ -102,6 +106,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@mathos/domain": "workspace:*",
+        "@mathos/storage": "workspace:*",
       },
     },
     "packages/models": {
@@ -123,6 +128,17 @@
     "packages/plugins": {
       "name": "@mathos/plugins",
       "version": "0.1.0",
+      "dependencies": {
+        "@mathos/domain": "workspace:*",
+      },
+    },
+    "packages/publication": {
+      "name": "@mathos/publication",
+      "version": "0.1.0",
+      "dependencies": {
+        "@mathos/domain": "workspace:*",
+        "@mathos/graph": "workspace:*",
+      },
     },
     "packages/retrieval": {
       "name": "@mathos/retrieval",
@@ -252,6 +268,8 @@
     "@mathos/notebook": ["@mathos/notebook@workspace:packages/notebook"],
 
     "@mathos/plugins": ["@mathos/plugins@workspace:packages/plugins"],
+
+    "@mathos/publication": ["@mathos/publication@workspace:packages/publication"],
 
     "@mathos/retrieval": ["@mathos/retrieval@workspace:packages/retrieval"],
 
