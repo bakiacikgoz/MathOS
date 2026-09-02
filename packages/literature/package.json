@@ -2,7 +2,7 @@
   "name": "@mathos/literature",
   "version": "0.1.0",
   "type": "module",
-  "exports": { ".": "./src/index.ts", "./extraction/result-extractor": "./src/extraction/result-extractor.ts", "./extraction/locator": "./src/extraction/locator.ts" },
+  "exports": { ".": "./src/index.ts", "./extraction/result-extractor": "./src/extraction/result-extractor.ts", "./extraction/locator": "./src/extraction/locator.ts", "./extraction/support-matrix": "./src/extraction/support-matrix.ts" },
   "dependencies": {
     "@mathos/domain": "workspace:*",
     "@mathos/storage": "workspace:*"

@@ -364,6 +364,13 @@ export function buildResearchGraph(snapshot: ResearchGraphSnapshot, options: Res
         addEdge({ id: edgeId(kind, citation.claimId, citation.externalResultId), kind, fromNodeId: citation.claimId, toNodeId: citation.externalResultId, workspaceId: snapshot.workspaceId, branchId: citation.branchId })
       }
     }
+    for (const assessment of snapshot.claimSourceAssessments ?? []) {
+      if (assessment.status !== "REVIEWED" || !nodeIds.has(assessment.claimId)) continue
+      const target = assessment.externalResultId && nodeIds.has(assessment.externalResultId) ? assessment.externalResultId : assessment.sourceId
+      if (!nodeIds.has(target)) continue
+      const kind: ResearchGraphEdgeKind = assessment.relation === "CONTRADICTION" ? "CONTRADICTED_BY_SOURCE" : assessment.relation === "COUNTERPOINT" ? "COUNTERPOINT_FROM" : assessment.relation === "CONTEXTUAL_BACKGROUND" ? "BACKGROUND_FROM" : "KNOWN_FROM"
+      addEdge({ id: edgeId(kind, assessment.claimId, target), kind, fromNodeId: assessment.claimId, toNodeId: target, workspaceId: snapshot.workspaceId })
+    }
   }
 
   if (options.proofOnly) {

@@ -67,6 +67,8 @@ export const RESEARCH_GRAPH_EDGE_KINDS = [
   "COUNTERPOINT_FROM",
   "CITES",
   "REFERENCES",
+  "BACKGROUND_FROM",
+  "CONTRADICTED_BY_SOURCE",
 ] as const
 export type ResearchGraphEdgeKind = (typeof RESEARCH_GRAPH_EDGE_KINDS)[number]
 
@@ -157,6 +159,16 @@ export interface ResearchGraphSnapshot {
   excerpts?: SourceExcerpt[]
   externalResults?: ExternalResult[]
   citations?: Citation[]
+  claimSourceAssessments?: ClaimSourceAssessmentProjection[]
+}
+
+export interface ClaimSourceAssessmentProjection {
+  id: string
+  claimId: string
+  sourceId: string
+  externalResultId: string | null
+  relation: "DIRECT_KNOWN_RESULT" | "CONTEXTUAL_BACKGROUND" | "COUNTERPOINT" | "CONTRADICTION"
+  status: "PROPOSED" | "REVIEWED" | "STALE"
 }
 
 export interface GraphValidationIssue {

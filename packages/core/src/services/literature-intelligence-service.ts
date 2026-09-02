@@ -1,5 +1,6 @@
 import type { ExternalResult, SourceExcerpt } from "@mathos/domain"
 import { validateExtractionProposal, type ExtractionCandidate, type ExtractionProposal } from "@mathos/literature/extraction/result-extractor"
+import { ClaimSourceSupportMatrix } from "@mathos/literature/extraction/support-matrix"
 
 interface ReviewActor { actorType: "HUMAN" | "MODEL"; actorId: string }
 interface Dependencies {
@@ -14,6 +15,7 @@ interface Dependencies {
 }
 
 export class LiteratureIntelligenceService {
+  readonly supportMatrix = new ClaimSourceSupportMatrix(() => this.dependencies.now())
   constructor(private readonly dependencies: Dependencies) {}
 
   propose(proposal: ExtractionProposal): ExtractionCandidate {
