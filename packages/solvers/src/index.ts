@@ -4,3 +4,7 @@ export { validateSolverResult,type ValidatedSolverResult } from "./result-valida
 export function createSolverRegistry():{readonly adapters:readonly string[]}{return Object.freeze({adapters:Object.freeze([])})}
 export { LeanNativeSolver,type LeanSolverRequest } from "./adapters/lean-native.ts"
 export { SymPySolver,type SymPySolverRequest } from "./adapters/sympy.ts"
+export { SageSolver } from "./adapters/sage.ts"
+export { GapSolver } from "./adapters/gap.ts"
+export { Cvc5Solver } from "./adapters/cvc5.ts"
+export type { OptionalSolverRunner,OptionalSolverIo,OptionalSolverRequest } from "./adapters/optional-process.ts"
