@@ -24,6 +24,7 @@ export { runRealResearchCase, REAL_RESEARCH_BUDGET, normalizeLeanTarget, formalT
 export { summarizeRealResearch, nondeterministicRegression, formatRealResearchReport, type RealResearchSummary } from "./evaluation/research-report.ts"
 export { createDemoWorkspace } from "./product-demo.ts"
 export * from "./product-ux.ts"
+export { createAtlasHandler, startAtlasServer, redactAtlasSession } from "./atlas-server.ts"
 export { backupWorkspace, restoreWorkspace, eventLogHealth, exportDiagnostics, redactCanary } from "./release.ts"
 export { createServiceContainer, type ServiceContainer, type ServiceContainerOverrides } from "./composition/service-container.ts"
 export { FileArtifactStore, systemClock } from "./composition/built-in-adapters.ts"
