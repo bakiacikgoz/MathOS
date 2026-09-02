@@ -16,7 +16,7 @@ describe("release check contract", () => {
   test("runs every required check in order and emits provenance", async () => {
     const report = await executeReleaseCheck({ runner: successfulRunner, platform: "darwin" })
     expect(report.checks.map((check) => check.name)).toEqual([...RELEASE_CHECK_ORDER])
-    expect(report.checks).toHaveLength(17)
+    expect(report.checks).toHaveLength(RELEASE_CHECK_ORDER.length)
     expect(report.version).toBe("1.0.0-rc.1")
     expect(report.gitRevision).toBe("0123456789abcdef0123456789abcdef01234567")
     expect(report.ready).toBe(true)

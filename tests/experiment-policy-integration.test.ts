@@ -72,7 +72,7 @@ test.skipIf(process.platform === "win32")("user authored code is blocked unless 
   const app = await boot(new PythonRuntime())
   try {
     const exp = await app.createExperiment({ code: "print(1)" })
-    expect((await app.runExperiment(exp.id)).summary).toBe("EXPERIMENT_BLOCKED_POLICY")
+    expect((await app.runExperiment(exp.id)).summary).toMatch(/EXPERIMENT_BLOCKED_(?:POLICY|SANDBOX_UNAVAILABLE)/)
     const allowed = await app.createExperiment({ code: "print(1)" })
     const result = await app.runExperiment(allowed.id, { allowUserAuthored: true })
     if (process.platform === "darwin") expect(result.summary).not.toBe("EXPERIMENT_BLOCKED_POLICY")

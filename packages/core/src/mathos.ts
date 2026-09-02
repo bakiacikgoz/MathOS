@@ -141,7 +141,7 @@ import { buildResearchContext } from "./research-context.ts"
 import type { MutationEvent, MutationRecorder } from "./mutation-recorder.ts"
 import { FakeMultiAgentPlanner, type MultiAgentPlanner } from "./multi-agent-planner.ts"
 import { createPlannerFromDescriptor, plannerDescriptorFrom, PersistentScriptedPlanner } from "./planner-factory.ts"
-import { PythonRuntime, sha256Text, type ComputationalRuntime } from "@mathos/computation"
+import { inspectSandbox, PythonRuntime, sha256Text, type ComputationalRuntime } from "@mathos/computation"
 import { createProductionLiteratureProvider, type LiteratureProvider } from "@mathos/literature"
 import { DEFAULT_COMPUTATIONAL_BUDGET, type Experiment, type ExperimentResult, type CitationPurpose, type SourceLocator, type Source, type SourceExcerpt, type ExternalResult } from "@mathos/domain"
 import { createServiceContainer, type ServiceContainer, type ServiceContainerOverrides } from "./composition/service-container.ts"
@@ -667,7 +667,7 @@ export class MathOS {
       detail: probe.detail,
     }
     let inspectCheck: { name: string; status: "PASS" | "WARN" | "FAIL"; detail: string } = { name: "Declaration inspect", status: "WARN", detail: "skipped" }
-    if (env.leanAvailable) {
+    if (env.leanAvailable && env.mathlib) {
       const inspected = await this.leanAdapter.inspectDeclarations(["Eq.refl"], { workspaceRoot: this.root }, { timeoutMs: 20_000 })
       const eq = inspected.inspections.find((item) => item.name === "Eq.refl")
       inspectCheck = {
@@ -675,7 +675,7 @@ export class MathOS {
         status: eq?.exists && eq.elaborated ? "PASS" : inspected.failed ? "WARN" : "FAIL",
         detail: eq?.type?.slice(0, 80) ?? inspected.detail ?? "Eq.refl",
       }
-    }
+    } else if (env.leanAvailable) inspectCheck = { name: "Declaration inspect", status: "WARN", detail: "Mathlib project not configured" }
     const graphCheck = (() => {
       try {
         const report = validateResearchGraph(this.buildGraph({ includeResearchRuntime: true, includeImports: true }))
@@ -688,7 +688,14 @@ export class MathOS {
     const pythonCheck = { name: "Python runtime", status: envReport.pythonAvailable ? "PASS" as const : "WARN" as const, detail: envReport.pythonVersion ?? "missing" }
     const pythonVersionCheck = { name: "Python version", status: envReport.pythonVersion ? "PASS" as const : "WARN" as const, detail: envReport.pythonVersion ?? "unknown" }
     const sympyCheck = { name: "SymPy", status: envReport.sympyAvailable ? "PASS" as const : "WARN" as const, detail: envReport.sympyAvailable ? envReport.sympyVersion ?? "present" : "OPTIONAL_MISSING" }
-    const sandboxCheck = { name: "Experiment sandbox", status: "PASS" as const, detail: join(this.root, ".mathos", "experiments") }
+    const sandbox = await inspectSandbox()
+    const sandboxCheck = {
+      name: "Experiment sandbox",
+      status: sandbox.available && sandbox.networkIsolation ? "PASS" as const : "WARN" as const,
+      detail: sandbox.available
+        ? `${sandbox.backend ?? "unknown"}; network isolation=${sandbox.networkIsolation ? "verified" : "unavailable"}`
+        : sandbox.reason ?? "EXPERIMENT_BLOCKED_SANDBOX_UNAVAILABLE",
+    }
     const literatureCheck = { name: "Literature providers", status: "PASS" as const, detail: this.literatureProvider.name }
     const sourceExtractCheck = { name: "Local source extraction", status: "PASS" as const, detail: "text/pdf-text" }
     const eventsCheck = (() => {

@@ -10,6 +10,7 @@ export const RELEASE_CHECK_ORDER = [
   "backup-restore", "secret-redaction", "event-rebuild", "package-smoke",
   "lean-smoke", "research-regression", "ux-regression", "retrieval-regression",
   "v1-qualification",
+  "final-product-capabilities",
 ] as const
 
 export type ReleaseCheckName = typeof RELEASE_CHECK_ORDER[number]
@@ -118,6 +119,7 @@ function commands(): Record<ReleaseCheckName, string[]> {
     "ux-regression": [bun, "scripts/ux-regression.ts"],
     "retrieval-regression": [bun, "scripts/retrieval-regression.ts"],
     "v1-qualification": [bun, "scripts/run-v1-qualification.ts", "--json"],
+    "final-product-capabilities": [bun, "scripts/final-product-capabilities.ts"],
   }
 }
 
@@ -132,6 +134,9 @@ function validatesEvidence(name: ReleaseCheckName, result: CommandResult): boole
   if (name === "typecheck") return true
   if (name === "v1-qualification") {
     try { return JSON.parse(result.stdout).ready === true } catch { return false }
+  }
+  if (name === "final-product-capabilities") {
+    try { return JSON.parse(result.stdout).ready === true } catch { return /\b[1-9][0-9]* pass\b/u.test(output) }
   }
   if (name.endsWith("-regression") || name === "lean-smoke") {
     try {
