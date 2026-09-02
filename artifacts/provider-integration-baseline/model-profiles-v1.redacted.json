@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "mathos-model-profiles-v1",
+  "profiles": [
+    {
+      "id": "openrouter",
+      "type": "openai-compatible",
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "model": "openai/example",
+      "secretRef": "model.openrouter",
+      "remote": true
+    }
+  ]
+}
