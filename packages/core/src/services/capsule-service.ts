@@ -3,6 +3,7 @@ import { createReadStream, lstatSync } from "node:fs"
 import { resolve } from "node:path"
 import { validateCapsuleArtifactPath, type CapsuleManifestV1 } from "@mathos/domain"
 export { exportCapsuleArchive, verifyCapsuleArchive } from "../capsule-archive.ts"
+export { planCapsuleReplay, applyCapsuleReplay } from "../capsule-replay.ts"
 
 type BuildInput = Omit<CapsuleManifestV1, "schemaVersion" | "createdAt" | "artifacts" | "models" | "redaction"> & { models: Array<Record<string, unknown> & { role: string; provider: string; model: string }>; artifactPaths: string[] }
 const canonical = (value: unknown): string => Array.isArray(value) ? `[${value.map(canonical).join(",")}]` : value && typeof value === "object" ? `{${Object.entries(value as Record<string, unknown>).sort(([a],[b]) => a.localeCompare(b)).map(([k,v]) => `${JSON.stringify(k)}:${canonical(v)}`).join(",")}}` : JSON.stringify(value)
