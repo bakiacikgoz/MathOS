@@ -13,3 +13,6 @@ demo/
 .env.*
 
 .tools/
+artifacts/product-completion/
+artifacts/qualification/
+artifacts/benchmarks/

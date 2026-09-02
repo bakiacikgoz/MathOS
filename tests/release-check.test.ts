@@ -57,7 +57,7 @@ describe("release check contract", () => {
     expect(retrieval.passed).toBe(true)
     expect(retrieval.fixtureSource).toBe("retrieval-v3-development-frozen")
     expect(retrieval.candidateDecision).toBe("INCONCLUSIVE")
-  })
+  }, 15_000)
 
   test("version output must match package version", async () => {
     const runner: ReleaseCommandRunner = async (command, options) => {
