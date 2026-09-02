@@ -1,0 +1,2 @@
+export {}
+for await(const line of console){let message:any;try{message=JSON.parse(line)}catch{console.log("not-json");continue}if(message.method==="crash")process.exit(7);if(message.method==="oversize"){console.log("x".repeat(256));continue}if(message.method==="stderr")console.error("fixture-stderr");if(message.method==="hang"||message.method==="$/cancelRequest")continue;if(message.id!==undefined)console.log(JSON.stringify({jsonrpc:"2.0",id:message.id,result:{method:message.method,params:message.params??null}}))}

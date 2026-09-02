@@ -1,0 +1,14 @@
+import { ProcessSupervisor, type ProcessSupervisorOptions } from "./process-supervisor.ts"
+
+interface Pending{resolve:(value:any)=>void;reject:(error:Error)=>void;timer:ReturnType<typeof setTimeout>;cleanup:()=>void}
+export class JsonRpcProcess{
+  private nextId=1;private readonly pending=new Map<number,Pending>();private readonly supervisor:ProcessSupervisor
+  constructor(options:Omit<ProcessSupervisorOptions,"onLine"|"onError">){this.supervisor=new ProcessSupervisor({...options,onLine:line=>this.receive(line),onError:error=>this.failAll(error)});this.supervisor.onExit(code=>this.failAll(new Error(`EXTERNAL_PROCESS_EXITED: ${code}`)))}
+  start():void{this.supervisor.start()}
+  get pid(){return this.supervisor.pid}
+  notify(method:string,params?:unknown):void{this.supervisor.writeLine({jsonrpc:"2.0",method,...(params===undefined?{}:{params})})}
+  request<T=unknown>(method:string,params?:unknown,options:{timeoutMs?:number;signal?:AbortSignal}={}):Promise<T>{const id=this.nextId++;return new Promise<T>((resolve,reject)=>{let settled=false;const finish=()=>{if(settled)return false;settled=true;this.pending.delete(id);return true};const onAbort=()=>{if(!finish())return;clearTimeout(timer);this.notify("$/cancelRequest",{id});reject(new Error("JSONRPC_REQUEST_CANCELLED"))};const timer=setTimeout(()=>{if(!finish())return;options.signal?.removeEventListener("abort",onAbort);this.notify("$/cancelRequest",{id});reject(new Error("JSONRPC_REQUEST_TIMEOUT"))},options.timeoutMs??60_000);const cleanup=()=>options.signal?.removeEventListener("abort",onAbort);this.pending.set(id,{resolve:value=>{if(finish()){clearTimeout(timer);cleanup();resolve(value)}},reject:error=>{if(finish()){clearTimeout(timer);cleanup();reject(error)}},timer,cleanup});if(options.signal?.aborted)onAbort();else{options.signal?.addEventListener("abort",onAbort,{once:true});this.supervisor.writeLine({jsonrpc:"2.0",id,method,...(params===undefined?{}:{params})})}})}
+  async stop():Promise<void>{this.failAll(new Error("EXTERNAL_PROCESS_STOPPED"));await this.supervisor.stop()}
+  private receive(line:string):void{let message:any;try{message=JSON.parse(line)}catch{this.failAll(new Error("JSONRPC_MALFORMED_FRAME"));return}if(message?.jsonrpc!=="2.0")return;const id=typeof message.id==="number"?message.id:null;if(id===null)return;const pending=this.pending.get(id);if(!pending)return;if(message.error)pending.reject(new Error(`JSONRPC_ERROR: ${message.error.code??"UNKNOWN"} ${message.error.message??""}`.trim()));else pending.resolve(message.result)}
+  private failAll(error:Error):void{for(const item of this.pending.values()){clearTimeout(item.timer);item.cleanup();item.reject(error)}this.pending.clear()}
+}

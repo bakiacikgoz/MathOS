@@ -1,0 +1,2 @@
+export {}
+for await(const line of console){const message=JSON.parse(line);if(message.id===undefined)continue;let result:any={ok:true};if(message.method==="initialize")result={protocolVersion:1,received:message.params};if(message.method==="session/new")result={sessionId:"session-1",received:message.params};if(message.method==="session/prompt")result={stopReason:"end_turn",received:message.params};console.log(JSON.stringify({jsonrpc:"2.0",id:message.id,result}))}
