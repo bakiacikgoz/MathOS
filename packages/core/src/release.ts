@@ -3,10 +3,10 @@ import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync,
 import { dirname, join, relative, resolve } from "node:path"
 import { spawnSync } from "node:child_process"
 import { Database } from "bun:sqlite"
-import { BackupIntegrityFailed, mathosVersion, nowIso } from "@mathos/shared"
+import { BackupIntegrityFailed, WorkspaceOperationLock, mathosVersion, nowIso, withWorkspaceOperationLock } from "@mathos/shared"
 import { SCHEMA_EPOCH } from "@mathos/storage"
 
-const SKIP = new Set(["debug.log", "node_modules", ".git", ".env", "secrets"])
+const SKIP = new Set(["debug.log", "node_modules", ".git", ".env", "secrets", "locks"])
 
 function sha256File(path: string): string {
   return createHash("sha256").update(readFileSync(path)).digest("hex")
@@ -36,6 +36,10 @@ export interface BackupManifest {
 }
 
 export function backupWorkspace(root: string, destDir: string): { archive: string; manifest: BackupManifest } {
+  return withWorkspaceOperationLock(root, "backup", () => backupWorkspaceUnlocked(root, destDir))
+}
+
+function backupWorkspaceUnlocked(root: string, destDir: string): { archive: string; manifest: BackupManifest } {
   try {
     const db = new Database(join(root, ".mathos", "mathos.db"))
     db.exec("PRAGMA wal_checkpoint(FULL)")
@@ -98,6 +102,8 @@ export function restoreWorkspace(archive: string, destDir: string): { root: stri
     throw new BackupIntegrityFailed("Destination already looks like a MathOS workspace. Restore into a new directory.")
   }
   mkdirSync(dest, { recursive: true })
+  const lock = WorkspaceOperationLock.acquire(dest, "restore")
+  try {
   const tar = spawnSync("tar", ["-xzf", archive, "-C", dest], { encoding: "utf8" })
   if (tar.status !== 0) throw new BackupIntegrityFailed(tar.stderr || "tar extract failed")
   const manifestPath = join(dest, "backup-manifest.json")
@@ -115,6 +121,7 @@ export function restoreWorkspace(archive: string, destDir: string): { root: stri
     db.close()
   } catch { /* ignore if db missing */ }
   return { root: dest, manifest }
+  } finally { lock.release() }
 }
 
 export function eventLogHealth(root: string): { status: "PASS" | "WARN" | "FAIL"; detail: string } {

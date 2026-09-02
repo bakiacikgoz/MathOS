@@ -46,3 +46,4 @@ export { mathosVersion, mathosRepoRoot, gitCommitShort, gitCommitFull, formatMat
 export { WORKSPACE_SCHEMA_VERSION, MINIMUM_WORKSPACE_SCHEMA_VERSION, BRIDGE_PROTOCOL_VERSION, PLUGIN_API_VERSION, CAPSULE_FORMAT_VERSION, PUBLICATION_FORMAT_VERSION, CompatibilityError, compatibilityMatrix, assertMathOSCompatibility, readProductSurfaceVersions, type MathOSCompatibilityInput } from "./compatibility.ts"
 export { resolveRuntimeLayout, type RuntimeLayout } from "./runtime-layout.ts"
 export { createReleaseManifest, verifyReleaseManifest, type ReleaseManifestV1 } from "./release-manifest.ts"
+export { WorkspaceOperationLock, withWorkspaceOperationLock, type WorkspaceExclusiveOperation } from "./workspace-lock.ts"

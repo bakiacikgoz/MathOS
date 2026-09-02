@@ -3,7 +3,9 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "
 import { dirname, extname, join, resolve } from "node:path"
 import { homedir } from "node:os"
 import { exportBlueprintLatex, importBlueprintLatex, parseMathosMarkdown } from "@mathos/notebook"
-import { formatUserError, isMathOSError, resolveRuntimeLayout } from "@mathos/shared"
+import { formatUserError, isMathOSError, resolveRuntimeLayout, withWorkspaceOperationLock } from "@mathos/shared"
+import { repairWorkspaceRuntimeState } from "@mathos/workspace"
+import { SCHEMA_EPOCH } from "@mathos/storage"
 import { FileModelUsageLedger, ModelProfileRegistry, createSecretStore, loadConfigFiles, parseMathOSConfig, parseModelProfiles, probeModelProfile, serializeConfigValues, serializeModelProfiles, type ConfigScalar, type ModelProfile } from "@mathos/models"
 import { formatBranchDetail, formatBranches, formatClaims, formatDoctor, formatMergePreview, formatResearchRun, formatStatus, HELP_TEXT } from "./format.ts"
 import { portfolioSnapshot } from "./ui/PortfolioViews.tsx"
@@ -139,6 +141,8 @@ export async function runHeadless(argv: string[]): Promise<number> {
 
     const app = MathOS.open(process.cwd(), { literatureOffline: command === "literature" && rest.includes("--offline") })
     try {
+      if (command === "workspace" && rest[0] === "inspect") { const report = await app.doctor(); process.stdout.write(`${JSON.stringify({ schemaVersion: "mathos.workspace-inspect.v1", root: app.root, schemaEpoch: SCHEMA_EPOCH, doctor: report }, null, 2)}\n`); return report.ok ? 0 : 2 }
+      if (command === "workspace" && rest[0] === "repair") { const result = withWorkspaceOperationLock(app.root, "repair", () => ({ ...repairWorkspaceRuntimeState(app.root), eventProjection: app.rebuildEventProjection() })); process.stdout.write(`${JSON.stringify({ schemaVersion: "mathos.workspace-repair.v1", ...result }, null, 2)}\n`); return result.eventProjection.status === "HEALTHY" ? 0 : 2 }
       if (command === "status") {
         const json = rest.includes("--json")
         const text = app.statusSummary()

@@ -1,14 +1,14 @@
 import { Database } from "bun:sqlite"
-import { mkdirSync } from "node:fs"
-import { dirname } from "node:path"
-import { StorageUnavailable, WorkspaceSchemaTooNew, nowIso } from "@mathos/shared"
+import { copyFileSync, mkdirSync } from "node:fs"
+import { dirname, join } from "node:path"
+import { StorageUnavailable, WorkspaceOperationLock, WorkspaceSchemaTooNew, nowIso } from "@mathos/shared"
 import { MIGRATIONS, SCHEMA_EPOCH } from "./migrations.ts"
 
 /** @internal Low-level database lifecycle API. It is not a supported domain mutation surface. */
 export class DatabaseClient {
   readonly db: Database
 
-  constructor(filePath: string) {
+  constructor(private readonly filePath: string) {
     try {
       mkdirSync(dirname(filePath), { recursive: true })
       this.db = new Database(filePath, { create: true })
@@ -40,6 +40,10 @@ export class DatabaseClient {
   }
 
   migrate(): void {
+    const lock = WorkspaceOperationLock.acquire(dirname(dirname(this.filePath)), "migration")
+    try {
+    const previousEpoch = this.schemaEpoch()
+    if (previousEpoch > 0 && previousEpoch < SCHEMA_EPOCH) this.createPreMigrationBackup(previousEpoch)
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS schema_migrations (
         id TEXT PRIMARY KEY,
@@ -65,17 +69,27 @@ export class DatabaseClient {
 
     const insert = this.db.query("INSERT INTO schema_migrations (id, applied_at) VALUES (?, ?)")
 
-    for (const migration of MIGRATIONS) {
-      if (applied.has(migration.id)) continue
-      const run = this.db.transaction(() => {
+    const runPendingMigrations = this.db.transaction(() => {
+      for (const migration of MIGRATIONS) {
+        if (applied.has(migration.id)) continue
         this.db.exec(migration.sql)
         insert.run(migration.id, nowIso())
-      })
-      run()
-    }
-    this.db.exec(`CREATE TABLE IF NOT EXISTS mathos_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);`)
-    this.db.query("INSERT INTO mathos_meta (key, value) VALUES ('schema_epoch', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(String(SCHEMA_EPOCH))
+      }
+      this.db.exec(`CREATE TABLE IF NOT EXISTS mathos_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);`)
+      this.db.query("INSERT INTO mathos_meta (key, value) VALUES ('schema_epoch', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(String(SCHEMA_EPOCH))
+    })
+    runPendingMigrations()
     this.normalizeMainBranch()
+    const integrity = this.db.query<{ integrity_check: string }, []>("PRAGMA integrity_check").get()?.integrity_check
+    if (integrity !== "ok") throw new StorageUnavailable(`post-migration integrity check failed: ${integrity ?? "unknown"}`, { path: this.filePath })
+    } finally { lock.release() }
+  }
+
+  private createPreMigrationBackup(previousEpoch: number): void {
+    this.db.exec("PRAGMA wal_checkpoint(FULL)")
+    const directory = join(dirname(this.filePath), "backups"); mkdirSync(directory, { recursive: true })
+    const stamp = new Date().toISOString().replace(/[:.]/g, "")
+    copyFileSync(this.filePath, join(directory, `pre-migration-${previousEpoch}-${stamp}.db`))
   }
 
   private normalizeMainBranch(): void {
