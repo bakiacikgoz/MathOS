@@ -1,0 +1,3 @@
+/** @jsxImportSource @opentui/solid */
+import { theme } from "../theme.ts"
+export function QuotaView(props: { profile: string; state: string; remaining: number | null; limit: number | null; unit: string | null; resetsAt: string | null }) { return <box flexGrow={1} padding={1} flexDirection="column"><text fg={theme.accent}>PROVIDER QUOTA</text><text fg={props.state === "exhausted" ? theme.danger : theme.text}>{`Profile ${props.profile}\nState ${props.state === "exhausted" ? "QUOTA EXHAUSTED" : props.state.toUpperCase()}\nRemaining ${props.remaining ?? "unknown"}${props.limit === null ? "" : ` / ${props.limit}`} ${props.unit ?? ""}\nResets ${props.resetsAt ?? "unknown"}`}</text></box> }

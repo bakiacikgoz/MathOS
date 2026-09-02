@@ -35,6 +35,7 @@ import { FailureMemoryView,failureMemorySnapshot } from "./FailureMemoryViews.ts
 import { SolverLabView,solverSnapshot } from "./SolverViews.tsx"
 import { LiteratureDeskView,literatureDeskSnapshot } from "./LiteratureDeskViews.tsx"
 import { AtlasView } from "./AtlasViews.tsx"
+import { ProviderCenter, type ProviderCenterRow } from "./ProviderCenter.tsx"
 
 export type MainView =
   | "home"
@@ -83,6 +84,7 @@ export type MainView =
   | "solver"
   | "literature-desk"
   | "atlas"
+  | "providers"
 
 export function MainPanel(props: {
   view: MainView
@@ -143,6 +145,8 @@ export function MainPanel(props: {
   failureMemory?: ReturnType<typeof failureMemorySnapshot>|null
   solver?: ReturnType<typeof solverSnapshot>|null
   literatureDesk?: ReturnType<typeof literatureDeskSnapshot>|null
+  providers?: ProviderCenterRow[]
+  compact?: boolean
 }) {
   return (
     <box flexGrow={1} backgroundColor={theme.background} border borderColor={theme.border} flexDirection="column">
@@ -363,6 +367,7 @@ export function MainPanel(props: {
       <Show when={props.view === "solver" && props.solver}><SolverLabView snapshot={props.solver!}/></Show>
       <Show when={props.view === "literature-desk" && props.literatureDesk}><LiteratureDeskView snapshot={props.literatureDesk!}/></Show>
       <Show when={props.view === "atlas"}><AtlasView text={props.productText??"Atlas ready"}/></Show>
+      <Show when={props.view === "providers"}><ProviderCenter rows={props.providers ?? []} compact={props.compact}/></Show>
       <Show when={["experiments", "literature-home", "blockers", "ledger", "why", "history", "environment", "verification-detail"].includes(props.view) && props.productText}>
         <TextPanel text={props.productText!} onBack={props.onCancelOverlay} />
       </Show>

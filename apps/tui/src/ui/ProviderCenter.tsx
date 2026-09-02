@@ -1,0 +1,11 @@
+/** @jsxImportSource @opentui/solid */
+import { For, Show } from "solid-js"
+import type { ProviderDescriptor, ProviderPolicyResult } from "@mathos/models"
+import { theme } from "../theme.ts"
+
+export type ProviderStatusLabel = "CONNECTED" | "LOGIN REQUIRED" | "SECRET REQUIRED" | "QUOTA EXHAUSTED" | "TERMS RESTRICTED" | "RETIRED" | "LOCAL OFFLINE" | "LIVE VERIFIED"
+export const PROVIDER_STATUS_LABELS: ProviderStatusLabel[] = ["CONNECTED", "LOGIN REQUIRED", "SECRET REQUIRED", "QUOTA EXHAUSTED", "TERMS RESTRICTED", "RETIRED", "LOCAL OFFLINE", "LIVE VERIFIED"]
+export interface ProviderCenterRow { id: string; name: string; state: ProviderStatusLabel; billing: string; auth: string; terms: string; remote: boolean }
+export function providerCenterSnapshot(entries: Array<{ descriptor: ProviderDescriptor; policy: ProviderPolicyResult }>): ProviderCenterRow[] { return entries.map(({ descriptor, policy }) => ({ id: descriptor.id, name: descriptor.displayName, state: policy.code === "PROVIDER_RETIRED" ? "RETIRED" : !policy.allowed ? "TERMS RESTRICTED" : !descriptor.remote ? "LOCAL OFFLINE" : descriptor.authKinds.includes("secret-ref") ? "SECRET REQUIRED" : "LOGIN REQUIRED", billing: descriptor.billingClass, auth: descriptor.authKinds.join(", ") || "none", terms: descriptor.terms.policy, remote: descriptor.remote })) }
+export function providerCenterText(rows: ProviderCenterRow[], compact=false): string { return ["MODEL PROVIDERS", "Keyboard: ↑/↓ select · Enter details · Esc back", ...rows.map(row => compact ? `${row.id} · ${row.state}` : `${row.id.padEnd(30)} ${row.state.padEnd(18)} ${row.billing.padEnd(12)} ${row.auth}`)].join("\n") }
+export function ProviderCenter(props: { rows: ProviderCenterRow[]; compact?: boolean }) { return <box flexGrow={1} padding={1} flexDirection="column"><text fg={theme.accent}>MODEL PROVIDERS</text><text fg={theme.textMuted}>Keyboard: ↑/↓ select · Enter details · Esc back</text><For each={props.rows}>{row => <text fg={row.state === "TERMS RESTRICTED" || row.state === "RETIRED" ? theme.warning : theme.text}>{props.compact ? `${row.id} · ${row.state}` : `${row.id.padEnd(30)} ${row.state.padEnd(18)} ${row.billing.padEnd(12)} ${row.auth}`}</text>}</For><Show when={!props.rows.length}><text fg={theme.textMuted}>No providers available.</text></Show></box> }

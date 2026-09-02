@@ -1,0 +1,6 @@
+/** @jsxImportSource @opentui/solid */
+import { For } from "solid-js"
+import { theme } from "../theme.ts"
+export interface ModelPickerRow { id: string; provider: string; remote: boolean; billing: string; capabilities: string[] }
+export function filterModels(rows: ModelPickerRow[], filters: { query?: string; provider?: string; remote?: boolean; billing?: string; capability?: string }): ModelPickerRow[] { const q=filters.query?.toLowerCase(); return rows.filter(row => (!q || `${row.id} ${row.provider}`.toLowerCase().includes(q)) && (!filters.provider || row.provider === filters.provider) && (filters.remote === undefined || row.remote === filters.remote) && (!filters.billing || row.billing === filters.billing) && (!filters.capability || row.capabilities.includes(filters.capability))) }
+export function ModelPicker(props: { rows: ModelPickerRow[]; query?: string; role?: string }) { const rows=()=>filterModels(props.rows,{query:props.query}); return <box flexGrow={1} padding={1} flexDirection="column"><text fg={theme.accent}>MODEL PICKER · ROLE {props.role ?? "unassigned"}</text><text fg={theme.textMuted}>Search by model or provider · Enter assigns · Esc cancels</text><For each={rows()}>{row=><text fg={theme.text}>{`${row.id} · ${row.provider} · ${row.remote?"remote":"local"} · ${row.billing} · ${row.capabilities.join(",")}`}</text>}</For></box> }

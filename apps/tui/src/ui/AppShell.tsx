@@ -32,6 +32,8 @@ import { portfolioSnapshot,type PortfolioSnapshot } from "./PortfolioViews.tsx"
 import { failureMemorySnapshot } from "./FailureMemoryViews.tsx"
 import { solverSnapshot } from "./SolverViews.tsx"
 import { literatureDeskSnapshot } from "./LiteratureDeskViews.tsx"
+import { evaluateProviderPolicy, providerCatalog } from "@mathos/models"
+import { providerCenterSnapshot } from "./ProviderCenter.tsx"
 
 export function AppShell(props: { mathos: MathOS }) {
   const renderer = useRenderer()
@@ -98,6 +100,7 @@ export function AppShell(props: { mathos: MathOS }) {
     "formalize-select", "formalizing", "formal-draft", "formal-view", "prove-select", "proving", "prove-result", "proof-view",
     "search", "premises", "theorem-detail", "index", "branches", "branch-detail", "merge-preview", "research", "team", "graph",
     "experiments", "literature-home", "blockers", "ledger", "why", "history", "environment", "verification-detail", "portfolio", "failures", "solver",
+    "providers",
   ])
   const overlayOpen = () => OVERLAY_VIEWS.has(view()) || paletteOpen()
 
@@ -166,6 +169,7 @@ export function AppShell(props: { mathos: MathOS }) {
         const id=rest.trim();if(!id){showToast("Usage: /failures FF-1","error");return}const failure=props.mathos.services.repositories.failureFingerprints.get(id);if(!failure){showToast("Failure not found","error");return}setFailureMemory(failureMemorySnapshot(failure,props.mathos.services.failureMemory.occurrences(id)));setView("failures");return
       }
       if(name==="solver"){setSolver(solverSnapshot({adapters:props.mathos.services.solverRegistry.list()}));setView("solver");return}
+      if(name==="providers"){setView("providers");return}
       if (name === "quit") {
         renderer.destroy()
         return
@@ -913,6 +917,8 @@ export function AppShell(props: { mathos: MathOS }) {
           failureMemory={failureMemory()}
         solver={solver()}
         literatureDesk={literatureDesk()}
+        providers={providerCenterSnapshot(providerCatalog.list().map(descriptor => ({ descriptor, policy: evaluateProviderPolicy(descriptor.id) })))}
+        compact={mode() === "compact"}
         />
         <Sidebar status={status()} visible={showSidebar()} branches={props.mathos.listBranches()} />
       </box>

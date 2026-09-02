@@ -1,0 +1,4 @@
+/** @jsxImportSource @opentui/solid */
+import { theme } from "../theme.ts"
+export interface ProviderDetail { profile: string; descriptor: string; connection: string; model: string; billing: string; terms: string; authOwner: string; quota: string; roles: string[]; officialTermsUrl: string; lastVerified: string | null }
+export function ProviderDetailView(props: { detail: ProviderDetail }) { const d=props.detail; return <box flexGrow={1} padding={1} flexDirection="column"><text fg={theme.accent}>PROVIDER DETAIL</text><text fg={theme.text}>{`Profile ${d.profile}\nDescriptor ${d.descriptor}\nConnection ${d.connection}\nModel ${d.model}\nBilling ${d.billing}\nTerms ${d.terms}\nAuth owner ${d.authOwner}\nQuota ${d.quota}\nRoles ${d.roles.join(", ") || "none"}\nOfficial terms ${d.officialTermsUrl}\nLast verified ${d.lastVerified ?? "never"}`}</text></box> }
