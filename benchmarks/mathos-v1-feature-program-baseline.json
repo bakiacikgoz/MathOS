@@ -1,0 +1,43 @@
+{
+  "gitRevision": "51518714460a289203281537629cf8a8fd2f726d",
+  "version": "0.1.0-alpha.1",
+  "schemaEpoch": 20,
+  "checks": [
+    {
+      "id": "experimentSandboxGate",
+      "result": "PASS",
+      "detail": "fail-closed experiment policy and supported-platform sandbox contract"
+    },
+    {
+      "id": "verificationAuthorityStaticGate",
+      "result": "PASS",
+      "detail": "KERNEL_VERIFIED writes confined to VerificationGate authority"
+    },
+    {
+      "id": "coreServiceDecompositionGate",
+      "result": "PASS",
+      "detail": "MathOS facade delegates to bounded application services"
+    },
+    {
+      "id": "portablePathGate",
+      "result": "PASS",
+      "detail": "portable path regression contract present"
+    },
+    {
+      "id": "eventProjectionRecoveryGate",
+      "result": "PASS",
+      "detail": "event projection rebuild and crash recovery contract present"
+    },
+    {
+      "id": "realReleaseCheck",
+      "result": "PASS",
+      "detail": "release artifact revision=51518714460a289203281537629cf8a8fd2f726d ready=true"
+    },
+    {
+      "id": "fullExistingRegression",
+      "result": "PASS",
+      "detail": "release artifact unit/integration gate"
+    }
+  ],
+  "readyForFeatures": true
+}

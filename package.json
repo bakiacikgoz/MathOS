@@ -19,7 +19,8 @@
     "build": "$npm_execpath scripts/build.ts",
     "release-check": "$npm_execpath scripts/release-check.ts",
     "package-smoke": "$npm_execpath dist/cli.js --help",
-    "pilot-validation": "$npm_execpath scripts/pilot-validation.ts"
+    "pilot-validation": "$npm_execpath scripts/pilot-validation.ts",
+    "feature-program-preflight": "$npm_execpath scripts/feature-program-preflight.ts"
   },
   "engines": {
     "bun": ">=1.2.0"
