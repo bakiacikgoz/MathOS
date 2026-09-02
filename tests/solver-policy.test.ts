@@ -1,0 +1,10 @@
+import { describe,expect,test } from "bun:test"
+import { createSolverPolicy,validateTrustTransition } from "../packages/solvers/src/policy.ts"
+import { validateSolverResult } from "../packages/solvers/src/result-validation.ts"
+
+describe("solver policy",()=>{
+  test("defaults network to deny and canonicalizes the executable allowlist",()=>{const policy=createSolverPolicy({root:"C:\\workspace",executables:[".\\bin\\cvc5"]});expect(policy.networkAllowed).toBe(false);expect(policy.executableAllowlist).toEqual(["C:\\workspace\\bin\\cvc5"]);expect(()=>createSolverPolicy({root:"C:\\workspace",executables:[],networkAllowed:true})).toThrow("SOLVER_NETWORK_NOT_AUTHORIZED")})
+  test("permits trust transitions only with matching evidence",()=>{expect(validateTrustTransition("UNTRUSTED","WITNESS_CHECKED",{witnessValid:true})).toBe(true);expect(validateTrustTransition("UNTRUSTED","CERTIFICATE_CHECKED",{certificateValid:false})).toBe(false);expect(validateTrustTransition("CERTIFICATE_CHECKED","LEAN_REPLAYED",{leanReplayPassed:true,inputHashMatches:true,outputHashMatches:true})).toBe(true);expect(validateTrustTransition("LEAN_REPLAYED","CERTIFICATE_CHECKED",{})).toBe(false)})
+  test("unknown fields are diagnostic-only and missing evidence downgrades trust",()=>{const result=validateSolverResult({outcome:"UNSAT",trustClass:"LEAN_REPLAYED",structured:{answer:"unsat"},claimStatus:"KERNEL_VERIFIED",unknownPower:"admin"},{certificateValid:false,leanReplayPassed:false,inputHashMatches:true,outputHashMatches:true});expect(result.trustClass).toBe("UNTRUSTED");expect(result.diagnostics).toContain("UNKNOWN_FIELD:unknownPower");expect(result).not.toHaveProperty("claimStatus")})
+  test("requires a witness for counterexamples and a certificate for certified UNSAT",()=>{expect(validateSolverResult({outcome:"COUNTEREXAMPLE",trustClass:"WITNESS_CHECKED"},{witnessValid:false}).trustClass).toBe("UNTRUSTED");expect(validateSolverResult({outcome:"UNSAT",trustClass:"CERTIFICATE_CHECKED",certificate:"proof"},{certificateValid:true}).trustClass).toBe("CERTIFICATE_CHECKED")})
+})
