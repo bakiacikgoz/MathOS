@@ -14,6 +14,7 @@ import { promoteVerifiedClaim } from "@mathos/storage/internal/verification-clai
 import { ClaimNotFound, FormalStatementNotFound, createId, nowIso } from "@mathos/shared"
 import { runVerificationGate } from "../verify.ts"
 import type { MutationRecorder } from "../mutation-recorder.ts"
+import type { AlignmentService } from "./alignment-service.ts"
 
 interface VerificationServiceDependencies {
   root: string
@@ -27,6 +28,7 @@ interface VerificationServiceDependencies {
   leanContext: () => LeanContext
   consumeLeanBudget: (reason: "VERIFICATION" | "AXIOM_AUDIT") => boolean
   recorder: MutationRecorder
+  alignmentService?:AlignmentService
 }
 
 export class VerificationService {
@@ -68,9 +70,11 @@ export class VerificationService {
         })
       : []
     const environment = await this.dependencies.leanAdapter.detect(this.dependencies.leanContext().workspaceRoot)
+    const currentAlignment=this.dependencies.alignmentService?.currentApproval(claim.id)??null
+    const formalForGate={...formal,fidelityStatus:currentAlignment?"HUMAN_APPROVED" as const:"REVIEW_REQUIRED" as const}
     const report = runVerificationGate({
       claim,
-      formal,
+      formal:formalForGate,
       proof,
       axioms,
       leanVersion: environment.leanVersion,
@@ -92,7 +96,7 @@ export class VerificationService {
       diagnosticsJson: "[]",
       axiomsJson: JSON.stringify(axioms),
       forbiddenJson: JSON.stringify(proof ? scanForbidden(proof.proofSource) : []),
-      fidelityStatus: formal.fidelityStatus,
+      fidelityStatus: formalForGate.fidelityStatus,
       gateJson: JSON.stringify(report.checks),
       createdAt: nowIso(),
     }

@@ -1,0 +1,3 @@
+import { expect, test } from "bun:test"
+import { alignmentAuthorizesVerification } from "@mathos/core"
+test("verification fidelity authority requires current exact human-approved alignment",()=>{const alignment={status:"HUMAN_APPROVED",naturalRevisionId:"N-1",formalRevisionId:"F-1",contextRevisionId:"CR-1"} as const;expect(alignmentAuthorizesVerification(alignment,{naturalRevisionId:"N-1",formalRevisionId:"F-1",contextRevisionId:"CR-1"})).toBe(true);expect(alignmentAuthorizesVerification(alignment,{naturalRevisionId:"N-2",formalRevisionId:"F-1",contextRevisionId:"CR-1"})).toBe(false);expect(alignmentAuthorizesVerification({...alignment,status:"REVIEWED"},{naturalRevisionId:"N-1",formalRevisionId:"F-1",contextRevisionId:"CR-1"})).toBe(false)})

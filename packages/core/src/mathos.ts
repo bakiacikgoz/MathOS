@@ -338,6 +338,7 @@ export class MathOS {
       leanContext: () => instance.leanContext(),
       consumeLeanBudget: (reason) => instance.chargeLean(reason),
       recorder: instance.mutationRecorder(),
+      alignmentService:instance.services.alignment,
     })
     instance.retrievalService = new RetrievalService({
       root: workspaceRoot,
