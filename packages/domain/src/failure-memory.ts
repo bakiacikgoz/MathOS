@@ -1,0 +1,2 @@
+export interface FailureFingerprint { id:string; domain:"PROOF"|"RETRIEVAL"|"SOLVER"|"EXPERIMENT"|"LITERATURE"; goalHash:string|null; contextHash:string|null; failureClass:string; normalizedDiagnostic:string; attemptedApproach:string; premiseSetHash:string|null; fingerprint:string; occurrenceCount:number; firstSeenAt:string; lastSeenAt:string }
+export interface FailureOccurrenceDraft { domain:FailureFingerprint["domain"]; failureClass:string; diagnostic:string; attemptedApproach:string; goalHash?:string; contextHash?:string; premiseSetHash?:string }

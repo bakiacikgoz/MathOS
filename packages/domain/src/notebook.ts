@@ -1,0 +1,6 @@
+export const RESEARCH_BLOCK_KINDS = ["NARRATIVE","OPEN_QUESTION","CLAIM_REF","PROOF_SKETCH","CONTEXT_REF","EXPERIMENT_REF","SOURCE_EXCERPT_REF","DECISION","FAILED_APPROACH","MILESTONE"] as const
+export type ResearchBlockKind=typeof RESEARCH_BLOCK_KINDS[number]
+export interface ResearchDocument { id:string; workspaceId:string; branchId:string; title:string; slug:string; format:"MATHOS_MARKDOWN"; status:"DRAFT"|"ACTIVE"|"ARCHIVED"; sourcePath:string; revision:number; contentHash:string; createdAt:string; updatedAt:string }
+export interface ResearchBlock { id:string; documentId:string; parentBlockId:string|null; sequence:number; kind:ResearchBlockKind; markdown:string; entityType:string|null; entityId:string|null; attributes:Record<string,string|number|boolean|null>; revision:number; contentHash:string; createdAt:string; updatedAt:string }
+export interface NotebookSyncRecord { id:string; sourceKind:string; sourceId:string; targetKind:string; targetId:string; sourceRevision:number; targetRevision:number; sourceHash:string; targetHash:string; direction:string; status:"PROPOSED"|"APPLIED"|"CONFLICT"|"REJECTED"; diffSummary:string; createdAt:string; appliedAt:string|null }
+export type NotebookExportFormat="MATHOS_MARKDOWN"|"MARKDOWN"|"LATEX"

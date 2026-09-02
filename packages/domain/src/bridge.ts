@@ -1,0 +1,3 @@
+export interface BridgeHello { protocol:"mathos-bridge-v1"; client:{name:string;version:string}; workspaceRoot:string; requestedCapabilities:string[] }
+export interface BridgeWelcome { protocol:"mathos-bridge-v1"; mathosVersion:string; schemaEpoch:number; workspaceId:string; grantedCapabilities:string[]; deniedCapabilities:Array<{capability:string;reason:string}> }
+export function parseBridgeHello(value:Record<string,any>):BridgeHello { if(value.protocol!=="mathos-bridge-v1") throw new Error("BRIDGE_PROTOCOL_UNSUPPORTED"); if(!value.client?.name||!value.client?.version||typeof value.workspaceRoot!=="string"||!Array.isArray(value.requestedCapabilities)) throw new Error("BRIDGE_HELLO_INVALID"); return value as BridgeHello }

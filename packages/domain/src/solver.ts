@@ -1,0 +1,7 @@
+export const SOLVER_TRUST_ORDER=["UNTRUSTED","WITNESS_CHECKED","CERTIFICATE_CHECKED","LEAN_REPLAYED"] as const
+export type SolverTrustClass=typeof SOLVER_TRUST_ORDER[number]
+export interface SolverPolicySnapshot { networkAllowed:boolean; timeoutMs:number; maxOutputBytes:number; executableAllowlist:string[] }
+export interface SolverJob { id:string; workspaceId:string; branchId:string; claimId:string|null; solverId:string; solverVersion:string|null; problemKind:string; requestArtifactId:string; status:"READY"|"RUNNING"|"SUCCEEDED"|"FAILED"|"TIMED_OUT"|"BLOCKED"; policySnapshot:SolverPolicySnapshot; createdAt:string; startedAt:string|null; finishedAt:string|null }
+export interface SolverRawResult { outcome:"SUPPORT"|"COUNTEREXAMPLE"|"UNSAT"|"SAT"|"UNKNOWN"|"ERROR"; trustClass:SolverTrustClass; structured?:Record<string,unknown> }
+export interface SolverResult extends SolverRawResult { id:string; exact:boolean; deterministic:boolean; replayStatus:string; inputHash:string; outputHash:string }
+export function parseSolverRawResult(value:Record<string,unknown>):SolverRawResult { if("claimStatus" in value||"forceVerified" in value) throw new Error("FORBIDDEN_AUTHORITY_FIELD"); if(!["SUPPORT","COUNTEREXAMPLE","UNSAT","SAT","UNKNOWN","ERROR"].includes(String(value.outcome))||!SOLVER_TRUST_ORDER.includes(value.trustClass as SolverTrustClass)) throw new Error("SOLVER_RESULT_INVALID"); return {outcome:value.outcome as SolverRawResult["outcome"],trustClass:value.trustClass as SolverTrustClass,structured:value.structured as Record<string,unknown>|undefined} }

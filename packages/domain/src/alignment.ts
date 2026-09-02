@@ -1,0 +1,5 @@
+export const ALIGNMENT_DIMENSIONS=["OBJECTS","DOMAINS","QUANTIFIERS","ASSUMPTIONS","CONCLUSION","SCOPE","STRENGTH","NOTATION"] as const
+export type AlignmentDimension=typeof ALIGNMENT_DIMENSIONS[number]
+export interface StatementRevision { id:string; claimId:string; kind:"NATURAL"|"FORMAL"; sourceEntityId:string; text:string; contextRevisionId:string; revision:number; contentHash:string; createdBy:string; createdAt:string }
+export interface FormalAlignment { id:string; claimId:string; naturalRevisionId:string; formalRevisionId:string; contextRevisionId:string; status:"PENDING"|"REVIEWED"|"HUMAN_APPROVED"|"REJECTED"|"STALE"; verdict:"MATCH"|"POTENTIAL_MISMATCH"|"MISMATCH"; backTranslation:string; symbolMapping:Array<{natural:string;formal:string;status:string}>; auditorProvider:string|null; auditorModel:string|null; promptHash:string|null; createdAt:string; decidedAt:string|null }
+export interface AlignmentFinding { id:string; alignmentId:string; dimension:AlignmentDimension; severity:"INFO"|"WARNING"|"ERROR"; naturalFragment:string; formalFragment:string; message:string; resolutionStatus:string; reviewerNote:string|null }

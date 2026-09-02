@@ -1,0 +1,2 @@
+export interface AgendaItem { id:string; kind:"QUESTION"|"TASK"|"MILESTONE"|"DECISION"|"EXPERIMENT"|"HUMAN_CHECKPOINT"; title:string; description:string; status:"OPEN"|"IN_PROGRESS"|"BLOCKED"|"DONE"|"CANCELLED"; priority:number; expectedInformationGain:"LOW"|"MEDIUM"|"HIGH"; estimatedCost:"LOW"|"MEDIUM"|"HIGH"; dependencyIds:string[]; revision:number; createdAt:string; updatedAt:string; completedAt:string|null }
+export interface ResearchHandoff { runId:string; summary:string; nextAgendaItemIds:string[]; blockerIds:string[] }
