@@ -7,4 +7,5 @@ export function createAtlasShell(): AtlasShell {
   return Object.freeze({ title: "MathOS Theorem Atlas", authority: "READ_ONLY" })
 }
 
+export { createAtlasAppModel, renderAtlasHtml } from "./App.tsx"
 if (typeof document !== "undefined") document.title = createAtlasShell().title

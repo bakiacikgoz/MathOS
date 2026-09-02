@@ -3,5 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "scripts": { "build": "bun ../../scripts/build-atlas.ts" }
+  "scripts": { "build": "bun ../../scripts/build-atlas.ts", "test:e2e": "bun test e2e/atlas.spec.ts" },
+  "dependencies": { "@mathos/graph": "workspace:*", "solid-js": "^1.9.12" }
 }
