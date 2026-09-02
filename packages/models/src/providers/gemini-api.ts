@@ -1,0 +1,1 @@
+import{OpenAIChatTransport}from"../transports/openai-chat.ts";import type{HttpTransportConfig}from"../transports/types.ts";export const createGeminiApiTransport=(config:HttpTransportConfig)=>new OpenAIChatTransport(config)

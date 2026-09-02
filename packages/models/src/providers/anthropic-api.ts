@@ -1,0 +1,1 @@
+import{AnthropicMessagesTransport}from"../transports/anthropic-messages.ts";import type{HttpTransportConfig}from"../transports/types.ts";export const createAnthropicApiTransport=(config:HttpTransportConfig)=>new AnthropicMessagesTransport(config)
