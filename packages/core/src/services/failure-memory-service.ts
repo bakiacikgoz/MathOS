@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto"
-import { relative } from "node:path"
+import { posix,win32 } from "node:path"
 import type { FailureFingerprint,FailureOccurrenceDraft } from "@mathos/domain"
 import type { FailureFingerprintRepository,FailureOccurrenceRepository } from "@mathos/storage"
 
@@ -14,7 +14,7 @@ export class FailureMemoryService{
     const normalizedDiagnostic=normalizeFailureDiagnostic(draft.diagnostic),fingerprint=digest(JSON.stringify([draft.domain,draft.goalHash??null,draft.contextHash??null,draft.failureClass,normalizedDiagnostic,draft.attemptedApproach.trim(),draft.premiseSetHash??null])),now=this.d.now()
     let failure=this.d.failures.findByFingerprint(fingerprint),duplicate=Boolean(failure)
     const occurrenceId=this.d.nextId("FO")
-    const artifactRefs=(context.artifactRefs??[]).map(path=>context.workspaceRoot?relative(context.workspaceRoot,path).replace(/\\/g,"/"):path.replace(/\\/g,"/"))
+    const artifactRefs=(context.artifactRefs??[]).map(path=>context.workspaceRoot?(win32.isAbsolute(context.workspaceRoot)?win32:posix).relative(context.workspaceRoot,path).replace(/\\/g,"/"):path.replace(/\\/g,"/"))
     const environmentFingerprint=`sha256:${digest(JSON.stringify(this.safeEnvironment(context.environment??{})))}`
     let occurrence:Row={id:occurrenceId,failureId:"",runId:context.runId??null,jobId:context.jobId??null,stepId:context.stepId??null,candidateId:context.candidateId??null,artifactRefs,environmentFingerprint,createdAt:now}
     this.d.unitOfWork(()=>{if(failure)failure=this.d.failures.increment(failure.id,now);else{failure={id:this.d.nextId("FF"),domain:draft.domain,goalHash:draft.goalHash??null,contextHash:draft.contextHash??null,failureClass:draft.failureClass,normalizedDiagnostic,attemptedApproach:draft.attemptedApproach.trim(),premiseSetHash:draft.premiseSetHash??null,fingerprint,occurrenceCount:1,firstSeenAt:now,lastSeenAt:now};this.d.failures.insert(failure as unknown as Row)}occurrence={...occurrence,failureId:failure!.id};this.d.occurrences.insert(occurrence)})
