@@ -2,6 +2,7 @@ import { createHash } from "node:crypto"
 import { join } from "node:path"
 import type { PortfolioBudgetRepository, PortfolioLeaseRepository, ProofCandidateRepository, ProofJobRepository, ProofPortfolioRepository } from "@mathos/storage"
 import { declarationsMatch, scanForbidden, type ProofCandidateEvaluation, type ProofCandidateRecord } from "@mathos/domain"
+import type { ProofRepairInput,ProofRepairResult,ProofRepairService } from "./proof-repair-service.ts"
 
 type StoredRow={id:string;[key:string]:unknown}
 export type ProofPortfolioCrashPoint="after_reservation"|"after_process_start"|"after_candidate_write"
@@ -76,6 +77,7 @@ export class ProofPortfolioService {
     for(const job of this.d.jobs.list(portfolioId))if(job.id!==selected.job.id&&(job.status==="RUNNING"||job.status==="PENDING")){await this.d.abortJob?.(job.id);this.d.jobs.updateRuntime(job.id,{status:"CANCELLED",finishedAt:this.d.now(),errorCode:"PORTFOLIO_WINNER_SELECTED"});this.d.leases.release(job.id)}
     return selected.candidate as unknown as ProofCandidateRecord
   }
+  repairCandidate(input:ProofRepairInput,service:ProofRepairService):Promise<ProofRepairResult>{return service.repair(input)}
   private async dispatch(input:ProofPortfolioStartInput,recipe:ProofRecipe,index:number):Promise<void>{
     const jobId=`${input.id}-J${String(index+1).padStart(3,"0")}`,job=this.d.jobs.get(jobId)!;const now=this.d.now()
     if(!this.d.budgets.has(input.id,jobId))this.d.budgets.reserve({id:`BUDGET-${jobId}`,portfolioId:input.id,jobId,amount:recipe.budget,createdAt:now})
