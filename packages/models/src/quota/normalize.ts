@@ -1,0 +1,3 @@
+import type{ProviderQuota}from"./types.ts"
+export function normalizeProviderQuota(value:unknown):ProviderQuota{const row=value&&typeof value==="object"?value as Record<string,unknown>:{};const remaining=finite(row.remaining),limit=finite(row.limit),resetsAt=typeof row.resetsAt==="string"&&!Number.isNaN(Date.parse(row.resetsAt))?row.resetsAt:null,unit=typeof row.unit==="string"?row.unit:null;if(remaining===null&&limit===null)return{state:"unknown",remaining:null,limit:null,unit:null,resetsAt:null,source:"unknown"};return{state:remaining===0?"exhausted":limit!==null&&remaining!==null&&remaining/limit<0.1?"limited":"available",remaining,limit,unit,resetsAt,source:"provider"}}
+const finite=(value:unknown)=>typeof value==="number"&&Number.isFinite(value)&&value>=0?value:null

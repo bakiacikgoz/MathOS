@@ -1,0 +1,2 @@
+import{normalizeProviderQuota}from"./normalize.ts";import type{ProviderQuota}from"./types.ts"
+export class ProviderQuotaService{constructor(private readonly loaders:Record<string,()=>Promise<unknown>>={}){}async inspect(descriptorId:string):Promise<ProviderQuota>{const loader=this.loaders[descriptorId];if(!loader)return normalizeProviderQuota(null);try{return normalizeProviderQuota(await loader())}catch{return normalizeProviderQuota(null)}}}
