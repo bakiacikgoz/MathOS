@@ -120,7 +120,7 @@ export function cliExitCode(error: unknown): CliExitCode {
 function errorCode(error: unknown): string {
   if (isMathOSError(error)) return error.code.toUpperCase()
   if (!(error instanceof Error)) return ""
-  const prefix = error.message.match(/^([A-Z][A-Z0-9_]*)\s*:/)?.[1]
+  const prefix = error.message.match(/^([A-Z][A-Z0-9_]*)(?:\s*:|$)/)?.[1]
   return prefix ?? ""
 }
 

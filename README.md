@@ -1,6 +1,6 @@
 # MathOS
 
-MathOS is a local-first operating system for serious mathematical research. It keeps claims, dependencies, formalizations, proof attempts, experiments, literature, and provenance in one durable workspace. It is not an automatic open-problem solver, and model output, computation, or citation never becomes proof.
+MathOS is a local-first operating system for serious mathematical research. It keeps claims, dependencies, formalizations, proof attempts, experiments, literature, and provenance in one durable workspace. It is not an automatic solver of open problems, and model output, computation, or citation never becomes proof.
 
 `KERNEL_VERIFIED` means the current formal revision passed the local VerificationGate, including Lean kernel acceptance, fidelity policy, forbidden-construct checks, and axiom audit.
 
