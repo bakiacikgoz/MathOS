@@ -14,8 +14,13 @@ export type {
   RetrievalMode,
   RetrievalScoreBreakdown,
   FusionMethod,
+  PremiseRole,
+  PremiseSetMember,
+  PremiseSetCandidate,
 } from "./types.ts"
 export { ALLOWED_LOCAL_STATUSES, DEFAULT_RETRIEVAL_CONFIG, FORBIDDEN_LOCAL_STATUSES } from "./types.ts"
+export { GlobalPremiseSetPlanner,DEFAULT_PREMISE_SET_SIZE,MAX_PREMISE_SET_SIZE,evaluateGlobalPremisePromotion,type PremiseSetBenchmarkMetrics } from "./global-premise-set.ts"
+export { ProofFeedbackLedger,proofFeedbackKey,type ProofFeedbackOutcome,type ProofFeedbackInput,type ProofFeedbackRow } from "./proof-feedback.ts"
 export { extractUnknownIdentifiers, parseLeanDeclarations, tokenize } from "./parse.ts"
 export { rankDeclarations } from "./rank.ts"
 export { applyGoalAwareRerank } from "./rerank.ts"

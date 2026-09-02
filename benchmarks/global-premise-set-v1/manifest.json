@@ -1,0 +1,11 @@
+{
+  "benchmark": "global-premise-set-v1",
+  "version": 1,
+  "frozen": true,
+  "datasetHash": "sha256:389a915513d6f69eabe5f7f99c0a738d0a92996dfdf061742541b140c8bc9110",
+  "latencyBudgetMs": 2000,
+  "cases": [
+    { "id": "gps-equality-001", "domain": "algebra", "goal": "a = b -> f a = f b", "expectedRoles": ["CONCLUSION_MATCH", "REWRITE"] },
+    { "id": "gps-structure-001", "domain": "topology", "goal": "Continuous f", "expectedRoles": ["TYPECLASS_OR_STRUCTURE", "DOMAIN_LEMMA"] }
+  ]
+}

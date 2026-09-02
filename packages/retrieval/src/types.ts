@@ -4,6 +4,9 @@ export type RetrievalMode = "FORMAL_GOAL" | "NATURAL_FALLBACK" | "DIAGNOSTIC_REP
 export type TypeSource = "HEADER" | "LEAN_ELABORATED"
 export type EnrichmentStatus = "LEAN_ELABORATED" | "HEADER" | "LEAN_ENRICHMENT_FAILED"
 export type FusionMethod = "CURRENT" | "SCORE_FUSION" | "RRF"
+export type PremiseRole="CONCLUSION_MATCH"|"REWRITE"|"TYPECLASS_OR_STRUCTURE"|"DOMAIN_LEMMA"|"BRIDGE_LEMMA"|"AUXILIARY"
+export interface PremiseSetMember{declarationName:string;role:PremiseRole;sourceRank:number;marginalCoverage:number;provenance:{indexRevision:string|null;retrievalMode:RetrievalMode;channels:string[]}}
+export interface PremiseSetCandidate{id:string;members:PremiseSetMember[];setScore:number;goalCoverage:string[];redundancyPenalty:number;unresolvedGoalFeatures:string[];generationVersion:"global-premise-set-v1"}
 export type InspectionSelectionReason = "OVERALL" | "NAME" | "STRUCTURE" | "TYPE" | "SYMBOL" | "OPERATOR" | "LOCAL" | "DEPENDENCY" | "DIVERSITY"
 
 export interface LeanDeclaration {
