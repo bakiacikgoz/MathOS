@@ -29,7 +29,10 @@
       "@mathos/core": ["./packages/core/src/index.ts"],
       "@mathos/graph": ["./packages/graph/src/index.ts"],
       "@mathos/computation": ["./packages/computation/src/index.ts"],
-      "@mathos/literature": ["./packages/literature/src/index.ts"]
+      "@mathos/literature": ["./packages/literature/src/index.ts"],
+      "@mathos/notebook": ["./packages/notebook/src/index.ts"],
+      "@mathos/solvers": ["./packages/solvers/src/index.ts"],
+      "@mathos/plugins": ["./packages/plugins/src/index.ts"]
     }
   },
   "include": ["apps/**/*", "packages/**/*", "scripts/**/*", "tests/**/*"]

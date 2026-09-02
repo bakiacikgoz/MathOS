@@ -1,0 +1,8 @@
+{
+  "name": "@mathos/vscode-extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/extension.js",
+  "scripts": { "build": "bun ../../scripts/build-vscode.ts" }
+}

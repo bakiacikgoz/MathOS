@@ -15,6 +15,10 @@
         "typescript": "5.9.3",
       },
     },
+    "apps/atlas": {
+      "name": "@mathos/atlas",
+      "version": "0.1.0",
+    },
     "apps/tui": {
       "name": "@mathos/tui",
       "version": "0.1.0",
@@ -31,6 +35,10 @@
         "@opentui/solid": "^0.5.7",
         "solid-js": "1.9.12",
       },
+    },
+    "apps/vscode-extension": {
+      "name": "@mathos/vscode-extension",
+      "version": "0.1.0",
     },
     "packages/computation": {
       "name": "@mathos/computation",
@@ -102,6 +110,14 @@
         "@mathos/shared": "workspace:*",
       },
     },
+    "packages/notebook": {
+      "name": "@mathos/notebook",
+      "version": "0.1.0",
+    },
+    "packages/plugins": {
+      "name": "@mathos/plugins",
+      "version": "0.1.0",
+    },
     "packages/retrieval": {
       "name": "@mathos/retrieval",
       "version": "0.1.0",
@@ -113,6 +129,10 @@
     },
     "packages/shared": {
       "name": "@mathos/shared",
+      "version": "0.1.0",
+    },
+    "packages/solvers": {
+      "name": "@mathos/solvers",
       "version": "0.1.0",
     },
     "packages/storage": {
@@ -205,6 +225,8 @@
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
 
+    "@mathos/atlas": ["@mathos/atlas@workspace:apps/atlas"],
+
     "@mathos/computation": ["@mathos/computation@workspace:packages/computation"],
 
     "@mathos/core": ["@mathos/core@workspace:packages/core"],
@@ -221,15 +243,23 @@
 
     "@mathos/models": ["@mathos/models@workspace:packages/models"],
 
+    "@mathos/notebook": ["@mathos/notebook@workspace:packages/notebook"],
+
+    "@mathos/plugins": ["@mathos/plugins@workspace:packages/plugins"],
+
     "@mathos/retrieval": ["@mathos/retrieval@workspace:packages/retrieval"],
 
     "@mathos/shared": ["@mathos/shared@workspace:packages/shared"],
+
+    "@mathos/solvers": ["@mathos/solvers@workspace:packages/solvers"],
 
     "@mathos/storage": ["@mathos/storage@workspace:packages/storage"],
 
     "@mathos/tui": ["@mathos/tui@workspace:apps/tui"],
 
     "@mathos/vcs": ["@mathos/vcs@workspace:packages/vcs"],
+
+    "@mathos/vscode-extension": ["@mathos/vscode-extension@workspace:apps/vscode-extension"],
 
     "@mathos/workspace": ["@mathos/workspace@workspace:packages/workspace"],
 
