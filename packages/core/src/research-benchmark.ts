@@ -9,6 +9,7 @@ import { FakeModelProvider, resolveModelConfig } from "@mathos/models"
 import { FakeLeanAdapter, NativeLeanAdapter } from "@mathos/lean"
 import { FakeVcs } from "@mathos/vcs"
 import { InMemoryPremiseRetriever } from "@mathos/retrieval"
+import { FakeLiteratureProvider } from "@mathos/literature"
 import type { ResearchDecision } from "@mathos/domain"
 import {
   RESEARCH_BENCHMARK_FIXTURES,
@@ -215,6 +216,7 @@ export async function runBenchmarkFixture(fixture: ResearchBenchmarkFixture, opt
       researchPlanner: planner,
       vcs: new FakeVcs(),
       premiseRetriever: new InMemoryPremiseRetriever(),
+      literatureProvider: new FakeLiteratureProvider(),
       formalProjectRoot: opts.lean === "native" ? FORMAL_ROOT : undefined,
     })
     const claim = app.createClaim({ kind: "conjecture", title: fixture.id, statement: fixture.naturalLanguageObjective, asMainObjective: true })
