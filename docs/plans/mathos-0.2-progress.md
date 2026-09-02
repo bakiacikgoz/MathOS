@@ -23,6 +23,12 @@ Retrieval V3 remains `INCONCLUSIVE`. There is no Lean-enabled downstream proof e
 - Phase 10 — PASS: typecheck, complete tests, build, package smoke, migrations, backup/restore, redaction, event rebuild, research/UX/retrieval regressions, and release gate pass. The final artifact is `artifacts/release-gate/phase10-release-check.json` and must match final HEAD with `ready: true`.
 - Phase 11 — BLOCKED in this host environment: the fresh-user pilot runs the built CLI in a fresh temporary workspace and produces honest evidence, but real Lean/Lake and a configured model credential are unavailable. Formalize → prove → verify and human TUI interaction are therefore not marked PASS. See `artifacts/pilot-validation-latest.json`.
 
+## MathOS 1.0 implementation closure
+
+Phases 0–13 of the professional research OS plan are implemented in ordered, reversible commits. The phase reports are stored under `artifacts/v1-phase-reports/`. Deterministic V1 qualification is `ready: true` with no hard-gate blocker. The release gate is READY both in this checkout and in a fresh clone installed with the frozen lockfile.
+
+Conditional external signals are reported honestly: this Windows host has no supported Lean release path, no configured model credential, and no human TUI pilot observation. These do not bypass or weaken deterministic hard gates and are not represented as PASS.
+
 ## Final validation contract
 
 - `bun run typecheck`
