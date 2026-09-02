@@ -7,6 +7,7 @@ describe("CLI contract", () => {
     expect(cliExitCode(new MathOSError("LEAN_NOT_INSTALLED", "missing"))).toBe(3)
     expect(cliExitCode(new MathOSError("FORMAL_PROOF_FAILED", "failed"))).toBe(4)
     expect(cliExitCode(new MathOSError("WORKSPACE_CONFLICT", "conflict"))).toBe(5)
+    expect(cliExitCode(new Error("PROVIDER_SECRET_ARG_FORBIDDEN: use the secret store"))).toBe(2)
     expect(cliExitCode(new Error("boom"))).toBe(1)
   })
 

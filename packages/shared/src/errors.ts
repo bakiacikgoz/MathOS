@@ -109,12 +109,19 @@ export type CliExitCode = 1 | 2 | 3 | 4 | 5
 const matches = (code: string, words: string[]) => words.some((word) => code.includes(word))
 
 export function cliExitCode(error: unknown): CliExitCode {
-  const code = isMathOSError(error) ? error.code.toUpperCase() : ""
+  const code = errorCode(error)
   if (matches(code, ["WORKSPACE_CONFLICT", "VERSION_MISMATCH", "SCHEMA_TOO_NEW", "PROTOCOL_MISMATCH"])) return 5
   if (matches(code, ["TRUST", "VERIFICATION", "PROOF_FAILED", "FIDELITY", "HUMAN_APPROVAL"])) return 4
   if (matches(code, ["UNAVAILABLE", "NOT_INSTALLED", "BLOCKED", "CAPABILITY", "SANDBOX"])) return 3
-  if (matches(code, ["CONFIG", "USAGE", "INVALID", "REQUIRED", "UNKNOWN_COMMAND"])) return 2
+  if (matches(code, ["CONFIG", "USAGE", "INVALID", "REQUIRED", "UNKNOWN_COMMAND", "ARG_FORBIDDEN"])) return 2
   return 1
+}
+
+function errorCode(error: unknown): string {
+  if (isMathOSError(error)) return error.code.toUpperCase()
+  if (!(error instanceof Error)) return ""
+  const prefix = error.message.match(/^([A-Z][A-Z0-9_]*)\s*:/)?.[1]
+  return prefix ?? ""
 }
 
 const REMEDIATION: Record<number, string> = {
@@ -127,7 +134,7 @@ const REMEDIATION: Record<number, string> = {
 
 export function formatCliError(error: unknown, options: { debug?: boolean } = {}) {
   const exitCode = cliExitCode(error)
-  const code = isMathOSError(error) ? error.code : "OPERATION_FAILED"
+  const code = errorCode(error) || "OPERATION_FAILED"
   const message = formatUserError(error)
   return {
     schemaVersion: "mathos.cli-error.v1" as const,
