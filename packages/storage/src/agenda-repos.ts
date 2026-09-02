@@ -1,0 +1,6 @@
+import type { Database } from "bun:sqlite"
+import { V1Repository } from "./v1-repository-utils.ts"
+type Row = { id: string; revision?: number; [key: string]: unknown }
+export class ConjectureProposalRepository extends V1Repository<Row> { constructor(db: Database) { super(db,"conjecture_proposals",["id","workspaceId","branchId","generator","sourceEntityIds","naturalStatement","rationale","contextRevisionId","status","formalCandidateId","createdClaimId","revision","createdAt","decidedAt"],["sourceEntityIds"],"created_at") } }
+export class ConjectureTriageRepository extends V1Repository<Row> { constructor(db: Database) { super(db,"conjecture_triage_results",["id","proposalId","gate","result","detail","createdAt"],["detail"],"created_at") } }
+export class AgendaItemRepository extends V1Repository<Row> { constructor(db: Database) { super(db,"agenda_items",["id","workspaceId","branchId","kind","title","description","status","priority","expectedInformationGain","estimatedCost","claimId","runId","dependencyIds","ownerType","ownerId","dueAt","revision","createdAt","updatedAt","completedAt"],["dependencyIds"],"priority") } }
