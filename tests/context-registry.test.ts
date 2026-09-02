@@ -14,6 +14,18 @@ function service() {
 afterEach(() => { while (clients.length) clients.pop()!.close() })
 
 describe("mathematical context registry", () => {
+  test("completes empty to proposal to apply to conflict to resolve lifecycle", () => {
+    const { service: contexts } = service()
+    const scope = { workspaceId:"W-1", branchId:"B-1" }
+    expect(contexts.resolveSnapshot(scope).items).toEqual([])
+    const first = contexts.proposeItem({ ...scope, scopeKind:"BRANCH", scopeId:"B-1", draft:{ kind:"SYMBOL", canonicalName:"x", displayText:"x", normalizedValue:"x", origin:"USER" } })
+    contexts.applyProposal(first.id, first.revision)
+    const collision = contexts.proposeItem({ ...scope, scopeKind:"BRANCH", scopeId:"B-1", draft:{ kind:"NOTATION", canonicalName:"x", displayText:"x", normalizedValue:"x", origin:"USER" } })
+    expect(contexts.detectConflicts(scope)).toHaveLength(1)
+    contexts.rejectProposal(collision.id, collision.revision, "incompatible kind")
+    expect(contexts.detectConflicts(scope)).toEqual([])
+  })
+
   test("resolves workspace to claim precedence with deterministic snapshots", () => {
     const { service: contexts } = service()
     for (const [scopeKind, scopeId, value] of [["WORKSPACE","W-1","workspace"],["BRANCH","B-1","branch"],["DOCUMENT","D-1","document"],["CLAIM","C-1","claim"]] as const) {
