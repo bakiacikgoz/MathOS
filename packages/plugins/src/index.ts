@@ -7,3 +7,6 @@ export function createPluginRegistry(): PluginRegistry {
 }
 export * from "./manifest.ts"
 export * from "./permissions.ts"
+export * from "./protocol.ts"
+export * from "./process-host.ts"
+export * from "./quarantine.ts"

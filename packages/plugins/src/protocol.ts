@@ -1,0 +1,1 @@
+export interface PluginRequest{jsonrpc:string;id:string;method:string;params:Record<string,unknown>}export function parsePluginResponse(text:string,id:string){let v:any;try{v=JSON.parse(text)}catch{throw new Error("PLUGIN_MALFORMED_JSON")};if(v.jsonrpc!=="2.0"||v.id!==id||(!("result"in v)&&!("error"in v)))throw new Error("PLUGIN_RESPONSE_INVALID");return v}

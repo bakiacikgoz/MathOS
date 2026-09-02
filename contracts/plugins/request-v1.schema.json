@@ -1,0 +1,1 @@
+{"type":"object","required":["jsonrpc","id","method","params"],"properties":{"jsonrpc":{"const":"2.0"},"id":{"type":"string"},"method":{"type":"string"},"params":{"type":"object"}}}
