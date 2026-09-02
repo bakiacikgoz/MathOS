@@ -8,7 +8,6 @@ export interface LiteratureQuery {
   yearTo?: number
   maxResults: number
 }
-
 export interface LiteratureSearchResult {
   provider: string
   externalId: string
@@ -65,20 +64,23 @@ export function canonicalizeUrl(url: string): string {
   }
 }
 
-export function isPublicHttpUrl(url: string): boolean {
-  try {
-    const parsed = new URL(url)
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false
-    const host = parsed.hostname.toLowerCase()
-    if (host === "localhost" || host.endsWith(".local") || host === "0.0.0.0") return false
-    if (/^127\./.test(host) || /^10\./.test(host) || /^192\.168\./.test(host) || /^172\.(1[6-9]|2\d|3[0-1])\./.test(host)) return false
-    return true
-  } catch {
-    return false
-  }
-}
+export { GovernedHttpClient, isPublicHttpUrl } from "./providers/http-policy"
+export type { GovernedHttpOptions } from "./providers/http-policy"
+export { OpenAlexLiteratureProvider } from "./providers/openalex"
+export { CrossrefLiteratureProvider } from "./providers/crossref"
+export { ArxivLiteratureProvider } from "./providers/arxiv"
 
-const ALLOWED_HOSTS = new Set(["api.openalex.org", "api.crossref.org", "export.arxiv.org", "arxiv.org"])
+export function deduplicateLiteratureResults(results: LiteratureSearchResult[]): LiteratureSearchResult[] {
+  const identities = new Set<string>()
+  return results.filter((result) => {
+    const doi = result.doi?.replace(/^https?:\/\/doi\.org\//i, "").trim().toLowerCase()
+    const arxiv = result.arxivId?.replace(/^arxiv:/i, "").trim().toLowerCase()
+    const identity = doi ? `doi:${doi}` : arxiv ? `arxiv:${arxiv}` : `${result.provider}:${result.externalId}`
+    if (identities.has(identity)) return false
+    identities.add(identity)
+    return true
+  })
+}
 
 export class FakeLiteratureProvider implements LiteratureProvider {
   name = "fake"
@@ -126,50 +128,3 @@ export class FakeLiteratureProvider implements LiteratureProvider {
   }
 }
 
-export class OpenAlexLiteratureProvider implements LiteratureProvider {
-  name = "openalex"
-
-  async search(query: LiteratureQuery): Promise<LiteratureSearchResult[]> {
-    const url = `https://api.openalex.org/works?search=${encodeURIComponent(query.text)}&per-page=${Math.min(query.maxResults, 10)}`
-    const payload = await getJson(url)
-    const results = Array.isArray(payload.results) ? payload.results : []
-    return results.map((item: Record<string, unknown>) => {
-      const ids = (item.ids && typeof item.ids === "object" ? item.ids : {}) as Record<string, string>
-      const authorships = Array.isArray(item.authorships) ? item.authorships as Array<{ author?: { display_name?: string } }> : []
-      return {
-        provider: "openalex",
-        externalId: String(item.id ?? ids.openalex ?? item.doi ?? item.display_name),
-        title: String(item.display_name ?? item.title ?? ""),
-        authors: authorships.map((row) => row.author?.display_name).filter((name): name is string => Boolean(name)),
-        year: typeof item.publication_year === "number" ? item.publication_year : undefined,
-        doi: item.doi ? String(item.doi).replace("https://doi.org/", "") : undefined,
-        url: ids.landing_page ?? (item.doi ? String(item.doi) : undefined),
-        abstract: undefined,
-        score: typeof item.relevance_score === "number" ? item.relevance_score : undefined,
-      } satisfies LiteratureSearchResult
-    }).filter((item) => item.title)
-  }
-
-  async fetchMetadata(result: LiteratureSearchResult): Promise<SourceMetadata> {
-    return {
-      title: result.title,
-      authors: result.authors,
-      year: result.year,
-      doi: result.doi,
-      arxivId: result.arxivId,
-      url: result.url,
-      type: "PAPER",
-    }
-  }
-}
-
-async function getJson(url: string): Promise<Record<string, unknown>> {
-  const parsed = new URL(url)
-  if (!ALLOWED_HOSTS.has(parsed.hostname.toLowerCase())) throw new Error("PROVIDER_HOST_NOT_ALLOWED")
-  if (!isPublicHttpUrl(url)) throw new Error("PROVIDER_URL_REJECTED")
-  const response = await fetch(url, {
-    headers: { Accept: "application/json", "User-Agent": "MathOS-literature/0.1 (mailto:research@localhost)" },
-  })
-  if (!response.ok) throw new Error(`PROVIDER_HTTP_${response.status}`)
-  return await response.json() as Record<string, unknown>
-}
