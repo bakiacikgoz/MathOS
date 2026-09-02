@@ -6,17 +6,17 @@ import { runRetrievalRegression } from "../scripts/retrieval-regression.ts"
 
 const successfulRunner: ReleaseCommandRunner = async (command) => ({
   exitCode: 0,
-  stdout: command[0] === "git" ? "0123456789abcdef0123456789abcdef01234567\n" : command.includes("--version") ? "MathOS 0.1.0-alpha.1\n" : command.some((part) => part.endsWith("-regression.ts") || part.endsWith("lean-smoke.ts")) ? "{\"passed\":true}\n" : "1 pass\n",
+  stdout: command[0] === "git" ? "0123456789abcdef0123456789abcdef01234567\n" : command.includes("--version") ? "MathOS 0.1.0-alpha.1\n" : command.some((part) => part.endsWith("run-v1-qualification.ts")) ? "{\"ready\":true}\n" : command.some((part) => part.endsWith("-regression.ts") || part.endsWith("lean-smoke.ts")) ? "{\"passed\":true}\n" : "1 pass\n",
   stderr: "",
   timedOut: false,
   durationMs: 1,
 })
 
 describe("release check contract", () => {
-  test("runs all sixteen checks in the required order and emits provenance", async () => {
+  test("runs every required check in order and emits provenance", async () => {
     const report = await executeReleaseCheck({ runner: successfulRunner, platform: "darwin" })
     expect(report.checks.map((check) => check.name)).toEqual([...RELEASE_CHECK_ORDER])
-    expect(report.checks).toHaveLength(16)
+    expect(report.checks).toHaveLength(17)
     expect(report.version).toBe("0.1.0-alpha.1")
     expect(report.gitRevision).toBe("0123456789abcdef0123456789abcdef01234567")
     expect(report.ready).toBe(true)

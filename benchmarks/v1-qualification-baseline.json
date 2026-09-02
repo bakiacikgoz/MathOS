@@ -1,0 +1,1 @@
+{"schemaVersion":"mathos-v1-qualification-baseline","requiredCheckIds":["typecheck-build","deterministic-tests","migration-compatibility","verification-authority","sandbox-security","bridge-security","plugin-security","capsule-security","atlas-security","professional-workflows","portable-paths","secret-fixtures","documentation-boundary"]}
