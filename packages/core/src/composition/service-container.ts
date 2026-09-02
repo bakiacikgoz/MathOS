@@ -22,6 +22,7 @@ import { StatementRevisionService } from "../services/statement-revision-service
 import { AlignmentService } from "../services/alignment-service.ts"
 import { ImpactStalenessService } from "../services/impact-staleness-service.ts"
 import { ProofPortfolioService, type ProofPortfolioDependencies } from "../services/proof-portfolio-service.ts"
+import { FailureMemoryService } from "../services/failure-memory-service.ts"
 
 export interface ServiceContainerOverrides { clock: ClockPort; artifacts: ArtifactStorePort; claims: ClaimReadPort; formals: FormalReadPort; graph: GraphReadPort; proofPortfolioRuntime: Pick<ProofPortfolioDependencies,"createWorker"|"startProcess"|"crashHook"> }
 export interface ServiceContainer {
@@ -33,6 +34,7 @@ export interface ServiceContainer {
   alignment:AlignmentService
   impactStaleness:ImpactStalenessService
   proofPortfolio:ProofPortfolioService
+  failureMemory:FailureMemoryService
 }
 
 function createV1Repositories(db: Database) {
@@ -69,6 +71,7 @@ export function createServiceContainer(root: string, db: Database, overrides: Pa
     alignment:new AlignmentService({revisions:repositories.statementRevisions,alignments:repositories.formalAlignments,findings:repositories.alignmentFindings,clock,nextId:(prefix)=>`${prefix}-${clock.now().replace(/\D/g,"")}-${++sequence}`}),
     impactStaleness:new ImpactStalenessService({markers:repositories.staleMarkers,clock,nextId:()=>`SM-${clock.now().replace(/\D/g,"")}-${++sequence}`}),
     proofPortfolio:new ProofPortfolioService({root,portfolios:repositories.proofPortfolios,jobs:repositories.proofJobs,candidates:repositories.proofCandidates,budgets:repositories.portfolioBudgets,leases:repositories.portfolioLeases,unitOfWork:(work)=>db.transaction(work)(),now:()=>clock.now(),nextId:(prefix)=>`${prefix}-${clock.now().replace(/\D/g,"")}-${++sequence}`,createWorker:overrides.proofPortfolioRuntime?.createWorker ?? (async()=>{throw new Error("PROOF_PORTFOLIO_VCS_RUNTIME_REQUIRED")}),startProcess:overrides.proofPortfolioRuntime?.startProcess ?? (async()=>{throw new Error("PROOF_PORTFOLIO_PROCESS_RUNTIME_REQUIRED")}),crashHook:overrides.proofPortfolioRuntime?.crashHook}),
+    failureMemory:new FailureMemoryService({failures:repositories.failureFingerprints,occurrences:repositories.failureOccurrences,unitOfWork:(work)=>db.transaction(work)(),now:()=>clock.now(),nextId:(prefix)=>`${prefix}-${clock.now().replace(/\D/g,"")}-${++sequence}`}),
   }
   return container
 }
