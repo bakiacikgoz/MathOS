@@ -141,6 +141,18 @@ export async function runHeadless(argv: string[]): Promise<number> {
         throw new Error(`Unknown notebook action: ${action}`)
       }
 
+      if(command==="align"){
+        const action=rest[0],args=rest.slice(1),alignments=app.services.repositories.formalAlignments,findings=app.services.repositories.alignmentFindings,revisions=app.services.repositories.statementRevisions
+        const print=(data:unknown)=>process.stdout.write(`${JSON.stringify({schemaVersion:"mathos.alignment.v1",data},null,2)}\n`)
+        if(action==="run"){const claimId=args.find((value)=>!value.startsWith("--"));if(!claimId)throw new Error("CLAIM_ID_REQUIRED");const natural=revisions.latest(claimId,"NATURAL"),formal=revisions.latest(claimId,"FORMAL");if(!natural||!formal)throw new Error("STATEMENT_REVISIONS_REQUIRED");print(await app.services.alignment.run({claimId,naturalRevisionId:natural.id,formalRevisionId:formal.id,contextRevisionId:natural.contextRevisionId}));return 0}
+        const id=args.find((value)=>!value.startsWith("--"));if(action!=="impact"&&!id)throw new Error("ALIGNMENT_ID_REQUIRED")
+        if(action==="show"){const alignment=alignments.get(id!);if(!alignment)throw new Error("ALIGNMENT_NOT_FOUND");print({alignment,findings:findings.listByAlignment(id!)});return 0}
+        if(action==="approve"){const alignment=alignments.get(id!);if(!alignment)throw new Error("ALIGNMENT_NOT_FOUND");const natural=revisions.get(alignment.naturalRevisionId)!,formal=revisions.get(alignment.formalRevisionId)!,actor=flag(args,"--actor");if(!actor)throw new Error("REVIEWER_ACTOR_REQUIRED");print(app.services.alignment.approve(id!,{actorId:actor,actorType:"human",naturalHash:natural.contentHash,formalHash:formal.contentHash,contextRevisionId:alignment.contextRevisionId}));return 0}
+        if(action==="reject"){print(app.services.alignment.reject(id!,flag(args,"--reason")??"rejected"));return 0}
+        if(action==="impact"){const claimId=args.find((value)=>!value.startsWith("--"));print(app.services.repositories.staleMarkers.unresolved().filter((marker)=>!claimId||marker.targetId===claimId||marker.sourceId===claimId));return 0}
+        throw new Error(`Unknown align action: ${action}`)
+      }
+
       if (command === "report") {
         const format = rest.includes("--json") || flag(rest, "--format") === "json" ? "json" : "md"
         const written = app.exportReport(format)

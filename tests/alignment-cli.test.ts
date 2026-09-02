@@ -1,0 +1,8 @@
+import { describe,expect,test } from "bun:test"
+import { mkdtempSync } from "node:fs"
+import { join } from "node:path"
+import { tmpdir } from "node:os"
+import { MathOS } from "@mathos/core"
+import { runHeadless } from "../apps/tui/src/headless.ts"
+
+describe("alignment CLI",()=>{test("runs, shows, approves, rejects and previews impact",async()=>{const root=mkdtempSync(join(tmpdir(),"mathos-align-cli-"));await MathOS.init(root);let app=MathOS.open(root);const claim=app.createClaim({kind:"lemma",title:"L",statement:"Natural"}),context=app.services.mathematicalContext.resolveSnapshot({workspaceId:claim.workspaceId,branchId:app.currentBranch().id,claimId:claim.id});app.services.statementRevisions.capture({claimId:claim.id,kind:"FORMAL",sourceEntityId:"FS-X",text:"formal",contextRevisionId:context.revisionId,createdBy:"model"});app.close();const previous=process.cwd();process.chdir(root);let output="";const write=process.stdout.write.bind(process.stdout);process.stdout.write=((chunk:string|Uint8Array)=>{output+=String(chunk);return true})as typeof process.stdout.write;try{expect(await runHeadless(["align","run",claim.id])).toBe(0);const alignment=JSON.parse(output).data.alignment;output="";expect(await runHeadless(["align","show",alignment.id])).toBe(0);expect(JSON.parse(output).data.findings.length).toBeGreaterThan(0);output="";expect(await runHeadless(["align","approve",alignment.id,"--actor","reviewer-local"])).toBe(0);expect(JSON.parse(output).data.status).toBe("HUMAN_APPROVED");output="";expect(await runHeadless(["align","impact",claim.id])).toBe(0);expect(JSON.parse(output).schemaVersion).toBe("mathos.alignment.v1")}finally{process.stdout.write=write;process.chdir(previous)}})})

@@ -67,6 +67,8 @@ export function AppShell(props: { mathos: MathOS }) {
   const [contextConflicts, setContextConflicts] = createSignal<import("@mathos/domain").ContextConflict[]>([])
   const [notebookDocument, setNotebookDocument] = createSignal<import("@mathos/domain").ResearchDocument | null>(null)
   const [notebookBlocks, setNotebookBlocks] = createSignal<import("@mathos/domain").ResearchBlock[]>([])
+  const [alignment, setAlignment] = createSignal<import("@mathos/domain").FormalAlignment|null>(null)
+  const [alignmentFindings, setAlignmentFindings] = createSignal<import("@mathos/domain").AlignmentFinding[]>([])
   const [paletteOpen, setPaletteOpen] = createSignal(false)
   const [toast, setToast] = createSignal<{ message: string; kind: "info" | "success" | "error" } | null>(null)
   const [history, setHistory] = createSignal<string[]>([])
@@ -144,6 +146,10 @@ export function AppShell(props: { mathos: MathOS }) {
         const document=id?props.mathos.services.repositories.researchDocuments.get(id):props.mathos.services.repositories.researchDocuments.list(branch.workspaceId,{limit:1})[0]??null
         if(!document){showToast("No notebook. Use: mathos notebook init <slug>","info");return}
         setNotebookDocument(document);setNotebookBlocks(props.mathos.services.repositories.researchBlocks.list(document.id,{limit:10_000}));setView("notebook");return
+      }
+      if(name==="align"){
+        const key=rest.trim();const found=key.startsWith("AL-")?props.mathos.services.repositories.formalAlignments.get(key):props.mathos.services.repositories.formalAlignments.list(key||status().mainObjective?.id||"",{limit:100}).at(-1)??null
+        if(!found){showToast("Run alignment from CLI first: mathos align run <claim-id>","info");return}setAlignment(found);setAlignmentFindings(props.mathos.services.repositories.alignmentFindings.listByAlignment(found.id));setView("alignment");return
       }
       if (name === "quit") {
         renderer.destroy()
@@ -881,6 +887,8 @@ export function AppShell(props: { mathos: MathOS }) {
           contextConflicts={contextConflicts()}
           notebookDocument={notebookDocument()}
           notebookBlocks={notebookBlocks()}
+          alignment={alignment()}
+          alignmentFindings={alignmentFindings()}
         />
         <Sidebar status={status()} visible={showSidebar()} branches={props.mathos.listBranches()} />
       </box>

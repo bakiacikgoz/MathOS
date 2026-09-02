@@ -1,0 +1,7 @@
+import { describe,expect,test } from "bun:test"
+import { testRender } from "@opentui/solid"
+import { AlignmentView,canApproveAlignment } from "../apps/tui/src/ui/AlignmentViews.tsx"
+import type { AlignmentFinding,FormalAlignment } from "@mathos/domain"
+const alignment:FormalAlignment={id:"AL-1",claimId:"C-1",naturalRevisionId:"N-1",formalRevisionId:"F-1",contextRevisionId:"CR-1",status:"STALE",verdict:"MISMATCH",backTranslation:"Back translated statement",symbolMapping:[{natural:"x",formal:"x",status:"MATCH"}],auditorProvider:"a",auditorModel:"m",promptHash:"p",createdAt:"now",decidedAt:null}
+const finding:AlignmentFinding={id:"AF-1",alignmentId:"AL-1",dimension:"ASSUMPTIONS",severity:"ERROR",naturalFragment:"n",formalFragment:"f",message:"Missing assumption",resolutionStatus:"OPEN",reviewerNote:null}
+describe("alignment TUI",()=>{test("shows side-by-side fields, dimensions, mapping, stale badge and impact",async()=>{const setup=await testRender(()=><AlignmentView alignment={alignment} findings={[finding]} impactCount={3}/>,{width:110,height:24});try{await setup.renderOnce();const frame=setup.captureCharFrame();expect(frame).toContain("ALIGNMENT WORKSHOP");expect(frame).toContain("STALE");expect(frame).toContain("ASSUMPTIONS");expect(frame).toContain("Back translated");expect(frame).toContain("IMPACT 3")}finally{setup.renderer.destroy()}});test("unresolved errors block explicit confirmation",()=>expect(canApproveAlignment(alignment,[finding])).toBe(false))})
