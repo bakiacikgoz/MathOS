@@ -1,0 +1,1 @@
+import{parseConjectureDraft,type ConjectureDraft}from"@mathos/domain";export function parseModelConjectures(values:Record<string,unknown>[],max:number):ConjectureDraft[]{return values.slice(0,max).map(parseConjectureDraft)}
