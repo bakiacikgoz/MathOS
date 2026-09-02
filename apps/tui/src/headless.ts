@@ -6,7 +6,7 @@ import { exportBlueprintLatex, importBlueprintLatex, parseMathosMarkdown } from 
 import { MATHOS_PRODUCT_VERSION, MathOSError, cliExitCode, formatCliError, resolveRuntimeLayout, withWorkspaceOperationLock } from "@mathos/shared"
 import { repairWorkspaceRuntimeState } from "@mathos/workspace"
 import { SCHEMA_EPOCH } from "@mathos/storage"
-import { FileModelUsageLedger, ModelProfileRegistry, createSecretStore, loadConfigFiles, parseMathOSConfig, parseModelProfiles, probeModelProfile, serializeConfigValues, serializeModelProfiles, type ConfigScalar, type ModelProfile } from "@mathos/models"
+import { FileModelUsageLedger, ModelProfileRegistry, createSecretStore, loadConfigFiles, parseMathOSConfig, parseModelProfiles, probeModelProfile, readSecretInput, serializeConfigValues, serializeModelProfiles, type ConfigScalar, type ModelProfile } from "@mathos/models"
 import { formatBranchDetail, formatBranches, formatClaims, formatDoctor, formatMergePreview, formatResearchRun, formatStatus, HELP_TEXT } from "./format.ts"
 import { portfolioSnapshot } from "./ui/PortfolioViews.tsx"
 import { failureMemorySnapshot } from "./ui/FailureMemoryViews.tsx"
@@ -103,17 +103,18 @@ export async function runHeadless(argv: string[]): Promise<number> {
     }
 
     if (command === "secrets") {
+      if (rest.some(value => /^(--value|--api-key|--token|--secret|--password)(=|$)/i.test(value))) throw new Error("SECRET_ARG_FORBIDDEN: use interactive input")
       const action = rest[0] ?? "list", ref = rest[1], store = createSecretStore(), capability = await store.capability()
       if (action === "doctor") { process.stdout.write(`${JSON.stringify(capability, null, 2)}\n`); return capability.readable ? 0 : 1 }
       if (action === "list") { const refs = rest.slice(1).filter(value => !value.startsWith("--")); process.stdout.write(`${JSON.stringify({ capability, secrets: await store.listMetadata(refs) }, null, 2)}\n`); return 0 }
       if (!ref) throw new Error("SECRET_REF_REQUIRED")
       if (action === "delete") { await store.delete(ref); process.stdout.write(`Deleted ${ref}\n`); return 0 }
-      if (action === "set") { if (!capability.writable) throw new Error(`SECRET_STORE_BLOCKED: ${capability.detail}; set ${ref} using ${`MATHOS_SECRET_${ref.toUpperCase().replace(/[^A-Z0-9]+/g, "_")}`}`); throw new Error("SECRET_INTERACTIVE_INPUT_UNAVAILABLE") }
+      if (action === "set") { if (!capability.writable) throw new Error(`SECRET_STORE_BLOCKED: ${capability.detail}; set ${ref} using ${`MATHOS_SECRET_${ref.toUpperCase().replace(/[^A-Z0-9]+/g, "_")}`}`); const value = await readSecretInput(); await store.set(ref, value); process.stdout.write(`Stored ${ref} in ${capability.backend}\n`); return 0 }
       throw new Error(`Unknown secrets action: ${action}`)
     }
 
     if (command === "provider") {
-      if (rest.some(value => /^(--api-key|--token|--secret|--password)$/i.test(value))) throw new Error("PROVIDER_SECRET_ARG_FORBIDDEN: use mathos secrets set")
+      if (rest.some(value => /^(--value|--api-key|--token|--secret|--password)(=|$)/i.test(value))) throw new Error("PROVIDER_SECRET_ARG_FORBIDDEN: use mathos secrets set")
       const layout = resolveRuntimeLayout({ executablePath: process.execPath, platform: process.platform, home: homedir(), env: process.env }), path = join(layout.userConfigRoot, "model-profiles.json")
       const registry = new ModelProfileRegistry(existsSync(path) ? parseModelProfiles(readFileSync(path, "utf8")) : [])
       const save = () => { mkdirSync(dirname(path), { recursive: true }); const temporary = `${path}.${process.pid}.tmp`; writeFileSync(temporary, serializeModelProfiles(registry.list()), { encoding: "utf8", mode: 0o600 }); renameSync(temporary, path) }
