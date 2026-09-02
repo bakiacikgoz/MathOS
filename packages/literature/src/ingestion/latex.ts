@@ -1,0 +1,1 @@
+export function extractLatex(text:string){const matches=[...text.matchAll(/\\(?:section|subsection)\{([^}]+)\}/g)];return matches.map((match,index)=>({text:text.slice(match.index!,matches[index+1]?.index??text.length),locator:{kind:"SECTION" as const,section:match[1]!}}))}

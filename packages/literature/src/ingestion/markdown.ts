@@ -1,0 +1,1 @@
+export function extractMarkdown(text:string){const matches=[...text.matchAll(/^#{1,6}\s+(.+)$/gm)];return matches.map((match,index)=>({text:text.slice(match.index!,matches[index+1]?.index??text.length),locator:{kind:"SECTION" as const,section:match[1]!.trim()}}))}
