@@ -19,6 +19,10 @@ export interface ModelRequest {
   researchRunId?: string
   temperature?: number
   signal?: AbortSignal
+  responseSchema?: { name: string; jsonSchema: Record<string, unknown> }
+  maxOutputTokens?: number
+  reasoningEffort?: "none" | "low" | "medium" | "high" | "max"
+  metadata?: { role?: ModelRole; researchRunId?: string }
 }
 
 export interface ModelResponse {
