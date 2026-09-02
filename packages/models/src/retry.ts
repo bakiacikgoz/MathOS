@@ -1,6 +1,6 @@
 export interface ModelRetryOptions { maxAttempts?: number; maxTotalDelayMs?: number; sleep?: (ms: number) => Promise<void>; random?: () => number; signal?: AbortSignal }
 function statusOf(error: unknown): number | null { return typeof error === "object" && error !== null && "status" in error && typeof (error as {status?:unknown}).status === "number" ? (error as {status:number}).status : null }
-function retryable(error: unknown): boolean { const status = statusOf(error); if (status !== null) return status === 429 || status >= 500; const text = error instanceof Error ? `${error.name} ${error.message}`.toLowerCase() : String(error).toLowerCase(); return /timeout|timed out|econnreset|connection reset|temporar/.test(text) }
+function retryable(error: unknown): boolean { const status = statusOf(error); if (status !== null) return status === 429 || status >= 500; const text = error instanceof Error ? `${error.name} ${error.message}`.toLowerCase() : String(error).toLowerCase(); return /timeout|timed out|econnreset|connection reset|temporar|rate[_ ]?limited|providerratelimited/.test(text) }
 export async function retryModelCall<T>(operation: () => Promise<T>, options: ModelRetryOptions = {}): Promise<{ value: T; retries: number }> {
   const maxAttempts = options.maxAttempts ?? 3, maxTotal = options.maxTotalDelayMs ?? 5_000, sleep = options.sleep ?? (ms => new Promise(resolve => setTimeout(resolve, ms))), random = options.random ?? Math.random; let delayed = 0
   for (let attempt = 1; ; attempt++) {
