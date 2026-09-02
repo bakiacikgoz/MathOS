@@ -21,6 +21,7 @@ import { publicationCommand } from "./ui/PublicationViews.tsx"
 import { pluginCommand } from "./ui/PluginViews.tsx"
 import { projectAtlas, blockerCriticalPath } from "@mathos/graph"
 import { createProductionLiteratureProvider } from "@mathos/literature"
+import { PersistentPluginRegistry } from "@mathos/plugins"
 
 function joinCwdBackups(): string {
   return join(process.cwd(), "backups")
@@ -155,6 +156,12 @@ export async function runHeadless(argv: string[]): Promise<number> {
     if (command === "version" || command === "--version") {
       process.stdout.write(`${MathOS.versionText()}\n`)
       return 0
+    }
+
+    if (command === "plugin") {
+      const layout=resolveRuntimeLayout({executablePath:process.execPath,platform:process.platform,home:homedir(),env:process.env}),registry=new PersistentPluginRegistry(layout.userDataRoot),action=rest[0]??"list",id=rest[1],actor=flag(rest,"--actor")??"local-user";let result:unknown
+      if(action==="install"){if(!id)throw new Error("PLUGIN_SOURCE_REQUIRED");result=registry.install(id)}else if(action==="update"){if(!id||!rest[2])throw new Error("PLUGIN_UPDATE_ARGUMENTS_REQUIRED");result=registry.update(id,rest[2])}else if(action==="list")result=registry.list();else if(action==="info"||action==="inspect"){if(!id)throw new Error("PLUGIN_ID_REQUIRED");result=registry.info(id)}else if(action==="enable"){if(!id)throw new Error("PLUGIN_ID_REQUIRED");result=registry.enable(id,actor)}else if(action==="disable"){if(!id)throw new Error("PLUGIN_ID_REQUIRED");result=registry.disable(id,actor)}else if(action==="remove"){if(!id)throw new Error("PLUGIN_ID_REQUIRED");registry.remove(id);result={removed:id}}else if(action==="doctor")result=registry.doctor();else throw new Error(`PLUGIN_ACTION_UNKNOWN: ${action}`)
+      process.stdout.write(`${JSON.stringify({schemaVersion:"mathos.plugin-cli.v1",securityBoundary:"OUT_OF_PROCESS",verificationAuthority:false,result},null,2)}\n`);return 0
     }
 
     const app = MathOS.open(process.cwd(), { literatureOffline: command === "literature" && rest.includes("--offline") })
