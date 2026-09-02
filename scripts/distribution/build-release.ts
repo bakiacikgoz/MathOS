@@ -4,6 +4,7 @@ import { dirname,join,resolve } from "node:path"
 import { MATHOS_PRODUCT_VERSION,assertProductVersionAlignment,createReleaseManifest,currentBuildIdentity,readProductSurfaceVersions } from "@mathos/shared"
 import { packageAtlas } from "./package-atlas.ts"
 import { packageVscodeBridge } from "./package-vscode.ts"
+import solidPlugin from "@opentui/solid/bun-plugin"
 
 const ROOT=resolve(import.meta.dir,"..","..")
 const targetNames:Record<string,string>={"darwin-arm64":"bun-darwin-arm64","darwin-x64":"bun-darwin-x64","linux-x64":"bun-linux-x64","linux-arm64":"bun-linux-arm64","windows-x64":"bun-windows-x64"}
@@ -15,7 +16,7 @@ export async function buildRelease(target=hostReleaseTarget(),outputRoot=join(RO
   assertProductVersionAlignment(readProductSurfaceVersions(ROOT));await runBuildScript("build:atlas");await runBuildScript("build:vscode")
   const identity=currentBuildIdentity(),releaseRoot=join(outputRoot,MATHOS_PRODUCT_VERSION,target,"root");rmSync(releaseRoot,{recursive:true,force:true});mkdirSync(join(releaseRoot,"bin"),{recursive:true})
   const executableName=target.startsWith("windows-")?"mathos.exe":"mathos",executable=join(releaseRoot,"bin",executableName)
-  const result=await Bun.build({entrypoints:[join(ROOT,"apps","tui","src","cli.ts")],compile:{target:bunTarget as any,outfile:executable},minify:true,define:{"process.env.MATHOS_BUILD_REVISION":JSON.stringify(identity.gitRevision),"process.env.MATHOS_BUILD_ID":JSON.stringify(identity.buildId)}})
+  const result=await Bun.build({entrypoints:[join(ROOT,"apps","tui","src","cli.ts")],plugins:[solidPlugin],compile:{target:bunTarget as any,outfile:executable},minify:true,define:{"process.env.MATHOS_BUILD_REVISION":JSON.stringify(identity.gitRevision),"process.env.MATHOS_BUILD_ID":JSON.stringify(identity.buildId)}})
   if(!result.success)throw new Error(`STANDALONE_BUILD_FAILED:${result.logs.map(String).join(";")}`)
   const paths=[`bin/${executableName}`,...packageAtlas(ROOT,releaseRoot),...packageVscodeBridge(ROOT,releaseRoot)]
   const inventory=dependencyInventory(ROOT);writeFileSync(join(releaseRoot,"SBOM.json"),JSON.stringify({spdxVersion:"SPDX-2.3",name:`mathos-${MATHOS_PRODUCT_VERSION}`,packages:inventory},null,2)+"\n");writeFileSync(join(releaseRoot,"THIRD_PARTY_LICENSES.json"),JSON.stringify(inventory,null,2)+"\n");paths.push("SBOM.json","THIRD_PARTY_LICENSES.json")
