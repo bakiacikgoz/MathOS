@@ -1,5 +1,7 @@
 # MathOS pilot
 
+The maintained v1 workflow and feedback form are in [Professional pilot](PROFESSIONAL_PILOT.md).
+
 Alpha. You will hit missing optional tools. That is expected.
 
 ## Flow
@@ -21,5 +23,8 @@ Alpha. You will hit missing optional tools. That is expected.
 - What failed?
 - What did you expect MathOS to do?
 - Would you trust the verification state?
+- How much time was saved?
+- Did any view create false confidence?
+- Which mathematical workflow is missing?
 
 Do not treat KERNEL_VERIFIED as anything except VerificationGate.

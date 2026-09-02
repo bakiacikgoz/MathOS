@@ -4,7 +4,7 @@ Agentic **mathematical research workspace**. Persistent claims, epistemic status
 
 ## What it is not
 
-- Not an automatic solver of open problems
+- MathOS is not an automatic solver of open problems
 - Not a general IDE / desktop app
 - LLM output is not proof
 - Computation is not proof
@@ -53,7 +53,7 @@ mathos report --format md
 mathos diagnostics export
 ```
 
-See [docs/PILOT.md](docs/PILOT.md) for the short early-user path.
+See the [professional pilot](docs/PROFESSIONAL_PILOT.md), [product boundary](docs/PRODUCT_BOUNDARY_V1.md), [trust model](docs/TRUST_MODEL_V1.md), and [security model](docs/SECURITY_MODEL_V1.md).
 
 ## Trust model
 
