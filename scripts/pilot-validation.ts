@@ -95,6 +95,7 @@ function cleanEnvironment(temporaryRoot: string): Record<string, string> {
     HOME: isolatedHome,
     TMPDIR: isolatedTmp,
     MATHOS_DEBUG: "0",
+    MATHOS_LITERATURE_OFFLINE: "1",
     LANG: process.env.LANG ?? "C.UTF-8",
   }
   for (const name of ["SystemRoot", "WINDIR", "COMSPEC", "PATHEXT"]) if (process.env[name]) env[name] = process.env[name]!

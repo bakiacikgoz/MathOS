@@ -29,6 +29,11 @@ describe("fresh-user pilot validation", () => {
     expect(canonicalPilotHash(a)).toBe(canonicalPilotHash(b))
   })
 
+  test("the deterministic pilot never depends on live literature providers", () => {
+    const source = readFileSync(join(import.meta.dir, "../scripts/pilot-validation.ts"), "utf8")
+    expect(source).toContain('MATHOS_LITERATURE_OFFLINE: "1"')
+  })
+
   test("uses the built CLI, covers the checklist, records provenance, and cleans up", async () => {
     const dir = mkdtempSync(join(tmpdir(), "pilot-evidence-")); dirs.push(dir)
     const output = join(dir, "result.json")
