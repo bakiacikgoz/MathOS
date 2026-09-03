@@ -4,6 +4,7 @@ node_modules/
 dist/
 .turbo/
 .cache/
+.codegraph/
 coverage/
 tmp/
 .mathos-test/
