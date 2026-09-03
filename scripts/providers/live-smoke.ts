@@ -12,7 +12,7 @@ type LiveProvider = ModelProvider & { connect?:()=>Promise<unknown>;models?:()=>
 type LiveSmokeOptions = { profiles?:ModelProfileV2[];createProvider?:(profile:ModelProfileV2,options:ProviderFactoryOptions)=>Promise<LiveProvider> }
 
 function revision(){try{return execFileSync("git",["rev-parse","HEAD"],{cwd:resolve(import.meta.dir,"../.."),encoding:"utf8"}).trim()}catch{return"UNKNOWN"}}
-async function codexOptions():Promise<ProviderFactoryOptions["codex"]>{
+export async function codexOptions():Promise<ProviderFactoryOptions["codex"]>{
   const executable=discoverCodexExecutable({platform:process.platform});if(!executable)throw new Error("CODEX_CLIENT_MISSING")
   const version=await probeCodexVersion(executable);if(!version.compatible)throw new Error("CODEX_VERSION_INCOMPATIBLE")
   const output=mkdtempSync(join(tmpdir(),"mathos-codex-schema-"))

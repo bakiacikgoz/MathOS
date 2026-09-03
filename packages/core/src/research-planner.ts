@@ -50,7 +50,12 @@ export class ModelResearchPlanner implements ResearchPlanner {
       messages: [
         {
           role: "system",
-          content: "Choose one typed MathOS research action. Never set claim or verification status. Never spawn agents, merge, or apply imports. Verified prerequisites do not imply the objective is verified. Dependency path is research structure, not mathematical proof. Frontier items are structural candidates, not mandatory next steps. Return JSON only.",
+          content: `Choose one typed MathOS research action. Never set claim or verification status. Never spawn agents, merge, or apply imports. Verified prerequisites do not imply the objective is verified. Dependency path is research structure, not mathematical proof. Frontier items are structural candidates, not mandatory next steps.
+
+Return JSON only with this shape:
+{"researchDecisionVersion":"v1","action":"ANALYZE_GOAL","targetClaimId":"C-001","rationaleSummary":"short reason","expectedInformationGain":"optional","parameters":{}}
+
+Allowed action values: ANALYZE_GOAL, SEARCH_PREMISES, DECOMPOSE_GOAL, CREATE_SUBCLAIM, ATTEMPT_PROOF, VERIFY, INSPECT_FAILURE, RECORD_BLOCKER, REQUEST_HUMAN, STOP, RUN_EXPERIMENT, SEARCH_LITERATURE, INSPECT_SOURCE. Omit targetClaimId or optional fields when they do not apply. Do not add authority or status fields.`,
         },
         { role: "user", content: `${graphSection}\n\nOBJECTIVE ${context.objective.id} ${context.objective.status}\nFOCUS ${context.proofState?.claimId ?? context.objective.id}\nBUDGET ${JSON.stringify(context.budget)}\nFIDELITY_BLOCKED ${context.fidelityBlocked === true}` },
       ],
