@@ -2,6 +2,8 @@
 import { execFileSync } from "node:child_process"
 import { homedir } from "node:os"
 import { join, resolve } from "node:path"
+import { mkdtempSync, readFileSync, rmSync } from "node:fs"
+import { tmpdir } from "node:os"
 import { createProviderFromProfile, createSecretStore, discoverCodexExecutable, evaluateProviderPolicy, loadModelProfileStore, probeCodexVersion, providerCatalog, validateCodexSchema, type ModelProfileV2, type ModelProvider, type ProviderFactoryOptions } from "@mathos/models"
 import { resolveRuntimeLayout } from "@mathos/shared"
 
@@ -13,10 +15,8 @@ function revision(){try{return execFileSync("git",["rev-parse","HEAD"],{cwd:reso
 async function codexOptions():Promise<ProviderFactoryOptions["codex"]>{
   const executable=discoverCodexExecutable({platform:process.platform});if(!executable)throw new Error("CODEX_CLIENT_MISSING")
   const version=await probeCodexVersion(executable);if(!version.compatible)throw new Error("CODEX_VERSION_INCOMPATIBLE")
-  const child=Bun.spawn([executable,"app-server","generate-json-schema"],{stdin:"ignore",stdout:"pipe",stderr:"pipe"})
-  const [stdout,stderr,exitCode]=await Promise.all([new Response(child.stdout).text(),new Response(child.stderr).text(),child.exited])
-  if(exitCode!==0)throw new Error(`CODEX_SCHEMA_GENERATION_FAILED${stderr.trim()?`: ${stderr.trim()}`:""}`)
-  const schema=JSON.parse(stdout);validateCodexSchema(schema);return{executable,schema,version:version.version}
+  const output=mkdtempSync(join(tmpdir(),"mathos-codex-schema-"))
+  try{const child=Bun.spawn([executable,"app-server","generate-json-schema","--out",output],{stdin:"ignore",stdout:"pipe",stderr:"pipe"});const stderrPromise=new Response(child.stderr).text(),exitCode=await child.exited,stderr=await stderrPromise;if(exitCode!==0)throw new Error(`CODEX_SCHEMA_GENERATION_FAILED${stderr.trim()?`: ${stderr.trim()}`:""}`);const schema=JSON.parse(readFileSync(join(output,"codex_app_server_protocol.v2.schemas.json"),"utf8"));validateCodexSchema(schema);return{executable,schema,version:version.version}}finally{rmSync(output,{recursive:true,force:true})}
 }
 function validSmoke(text:string):boolean{try{return JSON.parse(text).mathos_live_provider_smoke===true}catch{return false}}
 
