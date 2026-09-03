@@ -41,4 +41,11 @@ describe("provider center CLI", () => {
     expect(await runHeadless(["provider", "test", id, "--live"])).toBe(2)
     expect(errors).toContain("LIVE_USAGE_ACCEPTANCE_REQUIRED")
   })
+
+  test("routes provider tests through the truthful live-smoke contract", async () => {
+    const id = `cli-codex-${process.pid}`; ids.push(id)
+    expect(await runHeadless(["provider", "configure", "openai-codex-chatgpt", "--profile", id, "--model", "codex-test"])).toBe(0)
+    output = ""; expect(await runHeadless(["provider", "test", id])).toBe(0)
+    expect(JSON.parse(output)).toMatchObject({ schemaVersion:"mathos.provider-live-smoke.v1", connection:"NOT_CONFIGURED", liveRequest:"NOT_REQUESTED" })
+  })
 })
