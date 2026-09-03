@@ -30,6 +30,11 @@ function parseValue(raw: string): ConfigScalar {
   if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) return value.slice(1, -1)
   throw new Error(`CONFIG_INVALID_VALUE: ${raw}`)
 }
+function parseEnvValue(raw: string): ConfigScalar {
+  const value = raw.trim()
+  if (value === "1" || value === "0") return value === "1"
+  return parseValue(raw)
+}
 export function parseMathOSConfig(text: string): Record<string, ConfigScalar> {
   const values: Record<string, ConfigScalar> = {}; let section = ""
   for (const rawLine of text.split(/\r?\n/)) {
@@ -53,9 +58,9 @@ function assign(config: MathOSConfig, path: string, value: ConfigScalar): void {
 function envOverrides(env: NodeJS.ProcessEnv): Record<string, ConfigScalar> {
   const result: Record<string, ConfigScalar> = {}
   if (env.MATHOS_MODEL_PROFILE) result["model.default_profile"] = env.MATHOS_MODEL_PROFILE
-  if (env.MATHOS_ALLOW_REMOTE_MODELS) result["privacy.allow_remote_models"] = parseValue(env.MATHOS_ALLOW_REMOTE_MODELS)
-  if (env.MATHOS_ALLOW_REMOTE_LITERATURE) result["privacy.allow_remote_literature"] = parseValue(env.MATHOS_ALLOW_REMOTE_LITERATURE)
-  if (env.MATHOS_LITERATURE_OFFLINE) result["literature.offline"] = parseValue(env.MATHOS_LITERATURE_OFFLINE)
+  if (env.MATHOS_ALLOW_REMOTE_MODELS) result["privacy.allow_remote_models"] = parseEnvValue(env.MATHOS_ALLOW_REMOTE_MODELS)
+  if (env.MATHOS_ALLOW_REMOTE_LITERATURE) result["privacy.allow_remote_literature"] = parseEnvValue(env.MATHOS_ALLOW_REMOTE_LITERATURE)
+  if (env.MATHOS_LITERATURE_OFFLINE) result["literature.offline"] = parseEnvValue(env.MATHOS_LITERATURE_OFFLINE)
   return result
 }
 export function loadMathOSConfig(options: { userToml?: string; workspaceToml?: string; env?: NodeJS.ProcessEnv; cli?: Record<string, ConfigScalar> } = {}): LoadedMathOSConfig {

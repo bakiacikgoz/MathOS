@@ -14,4 +14,12 @@ describe("layered MathOS configuration", () => {
     expect(result.config.literature.providers).toEqual(["openalex", "arxiv"])
     expect(result.sources["model.default_profile"]).toBe("cli")
   })
+
+  test("accepts conventional numeric booleans from environment variables", () => {
+    const enabled = loadMathOSConfig({ env: { MATHOS_LITERATURE_OFFLINE: "1" } })
+    const disabled = loadMathOSConfig({ env: { MATHOS_LITERATURE_OFFLINE: "0" } })
+
+    expect(enabled.config.literature.offline).toBe(true)
+    expect(disabled.config.literature.offline).toBe(false)
+  })
 })
