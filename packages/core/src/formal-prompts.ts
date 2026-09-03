@@ -8,6 +8,8 @@ Rules:
 - Do not weaken or strengthen the theorem.
 - Do not silently add assumptions.
 - Preserve quantifiers and domains.
+- For a finite sum over the first n naturals, use Lean binder syntax \`∑ k in Finset.range n, ...\`.
+- Do not write \`∑ k ∈ Finset.range n, ...\`; that is a different nested-binder expression and changes the theorem.
 - Report uncertainties separately.
 - Return JSON only.
 
