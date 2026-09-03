@@ -45,7 +45,9 @@ describe("native secret store contract", () => {
   })
 
   test("factory selects native stores and environment fallback", async () => {
-    expect((await createSecretStore({ platform: "darwin", which: () => "/usr/bin/security" }).capability()).backend).toBe("macos-keychain")
+    const runner = new MemoryRunner()
+    expect((await createSecretStore({ platform: "darwin", which: () => "/usr/bin/security", runner }).capability()).backend).toBe("macos-keychain")
+    expect(runner.calls[0]?.executable).toBe("/usr/bin/security")
     expect((await createSecretStore({ platform: "linux", which: () => null, env: { MATHOS_SECRET_MODEL_TEST: "env-value" } }).capability()).backend).toBe("environment")
     expect(await new EnvironmentSecretStore({ MATHOS_SECRET_MODEL_TEST: "env-value" }).get("model.test")).toBe("env-value")
   })
