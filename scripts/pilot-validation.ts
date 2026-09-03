@@ -90,10 +90,17 @@ function summarize(steps: PilotStep[]): PilotEvidence["summary"] {
 function cleanEnvironment(temporaryRoot: string): Record<string, string> {
   const isolatedHome = join(temporaryRoot, "home")
   const isolatedTmp = join(temporaryRoot, "tmp")
+  const isolatedAppData = join(isolatedHome, "AppData", "Roaming")
+  const isolatedLocalAppData = join(isolatedHome, "AppData", "Local")
   const env: Record<string, string> = {
     PATH: process.env.PATH ?? "/usr/bin:/bin",
     HOME: isolatedHome,
+    USERPROFILE: isolatedHome,
+    APPDATA: isolatedAppData,
+    LOCALAPPDATA: isolatedLocalAppData,
     TMPDIR: isolatedTmp,
+    TEMP: isolatedTmp,
+    TMP: isolatedTmp,
     MATHOS_DEBUG: "0",
     MATHOS_LITERATURE_OFFLINE: "1",
     LANG: process.env.LANG ?? "C.UTF-8",
@@ -101,6 +108,8 @@ function cleanEnvironment(temporaryRoot: string): Record<string, string> {
   for (const name of ["SystemRoot", "WINDIR", "COMSPEC", "PATHEXT"]) if (process.env[name]) env[name] = process.env[name]!
   mkdirSync(isolatedHome, { recursive: true })
   mkdirSync(isolatedTmp, { recursive: true })
+  mkdirSync(isolatedAppData, { recursive: true })
+  mkdirSync(isolatedLocalAppData, { recursive: true })
   return env
 }
 
