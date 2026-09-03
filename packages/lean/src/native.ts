@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { homedir } from "node:os"
-import { join, resolve } from "node:path"
+import { delimiter, join, resolve } from "node:path"
 import type { DoctorCheck, LeanDiagnostic } from "@mathos/domain"
 import { PINNED_LEAN_TOOLCHAIN, PINNED_MATHLIB_REV } from "./pin.ts"
 import type {
@@ -16,7 +16,7 @@ import { parseCheckOutput } from "./parse-check.ts"
 
 function leanPath(): string {
   const elan = join(homedir(), ".elan", "bin")
-  return `${elan}:${process.env.PATH ?? ""}`
+  return `${elan}${delimiter}${process.env.PATH ?? ""}`
 }
 
 async function runAsync(cmd: string, args: string[], cwd?: string, signal?: AbortSignal, timeoutMs?: number): Promise<{ ok: boolean; out: string; timedOut: boolean }> {
