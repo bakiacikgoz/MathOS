@@ -24,9 +24,9 @@ export async function inspectPlatformCapabilities(platform: NodeJS.Platform = pr
   sandboxProbe?: () => Promise<SandboxCapability>
 } = {}): Promise<PlatformCapabilityReport> {
   const resolveExecutable = dependencies.executablePath ?? executablePath
-  const runtime = resolveExecutable("bun")
+  const runtime = resolveExecutable("bun") ?? (dependencies.executablePath ? null : process.execPath)
   const sandboxCapability = await (dependencies.sandboxProbe ?? (() => createSandboxRuntime(platform).inspect()))()
-  if (platform === "darwin") {
+  if (platform === "darwin" || platform === "win32") {
     return {
       platform,
       releaseClaim: "SUPPORTED",
