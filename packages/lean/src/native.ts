@@ -93,6 +93,11 @@ export function wrapForCheck(source: string): string {
   return `${trimmed} := by\n  sorry\n`
 }
 
+export function withProjectImports(source: string, mathlib: boolean): string {
+  if (!mathlib || /^\s*import\s+/m.test(source)) return source
+  return `import Mathlib\n\n${source}`
+}
+
 export function parseLeanOutput(text: string): LeanDiagnostic[] {
   if (!text.trim()) return []
   return text
@@ -201,7 +206,7 @@ export class NativeLeanAdapter implements LeanAdapter {
         toolchain: env.toolchain,
       }
     }
-    const checked = await this.runSource(wrapForCheck(source), context, env.projectRoot)
+    const checked = await this.runSource(wrapForCheck(source), context, env.projectRoot, env.mathlib)
     return {
       result: checked.ok ? "ELABORATES" : "ERROR",
       diagnostics: parseLeanOutput(checked.out),
@@ -220,7 +225,7 @@ export class NativeLeanAdapter implements LeanAdapter {
         toolchain: env.toolchain,
       }
     }
-    const checked = await this.runSource(source, context, env.projectRoot)
+    const checked = await this.runSource(source, context, env.projectRoot, env.mathlib)
     return {
       result: checked.ok ? "KERNEL_ACCEPTED" : "ERROR",
       diagnostics: parseLeanOutput(checked.out),
@@ -233,7 +238,7 @@ export class NativeLeanAdapter implements LeanAdapter {
     const env = await this.detect(context.workspaceRoot)
     if (!env.leanAvailable) return []
     const body = `${source.trim()}\n\n#print axioms ${declarationName}\n`
-    const checked = await this.runSource(body, context, env.projectRoot)
+    const checked = await this.runSource(body, context, env.projectRoot, env.mathlib)
     return parseAxioms(checked.out)
   }
 
@@ -303,7 +308,7 @@ export class NativeLeanAdapter implements LeanAdapter {
     const imports = ["import Mathlib", ...(options.extraImports ?? []).map((item) => `import ${item}`)]
     const body = `${imports.join("\n")}\n\n${unique.map((name) => `#check ${name}`).join("\n")}\n`
     const timeoutMs = options.timeoutMs ?? 120_000
-    const checked = await this.runSource(body, context, env.projectRoot, timeoutMs)
+    const checked = await this.runSource(body, context, env.projectRoot, env.mathlib, timeoutMs)
     if (checked.timedOut) {
       return { inspections: [], timedOut: true, failed: true, detail: "inspection timeout" }
     }
@@ -328,12 +333,13 @@ export class NativeLeanAdapter implements LeanAdapter {
     source: string,
     context: LeanContext,
     projectRoot: string | null,
+    mathlib: boolean,
     timeoutMs?: number,
   ): Promise<{ ok: boolean; out: string; timedOut: boolean }> {
     const tmp = context.tmpDir ?? join(context.workspaceRoot, ".mathos", "tmp")
     mkdirSync(tmp, { recursive: true })
     const file = join(tmp, `chk-${Date.now()}-${Math.random().toString(16).slice(2)}.lean`)
-    writeFileSync(file, `${source.trim()}\n`, "utf8")
+    writeFileSync(file, `${withProjectImports(source.trim(), mathlib)}\n`, "utf8")
     try {
       if (projectRoot) return await runAsync("lake", ["env", "lean", file], projectRoot, context.signal, timeoutMs)
       return await runAsync("lean", [file], undefined, context.signal, timeoutMs)
