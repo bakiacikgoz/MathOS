@@ -8,6 +8,7 @@ test("container sandbox denies network and constrains process and filesystem", (
   expect(args).toContain("ALL")
   expect(args).toContain("no-new-privileges")
   expect(args).toContain("--pids-limit")
+  expect(args[args.indexOf("--pids-limit") + 1]).toBe("1")
   expect(args).toContain("--memory")
   expect(args).toContain("--cpus")
   expect(args).toContain("65534:65534")

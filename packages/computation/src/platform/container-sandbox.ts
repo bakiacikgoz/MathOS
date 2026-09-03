@@ -15,7 +15,7 @@ function dockerEnvironment(): NodeJS.ProcessEnv {
 }
 
 export function dockerRunArguments(root: string): string[] {
-  return ["run", "--rm", "--network", "none", "--read-only", "--cap-drop", "ALL", "--security-opt", "no-new-privileges", "--pids-limit", "32", "--memory", "256m", "--cpus", "1", "--user", "65534:65534", "--volume", `${root}:/work:rw`, "--workdir", "/work", "--env", "HOME=/work", "--env", "TMPDIR=/work", IMAGE, "python3", "-I", "-B", "experiment.py"]
+  return ["run", "--rm", "--network", "none", "--read-only", "--cap-drop", "ALL", "--security-opt", "no-new-privileges", "--pids-limit", "1", "--memory", "256m", "--cpus", "1", "--user", "65534:65534", "--volume", `${root}:/work:rw`, "--workdir", "/work", "--env", "HOME=/work", "--env", "TMPDIR=/work", IMAGE, "python3", "-I", "-B", "experiment.py"]
 }
 
 export class ContainerSandboxRuntime implements SandboxRuntime {
