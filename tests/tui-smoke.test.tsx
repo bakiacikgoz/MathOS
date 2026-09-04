@@ -68,7 +68,7 @@ test("narrow home keeps the objective and omits the wide command grid", async ()
   } finally { setup.renderer.destroy() }
 })
 
-test("compact dashboard wraps Lean source above its bottom border", async () => {
+test("compact dashboard wraps Lean source with a clear row before its bottom border", async () => {
   const formalText = "theorem sumOddNumbers (n : ℕ) : Finset.sum (Finset.range n) (fun k => 2 * k + 1) = n ^ 2"
   const setup = await testRender(() => <ResearchSummary status={mathos.status()} compact formalText={formalText} />, { width: 70, height: 21 })
   try {
@@ -77,6 +77,9 @@ test("compact dashboard wraps Lean source above its bottom border", async () => 
     const leanRows = rows.filter((row) => row.includes("sumOddNumbers") || row.includes("Finset.sum") || row.includes("fun k"))
     expect(leanRows.length).toBeGreaterThanOrEqual(2)
     expect(leanRows.every((row) => !row.includes("─") && !row.includes("└"))).toBe(true)
+    const lastLeanRow = Math.max(...rows.map((row, index) => row.includes("sumOddNumbers") || row.includes("Finset.sum") || row.includes("fun k") ? index : -1))
+    const bottomBorder = rows.findIndex((row, index) => index > lastLeanRow && row.includes("└") && row.includes("┘"))
+    expect(bottomBorder - lastLeanRow).toBeGreaterThanOrEqual(2)
   } finally { setup.renderer.destroy() }
 })
 

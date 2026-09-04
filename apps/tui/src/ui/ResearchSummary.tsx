@@ -17,7 +17,7 @@ export function ResearchSummary(props: { status: StatusProjection; home?: string
   const commandGridWidth = () => Math.max(42, measuredWidth() - 6)
   const commandColumns = () => distributeColumns(commandGridWidth())
   return (
-    <Show when={!props.compact} fallback={<CompactDashboard status={props.status} formalText={props.formalText} meaningful={meaningful()} />}>
+    <Show when={!props.compact} fallback={<CompactDashboard status={props.status} formalText={props.formalText} meaningful={meaningful()} dashboardWidth={props.dashboardWidth} />}>
     <box flexDirection="column" padding={1} flexGrow={1} gap={1} onSizeChange={function () { setMeasuredWidth(this.width) }}>
       <box height={5} flexShrink={0} flexDirection="row" alignItems="center" justifyContent="space-between" border borderColor={theme.border} paddingLeft={1} paddingRight={1}>
         <box flexDirection="column"><text fg={theme.blue}>OBJECTIVE</text><text fg={theme.accent}>{`${objective()?.id ?? "—"}  `}<span style={{ fg: theme.text }}>{objective()?.title ?? "No main claim yet"}</span></text></box>
@@ -60,13 +60,13 @@ export function ResearchSummary(props: { status: StatusProjection; home?: string
   )
 }
 
-function CompactDashboard(props: { status: StatusProjection; formalText?: string | null; meaningful: string }) {
+function CompactDashboard(props: { status: StatusProjection; formalText?: string | null; meaningful: string; dashboardWidth?: number }) {
   const objective = () => props.status.mainObjective
   return <box flexDirection="column" padding={1} flexGrow={1}>
     <box height={4} flexShrink={0} flexDirection="column" border borderColor={theme.border} paddingLeft={1}><text fg={theme.blue}>OBJECTIVE</text><text fg={theme.accent}>{`${objective()?.id ?? "—"}  ${objective()?.title ?? "No main claim"}`}</text></box>
     <box height={6} flexShrink={0} flexDirection="column" border borderColor={theme.border}><Title text="RESEARCH SUMMARY" color={theme.blue} /><Metric label="Epistemic status" value={objective()?.status ?? "OPEN"} color={statusColor(objective()?.status ?? "OPEN")} /><Metric label="Verified claims" value={`${props.status.research.verified}/${props.status.research.totalClaims}`} color={theme.success} /><Metric label="Open blockers" value={String(props.status.research.blocked)} color={props.status.research.blocked ? theme.danger : theme.success} /></box>
     <box height={4} flexShrink={0} flexDirection="column" border borderColor={theme.border}><Title text="LATEST MEANINGFUL PROGRESS" color={theme.violet} /><text fg={theme.success}>{props.meaningful}</text></box>
-    <box minHeight={5} flexGrow={1} flexDirection="column" border borderColor={theme.border} paddingLeft={1} paddingRight={1}><Title text="LEAN STATEMENT" color={theme.blue} /><LeanStatement text={props.formalText} /></box>
+    <box minHeight={6} flexGrow={1} flexDirection="column" border borderColor={theme.border} paddingLeft={1} paddingRight={1} paddingBottom={1}><Title text="LEAN STATEMENT" color={theme.blue} /><LeanStatement text={props.formalText} width={Math.max(24, (props.dashboardWidth ?? 70) - 8)} /></box>
   </box>
 }
 
@@ -80,10 +80,10 @@ function distributeColumns(width: number) {
   return [base, base, content - base * 2]
 }
 function gridRule(columns: number[]) { return `├${"─".repeat(columns[0] ?? 1)}┼${"─".repeat(columns[1] ?? 1)}┼${"─".repeat(columns[2] ?? 1)}┤` }
-function LeanStatement(props: { text?: string | null }) {
-  if (!props.text) return <text fg={theme.textMuted}>Use /formal to inspect the current Lean statement.</text>
+function LeanStatement(props: { text?: string | null; width?: number }) {
+  if (!props.text) return <text width={props.width} wrapMode="word" fg={theme.textMuted}>Use /formal to inspect the current Lean statement.</text>
   const match = /^(theorem|lemma|example|def)\s+(\S+)([\s\S]*)$/.exec(props.text)
-  if (!match) return <text fg={theme.cyan}>{props.text}</text>
-  return <text><span style={{ fg: theme.violet }}>{match[1]}</span>{" "}<span style={{ fg: theme.accent }}>{match[2]}</span><span style={{ fg: theme.cyan }}>{match[3]}</span></text>
+  if (!match) return <text width={props.width} wrapMode="word" fg={theme.cyan}>{props.text}</text>
+  return <text width={props.width} wrapMode="word"><span style={{ fg: theme.violet }}>{match[1]}</span>{" "}<span style={{ fg: theme.accent }}>{match[2]}</span><span style={{ fg: theme.cyan }}>{match[3]}</span></text>
 }
 function clock(value?: string | null) { return value ? value.slice(11, 19) : "--:--:--" }

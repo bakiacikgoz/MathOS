@@ -1,4 +1,7 @@
 import { createSignal, onCleanup } from "solid-js"
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import { homedir } from "node:os"
+import { dirname, join } from "node:path"
 import { onResize, useKeyboard, useRenderer } from "@opentui/solid"
 import type { MathOS } from "@mathos/core"
 import { resolveCommand } from "../keys.ts"
@@ -16,7 +19,7 @@ import type {
   StatusProjection,
   VerificationReport,
 } from "@mathos/domain"
-import { formatUserError } from "@mathos/shared"
+import { formatUserError, resolveRuntimeLayout } from "@mathos/shared"
 import { visibleExplorerNodes } from "@mathos/graph"
 import { HELP_TEXT } from "../format.ts"
 import { parseClaimArgs, parseSlash } from "../slash.ts"
@@ -32,11 +35,18 @@ import { portfolioSnapshot,type PortfolioSnapshot } from "./PortfolioViews.tsx"
 import { failureMemorySnapshot } from "./FailureMemoryViews.tsx"
 import { solverSnapshot } from "./SolverViews.tsx"
 import { literatureDeskSnapshot } from "./LiteratureDeskViews.tsx"
-import { evaluateProviderPolicy, providerCatalog } from "@mathos/models"
-import { providerCenterSnapshot } from "./ProviderCenter.tsx"
+import { loadModelProfileStore, parseMathOSConfig, providerCatalog, serializeConfigValues } from "@mathos/models"
+import { providerProfileCenterSnapshot, type ProviderCenterRow } from "./ProviderCenter.tsx"
 
 export function AppShell(props: { mathos: MathOS }) {
   const renderer = useRenderer()
+  const runtimeLayout = resolveRuntimeLayout({ executablePath: process.execPath, platform: process.platform, home: homedir(), env: process.env })
+  const providerConfigPath = join(runtimeLayout.userConfigRoot, "config.toml")
+  const readProviderRoles = () => {
+    const config = existsSync(providerConfigPath) ? parseMathOSConfig(readFileSync(providerConfigPath, "utf8")) : {}
+    return Object.fromEntries(Object.entries(config).filter(([key, value]) => key.startsWith("model.roles.") && typeof value === "string").map(([key, value]) => [key.slice("model.roles.".length), value as string]))
+  }
+  const configuredProviderRows = () => providerProfileCenterSnapshot(loadModelProfileStore(join(runtimeLayout.userConfigRoot, "model-profiles.json")).profiles, new Map(providerCatalog.list().map((descriptor) => [descriptor.id, descriptor])), readProviderRoles())
   const [status, setStatus] = createSignal<StatusProjection>(props.mathos.status())
   const currentFormalText = () => {
     const id = status().mainObjective?.id
@@ -88,6 +98,7 @@ export function AppShell(props: { mathos: MathOS }) {
   const [paletteOpen, setPaletteOpen] = createSignal(false)
   const [toast, setToast] = createSignal<{ message: string; kind: "info" | "success" | "error" } | null>(null)
   const [history, setHistory] = createSignal<string[]>([])
+  const [providerRows, setProviderRows] = createSignal<ProviderCenterRow[]>(configuredProviderRows())
   const [width, setWidth] = createSignal(renderer.width ?? 80)
   const [height, setHeight] = createSignal(renderer.height ?? 24)
 
@@ -133,6 +144,14 @@ export function AppShell(props: { mathos: MathOS }) {
     setProductText(props.mathos.workspaceHome())
   }
 
+  function assignProviderRole(role: "planner" | "researcher" | "formalizer" | "prover", row: ProviderCenterRow) {
+    const existing = existsSync(providerConfigPath) ? parseMathOSConfig(readFileSync(providerConfigPath, "utf8")) : {}
+    mkdirSync(dirname(providerConfigPath), { recursive: true })
+    writeFileSync(providerConfigPath, serializeConfigValues({ ...existing, [`model.roles.${role}`]: row.id }), { encoding: "utf8", mode: 0o600 })
+    setProviderRows(configuredProviderRows())
+    showToast(`${role} → ${row.id}`, "success")
+  }
+
   function runCommand(name: string, rest = "") {
     try {
       if (name === "status") {
@@ -176,7 +195,7 @@ export function AppShell(props: { mathos: MathOS }) {
         const id=rest.trim();if(!id){showToast("Usage: /failures FF-1","error");return}const failure=props.mathos.services.repositories.failureFingerprints.get(id);if(!failure){showToast("Failure not found","error");return}setFailureMemory(failureMemorySnapshot(failure,props.mathos.services.failureMemory.occurrences(id)));setView("failures");return
       }
       if(name==="solver"){setSolver(solverSnapshot({adapters:props.mathos.services.solverRegistry.list()}));setView("solver");return}
-      if(name==="providers"){setView("providers");return}
+      if(name==="providers"){setProviderRows(configuredProviderRows());setView("providers");return}
       if (name === "quit") {
         renderer.destroy()
         return
@@ -809,7 +828,7 @@ export function AppShell(props: { mathos: MathOS }) {
 
   return (
     <box width="100%" height="100%" flexDirection="column" backgroundColor={theme.background}>
-      <Header status={status()} compact={mode() === "compact" || width() < 130} />
+      <Header status={status()} compact={compactDashboard() || width() < 130} />
       <box flexGrow={1} flexDirection="row">
       <MainPanel
           view={view()}
@@ -927,7 +946,9 @@ export function AppShell(props: { mathos: MathOS }) {
           failureMemory={failureMemory()}
         solver={solver()}
         literatureDesk={literatureDesk()}
-        providers={providerCenterSnapshot(providerCatalog.list().map(descriptor => ({ descriptor, policy: evaluateProviderPolicy(descriptor.id) })))}
+        providers={providerRows()}
+        onProviderBack={openHome}
+        onProviderAssign={assignProviderRole}
         compact={compactDashboard()}
         dashboardWidth={width() - (showSidebar() ? sidebarWidth() : 0)}
         />

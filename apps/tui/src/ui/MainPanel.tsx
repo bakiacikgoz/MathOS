@@ -147,6 +147,8 @@ export function MainPanel(props: {
   solver?: ReturnType<typeof solverSnapshot>|null
   literatureDesk?: ReturnType<typeof literatureDeskSnapshot>|null
   providers?: ProviderCenterRow[]
+  onProviderBack?: () => void
+  onProviderAssign?: (role: "planner" | "researcher" | "formalizer" | "prover", row: ProviderCenterRow) => void
   compact?: boolean
   dashboardWidth?: number
 }) {
@@ -369,7 +371,7 @@ export function MainPanel(props: {
       <Show when={props.view === "solver" && props.solver}><SolverLabView snapshot={props.solver!}/></Show>
       <Show when={props.view === "literature-desk" && props.literatureDesk}><LiteratureDeskView snapshot={props.literatureDesk!}/></Show>
       <Show when={props.view === "atlas"}><AtlasView text={props.productText??"Atlas ready"}/></Show>
-      <Show when={props.view === "providers"}><ProviderCenter rows={props.providers ?? []} compact={props.compact}/></Show>
+      <Show when={props.view === "providers"}><ProviderCenter rows={props.providers ?? []} compact={props.compact} onBack={props.onProviderBack} onAssign={props.onProviderAssign}/></Show>
       <Show when={["experiments", "literature-home", "blockers", "ledger", "why", "history", "environment", "verification-detail"].includes(props.view) && props.productText}>
         <TextPanel text={props.productText!} onBack={props.onCancelOverlay} />
       </Show>
