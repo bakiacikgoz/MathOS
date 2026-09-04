@@ -809,7 +809,7 @@ export function AppShell(props: { mathos: MathOS }) {
 
   return (
     <box width="100%" height="100%" flexDirection="column" backgroundColor={theme.background}>
-      <Header status={status()} compact={mode() === "compact"} />
+      <Header status={status()} compact={mode() === "compact" || width() < 130} />
       <box flexGrow={1} flexDirection="row">
       <MainPanel
           view={view()}

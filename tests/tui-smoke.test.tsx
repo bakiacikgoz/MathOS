@@ -68,6 +68,29 @@ test("narrow home keeps the objective and omits the wide command grid", async ()
   } finally { setup.renderer.destroy() }
 })
 
+test("compact dashboard wraps Lean source above its bottom border", async () => {
+  const formalText = "theorem sumOddNumbers (n : ℕ) : Finset.sum (Finset.range n) (fun k => 2 * k + 1) = n ^ 2"
+  const setup = await testRender(() => <ResearchSummary status={mathos.status()} compact formalText={formalText} />, { width: 70, height: 21 })
+  try {
+    await setup.renderOnce()
+    const rows = setup.captureCharFrame().split("\n")
+    const leanRows = rows.filter((row) => row.includes("sumOddNumbers") || row.includes("Finset.sum") || row.includes("fun k"))
+    expect(leanRows.length).toBeGreaterThanOrEqual(2)
+    expect(leanRows.every((row) => !row.includes("─") && !row.includes("└"))).toBe(true)
+  } finally { setup.renderer.destroy() }
+})
+
+test("small header prioritizes health instead of clipping the status strip", async () => {
+  const setup = await testRender(() => <AppShell mathos={mathos} />, { width: 120, height: 30 })
+  try {
+    await setup.renderOnce()
+    const header = setup.captureCharFrame().split("\n").slice(0, 3).join("\n")
+    expect(header).toContain("HEALTH OK")
+    expect(header).not.toContain("MAINHEALTH")
+    expect(header).not.toContain("workspace additive-combinatorics")
+  } finally { setup.renderer.destroy() }
+})
+
 test("home renders the current Lean statement without claiming proof", async () => {
   const setup = await testRender(() => <ResearchSummary status={mathos.status()} formalText="theorem sumOddNumbers (n : ℕ) : Finset.sum (Finset.range n) (fun k => 2 * k + 1) = n ^ 2" />, { width: 100, height: 28 })
   try {
@@ -123,7 +146,6 @@ test("medium-wide dashboard keeps its status sidebar", async () => {
     const frame = setup.captureCharFrame()
     expect(frame).toContain("SESSION TIMELINE")
     expect(frame).toContain("QUICK ACTIONS")
-    expect(frame).toContain("workspace additive-combinatorics")
     expect(frame).toContain("main | wide")
   } finally { setup.renderer.destroy() }
 })

@@ -64,9 +64,9 @@ function CompactDashboard(props: { status: StatusProjection; formalText?: string
   const objective = () => props.status.mainObjective
   return <box flexDirection="column" padding={1} flexGrow={1}>
     <box height={4} flexShrink={0} flexDirection="column" border borderColor={theme.border} paddingLeft={1}><text fg={theme.blue}>OBJECTIVE</text><text fg={theme.accent}>{`${objective()?.id ?? "—"}  ${objective()?.title ?? "No main claim"}`}</text></box>
-    <box height={8} flexShrink={0} flexDirection="column" border borderColor={theme.border}><Title text="RESEARCH SUMMARY" color={theme.blue} /><Metric label="Epistemic status" value={objective()?.status ?? "OPEN"} color={statusColor(objective()?.status ?? "OPEN")} /><Metric label="Verified claims" value={`${props.status.research.verified}/${props.status.research.totalClaims}`} color={theme.success} /><Metric label="Open blockers" value={String(props.status.research.blocked)} color={props.status.research.blocked ? theme.danger : theme.success} /></box>
+    <box height={6} flexShrink={0} flexDirection="column" border borderColor={theme.border}><Title text="RESEARCH SUMMARY" color={theme.blue} /><Metric label="Epistemic status" value={objective()?.status ?? "OPEN"} color={statusColor(objective()?.status ?? "OPEN")} /><Metric label="Verified claims" value={`${props.status.research.verified}/${props.status.research.totalClaims}`} color={theme.success} /><Metric label="Open blockers" value={String(props.status.research.blocked)} color={props.status.research.blocked ? theme.danger : theme.success} /></box>
     <box height={4} flexShrink={0} flexDirection="column" border borderColor={theme.border}><Title text="LATEST MEANINGFUL PROGRESS" color={theme.violet} /><text fg={theme.success}>{props.meaningful}</text></box>
-    <box flexGrow={1} flexDirection="column" border borderColor={theme.border}><Title text="LEAN STATEMENT" color={theme.blue} /><text fg={props.formalText ? theme.cyan : theme.textMuted}>{props.formalText ?? "Use /formal to inspect the current Lean statement."}</text></box>
+    <box minHeight={5} flexGrow={1} flexDirection="column" border borderColor={theme.border} paddingLeft={1} paddingRight={1}><Title text="LEAN STATEMENT" color={theme.blue} /><LeanStatement text={props.formalText} /></box>
   </box>
 }
 
