@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test"
+import { readFileSync } from "node:fs"
+import { resolve } from "node:path"
 import { runProviderContracts } from "../scripts/providers/contract-test.ts"
 import { runProviderLiveSmoke } from "../scripts/providers/live-smoke.ts"
 import * as liveSmokeModule from "../scripts/providers/live-smoke.ts"
@@ -7,6 +9,10 @@ import type { ModelProfileV2 } from "@mathos/models"
 const profile=(id:string,descriptorId:string):ModelProfileV2=>{const now=new Date().toISOString();return{schemaVersion:"mathos.model-profile.v2",id,descriptorId,displayName:id,model:"test-model",endpointPresetId:null,baseUrlOverride:null,auth:{kind:"secret-ref",secretRef:`model.${id}`},enabled:true,timeoutMs:1000,maxResponseBytes:1000,maxOutputTokens:8,reasoningEffort:null,allowedRoles:["planner"],requestConcurrency:1,metadata:{createdAt:now,updatedAt:now,migratedFromV1:false}}}
 
 describe("provider qualification",()=>{
+  test("CLI exits after flushing a live qualification report",()=>{
+    const source=readFileSync(resolve(import.meta.dir,"../scripts/providers/qualification.ts"),"utf8")
+    expect(source).toMatch(/process\.stdout\.write\([^]*?\(\)=>process\.exit\(/)
+  })
   test("binds live evidence to the executable build revision",()=>{
     const providerSmokeRevision=(liveSmokeModule as any).providerSmokeRevision
     expect(typeof providerSmokeRevision).toBe("function")
