@@ -7,7 +7,7 @@ export function Header(props: { status: StatusProjection; compact: boolean }) {
     const project = props.status.projectName
     return branch ? `MathOS / ${project} · ${branch.id} ${branch.slug ?? branch.name}` : `MathOS / ${project}`
   }
-  const branch = () => props.status.branch ? `${props.status.branch.id} ${props.status.branch.name}` : "—"
+  const health = () => props.status.integrity.initialized && props.status.integrity.database === "connected" && props.status.integrity.eventLog === "ok"
 
   return (
     <box
@@ -20,13 +20,13 @@ export function Header(props: { status: StatusProjection; compact: boolean }) {
       borderColor={theme.border}
       backgroundColor={theme.surface}
     >
-      <text fg={theme.accent}>{title()}</text>
-      <ShowBranch compact={props.compact} branch={branch()} />
+      <text fg={theme.text}>{title()}</text>
+      <ShowBranch compact={props.compact} health={health()} project={props.status.projectName} storage={props.status.integrity.database} events={props.status.integrity.eventLog} />
     </box>
   )
 }
 
-function ShowBranch(props: { compact: boolean; branch: string }) {
-  if (props.compact) return <text fg={theme.textMuted}>{props.branch}</text>
-  return <text fg={theme.textMuted}>{props.branch}</text>
+function ShowBranch(props: { compact: boolean; health: boolean; project: string; storage: string; events: string }) {
+  if (props.compact) return <text fg={props.health ? theme.success : theme.warning}>{props.health ? "HEALTH OK" : "CHECK STATUS"}</text>
+  return <text fg={theme.textMuted}><span style={{ fg: props.health ? theme.success : theme.warning }}>{props.health ? "HEALTH OK" : "CHECK STATUS"}</span>{` · workspace `}<span style={{ fg: theme.accent }}>{props.project}</span>{` · storage `}<span style={{ fg: props.storage === "connected" ? theme.success : theme.danger }}>{props.storage}</span>{` · events `}<span style={{ fg: props.events === "ok" ? theme.success : theme.danger }}>{props.events}</span></text>
 }

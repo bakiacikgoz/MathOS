@@ -38,6 +38,11 @@ import { providerCenterSnapshot } from "./ProviderCenter.tsx"
 export function AppShell(props: { mathos: MathOS }) {
   const renderer = useRenderer()
   const [status, setStatus] = createSignal<StatusProjection>(props.mathos.status())
+  const currentFormalText = () => {
+    const id = status().mainObjective?.id
+    if (!id) return null
+    try { return props.mathos.getFormal(id).sourceText } catch { return null }
+  }
   const [doctor, setDoctor] = createSignal<DoctorReport | null>(null)
   const [view, setView] = createSignal<MainView>("home")
   const [claims, setClaims] = createSignal<Claim[]>(props.mathos.listClaims())
@@ -907,6 +912,7 @@ export function AppShell(props: { mathos: MathOS }) {
           teamDetailOn={teamDetailOn()}
           graphView={graphView()}
           productText={productText()}
+          homeFormalText={currentFormalText()}
           contextItems={contextItems()}
           contextConflicts={contextConflicts()}
           notebookDocument={notebookDocument()}
@@ -924,7 +930,7 @@ export function AppShell(props: { mathos: MathOS }) {
       </box>
       <Toast message={toast()?.message ?? null} kind={toast()?.kind} />
       <PromptInput onSubmit={handleSubmit} history={history()} inactive={overlayOpen()} />
-      <StatusBar hint="Ctrl+K palette   /research /graph /experiment /literature   ? help" mode={mode()} />
+      <StatusBar hint="Ctrl+K palette   Ctrl+R research   Ctrl+G graph   Ctrl+E experiment   Ctrl+L literature   Ctrl+H help   Ctrl+Q quit" mode={mode()} />
       <CommandPalette
         open={paletteOpen()}
         onClose={() => setPaletteOpen(false)}

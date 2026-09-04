@@ -135,6 +135,7 @@ export function MainPanel(props: {
   onResearchResume?: () => void
   onResearchStep?: () => void
   productText?: string
+  homeFormalText?: string | null
   contextItems?: import("@mathos/domain").MathematicalContextItem[]
   contextConflicts?: import("@mathos/domain").ContextConflict[]
   notebookDocument?: import("@mathos/domain").ResearchDocument | null
@@ -151,7 +152,7 @@ export function MainPanel(props: {
   return (
     <box flexGrow={1} backgroundColor={theme.background} border borderColor={theme.border} flexDirection="column">
       <Show when={props.view === "home" || props.view === "status"}>
-        <ResearchSummary status={props.status} home={props.productText} />
+        <ResearchSummary status={props.status} home={props.productText} compact={props.compact} formalText={props.homeFormalText} />
       </Show>
       <Show when={props.view === "doctor"}>
         <box flexDirection="column" padding={1} gap={1}>

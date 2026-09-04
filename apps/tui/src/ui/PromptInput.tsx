@@ -1,5 +1,5 @@
 import { For, Show, createEffect, createSignal, onMount } from "solid-js"
-import type { TextareaRenderable } from "@opentui/core"
+import type { InputRenderable } from "@opentui/core"
 import { theme } from "../theme.ts"
 import { suggestCommands } from "../slash.ts"
 
@@ -8,16 +8,12 @@ export function PromptInput(props: {
   history: string[]
   inactive?: boolean
 }) {
-  let editor: TextareaRenderable | undefined
+  let editor: InputRenderable | undefined
   const [draft, setDraft] = createSignal("")
   const [historyIndex, setHistoryIndex] = createSignal<number | null>(null)
   const [selected, setSelected] = createSignal(0)
 
-  const completions = () => {
-    const value = draft()
-    if (!value.startsWith("/")) return []
-    return suggestCommands(value.split(/\s+/)[0] ?? value)
-  }
+  const completions = () => visibleCommandSuggestions(draft())
 
   onMount(() => {
     if (!props.inactive) editor?.focus()
@@ -47,8 +43,8 @@ export function PromptInput(props: {
 
   return (
     <box flexDirection="column" backgroundColor={theme.surface} border borderColor={props.inactive ? theme.border : theme.accent} paddingLeft={1} paddingRight={1}>
-      <Show when={!props.inactive && completions().length > 0 && draft().startsWith("/") && !draft().includes(" ")}>
-        <box flexDirection="column" paddingBottom={1}>
+      <Show when={!props.inactive && completions().length > 0}>
+        <box flexDirection="column" border borderColor={theme.border} backgroundColor={theme.surfaceMuted} paddingLeft={1} paddingRight={1}>
           <For each={completions()}>
             {(command, i) => (
               <text fg={i() === selected() ? theme.accent : theme.textMuted}>
@@ -58,27 +54,22 @@ export function PromptInput(props: {
           </For>
         </box>
       </Show>
-      <textarea
-        ref={(node: TextareaRenderable) => {
+      <box height={3} flexDirection="row" alignItems="center">
+        <text fg={theme.text}>MathOS&gt; </text>
+      <input
+        ref={(node: InputRenderable) => {
           editor = node
         }}
-        height={3}
-        placeholder="Ask MathOS..."
+        flexGrow={1}
+        placeholder="Type a command or ask MathOS..."
         placeholderColor={theme.textMuted}
         textColor={theme.text}
         backgroundColor={theme.surface}
         focusedBackgroundColor={theme.surface}
         cursorColor={theme.accent}
         focusedTextColor={theme.text}
-        wrapMode="word"
-        keyBindings={[
-          { name: "return", action: "submit" },
-          { name: "return", shift: true, action: "newline" },
-          { name: "up", action: "move-up" },
-          { name: "down", action: "move-down" },
-        ]}
-        onContentChange={() => {
-          setDraft(editor?.plainText ?? "")
+        onInput={(value: string) => {
+          setDraft(value)
           setSelected(0)
         }}
         onSubmit={() => {
@@ -132,6 +123,12 @@ export function PromptInput(props: {
           }
         }}
       />
+      </box>
     </box>
   )
+}
+
+export function visibleCommandSuggestions(value: string) {
+  if (!value.startsWith("/") || value.includes(" ")) return []
+  return suggestCommands(value).slice(0, 6)
 }

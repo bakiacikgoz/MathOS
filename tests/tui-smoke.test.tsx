@@ -9,6 +9,7 @@ import { AppShell } from "../apps/tui/src/ui/AppShell.tsx"
 import { AnalyzingView, ResearchDraftView } from "../apps/tui/src/ui/IntakeViews.tsx"
 import { ClaimForm } from "../apps/tui/src/ui/ClaimForm.tsx"
 import { ClaimsList } from "../apps/tui/src/ui/ClaimsViews.tsx"
+import { ResearchSummary } from "../apps/tui/src/ui/ResearchSummary.tsx"
 
 const dir = mkdtempSync(join(tmpdir(), "mathos-tui-"))
 await MathOS.init(dir, "additive-combinatorics")
@@ -42,14 +43,40 @@ test("tui renders workspace name and prompt", async () => {
     const frame = setup.captureCharFrame()
     expect(frame).toContain("MathOS")
     expect(frame).toContain("additive-combinatorics")
-    expect(frame).toContain("Objective")
+    expect(frame).toContain("OBJECTIVE")
     expect(frame).toContain("C-001")
-    expect(frame).toContain("Epistemic status")
-    expect(frame).toContain("Research state")
+    expect(frame).toContain("CONJECTURE")
+    expect(frame).toContain("RESEARCH SUMMARY")
     expect(frame).toContain("Open blockers")
+    expect(frame).toContain("LATEST MEANINGFUL PROGRESS")
+    expect(frame).toContain("RECENT ACTIVITY")
+    expect(frame).toContain("QUICK COMMANDS")
+    expect(frame).not.toContain("100%")
   } finally {
     setup.renderer.destroy()
   }
+})
+
+test("narrow home keeps the objective and omits the wide command grid", async () => {
+  const setup = await testRender(() => <AppShell mathos={mathos} />, { width: 70, height: 28 })
+  try {
+    await setup.renderOnce()
+    const frame = setup.captureCharFrame()
+    expect(frame).toContain("C-001")
+    expect(frame).toContain("RESEARCH SUMMARY")
+    expect(frame).not.toContain("QUICK COMMANDS")
+  } finally { setup.renderer.destroy() }
+})
+
+test("home renders the current Lean statement without claiming proof", async () => {
+  const setup = await testRender(() => <ResearchSummary status={mathos.status()} formalText="theorem sumOddNumbers (n : ℕ) : Finset.sum (Finset.range n) (fun k => 2 * k + 1) = n ^ 2" />, { width: 100, height: 28 })
+  try {
+    await setup.renderOnce()
+    const frame = setup.captureCharFrame()
+    expect(frame).toContain("sumOddNumbers")
+    expect(frame).toContain("Finset.sum")
+    expect(frame).not.toContain("PROVED")
+  } finally { setup.renderer.destroy() }
 })
 
 test("claim detail renders verification explanation", async () => {

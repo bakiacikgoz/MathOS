@@ -11,7 +11,7 @@ export function CommandPalette(props: {
   const [query, setQuery] = createSignal("")
   const [index, setIndex] = createSignal(0)
 
-  const items = () => suggestCommands(query())
+  const items = () => suggestCommands(query()).slice(0, 6)
 
   useKeyboard((key) => {
     if (!props.open) return
