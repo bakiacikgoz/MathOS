@@ -929,6 +929,7 @@ export function AppShell(props: { mathos: MathOS }) {
         literatureDesk={literatureDesk()}
         providers={providerCenterSnapshot(providerCatalog.list().map(descriptor => ({ descriptor, policy: evaluateProviderPolicy(descriptor.id) })))}
         compact={compactDashboard()}
+        dashboardWidth={width() - (showSidebar() ? sidebarWidth() : 0)}
         />
         <Sidebar status={status()} visible={showSidebar()} width={sidebarWidth()} run={researchRun()} steps={researchSteps()} />
       </box>

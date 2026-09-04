@@ -95,7 +95,10 @@ test("wide dashboard uses the full viewport and keeps rich commands near the com
     expect(providerDescription.indexOf("List & configure providers")).toBeLessThan(10)
     const commandRow = rows.find((row) => row.includes("/research <query>"))!
     expect(commandRow.split("│").length - 1).toBeGreaterThanOrEqual(8)
-    expect(rows.some((row) => row.includes("├") && row.includes("┼") && row.includes("┤"))).toBe(true)
+    const gridRule = rows.find((row) => row.includes("├") && row.includes("┼") && row.includes("┤"))!
+    expect(gridRule).toBeDefined()
+    expect(gridRule.lastIndexOf("┤") - gridRule.indexOf("├") + 1).toBeGreaterThanOrEqual(110)
+    expect(gridRule.slice(gridRule.indexOf("├"), gridRule.lastIndexOf("┤") + 1).split("┼").length - 1).toBe(2)
     const promptRow = rows.findIndex((row) => row.includes("MathOS>"))
     expect(rows[promptRow - 1]).toContain("─")
     expect(rows[promptRow + 1]).toContain("─")
