@@ -84,6 +84,21 @@ test("compact dashboard wraps Lean source with a clear row before its bottom bor
   } finally { setup.renderer.destroy() }
 })
 
+test("compact dashboard preserves the Lean border in a 24-row terminal content area", async () => {
+  const formalText = "theorem sumOddNumbers (n : ℕ) : Finset.sum (Finset.range n) (fun k => 2 * k + 1) = n ^ 2"
+  const setup = await testRender(() => <ResearchSummary status={mathos.status()} compact dashboardWidth={80} formalText={formalText} />, { width: 80, height: 16 })
+  try {
+    await setup.renderOnce()
+    const rows = setup.captureCharFrame().split("\n")
+    const leanRows = rows.map((row, index) => ({ row, index })).filter(({ row }) => row.includes("sumOddNumbers") || row.includes("Finset.sum") || row.includes("fun k") || row.includes("* k + 1"))
+    const lastLeanRow = leanRows.at(-1)?.index ?? -1
+    const bottomBorder = rows.findIndex((row, index) => index > lastLeanRow && row.includes("└") && row.includes("┘"))
+    expect(leanRows.length).toBeGreaterThanOrEqual(2)
+    expect(leanRows.every(({ row }) => !row.includes("─") && !row.includes("└"))).toBe(true)
+    expect(bottomBorder - lastLeanRow).toBeGreaterThanOrEqual(2)
+  } finally { setup.renderer.destroy() }
+})
+
 test("compact app keeps every dashboard border inside the main panel", async () => {
   const setup = await testRender(() => <AppShell mathos={mathos} />, { width: 100, height: 28 })
   try {
