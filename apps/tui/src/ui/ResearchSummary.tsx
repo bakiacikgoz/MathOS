@@ -18,7 +18,7 @@ export function ResearchSummary(props: { status: StatusProjection; home?: string
   const commandColumns = () => distributeColumns(commandGridWidth())
   return (
     <Show when={!props.compact} fallback={<CompactDashboard status={props.status} formalText={props.formalText} meaningful={meaningful()} dashboardWidth={props.dashboardWidth} />}>
-    <box flexDirection="column" padding={1} flexGrow={1} gap={1} onSizeChange={function () { setMeasuredWidth(this.width) }}>
+    <box flexDirection="column" paddingLeft={1} paddingRight={1} flexGrow={1} gap={1} onSizeChange={function () { setMeasuredWidth(this.width) }}>
       <box height={5} flexShrink={0} flexDirection="row" alignItems="center" justifyContent="space-between" border borderColor={theme.border} paddingLeft={1} paddingRight={1}>
         <box flexDirection="column"><text fg={theme.blue}>OBJECTIVE</text><text fg={theme.accent}>{`${objective()?.id ?? "—"}  `}<span style={{ fg: theme.text }}>{objective()?.title ?? "No main claim yet"}</span></text></box>
         <text fg={statusColor(objective()?.status ?? "OPEN")}>{`[ ${objective()?.status ?? "OPEN"} ]`}</text>
@@ -62,18 +62,19 @@ export function ResearchSummary(props: { status: StatusProjection; home?: string
 
 function CompactDashboard(props: { status: StatusProjection; formalText?: string | null; meaningful: string; dashboardWidth?: number }) {
   const objective = () => props.status.mainObjective
-  return <box flexDirection="column" padding={1} flexGrow={1}>
+  return <box flexDirection="column" paddingLeft={1} paddingRight={1} flexGrow={1}>
     <box height={4} flexShrink={0} flexDirection="column" border borderColor={theme.border} paddingLeft={1}><text fg={theme.blue}>OBJECTIVE</text><text fg={theme.accent}>{`${objective()?.id ?? "—"}  ${objective()?.title ?? "No main claim"}`}</text></box>
     <box height={6} flexShrink={0} flexDirection="column" border borderColor={theme.border}><Title text="RESEARCH SUMMARY" color={theme.blue} /><Metric label="Epistemic status" value={objective()?.status ?? "OPEN"} color={statusColor(objective()?.status ?? "OPEN")} /><Metric label="Verified claims" value={`${props.status.research.verified}/${props.status.research.totalClaims}`} color={theme.success} /><Metric label="Open blockers" value={String(props.status.research.blocked)} color={props.status.research.blocked ? theme.danger : theme.success} /></box>
     <box height={4} flexShrink={0} flexDirection="column" border borderColor={theme.border}><Title text="LATEST MEANINGFUL PROGRESS" color={theme.violet} /><text fg={theme.success}>{props.meaningful}</text></box>
-    <box minHeight={6} flexGrow={1} flexDirection="column" border borderColor={theme.border} paddingLeft={1} paddingRight={1} paddingBottom={1}><Title text="LEAN STATEMENT" color={theme.blue} /><LeanStatement text={props.formalText} width={Math.max(24, (props.dashboardWidth ?? 70) - 8)} /></box>
+    <box minHeight={4} flexGrow={1} flexDirection="column" border borderColor={theme.border} paddingLeft={1} paddingRight={1} paddingBottom={1}><Title text="LEAN STATEMENT" color={theme.blue} /><LeanStatement text={props.formalText} width={Math.max(24, (props.dashboardWidth ?? 70) - 8)} /></box>
   </box>
 }
 
 function Title(props: { text: string; color: string }) { return <box height={1} flexShrink={0} flexDirection="row" alignItems="center" paddingLeft={1}><text fg={props.color}>{props.text}</text></box> }
 function Metric(props: { label: string; value: string; color?: string }) { return <box flexDirection="row" paddingLeft={1} paddingRight={1}><text width="42%" fg={theme.textMuted}>{props.label}</text><text fg={props.color ?? theme.text}>{props.value}</text></box> }
 function Activity(props: { step: ResearchStep }) { return <box flexDirection="row" paddingLeft={1} paddingRight={1}><text width={10} fg={theme.textMuted}>{clock(props.step.finishedAt ?? props.step.startedAt)}</text><text flexGrow={1} fg={props.step.status === "SUCCEEDED" ? theme.text : theme.warning}>{props.step.summary ?? props.step.action}</text><text fg={theme.textMuted}>{`[${props.step.action}]`}</text></box> }
-function CommandRow(props: { items: readonly (readonly [string, string])[]; columns: number[] }) { return <box height={2} flexShrink={0} flexDirection="row"><text fg={theme.border}>│</text><For each={props.items}>{(item, index) => <><box width={props.columns[index()]} flexDirection="column" paddingLeft={1}><text fg={theme.violet}>{item[0]}</text><text fg={theme.textMuted}>{item[1]}</text></box><text fg={theme.border}>│</text></>}</For></box> }
+function GridSeparator() { return <box height={2} flexShrink={0} flexDirection="column"><text fg={theme.border}>│</text><text fg={theme.border}>│</text></box> }
+function CommandRow(props: { items: readonly (readonly [string, string])[]; columns: number[] }) { return <box height={2} flexShrink={0} flexDirection="row"><GridSeparator /><For each={props.items}>{(item, index) => <><box width={props.columns[index()]} flexDirection="column" paddingLeft={1}><text fg={theme.violet}>{item[0]}</text><text fg={theme.textMuted}>{item[1]}</text></box><GridSeparator /></>}</For></box> }
 function distributeColumns(width: number) {
   const content = Math.max(3, width - 4)
   const base = Math.floor(content / 3)

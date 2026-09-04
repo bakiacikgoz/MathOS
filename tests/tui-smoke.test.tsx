@@ -80,6 +80,20 @@ test("compact dashboard wraps Lean source with a clear row before its bottom bor
     const lastLeanRow = Math.max(...rows.map((row, index) => row.includes("sumOddNumbers") || row.includes("Finset.sum") || row.includes("fun k") ? index : -1))
     const bottomBorder = rows.findIndex((row, index) => index > lastLeanRow && row.includes("└") && row.includes("┘"))
     expect(bottomBorder - lastLeanRow).toBeGreaterThanOrEqual(2)
+    expect(rows.some((row) => /[└─]─*│─*[┘─]/.test(row))).toBe(false)
+  } finally { setup.renderer.destroy() }
+})
+
+test("compact app keeps every dashboard border inside the main panel", async () => {
+  const setup = await testRender(() => <AppShell mathos={mathos} />, { width: 100, height: 28 })
+  try {
+    await setup.renderOnce()
+    const rows = setup.captureCharFrame().split("\n")
+    expect(rows.some((row) => /[└─]─*│─*[┘─]/.test(row))).toBe(false)
+    const promptTop = rows.findIndex((row, index) => row.startsWith("┌") && rows[index + 1]?.includes("MathOS>"))
+    let dashboardBottom = -1
+    rows.slice(0, promptTop).forEach((row, index) => { if (row.startsWith("└") && row.endsWith("┘")) dashboardBottom = index })
+    expect(dashboardBottom).toBe(promptTop - 1)
   } finally { setup.renderer.destroy() }
 })
 
@@ -91,6 +105,16 @@ test("small header prioritizes health instead of clipping the status strip", asy
     expect(header).toContain("HEALTH OK")
     expect(header).not.toContain("MAINHEALTH")
     expect(header).not.toContain("workspace additive-combinatorics")
+  } finally { setup.renderer.destroy() }
+})
+
+test("compact dashboard keeps complete essential shortcuts and reports compact mode", async () => {
+  const setup = await testRender(() => <AppShell mathos={mathos} />, { width: 110, height: 28 })
+  try {
+    await setup.renderOnce()
+    const footer = setup.captureCharFrame().split("\n").at(-2) ?? ""
+    expect(footer).toContain("Ctrl+H help")
+    expect(footer).toContain("main | compact")
   } finally { setup.renderer.destroy() }
 })
 
@@ -111,8 +135,10 @@ test("quick command grid measures its own container instead of a parent width es
     await setup.renderOnce()
     await setup.renderOnce()
     const rows = setup.captureCharFrame().split("\n")
+    const titleRow = rows.find((row) => row.includes("QUICK COMMANDS"))!
     const rule = rows.find((row) => row.includes("├") && row.includes("┼") && row.includes("┤"))!
-    expect(rule.lastIndexOf("┤") - rule.indexOf("├") + 1).toBeGreaterThanOrEqual(150)
+    expect(rule.indexOf("├")).toBe(titleRow.indexOf("│") + 1)
+    expect(rule.lastIndexOf("┤")).toBe(titleRow.lastIndexOf("│") - 3)
   } finally { setup.renderer.destroy() }
 })
 
@@ -132,6 +158,8 @@ test("wide dashboard uses the full viewport and keeps rich commands near the com
     expect(providerDescription.indexOf("List & configure providers")).toBeLessThan(10)
     const commandRow = rows.find((row) => row.includes("/research <query>"))!
     expect(commandRow.split("│").length - 1).toBeGreaterThanOrEqual(8)
+    const commandDescriptionRow = rows.find((row) => row.includes("Search theorems and local mathlib"))!
+    expect(commandDescriptionRow.split("│").length - 1).toBeGreaterThanOrEqual(8)
     const gridRule = rows.find((row) => row.includes("├") && row.includes("┼") && row.includes("┤"))!
     expect(gridRule).toBeDefined()
     expect(gridRule.lastIndexOf("┤") - gridRule.indexOf("├") + 1).toBeGreaterThanOrEqual(110)

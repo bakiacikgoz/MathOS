@@ -956,7 +956,7 @@ export function AppShell(props: { mathos: MathOS }) {
       </box>
       <Toast message={toast()?.message ?? null} kind={toast()?.kind} />
       <PromptInput onSubmit={handleSubmit} history={history()} inactive={overlayOpen()} />
-      <StatusBar hint="Ctrl+K palette   Ctrl+R research   Ctrl+G graph   Ctrl+E experiment   Ctrl+L literature   Ctrl+H help   Ctrl+Q quit" mode={`main | ${mode()}`} />
+      <StatusBar hint="Ctrl+K palette   Ctrl+R research   Ctrl+G graph   Ctrl+E experiment   Ctrl+L literature   Ctrl+H help   Ctrl+Q quit" mode={`main | ${compactDashboard() ? "compact" : mode()}`} compact={compactDashboard()} />
       <CommandPalette
         open={paletteOpen()}
         onClose={() => setPaletteOpen(false)}
