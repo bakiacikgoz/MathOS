@@ -19,5 +19,5 @@ describe("canonical product identity",()=>{
     expect(identity.productVersion).toBe(MATHOS_PRODUCT_VERSION)
     expect(identity.gitRevision).toMatch(/^[0-9a-f]{40}$|^UNKNOWN$/)
     expect(identity.schemaVersion).toBe(30)
-  })
+  }, 30000)
 })

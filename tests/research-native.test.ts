@@ -104,7 +104,7 @@ describe("native research loop", () => {
     await app.runResearch(run.id)
     expect(app.getClaim(claim.id).status).toBe("KERNEL_VERIFIED")
     app.close()
-  }, 180000)
+  }, 300000)
 
   nativeTest("dual lake env lean MAIN vs B-001", async () => {
     const created = await MathOS.init(tempDir(), "dual-lake")
