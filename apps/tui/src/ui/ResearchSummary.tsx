@@ -66,7 +66,7 @@ function CompactDashboard(props: { status: StatusProjection; formalText?: string
   </box>
 }
 
-function Title(props: { text: string; color: string }) { return <box height={2} flexShrink={0} alignItems="center" paddingLeft={1}><text fg={props.color}>{props.text}</text></box> }
+function Title(props: { text: string; color: string }) { return <box height={1} flexShrink={0} flexDirection="row" alignItems="center" paddingLeft={1}><text fg={props.color}>{props.text}</text></box> }
 function Metric(props: { label: string; value: string; color?: string }) { return <box flexDirection="row" paddingLeft={1} paddingRight={1}><text width="42%" fg={theme.textMuted}>{props.label}</text><text fg={props.color ?? theme.text}>{props.value}</text></box> }
 function Activity(props: { step: ResearchStep }) { return <box flexDirection="row" paddingLeft={1} paddingRight={1}><text width={10} fg={theme.textMuted}>{clock(props.step.finishedAt ?? props.step.startedAt)}</text><text flexGrow={1} fg={props.step.status === "SUCCEEDED" ? theme.text : theme.warning}>{props.step.summary ?? props.step.action}</text><text fg={theme.textMuted}>{`[${props.step.action}]`}</text></box> }
 function clock(value?: string | null) { return value ? value.slice(11, 19) : "--:--:--" }

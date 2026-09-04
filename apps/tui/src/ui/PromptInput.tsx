@@ -54,7 +54,7 @@ export function PromptInput(props: {
           </For>
         </box>
       </Show>
-      <box height={3} flexDirection="row" alignItems="center">
+      <box height={1} flexDirection="row" alignItems="center">
         <text fg={theme.text}>MathOS&gt; </text>
       <input
         ref={(node: InputRenderable) => {

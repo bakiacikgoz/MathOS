@@ -88,6 +88,23 @@ test("wide dashboard uses the full viewport and keeps rich commands near the com
     expect(commandsRow).toBeGreaterThan(29)
     expect(rows.join("\n")).toContain("Search theorems and local mathlib")
     expect(rows.join("\n")).toContain("SESSION TIMELINE")
+    const activityRow = rows.find((row) => row.includes("RECENT ACTIVITY"))!
+    expect(activityRow.indexOf("RECENT ACTIVITY")).toBeLessThan(8)
+    const providerDescription = rows.find((row) => row.includes("List & configure providers"))!
+    expect(providerDescription.indexOf("List & configure providers")).toBeLessThan(10)
+    const promptRow = rows.findIndex((row) => row.includes("MathOS>"))
+    expect(rows[promptRow - 1]).toContain("─")
+    expect(rows[promptRow + 1]).toContain("─")
+  } finally { setup.renderer.destroy() }
+})
+
+test("medium-wide dashboard keeps its status sidebar", async () => {
+  const setup = await testRender(() => <AppShell mathos={mathos} />, { width: 120, height: 40 })
+  try {
+    await setup.renderOnce()
+    const frame = setup.captureCharFrame()
+    expect(frame).toContain("SESSION TIMELINE")
+    expect(frame).toContain("QUICK ACTIONS")
   } finally { setup.renderer.destroy() }
 })
 

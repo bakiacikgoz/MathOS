@@ -803,12 +803,12 @@ export function AppShell(props: { mathos: MathOS }) {
   })
 
   const mode = () => layoutMode(width())
-  const showSidebar = () => mode() !== "compact" && width() >= 140 && height() >= 36
-  const compactDashboard = () => mode() === "compact" || width() < 140 || height() < 36
+  const showSidebar = () => mode() !== "compact" && width() >= 115 && height() >= 36
+  const compactDashboard = () => mode() === "compact" || width() < 115 || height() < 36
 
   return (
     <box width="100%" height="100%" flexDirection="column" backgroundColor={theme.background}>
-      <Header status={status()} compact={compactDashboard()} />
+      <Header status={status()} compact={width() < 150 || height() < 36} />
       <box flexGrow={1} flexDirection="row">
       <MainPanel
           view={view()}
