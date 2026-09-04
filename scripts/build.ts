@@ -1,11 +1,11 @@
-import { rmSync } from "node:fs";
 import { resolve } from "node:path";
 import solidPlugin from "@opentui/solid/bun-plugin";
+import { prepareDevelopmentBuildOutput } from "./build-output.ts";
 
 const root = resolve(import.meta.dir, "..");
 const outdir = resolve(root, "dist");
 
-rmSync(outdir, { recursive: true, force: true });
+prepareDevelopmentBuildOutput(outdir);
 
 const result = await Bun.build({
   entrypoints: [resolve(root, "apps/tui/src/cli.ts")],
