@@ -105,6 +105,24 @@ describe("proof layer", () => {
     }
   })
 
+  test("reapproving an already approved verified formal is idempotent", async () => {
+    const created = await MathOS.init(tempDir(), "reapprove")
+    const model = new FakeModelProvider()
+    model.enqueue(formalDraft)
+    model.enqueue(fidelityMatch)
+    model.enqueue({ proofBody: "by\n  rfl" })
+    const app = openApp(created.root, model)
+    try {
+      await readyClaim(app)
+      await app.prove("C-001")
+      const formal = app.getFormal("C-001")
+      expect(app.approveFormal(formal.id).fidelityStatus).toBe("HUMAN_APPROVED")
+      expect(app.getClaim("C-001").status).toBe("KERNEL_VERIFIED")
+    } finally {
+      app.close()
+    }
+  })
+
   test("sorry proof is rejected before kernel and does not promote", async () => {
     const created = await MathOS.init(tempDir(), "sorry")
     const model = new FakeModelProvider()

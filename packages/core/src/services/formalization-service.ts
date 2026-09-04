@@ -162,6 +162,7 @@ export class FormalizationService {
   approveFormal(formalId: string): FormalStatement {
     const statement = this.dependencies.formalStatements.get(formalId)
     if (!statement) throw new FormalStatementNotFound(formalId)
+    if (statement.fidelityStatus === "HUMAN_APPROVED") return statement
     const claim = this.requireClaim(statement.claimId)
     if (statement.verificationStatus !== "ELABORATES") {
       throw new FormalizationFailed("Cannot approve a statement that does not elaborate.")
