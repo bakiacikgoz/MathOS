@@ -44,4 +44,4 @@ export async function runProviderLiveSmoke(argv:string[],options:LiveSmokeOption
   }catch(error){return{...base,connection:"ERROR",liveRequest:error instanceof Error?error.message:"ERROR"}}
   finally{await provider?.close?.()}
 }
-if(import.meta.main){runProviderLiveSmoke(process.argv.slice(2)).then(report=>process.stdout.write(`${JSON.stringify(report,null,2)}\n`)).catch(error=>{process.stderr.write(`${error instanceof Error?error.message:String(error)}\n`);process.exit(1)})}
+if(import.meta.main){runProviderLiveSmoke(process.argv.slice(2)).then(report=>process.stdout.write(`${JSON.stringify(report,null,2)}\n`,()=>process.exit(0))).catch(error=>{process.stderr.write(`${error instanceof Error?error.message:String(error)}\n`,()=>process.exit(1))})}
