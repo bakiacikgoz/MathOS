@@ -1,5 +1,6 @@
 import { rmSync } from "node:fs";
 import { resolve } from "node:path";
+import solidPlugin from "@opentui/solid/bun-plugin";
 
 const root = resolve(import.meta.dir, "..");
 const outdir = resolve(root, "dist");
@@ -11,6 +12,7 @@ const result = await Bun.build({
   outdir,
   target: "bun",
   packages: "external",
+  plugins: [solidPlugin],
 });
 
 if (!result.success) {
