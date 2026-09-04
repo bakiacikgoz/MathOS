@@ -11,6 +11,8 @@ export async function startTui(): Promise<number> {
   }
 
   const mathos = MathOS.open(process.cwd())
+  const terminalThemeActive = Boolean(process.stdout.isTTY)
+  if (terminalThemeActive) process.stdout.write(`\u001b]11;${theme.background}\u0007`)
   const renderer = await createCliRenderer({
     exitOnCtrlC: true,
     backgroundColor: theme.background,
@@ -29,5 +31,6 @@ export async function startTui(): Promise<number> {
     throw error
   } finally {
     mathos.close()
+    if (terminalThemeActive) process.stdout.write("\u001b]111\u0007")
   }
 }

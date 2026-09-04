@@ -63,8 +63,9 @@ export function AppShell(props: { mathos: MathOS }) {
   const [indexText, setIndexText] = createSignal("")
   const [branchDetail, setBranchDetail] = createSignal<import("@mathos/domain").BranchDetail | null>(null)
   const [mergePreview, setMergePreview] = createSignal<import("@mathos/domain").MergePreview | null>(null)
-  const [researchRun, setResearchRun] = createSignal<import("@mathos/domain").ResearchRun | null>(null)
-  const [researchSteps, setResearchSteps] = createSignal<import("@mathos/domain").ResearchStep[]>([])
+  const initialResearchRun = props.mathos.latestResearch()
+  const [researchRun, setResearchRun] = createSignal<import("@mathos/domain").ResearchRun | null>(initialResearchRun)
+  const [researchSteps, setResearchSteps] = createSignal<import("@mathos/domain").ResearchStep[]>(initialResearchRun ? props.mathos.researchHistory(initialResearchRun.id) : [])
   const [teamOverview, setTeamOverview] = createSignal<ReturnType<import("@mathos/core").MathOS["teamOverview"]> | null>(null)
   const [teamSelected, setTeamSelected] = createSignal(0)
   const [teamDetailOn, setTeamDetailOn] = createSignal(false)
@@ -88,12 +89,13 @@ export function AppShell(props: { mathos: MathOS }) {
   const [toast, setToast] = createSignal<{ message: string; kind: "info" | "success" | "error" } | null>(null)
   const [history, setHistory] = createSignal<string[]>([])
   const [width, setWidth] = createSignal(renderer.width ?? 80)
+  const [height, setHeight] = createSignal(renderer.height ?? 24)
 
   let toastTimer: ReturnType<typeof setTimeout> | undefined
   let intakeAbort: AbortController | undefined
   let proveAbort: AbortController | undefined
 
-  onResize((nextWidth) => setWidth(nextWidth))
+  onResize((nextWidth, nextHeight) => { setWidth(nextWidth); setHeight(nextHeight) })
   onCleanup(() => {
     if (toastTimer) clearTimeout(toastTimer)
     intakeAbort?.abort()
@@ -801,11 +803,12 @@ export function AppShell(props: { mathos: MathOS }) {
   })
 
   const mode = () => layoutMode(width())
-  const showSidebar = () => mode() !== "compact"
+  const showSidebar = () => mode() !== "compact" && width() >= 140 && height() >= 36
+  const compactDashboard = () => mode() === "compact" || width() < 140 || height() < 36
 
   return (
     <box width="100%" height="100%" flexDirection="column" backgroundColor={theme.background}>
-      <Header status={status()} compact={mode() === "compact"} />
+      <Header status={status()} compact={compactDashboard()} />
       <box flexGrow={1} flexDirection="row">
       <MainPanel
           view={view()}
@@ -924,9 +927,9 @@ export function AppShell(props: { mathos: MathOS }) {
         solver={solver()}
         literatureDesk={literatureDesk()}
         providers={providerCenterSnapshot(providerCatalog.list().map(descriptor => ({ descriptor, policy: evaluateProviderPolicy(descriptor.id) })))}
-        compact={mode() === "compact"}
+        compact={compactDashboard()}
         />
-        <Sidebar status={status()} visible={showSidebar()} branches={props.mathos.listBranches()} />
+        <Sidebar status={status()} visible={showSidebar()} run={researchRun()} steps={researchSteps()} />
       </box>
       <Toast message={toast()?.message ?? null} kind={toast()?.kind} />
       <PromptInput onSubmit={handleSubmit} history={history()} inactive={overlayOpen()} />

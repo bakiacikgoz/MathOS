@@ -37,7 +37,7 @@ const draft = parseResearchDraft(
 )
 
 test("tui renders workspace name and prompt", async () => {
-  const setup = await testRender(() => <AppShell mathos={mathos} />, { width: 120, height: 32 })
+  const setup = await testRender(() => <AppShell mathos={mathos} />, { width: 160, height: 48 })
   try {
     await setup.renderOnce()
     const frame = setup.captureCharFrame()
@@ -76,6 +76,18 @@ test("home renders the current Lean statement without claiming proof", async () 
     expect(frame).toContain("sumOddNumbers")
     expect(frame).toContain("Finset.sum")
     expect(frame).not.toContain("PROVED")
+  } finally { setup.renderer.destroy() }
+})
+
+test("wide dashboard uses the full viewport and keeps rich commands near the composer", async () => {
+  const setup = await testRender(() => <AppShell mathos={mathos} />, { width: 160, height: 48 })
+  try {
+    await setup.renderOnce()
+    const rows = setup.captureCharFrame().split("\n")
+    const commandsRow = rows.findIndex((row) => row.includes("QUICK COMMANDS"))
+    expect(commandsRow).toBeGreaterThan(29)
+    expect(rows.join("\n")).toContain("Search theorems and local mathlib")
+    expect(rows.join("\n")).toContain("SESSION TIMELINE")
   } finally { setup.renderer.destroy() }
 })
 

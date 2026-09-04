@@ -1,42 +1,45 @@
-import { For } from "solid-js"
-import type { StatusProjection } from "@mathos/domain"
-import { branchGlyph } from "@mathos/domain"
+import type { ResearchRun, ResearchStep, StatusProjection } from "@mathos/domain"
 import { statusColor, theme } from "../theme.ts"
 import { WorkspaceInfo } from "./WorkspaceInfo.tsx"
 
-export function Sidebar(props: { status: StatusProjection; visible: boolean; branches?: Array<{ id: string; name: string; status: string; isCurrent: boolean }> }) {
+export function Sidebar(props: { status: StatusProjection; visible: boolean; run?: ResearchRun | null; steps?: ResearchStep[] }) {
   if (!props.visible) return null
+  const started = () => clock(props.run?.startedAt ?? props.run?.createdAt)
+  const stopped = () => clock(props.run?.stoppedAt)
+  const elapsed = () => duration(props.run?.startedAt, props.run?.stoppedAt ?? props.run?.updatedAt)
+  const resumable = () => props.run?.status === "PAUSED"
   return (
-    <box width={32} backgroundColor={theme.surface} border borderColor={theme.border} flexDirection="column">
+    <box width={40} backgroundColor={theme.surface} border borderColor={theme.border} flexDirection="column">
       <WorkspaceInfo status={props.status} />
-      <box flexDirection="column" padding={1}>
-        <text fg={theme.border}>────────────────────────────</text>
-        <text fg={theme.violet}>RESEARCH STATE</text>
-        <text fg={theme.textMuted}>{`objective  ${props.status.mainObjective?.id ?? "—"}`}</text>
-        <text fg={props.status.mainObjective ? statusColor(props.status.mainObjective.status) : theme.textMuted}>{`epistemic ${props.status.mainObjective?.status ?? "OPEN"}`}</text>
-        <text fg={theme.textMuted}>{`claims     ${props.status.research.totalClaims}`}</text>
-        <text fg={props.status.research.blocked ? theme.danger : theme.success}>{`blockers   ${props.status.research.blocked}`}</text>
-      </box>
-      <box flexDirection="column" padding={1}>
-        <text fg={theme.border}>────────────────────────────</text>
-        <text fg={theme.accent}>QUICK ACTIONS</text>
-        <text fg={theme.textMuted}>1  Resume research</text>
-        <text fg={theme.textMuted}>2  Analyze current goal</text>
-        <text fg={theme.textMuted}>3  Show proof graph</text>
-        <text fg={theme.textMuted}>4  List open blockers</text>
-        <text fg={theme.textMuted}>5  Export capsule</text>
-      </box>
-      <box flexDirection="column" padding={1}>
-        <text fg={theme.border}>────────────────────────────</text>
-        <text fg={theme.blue}>BRANCH</text>
-        <For each={props.branches ?? []}>
-          {(branch) => (
-            <text fg={branch.isCurrent ? theme.accent : theme.textMuted}>
-              {`${branchGlyph(branch.status as "ACTIVE" | "PAUSED" | "MERGED" | "ABANDONED" | "ARCHIVED", branch.isCurrent)} ${branch.id === "B-000" ? "MAIN" : branch.name}`}
-            </text>
-          )}
-        </For>
-      </box>
+      <Section title="RESEARCH STATE" color={theme.blue} height={10}>
+        <Row label="session" value={props.run?.id ?? "—"} />
+        <Row label="state" value={props.run?.status ?? "IDLE"} color={props.run?.status === "PAUSED" ? theme.accent : theme.text} />
+        <Row label="focus" value={props.status.mainObjective?.id ?? "—"} />
+        <Row label="objective" value={props.status.mainObjective?.title ?? "No objective"} />
+        <Row label="epistemic" value={props.status.mainObjective?.status ?? "OPEN"} color={props.status.mainObjective ? statusColor(props.status.mainObjective.status) : theme.textMuted} />
+        <Row label="last activity" value={props.steps?.at(-1)?.action ?? "none"} color={props.steps?.length ? theme.success : theme.textMuted} />
+      </Section>
+      <Section title="SESSION TIMELINE" color={theme.violet} height={8}>
+        <Row label="started" value={started()} /><Row label="paused" value={stopped()} /><Row label="elapsed" value={elapsed()} /><Row label="resumable" value={resumable() ? "yes" : "no"} color={resumable() ? theme.success : theme.textMuted} />
+      </Section>
+      <Section title="QUICK ACTIONS" color={theme.accent} flexGrow={1}>
+        <text fg={theme.textMuted}>1  Resume session</text><text fg={theme.textMuted}>2  Analyze current goal</text><text fg={theme.textMuted}>3  Show proof graph</text><text fg={theme.textMuted}>4  List open blockers</text><text fg={theme.textMuted}>5  Export verification capsule</text>
+      </Section>
     </box>
   )
+}
+
+function Section(props: { title: string; color: string; height?: number; flexGrow?: number; children: unknown }) {
+  return <box height={props.height} flexGrow={props.flexGrow} flexShrink={0} flexDirection="column" padding={1} border borderColor={theme.border}><text fg={props.color}>{props.title}</text>{props.children as never}</box>
+}
+
+function Row(props: { label: string; value: string; color?: string }) {
+  return <box flexDirection="row" justifyContent="space-between"><text fg={theme.textMuted}>{props.label}</text><text fg={props.color ?? theme.text}>{props.value}</text></box>
+}
+
+function clock(value?: string | null) { return value ? value.slice(11, 19) : "—" }
+function duration(start?: string | null, end?: string | null) {
+  if (!start || !end) return "—"
+  const seconds = Math.max(0, Math.floor((Date.parse(end) - Date.parse(start)) / 1000))
+  return `${String(Math.floor(seconds / 3600)).padStart(2, "0")}:${String(Math.floor(seconds % 3600 / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`
 }

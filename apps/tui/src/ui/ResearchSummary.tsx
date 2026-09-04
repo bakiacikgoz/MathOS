@@ -1,51 +1,72 @@
-import type { StatusProjection } from "@mathos/domain"
+import type { ResearchRun, ResearchStep, StatusProjection } from "@mathos/domain"
 import { For, Show } from "solid-js"
 import { statusColor, theme } from "../theme.ts"
 
 const quickCommands = [
   ["/research <query>", "Search theorems and local mathlib"], ["/graph [claim|session]", "Show proof graph"], ["/align", "Formal/informal alignment"],
-  ["/experiment <name>", "Start a new experiment"], ["/literature <query>", "Search literature and sources"], ["/providers", "List and configure providers"],
-  ["/solver", "Solver/verification lab"], ["/help", "Show all commands"], ["/quit", "Leave the session"],
+  ["/experiment <name>", "Start a new experiment"], ["/literature <query>", "Search literature & sources"], ["/solver", "Solver/verification lab"],
+  ["/providers", "List & configure providers"], ["/help", "Show all commands"], ["/quit", "Leave the session"],
 ] as const
 
-export function ResearchSummary(props: { status: StatusProjection; home?: string; compact?: boolean; formalText?: string | null }) {
+export function ResearchSummary(props: { status: StatusProjection; home?: string; compact?: boolean; formalText?: string | null; run?: ResearchRun | null; steps?: ResearchStep[] }) {
   const objective = () => props.status.mainObjective
   const lines = () => (props.home ?? "").split("\n").map((line) => line.trim()).filter(Boolean)
-  const meaningful = () => lines().find((line) => /SUCCEEDED|completed|verified/i.test(line)) ?? "No recorded progress"
-  const recent = () => lines().filter((line) => !/^(MATHOS|Workspace|Objective|Epistemic|Research state|Open blockers|Last meaningful|Environment)/i.test(line)).slice(-5)
-  const gates = () => `${props.status.research.verified}/${props.status.research.totalClaims} verified claims`
+  const meaningful = () => props.steps?.slice().reverse().find((step) => step.status === "SUCCEEDED")?.summary ?? lines().find((line) => /SUCCEEDED|completed|verified/i.test(line)) ?? "No recorded progress"
+  const activities = () => props.steps?.length ? props.steps.slice(-5).reverse() : lines().filter((line) => !/^(MATHOS|Workspace|Objective|Epistemic|Research state|Open blockers|Last meaningful|Environment|Primary)/i.test(line)).slice(-5).reverse()
   return (
-    <box flexDirection="column" padding={1} flexGrow={1}>
-      <box height={4} flexShrink={0} flexDirection="row" justifyContent="space-between" border borderColor={theme.border} paddingLeft={1} paddingRight={1}>
-        <box flexDirection="column"><text fg={theme.blue}>OBJECTIVE</text><text fg={theme.accent}>{`${objective()?.id ?? "—"}  ${objective()?.title ?? "No main claim yet"}`}</text></box>
-        <text fg={statusColor(objective()?.status ?? "OPEN")}>{objective()?.status ?? "OPEN"}</text>
+    <Show when={!props.compact} fallback={<CompactDashboard status={props.status} formalText={props.formalText} meaningful={meaningful()} />}>
+    <box flexDirection="column" padding={1} flexGrow={1} gap={1}>
+      <box height={5} flexShrink={0} flexDirection="row" alignItems="center" justifyContent="space-between" border borderColor={theme.border} paddingLeft={1} paddingRight={1}>
+        <box flexDirection="column"><text fg={theme.blue}>OBJECTIVE</text><text fg={theme.accent}>{`${objective()?.id ?? "—"}  `}<span style={{ fg: theme.text }}>{objective()?.title ?? "No main claim yet"}</span></text></box>
+        <text fg={statusColor(objective()?.status ?? "OPEN")}>{`[ ${objective()?.status ?? "OPEN"} ]`}</text>
       </box>
-      <box height={props.compact ? 10 : 7} flexShrink={0} flexDirection={props.compact ? "column" : "row"}>
-        <box flexDirection="column" paddingLeft={1} paddingRight={1} flexGrow={1}>
-          <text fg={theme.blue}>RESEARCH SUMMARY</text>
-          <Metric label="Claims" value={String(props.status.research.totalClaims)} /><Metric label="Verified" value={String(props.status.research.verified)} color={theme.success} />
-          <Metric label="Conjectures" value={String(props.status.research.conjectures)} color={theme.warning} /><Metric label="Open blockers" value={String(props.status.research.blocked)} color={props.status.research.blocked ? theme.danger : theme.success} />
-          <Metric label="Verification gates" value={gates()} color={theme.success} />
+
+      <box height={10} flexShrink={0} flexDirection={props.compact ? "column" : "row"} gap={1}>
+        <box width={props.compact ? "100%" : "44%"} flexDirection="column" border borderColor={theme.border}>
+          <Title text="RESEARCH SUMMARY" color={theme.blue} />
+          <Metric label="Session" value={props.run?.id ?? "—"} /><Metric label="State" value={props.run?.status ?? "IDLE"} color={props.run?.status === "PAUSED" ? theme.accent : theme.text} />
+          <Metric label="Focus" value={objective()?.id ?? "—"} /><Metric label="Epistemic status" value={objective()?.status ?? "OPEN"} color={statusColor(objective()?.status ?? "OPEN")} />
+          <Metric label="Last activity" value={props.steps?.at(-1)?.action ?? "none"} color={props.steps?.length ? theme.success : theme.textMuted} />
+          <Metric label="Verified claims" value={`${props.status.research.verified}/${props.status.research.totalClaims}`} color={theme.success} />
         </box>
-        <box flexDirection="column" paddingLeft={1} paddingRight={1} flexGrow={1}>
-          <text fg={theme.blue}>SUMMARY</text><text fg={theme.text}>{objective()?.title ?? "Create an objective to begin research."}</text>
-          <text fg={theme.blue}>LEAN STATEMENT</text><text fg={props.formalText ? theme.cyan : theme.textMuted}>{props.formalText ?? "Use /formal to inspect the current Lean statement."}</text>
+        <box flexGrow={1} flexDirection="column" border borderColor={theme.border}>
+          <Title text="SUMMARY" color={theme.blue} />
+          <text fg={theme.text}>{objective()?.title ?? "Create an objective to begin research."}</text>
+          <text fg={theme.textMuted}>{props.status.research.blocked ? `${props.status.research.blocked} Open blocker(s) require attention.` : "Open blockers: 0. Research state is ready to continue."}</text>
+          <text fg={theme.blue}>LEAN STATEMENT</text>
+          <text fg={props.formalText ? theme.cyan : theme.textMuted}>{props.formalText ?? "Use /formal to inspect the current Lean statement."}</text>
         </box>
       </box>
-      <box height={2} flexShrink={0} flexDirection="column" paddingLeft={1} paddingRight={1}><text fg={theme.violet}>LATEST MEANINGFUL PROGRESS</text><text fg={theme.success}>{meaningful()}</text></box>
-      <box height={3} flexShrink={0} flexDirection="column" paddingLeft={1} paddingRight={1}>
-        <text fg={theme.violet}>RECENT ACTIVITY</text><For each={(recent().length ? recent() : ["No recent activity"]).slice(0, 2)}>{(line) => <text fg={theme.textMuted}>{line}</text>}</For>
+
+      <box height={4} flexShrink={0} flexDirection="column" border borderColor={theme.border}>
+        <Title text="LATEST MEANINGFUL PROGRESS" color={theme.violet} /><text fg={theme.success}>{`✓  ${clock(props.steps?.at(-1)?.finishedAt)}  ${meaningful()}`}</text>
       </box>
-      <Show when={!props.compact}>
-        <box height={4} flexShrink={0} flexDirection="column" paddingLeft={1} paddingRight={1}>
-          <text fg={theme.violet}>QUICK COMMANDS  (Ctrl+K to toggle)</text>
-          <For each={[0, 1, 2]}>{(row) => <box flexDirection="row"><For each={quickCommands.slice(row * 3, row * 3 + 3)}>{(item) => <box width="33%"><text fg={theme.violet}>{item[0]}</text></box>}</For></box>}</For>
+
+      <box minHeight={7} flexGrow={1} flexDirection="column" border borderColor={theme.border}>
+        <Title text="RECENT ACTIVITY" color={theme.violet} />
+        <For each={activities().length ? activities() : ["No recent activity"]}>{(item) => typeof item === "string" ? <text fg={theme.textMuted}>{item}</text> : <Activity step={item} />}</For>
+      </box>
+
+        <box height={9} flexShrink={0} flexDirection="column" border borderColor={theme.border}>
+          <Title text="QUICK COMMANDS  (Ctrl+K to toggle)" color={theme.violet} />
+          <For each={[0, 1, 2]}>{(row) => <box height={2} flexDirection="row"><For each={quickCommands.slice(row * 3, row * 3 + 3)}>{(item) => <box width="33%" flexDirection="column" paddingLeft={1}><text fg={theme.violet}>{item[0]}</text><text fg={theme.textMuted}>{item[1]}</text></box>}</For></box>}</For>
         </box>
-      </Show>
     </box>
+    </Show>
   )
 }
 
-function Metric(props: { label: string; value: string; color?: string }) {
-  return <box flexDirection="row" justifyContent="space-between"><text fg={theme.textMuted}>{props.label}</text><text fg={props.color ?? theme.text}>{props.value}</text></box>
+function CompactDashboard(props: { status: StatusProjection; formalText?: string | null; meaningful: string }) {
+  const objective = () => props.status.mainObjective
+  return <box flexDirection="column" padding={1} flexGrow={1}>
+    <box height={4} flexShrink={0} flexDirection="column" border borderColor={theme.border} paddingLeft={1}><text fg={theme.blue}>OBJECTIVE</text><text fg={theme.accent}>{`${objective()?.id ?? "—"}  ${objective()?.title ?? "No main claim"}`}</text></box>
+    <box height={8} flexShrink={0} flexDirection="column" border borderColor={theme.border}><Title text="RESEARCH SUMMARY" color={theme.blue} /><Metric label="Epistemic status" value={objective()?.status ?? "OPEN"} color={statusColor(objective()?.status ?? "OPEN")} /><Metric label="Verified claims" value={`${props.status.research.verified}/${props.status.research.totalClaims}`} color={theme.success} /><Metric label="Open blockers" value={String(props.status.research.blocked)} color={props.status.research.blocked ? theme.danger : theme.success} /></box>
+    <box height={4} flexShrink={0} flexDirection="column" border borderColor={theme.border}><Title text="LATEST MEANINGFUL PROGRESS" color={theme.violet} /><text fg={theme.success}>{props.meaningful}</text></box>
+    <box flexGrow={1} flexDirection="column" border borderColor={theme.border}><Title text="LEAN STATEMENT" color={theme.blue} /><text fg={props.formalText ? theme.cyan : theme.textMuted}>{props.formalText ?? "Use /formal to inspect the current Lean statement."}</text></box>
+  </box>
 }
+
+function Title(props: { text: string; color: string }) { return <box height={2} flexShrink={0} alignItems="center" paddingLeft={1}><text fg={props.color}>{props.text}</text></box> }
+function Metric(props: { label: string; value: string; color?: string }) { return <box flexDirection="row" paddingLeft={1} paddingRight={1}><text width="42%" fg={theme.textMuted}>{props.label}</text><text fg={props.color ?? theme.text}>{props.value}</text></box> }
+function Activity(props: { step: ResearchStep }) { return <box flexDirection="row" paddingLeft={1} paddingRight={1}><text width={10} fg={theme.textMuted}>{clock(props.step.finishedAt ?? props.step.startedAt)}</text><text flexGrow={1} fg={props.step.status === "SUCCEEDED" ? theme.text : theme.warning}>{props.step.summary ?? props.step.action}</text><text fg={theme.textMuted}>{`[${props.step.action}]`}</text></box> }
+function clock(value?: string | null) { return value ? value.slice(11, 19) : "--:--:--" }
