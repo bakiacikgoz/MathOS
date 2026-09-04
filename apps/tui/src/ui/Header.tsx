@@ -5,7 +5,7 @@ export function Header(props: { status: StatusProjection; compact: boolean }) {
   const title = () => {
     const branch = props.status.branch
     const project = props.status.projectName
-    return branch ? `MathOS / ${project} · ${branch.id} ${branch.slug ?? branch.name}` : `MathOS / ${project}`
+    return branch ? `MathOS / ${project} / ${branch.id} ${branch.id === "B-000" ? "MAIN" : branch.slug ?? branch.name}` : `MathOS / ${project}`
   }
   const health = () => props.status.integrity.initialized && props.status.integrity.database === "connected" && props.status.integrity.eventLog === "ok"
 

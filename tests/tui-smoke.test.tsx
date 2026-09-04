@@ -88,10 +88,14 @@ test("wide dashboard uses the full viewport and keeps rich commands near the com
     expect(commandsRow).toBeGreaterThan(29)
     expect(rows.join("\n")).toContain("Search theorems and local mathlib")
     expect(rows.join("\n")).toContain("SESSION TIMELINE")
+    expect(rows.join("\n")).toContain("For every finite set A")
     const activityRow = rows.find((row) => row.includes("RECENT ACTIVITY"))!
     expect(activityRow.indexOf("RECENT ACTIVITY")).toBeLessThan(8)
     const providerDescription = rows.find((row) => row.includes("List & configure providers"))!
     expect(providerDescription.indexOf("List & configure providers")).toBeLessThan(10)
+    const commandRow = rows.find((row) => row.includes("/research <query>"))!
+    expect(commandRow.split("│").length - 1).toBeGreaterThanOrEqual(8)
+    expect(rows.some((row) => row.includes("├") && row.includes("┼") && row.includes("┤"))).toBe(true)
     const promptRow = rows.findIndex((row) => row.includes("MathOS>"))
     expect(rows[promptRow - 1]).toContain("─")
     expect(rows[promptRow + 1]).toContain("─")
@@ -105,6 +109,8 @@ test("medium-wide dashboard keeps its status sidebar", async () => {
     const frame = setup.captureCharFrame()
     expect(frame).toContain("SESSION TIMELINE")
     expect(frame).toContain("QUICK ACTIONS")
+    expect(frame).toContain("workspace additive-combinatorics")
+    expect(frame).toContain("main | wide")
   } finally { setup.renderer.destroy() }
 })
 

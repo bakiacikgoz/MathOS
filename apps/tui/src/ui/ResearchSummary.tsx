@@ -8,7 +8,7 @@ const quickCommands = [
   ["/providers", "List & configure providers"], ["/help", "Show all commands"], ["/quit", "Leave the session"],
 ] as const
 
-export function ResearchSummary(props: { status: StatusProjection; home?: string; compact?: boolean; formalText?: string | null; run?: ResearchRun | null; steps?: ResearchStep[] }) {
+export function ResearchSummary(props: { status: StatusProjection; home?: string; compact?: boolean; naturalStatement?: string; formalText?: string | null; run?: ResearchRun | null; steps?: ResearchStep[] }) {
   const objective = () => props.status.mainObjective
   const lines = () => (props.home ?? "").split("\n").map((line) => line.trim()).filter(Boolean)
   const meaningful = () => props.steps?.slice().reverse().find((step) => step.status === "SUCCEEDED")?.summary ?? lines().find((line) => /SUCCEEDED|completed|verified/i.test(line)) ?? "No recorded progress"
@@ -31,10 +31,10 @@ export function ResearchSummary(props: { status: StatusProjection; home?: string
         </box>
         <box flexGrow={1} flexDirection="column" border borderColor={theme.border}>
           <Title text="SUMMARY" color={theme.blue} />
-          <text fg={theme.text}>{objective()?.title ?? "Create an objective to begin research."}</text>
-          <text fg={theme.textMuted}>{props.status.research.blocked ? `${props.status.research.blocked} Open blocker(s) require attention.` : "Open blockers: 0. Research state is ready to continue."}</text>
+          <text fg={theme.text}>{props.naturalStatement ?? objective()?.title ?? "Create an objective to begin research."}</text>
+          <text fg={theme.textMuted}>{`Open blockers: ${props.status.research.blocked}`}</text>
           <text fg={theme.blue}>LEAN STATEMENT</text>
-          <text fg={props.formalText ? theme.cyan : theme.textMuted}>{props.formalText ?? "Use /formal to inspect the current Lean statement."}</text>
+          <LeanStatement text={props.formalText} />
         </box>
       </box>
 
@@ -42,14 +42,14 @@ export function ResearchSummary(props: { status: StatusProjection; home?: string
         <Title text="LATEST MEANINGFUL PROGRESS" color={theme.violet} /><text fg={theme.success}>{`✓  ${clock(props.steps?.at(-1)?.finishedAt)}  ${meaningful()}`}</text>
       </box>
 
-      <box minHeight={7} flexGrow={1} flexDirection="column" border borderColor={theme.border}>
+      <box minHeight={5} flexGrow={1} flexDirection="column" border borderColor={theme.border}>
         <Title text="RECENT ACTIVITY" color={theme.violet} />
         <For each={activities().length ? activities() : ["No recent activity"]}>{(item) => typeof item === "string" ? <text fg={theme.textMuted}>{item}</text> : <Activity step={item} />}</For>
       </box>
 
-        <box height={9} flexShrink={0} flexDirection="column" border borderColor={theme.border}>
+        <box height={11} flexShrink={0} flexDirection="column" border borderColor={theme.border}>
           <Title text="QUICK COMMANDS  (Ctrl+K to toggle)" color={theme.violet} />
-          <For each={[0, 1, 2]}>{(row) => <box height={2} flexDirection="row"><For each={quickCommands.slice(row * 3, row * 3 + 3)}>{(item) => <box width="33%" flexDirection="column" paddingLeft={1}><text fg={theme.violet}>{item[0]}</text><text fg={theme.textMuted}>{item[1]}</text></box>}</For></box>}</For>
+          <For each={[0, 1, 2]}>{(row) => <><CommandRow items={quickCommands.slice(row * 3, row * 3 + 3)} /><Show when={row < 2}><text fg={theme.border}>├──────────────────────┼──────────────────────┼──────────────────────┤</text></Show></>}</For>
         </box>
     </box>
     </Show>
@@ -69,4 +69,11 @@ function CompactDashboard(props: { status: StatusProjection; formalText?: string
 function Title(props: { text: string; color: string }) { return <box height={1} flexShrink={0} flexDirection="row" alignItems="center" paddingLeft={1}><text fg={props.color}>{props.text}</text></box> }
 function Metric(props: { label: string; value: string; color?: string }) { return <box flexDirection="row" paddingLeft={1} paddingRight={1}><text width="42%" fg={theme.textMuted}>{props.label}</text><text fg={props.color ?? theme.text}>{props.value}</text></box> }
 function Activity(props: { step: ResearchStep }) { return <box flexDirection="row" paddingLeft={1} paddingRight={1}><text width={10} fg={theme.textMuted}>{clock(props.step.finishedAt ?? props.step.startedAt)}</text><text flexGrow={1} fg={props.step.status === "SUCCEEDED" ? theme.text : theme.warning}>{props.step.summary ?? props.step.action}</text><text fg={theme.textMuted}>{`[${props.step.action}]`}</text></box> }
+function CommandRow(props: { items: readonly (readonly [string, string])[] }) { return <box height={2} flexShrink={0} flexDirection="row"><For each={props.items}>{(item) => <box width="33%" flexDirection="row"><text fg={theme.border}>│</text><box flexGrow={1} flexDirection="column" paddingLeft={1}><text fg={theme.violet}>{item[0]}</text><text fg={theme.textMuted}>{item[1]}</text></box></box>}</For><text fg={theme.border}>│</text></box> }
+function LeanStatement(props: { text?: string | null }) {
+  if (!props.text) return <text fg={theme.textMuted}>Use /formal to inspect the current Lean statement.</text>
+  const match = /^(theorem|lemma|example|def)\s+(\S+)([\s\S]*)$/.exec(props.text)
+  if (!match) return <text fg={theme.cyan}>{props.text}</text>
+  return <text><span style={{ fg: theme.violet }}>{match[1]}</span>{" "}<span style={{ fg: theme.accent }}>{match[2]}</span><span style={{ fg: theme.cyan }}>{match[3]}</span></text>
+}
 function clock(value?: string | null) { return value ? value.slice(11, 19) : "--:--:--" }

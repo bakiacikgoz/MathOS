@@ -803,12 +803,13 @@ export function AppShell(props: { mathos: MathOS }) {
   })
 
   const mode = () => layoutMode(width())
-  const showSidebar = () => mode() !== "compact" && width() >= 115 && height() >= 36
+  const sidebarWidth = () => width() < 140 ? 34 : 40
+  const showSidebar = () => mode() !== "compact" && width() >= 100 && height() >= 36
   const compactDashboard = () => mode() === "compact" || width() < 115 || height() < 36
 
   return (
     <box width="100%" height="100%" flexDirection="column" backgroundColor={theme.background}>
-      <Header status={status()} compact={width() < 150 || height() < 36} />
+      <Header status={status()} compact={mode() === "compact"} />
       <box flexGrow={1} flexDirection="row">
       <MainPanel
           view={view()}
@@ -929,11 +930,11 @@ export function AppShell(props: { mathos: MathOS }) {
         providers={providerCenterSnapshot(providerCatalog.list().map(descriptor => ({ descriptor, policy: evaluateProviderPolicy(descriptor.id) })))}
         compact={compactDashboard()}
         />
-        <Sidebar status={status()} visible={showSidebar()} run={researchRun()} steps={researchSteps()} />
+        <Sidebar status={status()} visible={showSidebar()} width={sidebarWidth()} run={researchRun()} steps={researchSteps()} />
       </box>
       <Toast message={toast()?.message ?? null} kind={toast()?.kind} />
       <PromptInput onSubmit={handleSubmit} history={history()} inactive={overlayOpen()} />
-      <StatusBar hint="Ctrl+K palette   Ctrl+R research   Ctrl+G graph   Ctrl+E experiment   Ctrl+L literature   Ctrl+H help   Ctrl+Q quit" mode={mode()} />
+      <StatusBar hint="Ctrl+K palette   Ctrl+R research   Ctrl+G graph   Ctrl+E experiment   Ctrl+L literature   Ctrl+H help   Ctrl+Q quit" mode={`main | ${mode()}`} />
       <CommandPalette
         open={paletteOpen()}
         onClose={() => setPaletteOpen(false)}

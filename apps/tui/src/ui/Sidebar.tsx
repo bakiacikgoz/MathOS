@@ -2,14 +2,14 @@ import type { ResearchRun, ResearchStep, StatusProjection } from "@mathos/domain
 import { statusColor, theme } from "../theme.ts"
 import { WorkspaceInfo } from "./WorkspaceInfo.tsx"
 
-export function Sidebar(props: { status: StatusProjection; visible: boolean; run?: ResearchRun | null; steps?: ResearchStep[] }) {
+export function Sidebar(props: { status: StatusProjection; visible: boolean; width?: number; run?: ResearchRun | null; steps?: ResearchStep[] }) {
   if (!props.visible) return null
   const started = () => clock(props.run?.startedAt ?? props.run?.createdAt)
   const stopped = () => clock(props.run?.stoppedAt)
   const elapsed = () => duration(props.run?.startedAt, props.run?.stoppedAt ?? props.run?.updatedAt)
   const resumable = () => props.run?.status === "PAUSED"
   return (
-    <box width={40} backgroundColor={theme.surface} border borderColor={theme.border} flexDirection="column">
+    <box width={props.width ?? 40} backgroundColor={theme.surface} border borderColor={theme.border} flexDirection="column">
       <WorkspaceInfo status={props.status} />
       <Section title="RESEARCH STATE" color={theme.blue} height={10}>
         <Row label="session" value={props.run?.id ?? "—"} />
@@ -23,7 +23,7 @@ export function Sidebar(props: { status: StatusProjection; visible: boolean; run
         <Row label="started" value={started()} /><Row label="paused" value={stopped()} /><Row label="elapsed" value={elapsed()} /><Row label="resumable" value={resumable() ? "yes" : "no"} color={resumable() ? theme.success : theme.textMuted} />
       </Section>
       <Section title="QUICK ACTIONS" color={theme.accent} flexGrow={1}>
-        <text fg={theme.textMuted}>1  Resume session</text><text fg={theme.textMuted}>2  Analyze current goal</text><text fg={theme.textMuted}>3  Show proof graph</text><text fg={theme.textMuted}>4  List open blockers</text><text fg={theme.textMuted}>5  Export verification capsule</text>
+        <text fg={theme.textMuted}>[1] Resume session</text><text fg={theme.textMuted}>[2] Analyze current goal</text><text fg={theme.textMuted}>[3] Show proof graph</text><text fg={theme.textMuted}>[4] List open blockers</text><text fg={theme.textMuted}>[5] Export verification capsule</text>
       </Section>
     </box>
   )
