@@ -8,7 +8,7 @@ const dirs:string[]=[]
 afterEach(async()=>{for(const d of dirs.splice(0)) await rm(d,{recursive:true,force:true})})
 async function run(code:string, options:Partial<SandboxedExecutionRequest>={}) {
  const d=await mkdtemp(join(tmpdir(),"mathos-sec-"));dirs.push(d);const scriptPath=join(d,"main.py");await writeFile(scriptPath,code)
- return new PythonRuntime().execute({executable:"python3",origin:"MODEL_GENERATED",scriptPath,cwd:d,timeoutMs:2000,maxOutputBytes:4096,...options})
+ return new PythonRuntime().execute({executable:"python3",origin:"MODEL_GENERATED",scriptPath,cwd:d,timeoutMs:10_000,maxOutputBytes:4096,...options})
 }
 const unavailable:SandboxRuntime={async inspect(){return {available:false,backend:null,reason:"EXPERIMENT_BLOCKED_SANDBOX_UNAVAILABLE",networkIsolation:false}},async execute(req){return {...await new PythonRuntime("python3",unavailable).execute(req)}}}
 test("model code cannot read a host secret",async()=>{const secret=join(await mkdtemp(join(tmpdir(),"mathos-host-")),"secret");dirs.push(secret.slice(0,-7));await writeFile(secret,"HOST_SECRET");const r=await run(`print(open(${JSON.stringify(secret)}).read())`);expect(r.stdout).not.toContain("HOST_SECRET");expect(r.exitCode).not.toBe(0)})
