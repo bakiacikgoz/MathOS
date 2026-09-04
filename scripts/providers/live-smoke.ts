@@ -1,17 +1,16 @@
 #!/usr/bin/env bun
-import { execFileSync } from "node:child_process"
 import { homedir } from "node:os"
-import { join, resolve } from "node:path"
+import { join } from "node:path"
 import { mkdtempSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { createProviderFromProfile, createSecretStore, discoverCodexExecutable, evaluateProviderPolicy, loadModelProfileStore, probeCodexVersion, providerCatalog, validateCodexSchema, type ModelProfileV2, type ModelProvider, type ProviderFactoryOptions } from "@mathos/models"
-import { resolveRuntimeLayout } from "@mathos/shared"
+import { currentBuildIdentity, resolveRuntimeLayout, type MathOSBuildIdentity } from "@mathos/shared"
 
 export interface ProviderLiveResult { schemaVersion:"mathos.provider-live-smoke.v1";platform:string;mathosRevision:string;providerDescriptor:string;profile:string;clientVersion:string|null;transport:string;authOwner:string;model:string;connection:string;modelList:string;quota:string;liveRequest:string;usage:unknown;termsPolicy:string }
 type LiveProvider = ModelProvider & { connect?:()=>Promise<unknown>;models?:()=>Promise<unknown>;rateLimits?:()=>Promise<unknown>;close?:()=>Promise<void> }
 type LiveSmokeOptions = { profiles?:ModelProfileV2[];createProvider?:(profile:ModelProfileV2,options:ProviderFactoryOptions)=>Promise<LiveProvider> }
 
-function revision(){try{return execFileSync("git",["rev-parse","HEAD"],{cwd:resolve(import.meta.dir,"../.."),encoding:"utf8"}).trim()}catch{return"UNKNOWN"}}
+export function providerSmokeRevision(identity: Pick<MathOSBuildIdentity,"gitRevision"> = currentBuildIdentity()){return identity.gitRevision}
 export async function codexOptions():Promise<ProviderFactoryOptions["codex"]>{
   const executable=discoverCodexExecutable({platform:process.platform});if(!executable)throw new Error("CODEX_CLIENT_MISSING")
   const version=await probeCodexVersion(executable);if(!version.compatible)throw new Error("CODEX_VERSION_INCOMPATIBLE")
@@ -26,7 +25,7 @@ export async function runProviderLiveSmoke(argv:string[],options:LiveSmokeOption
   const layout=resolveRuntimeLayout({executablePath:process.execPath,platform:process.platform,home:homedir(),env:process.env}),profiles=options.profiles??loadModelProfileStore(join(layout.userConfigRoot,"model-profiles.json")).profiles,profile=profiles.find(row=>row.id===profileId)
   if(!profile)throw new Error(`MODEL_PROFILE_NOT_FOUND: ${profileId}`)
   const descriptor=providerCatalog.get(profile.descriptorId);if(!descriptor)throw new Error(`PROVIDER_DESCRIPTOR_NOT_FOUND: ${profile.descriptorId}`)
-  const policy=evaluateProviderPolicy(descriptor.id),base={schemaVersion:"mathos.provider-live-smoke.v1" as const,platform:`${process.platform}-${process.arch}`,mathosRevision:revision(),providerDescriptor:descriptor.id,profile:profile.id,clientVersion:null,transport:descriptor.transport,authOwner:profile.auth.kind,model:profile.model,modelList:"NOT_RUN",quota:"NOT_RUN",usage:null,termsPolicy:descriptor.terms.policy}
+  const policy=evaluateProviderPolicy(descriptor.id),base={schemaVersion:"mathos.provider-live-smoke.v1" as const,platform:`${process.platform}-${process.arch}`,mathosRevision:providerSmokeRevision(),providerDescriptor:descriptor.id,profile:profile.id,clientVersion:null,transport:descriptor.transport,authOwner:profile.auth.kind,model:profile.model,modelList:"NOT_RUN",quota:"NOT_RUN",usage:null,termsPolicy:descriptor.terms.policy}
   if(!policy.allowed)return{...base,connection:"POLICY_BLOCKED_EXPECTED",liveRequest:"POLICY_BLOCKED_EXPECTED"}
   if(!argv.includes("--live"))return{...base,connection:"NOT_CONFIGURED",liveRequest:"NOT_REQUESTED"}
   if(descriptor.billingClass==="payg"&&!argv.includes("--accept-usage"))throw new Error("LIVE_USAGE_ACCEPTANCE_REQUIRED")
