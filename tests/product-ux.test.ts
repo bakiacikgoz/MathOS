@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { join } from "node:path"
-import { MathOS, createDemoWorkspace, experimentTrustLabels, formatTypedUserError, formatInitReport, whyVerified } from "@mathos/core"
+import { MathOS, createDemoWorkspace, experimentTrustLabels, formatTypedUserError, formatInitReport, researchReportMarkdown, whyVerified } from "@mathos/core"
 import type { Experiment } from "@mathos/domain"
 import { FakeLeanAdapter } from "@mathos/lean"
 import { FakeVcs } from "@mathos/vcs"
@@ -46,6 +46,23 @@ describe("product ux v1", () => {
       workspace.cleanup()
     }
   }, 30000)
+
+  test("report keeps current kernel provenance when a later diagnostic verification exists", async () => {
+    const workspace = createTestWorkspace("mathos-ux-report-")
+    let app: MathOS | undefined
+    try {
+      const created = await createDemoWorkspace(workspace.root, "demo")
+      app = MathOS.open(created.root, { vcs: new FakeVcs(), leanAdapter: new FakeLeanAdapter() })
+      app.setMainObjective(app.listClaims().find((item) => item.status === "KERNEL_VERIFIED")!.id)
+      const state = app.productState()
+      const accepted = state.snapshot.verifications.find((item) => item.result === "KERNEL_ACCEPTED")!
+      state.snapshot.verifications.push({ ...accepted, id: "vr_later_diagnostic", result: "ELABORATES" })
+      const report = researchReportMarkdown(state)
+      expect(report).toContain(`${accepted.id} KERNEL_ACCEPTED`)
+      expect(report).toContain("VerificationGate provenance included")
+      expect(report).not.toContain("No VerificationGate PASS")
+    } finally { app?.close(); workspace.cleanup() }
+  })
 
   test("experiment trust labels are conditional and never imply proof", () => {
     const base = { origin: "USER_AUTHORED", status: "CREATED", sandboxMode: null, networkPolicy: null, executionPolicyVersion: null } as unknown as Experiment

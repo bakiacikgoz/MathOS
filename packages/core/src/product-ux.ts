@@ -698,7 +698,11 @@ export function formatConfigShow(workspaceRoot?: string): string {
 export function researchReportMarkdown(state: ProductState): string {
   const obj = objective(state)
   const formal = obj ? state.snapshot.formals.find((item) => item.claimId === obj.id && item.isCurrent) : null
-  const vr = obj ? state.snapshot.verifications.filter((item) => item.claimId === obj.id).at(-1) : null
+  const claimVerifications = obj ? state.snapshot.verifications.filter((item) => item.claimId === obj.id) : []
+  const currentKernelVerification = obj?.status === "KERNEL_VERIFIED" && formal
+    ? claimVerifications.filter((item) => item.result === "KERNEL_ACCEPTED" && item.formalStatementId === formal.id && state.snapshot.proofs.some((proof) => proof.id === item.proofAttemptId && proof.formalStatementId === formal.id && proof.status === "KERNEL_ACCEPTED")).at(-1)
+    : null
+  const vr = currentKernelVerification ?? claimVerifications.at(-1) ?? null
   const verified = state.snapshot.claims.filter((item) => item.status === "KERNEL_VERIFIED")
   const open = state.snapshot.claims.filter((item) => item.status !== "KERNEL_VERIFIED")
   const blockers = state.snapshot.blockers.filter((item) => item.status === "OPEN")
