@@ -79,6 +79,17 @@ test("home renders the current Lean statement without claiming proof", async () 
   } finally { setup.renderer.destroy() }
 })
 
+test("quick command grid measures its own container instead of a parent width estimate", async () => {
+  const setup = await testRender(() => <ResearchSummary status={mathos.status()} dashboardWidth={120} />, { width: 160, height: 48 })
+  try {
+    await setup.renderOnce()
+    await setup.renderOnce()
+    const rows = setup.captureCharFrame().split("\n")
+    const rule = rows.find((row) => row.includes("├") && row.includes("┼") && row.includes("┤"))!
+    expect(rule.lastIndexOf("┤") - rule.indexOf("├") + 1).toBeGreaterThanOrEqual(150)
+  } finally { setup.renderer.destroy() }
+})
+
 test("wide dashboard uses the full viewport and keeps rich commands near the composer", async () => {
   const setup = await testRender(() => <AppShell mathos={mathos} />, { width: 160, height: 48 })
   try {

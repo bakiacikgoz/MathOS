@@ -1,5 +1,5 @@
 import type { ResearchRun, ResearchStep, StatusProjection } from "@mathos/domain"
-import { For, Show } from "solid-js"
+import { createSignal, For, Show } from "solid-js"
 import { statusColor, theme } from "../theme.ts"
 
 const quickCommands = [
@@ -13,11 +13,12 @@ export function ResearchSummary(props: { status: StatusProjection; home?: string
   const lines = () => (props.home ?? "").split("\n").map((line) => line.trim()).filter(Boolean)
   const meaningful = () => props.steps?.slice().reverse().find((step) => step.status === "SUCCEEDED")?.summary ?? lines().find((line) => /SUCCEEDED|completed|verified/i.test(line)) ?? "No recorded progress"
   const activities = () => props.steps?.length ? props.steps.slice(-5).reverse() : lines().filter((line) => !/^(MATHOS|Workspace|Objective|Epistemic|Research state|Open blockers|Last meaningful|Environment|Primary)/i.test(line)).slice(-5).reverse()
-  const commandGridWidth = () => Math.max(42, (props.dashboardWidth ?? 100) - 6)
+  const [measuredWidth, setMeasuredWidth] = createSignal(props.dashboardWidth ?? 100)
+  const commandGridWidth = () => Math.max(42, measuredWidth() - 6)
   const commandColumns = () => distributeColumns(commandGridWidth())
   return (
     <Show when={!props.compact} fallback={<CompactDashboard status={props.status} formalText={props.formalText} meaningful={meaningful()} />}>
-    <box flexDirection="column" padding={1} flexGrow={1} gap={1}>
+    <box flexDirection="column" padding={1} flexGrow={1} gap={1} onSizeChange={function () { setMeasuredWidth(this.width) }}>
       <box height={5} flexShrink={0} flexDirection="row" alignItems="center" justifyContent="space-between" border borderColor={theme.border} paddingLeft={1} paddingRight={1}>
         <box flexDirection="column"><text fg={theme.blue}>OBJECTIVE</text><text fg={theme.accent}>{`${objective()?.id ?? "—"}  `}<span style={{ fg: theme.text }}>{objective()?.title ?? "No main claim yet"}</span></text></box>
         <text fg={statusColor(objective()?.status ?? "OPEN")}>{`[ ${objective()?.status ?? "OPEN"} ]`}</text>
@@ -33,7 +34,7 @@ export function ResearchSummary(props: { status: StatusProjection; home?: string
         </box>
         <box flexGrow={1} flexDirection="column" border borderColor={theme.border}>
           <Title text="SUMMARY" color={theme.blue} />
-          <text width={Math.min(75, Math.max(28, Math.floor(((props.dashboardWidth ?? 100) - 7) * .56) - 2))} fg={theme.text}>{props.naturalStatement ?? objective()?.title ?? "Create an objective to begin research."}</text>
+          <text width={Math.min(75, Math.max(28, Math.floor((measuredWidth() - 7) * .56) - 2))} fg={theme.text}>{props.naturalStatement ?? objective()?.title ?? "Create an objective to begin research."}</text>
           <text fg={theme.textMuted}>{`Open blockers: ${props.status.research.blocked}`}</text>
           <text fg={theme.blue}>LEAN STATEMENT</text>
           <LeanStatement text={props.formalText} />
