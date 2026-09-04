@@ -43,7 +43,7 @@ describe("real lean", () => {
     expect(env.leanAvailable).toBe(true)
     expect(env.mathlib).toBe(true)
     expect(env.toolchain).toBe("leanprover/lean4:v4.33.1")
-    expect(env.projectRoot).toContain("/demo/formal")
+    expect(env.projectRoot).toBe(resolve(import.meta.dir, "../demo/formal"))
   })
 
   test("axiom printer parses lean output", () => {
