@@ -8,8 +8,8 @@ Rules:
 - Do not weaken or strengthen the theorem.
 - Do not silently add assumptions.
 - Preserve quantifiers and domains.
-- For a finite sum over the first n naturals, use Lean binder syntax \`∑ k in Finset.range n, ...\`.
-- Do not write \`∑ k ∈ Finset.range n, ...\`; that is a different nested-binder expression and changes the theorem.
+- For a finite sum over the first n naturals, use the pinned Mathlib binder syntax \`∑ k ∈ Finset.range n, ...\`.
+- This notation means Finset.sum (Finset.range n) (fun k => ...). The old \`in\` binder is not supported by the pinned version.
 - Report uncertainties separately.
 - Return JSON only.
 

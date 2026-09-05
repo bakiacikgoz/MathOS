@@ -6,7 +6,7 @@ import { exportBlueprintLatex, importBlueprintLatex, parseMathosMarkdown } from 
 import { MATHOS_PRODUCT_VERSION, MathOSError, cliExitCode, formatCliError, resolveRuntimeLayout, withWorkspaceOperationLock } from "@mathos/shared"
 import { repairWorkspaceRuntimeState } from "@mathos/workspace"
 import { SCHEMA_EPOCH } from "@mathos/storage"
-import { FileModelUsageLedger, ProviderProfileRegistry, createProviderFromProfile, createSecretStore, discoverLocalEngines, evaluateProviderPolicy, loadConfigFiles, loadModelProfileStore, parseMathOSConfig, providerCatalog, readSecretInput, redactedProviderSummary, saveModelProfileStore, serializeConfigValues, type ConfigScalar, type ModelProfileAuth, type ModelProfileV2, type ModelProvider, type ModelRole, type ProviderFactoryOptions } from "@mathos/models"
+import { FileModelUsageLedger, ProviderProfileRegistry, createSecretStore, discoverLocalEngines, evaluateProviderPolicy, loadConfigFiles, loadModelProfileStore, parseMathOSConfig, providerCatalog, readSecretInput, redactedProviderSummary, saveModelProfileStore, serializeConfigValues, type ConfigScalar, type ModelProfileAuth, type ModelProfileV2, type ModelRole } from "@mathos/models"
 import { formatBranchDetail, formatBranches, formatClaims, formatDoctor, formatMergePreview, formatProviderCatalog, formatProviderStatus, formatResearchRun, formatStatus, HELP_TEXT } from "./format.ts"
 import { portfolioSnapshot } from "./ui/PortfolioViews.tsx"
 import { failureMemorySnapshot } from "./ui/FailureMemoryViews.tsx"
@@ -23,7 +23,8 @@ import { projectAtlas, blockerCriticalPath } from "@mathos/graph"
 import { createProductionLiteratureProvider } from "@mathos/literature"
 import { PersistentPluginRegistry } from "@mathos/plugins"
 import { applyAtomicUpdate, checkUpdate, rollbackUpdate, verifyUpdateArtifact, type UpdateManifest } from "@mathos/update"
-import { codexOptions, runProviderLiveSmoke } from "../../../scripts/providers/live-smoke.ts"
+import { runProviderLiveSmoke } from "../../../scripts/providers/live-smoke.ts"
+import { configuredModelProviders, configuredModelRoleAssignments } from "./model-runtime.ts"
 
 function joinCwdBackups(): string {
   return join(process.cwd(), "backups")
@@ -31,20 +32,13 @@ function joinCwdBackups(): string {
 
 function providerSummaries(userConfigRoot: string) { const profiles=loadModelProfileStore(join(userConfigRoot,"model-profiles.json")).profiles;return profiles.map(profile=>{const descriptor=providerCatalog.get(profile.descriptorId);if(!descriptor)throw new Error(`PROVIDER_DESCRIPTOR_NOT_FOUND: ${profile.descriptorId}`);return redactedProviderSummary(profile,descriptor)}) }
 
-const MODEL_COMMANDS = new Set(["formalize", "prove", "research", "team"])
+const MODEL_COMMANDS = new Set(["formalize", "prove", "research", "team", "ingest"])
 
-async function configuredModelProvider(workspaceRoot: string): Promise<ModelProvider | undefined> {
-  const layout = resolveRuntimeLayout({ executablePath: process.execPath, platform: process.platform, home: homedir(), env: process.env })
-  const loaded = loadConfigFiles({ userPath: join(layout.userConfigRoot, "config.toml"), workspaceRoot })
-  const profileId = loaded.config.model.default_profile
-  if (!profileId) return undefined
-  const profile = loadModelProfileStore(join(layout.userConfigRoot, "model-profiles.json")).profiles.find((row) => row.id === profileId)
-  if (!profile || !profile.enabled) return undefined
-  const options: ProviderFactoryOptions = { secrets: createSecretStore(), live: true }
-  if (profile.descriptorId === "openai-codex-chatgpt") options.codex = await codexOptions()
-  const provider = await createProviderFromProfile(profile, options) as ModelProvider & { connect?: () => Promise<unknown> }
-  await provider.connect?.()
-  return provider
+export function requiredModelRoles(command: string, configuredRoles: Record<string, string>): ModelRole[] {
+  if (command === "formalize") return ["formalizer", configuredRoles.alignment ? "alignment" : "auditor"]
+  if (command === "prove") return ["prover"]
+  if (command === "ingest") return ["researcher"]
+  return ["planner", "prover"]
 }
 
 function flag(args: string[], name: string): string | undefined {
@@ -202,8 +196,17 @@ export async function runHeadless(argv: string[]): Promise<number> {
       if(action==="rollback"){const current=flag(rest,"--current")??process.execPath;process.stdout.write(`${JSON.stringify(rollbackUpdate(current),null,2)}\n`);return 0}throw new Error(`UPDATE_ACTION_UNKNOWN:${action}`)
     }
 
-    const modelProvider = command && MODEL_COMMANDS.has(command) ? await configuredModelProvider(process.cwd()) : undefined
-    const app = MathOS.open(process.cwd(), { literatureOffline: command === "literature" && rest.includes("--offline"), modelProvider, auditorProvider: modelProvider })
+    const modelRoutes = command && MODEL_COMMANDS.has(command)
+      ? await configuredModelProviders(process.cwd(), requiredModelRoles(command, configuredModelRoleAssignments(process.cwd())))
+      : undefined
+    const modelProvider = modelRoutes ? Object.values(modelRoutes.providers)[0] : undefined
+    let app: MathOS
+    try {
+      app = MathOS.open(process.cwd(), { literatureOffline: command === "literature" && rest.includes("--offline"), modelProvider, modelProviders: modelRoutes?.providers })
+    } catch (error) {
+      await modelRoutes?.close().catch(() => undefined)
+      throw error
+    }
     try {
       if (command === "workspace" && rest[0] === "inspect") { const report = await app.doctor(); process.stdout.write(`${JSON.stringify({ schemaVersion: "mathos.workspace-inspect.v1", root: app.root, schemaEpoch: SCHEMA_EPOCH, doctor: report }, null, 2)}\n`); return report.ok ? 0 : 2 }
       if (command === "workspace" && rest[0] === "repair") { const result = withWorkspaceOperationLock(app.root, "repair", () => ({ ...repairWorkspaceRuntimeState(app.root), eventProjection: app.rebuildEventProjection() })); process.stdout.write(`${JSON.stringify({ schemaVersion: "mathos.workspace-repair.v1", ...result }, null, 2)}\n`); return result.eventProjection.status === "HEALTHY" ? 0 : 2 }
@@ -968,7 +971,7 @@ export async function runHeadless(argv: string[]): Promise<number> {
       throw new MathOSError("USAGE_UNKNOWN_COMMAND", `Unknown command: ${command}`)
     } finally {
       app.close()
-      await (modelProvider as (ModelProvider & { close?: () => Promise<void> }) | undefined)?.close?.()
+      await modelRoutes?.close()
     }
   } catch (error) {
     const code = cliExitCode(error)

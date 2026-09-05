@@ -59,6 +59,7 @@ import {
   modelDoctorChecks,
   resolveModelConfig,
   type ModelProvider,
+  type ModelRole,
 } from "@mathos/models"
 import { NativeLeanAdapter, type LeanAdapter } from "@mathos/lean"
 import { type PremiseRetriever } from "@mathos/retrieval"
@@ -149,6 +150,7 @@ import { createServiceContainer, type ServiceContainer, type ServiceContainerOve
 export interface MathOSOptions {
   logger?: Logger
   modelProvider?: ModelProvider
+  modelProviders?: Partial<Record<ModelRole, ModelProvider>>
   auditorProvider?: ModelProvider
   leanAdapter?: LeanAdapter
   premiseRetriever?: PremiseRetriever
@@ -257,8 +259,12 @@ export class MathOS {
     const events = new EventLog(eventLogPath(workspaceRoot))
     events.ensure()
     const logger = options.logger ?? createLogger(debugLogPath(workspaceRoot))
-    const modelProvider = options.modelProvider ?? createDefaultModelProvider(workspaceRoot)
-    const auditorProvider = options.auditorProvider ?? modelProvider
+    const defaultModelProvider = options.modelProvider ?? createDefaultModelProvider(workspaceRoot)
+    const researcherProvider = options.modelProviders?.researcher ?? defaultModelProvider
+    const plannerProvider = options.modelProviders?.planner ?? defaultModelProvider
+    const formalizerProvider = options.modelProviders?.formalizer ?? defaultModelProvider
+    const proverProvider = options.modelProviders?.prover ?? defaultModelProvider
+    const auditorProvider = options.auditorProvider ?? options.modelProviders?.alignment ?? options.modelProviders?.auditor ?? defaultModelProvider
     const leanAdapter = options.leanAdapter ?? new NativeLeanAdapter()
     const instance = new MathOS(
       workspaceRoot,
@@ -277,7 +283,7 @@ export class MathOS {
       new VerificationRunRepository(client.db),
       new ProofAttemptRepository(client.db),
       new ClaimVisibilityRepository(client.db),
-      modelProvider,
+      researcherProvider,
       auditorProvider,
       leanAdapter,
       options.premiseRetriever ?? null,
@@ -306,7 +312,7 @@ export class MathOS {
       branches: instance.branches,
       blockers: instance.blockers,
       visibility: instance.visibility,
-      modelProvider: instance.modelProvider,
+      modelProvider: researcherProvider,
       logger: instance.logger,
       allocateId: (prefix) => instance.allocateId(prefix),
       recorder: instance.mutationRecorder(),
@@ -318,7 +324,7 @@ export class MathOS {
       formalStatements: instance.formalStatements,
       fidelityReviews: instance.fidelityReviews,
       verificationRuns: instance.verificationRuns,
-      modelProvider: instance.modelProvider,
+      modelProvider: formalizerProvider,
       auditorProvider: instance.auditorProvider,
       leanAdapter: instance.leanAdapter,
       leanContext: () => ({
@@ -359,7 +365,7 @@ export class MathOS {
       claims: instance.claims,
       formalStatements: instance.formalStatements,
       proofs: instance.proofs,
-      modelProvider: instance.modelProvider,
+      modelProvider: proverProvider,
       leanAdapter: instance.leanAdapter,
       retrieval: instance.retrievalService,
       leanContext: () => instance.leanContext(),
@@ -417,7 +423,7 @@ export class MathOS {
       decisions: new ResearchDecisionRepository(client.db),
       planners: new RunPlannerRepository(client.db),
       agents: new ResearchAgentRepository(client.db),
-      modelProvider: instance.modelProvider,
+      modelProvider: plannerProvider,
       defaultPlanner: instance.researchPlanner,
       requireWorkspace: () => instance.requireWorkspace(),
       requireCurrentBranch: () => instance.requireCurrentBranch(),

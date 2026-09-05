@@ -1,8 +1,10 @@
 import { createCliRenderer } from "@opentui/core"
 import { render } from "@opentui/solid"
 import { MathOS } from "@mathos/core"
+import type { ModelRole } from "@mathos/models"
 import { theme } from "./theme.ts"
 import { AppShell } from "./ui/AppShell.tsx"
+import { configuredModelProviders, configuredModelRoleAssignments, createReloadingModelProviders, hasConfiguredModelProfiles } from "./model-runtime.ts"
 
 export async function startTui(): Promise<number> {
   if (!MathOS.tryLocate(process.cwd())) {
@@ -10,7 +12,20 @@ export async function startTui(): Promise<number> {
     return 1
   }
 
-  const mathos = MathOS.open(process.cwd())
+  const workspaceRoot = process.cwd()
+  const configuredRoles = configuredModelRoleAssignments(workspaceRoot)
+  const modelRoles: ModelRole[] = ["planner", "researcher", "formalizer", "prover", configuredRoles.alignment ? "alignment" : "auditor", "checker"]
+  const modelRuntime = hasConfiguredModelProfiles(workspaceRoot)
+    ? createReloadingModelProviders(modelRoles, roles => configuredModelProviders(workspaceRoot, roles))
+    : undefined
+  let mathos: MathOS
+  try {
+    const modelProvider = modelRuntime?.providers.researcher
+    mathos = MathOS.open(workspaceRoot, { modelProvider, modelProviders: modelRuntime?.providers })
+  } catch (error) {
+    await modelRuntime?.close()
+    throw error
+  }
   const terminalThemeActive = Boolean(process.stdout.isTTY)
   if (terminalThemeActive) process.stdout.write(`\u001b]11;${theme.background}\u0007`)
   const renderer = await createCliRenderer({
@@ -31,6 +46,7 @@ export async function startTui(): Promise<number> {
     throw error
   } finally {
     mathos.close()
+    await modelRuntime?.close()
     if (terminalThemeActive) process.stdout.write("\u001b]111\u0007")
   }
 }
