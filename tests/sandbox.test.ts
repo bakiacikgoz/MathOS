@@ -21,7 +21,7 @@ test("real sandbox denies host reads, writes, network, subprocess and secrets", 
   const result = await new PythonRuntime().execute({executable:"python3", origin:"MODEL_GENERATED", scriptPath,cwd:dir,timeoutMs:2000,maxOutputBytes:4096,extraEnv:{INNOCENT:"secret"}})
   if (!result.securityReport?.sandboxAvailable) { expect(result.blockedReason).toBeTruthy(); return }
   expect(result.blockedReason).toBeUndefined()
-  if (result.exitCode === 0) expect(JSON.parse(result.stdout)).toEqual({read:true,write:false,network:true,process:true,env:true})
+  if (result.exitCode === 0) expect(JSON.parse(result.stdout)).toEqual({read:true,write:true,network:true,process:true,env:true})
   else expect(result.exitCode).not.toBe(0)
   expect(access(join(dir,"escaped"))).rejects.toThrow()
  } finally { await rm(dir,{recursive:true,force:true}) }

@@ -18,4 +18,4 @@ export const inspectSandbox = () => createSandboxRuntime().inspect()
 export const executeSandboxed = (request:SandboxedExecutionRequest) => createSandboxRuntime().execute(request)
 export { resolveLinuxSandboxBackend } from "./platform/linux-sandbox"
 export { buildBwrapCommand, type BwrapCommandInput } from "./platform/linux-bwrap"
-export { ContainerSandboxRuntime, dockerRunArguments } from "./platform/container-sandbox"
+export { ContainerSandboxRuntime, cleanupSandboxContainer, dockerRunArguments } from "./platform/container-sandbox"
