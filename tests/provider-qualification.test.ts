@@ -24,3 +24,13 @@ describe("provider qualification",()=>{
   test("connects, discovers models and quota, and requires a structured live response",async()=>{const codex={...profile("codex","openai-codex-chatgpt"),model:"codex-test",auth:{kind:"upstream-client",accountAlias:null,clientHome:null}} as ModelProfileV2;const calls:string[]=[];const result=await runProviderLiveSmoke(["codex","--live"],{profiles:[codex],createProvider:async()=>({id:"fake",model:"codex-test",capabilities:{structuredOutput:false,toolCalling:false,reasoning:true,streaming:false,vision:false},connect:async()=>{calls.push("connect")},models:async()=>({data:[{id:"codex-test"}]}),rateLimits:async()=>({remaining:42}),generate:async(request:any)=>{calls.push(request.messages[0].content);return{text:'{"mathos_live_provider_smoke":true}',provider:"fake",model:"codex-test"}},close:async()=>{calls.push("close")}} as any)});expect(calls).toEqual(["connect",expect.stringContaining("mathos_live_provider_smoke"),"close"]);expect(result).toMatchObject({connection:"CONNECTED",modelList:"PASS",quota:"PASS",liveRequest:"PASS"})})
   test("does not report PASS for an unstructured or false completion",async()=>{const codex={...profile("codex-bad","openai-codex-chatgpt"),model:"codex-test",auth:{kind:"upstream-client",accountAlias:null,clientHome:null}} as ModelProfileV2;const result=await runProviderLiveSmoke(["codex-bad","--live"],{profiles:[codex],createProvider:async()=>({id:"fake",model:"codex-test",capabilities:{},connect:async()=>{},generate:async()=>({text:"OK",provider:"fake",model:"codex-test"}),close:async()=>{}} as any)});expect(result.connection).toBe("CONNECTED");expect(result.liveRequest).toBe("INVALID_STRUCTURED_RESPONSE")})
 })
+
+test("an explicitly requested live qualification fails when the live gate fails", async () => {
+  const { qualificationExitCode } = await import("../scripts/providers/qualification.ts") as any
+  expect(typeof qualificationExitCode).toBe("function")
+  expect(qualificationExitCode({ contract: { passed: true }, qualified: false }, ["--profile", "codex", "--live"])).toBe(1)
+  expect(qualificationExitCode({ contract: { passed: true }, qualified: true }, ["--profile", "codex", "--live"])).toBe(0)
+  expect(qualificationExitCode({ contract: { passed: false }, qualified: false }, [])).toBe(1)
+  expect(qualificationExitCode({ contract: { passed: true }, qualified: false }, ["--json"])).toBe(0)
+  expect(qualificationExitCode({ contract: { passed: true }, qualified: false }, ["--live"])).toBe(1)
+})

@@ -2,6 +2,18 @@
 
 Bu dosya kullanıcının gönderdiği özgün planın tam metnini, her numaralı bölümün altında ilerleme notuyla saklar. Notlar önceki çalışma kayıtlarını özetler; yeni bir qualification PASS beyanı değildir.
 
+## macOS devam çalışması
+
+- Mac başlangıç HEAD'i: `7cd3e29b31b2aa3de813a4540268622cf20d65a3`; Darwin arm64, yalnız `main`.
+- Resmi Codex abonelik oturumu üzerinden model keşfi, yapılandırılmış canlı completion, C-001 formalization ve bir gerçek araştırma planner adımı çalıştı. Profil `codex-subscription`, model `gpt-5.6-sol`; ücretli API fallback kullanılmadı.
+- Mac'teki eski `mathos-first-research` workspace'i resmi backup komutuyla yedeklendi. Windows'un FS-002/PA-004/audit geçmişi Git ile taşınmamış; eski Windows insan onayı bu yerel kayda uygulanmadı.
+- Yerel FS-001, pinned Mathlib ile `ELABORATES`; C-001 hâlâ `CONJECTURE`. Açık insan anlam onayı beklenen ifade:
+  `theorem sum_first_n_odds (n : ℕ) : ∑ k ∈ Finset.range n, (2 * k + 1) = n ^ 2`
+- Genel “devam et” talimatı bölüm 20'deki ifade özelindeki insan onayının yerine geçmez. Onay gelmeden proof/VerificationGate/capsule/publication zincirine PASS yazma. R-001 ilk analiz adımından sonra duraklatıldı.
+- Canlı qualification; rol seçiminin çalışma zamanına aktarılması, Codex timer temizliği, pinned Lean toplam notasyonu, dış workspace'te TUI yüklemesi, VS Code bridge ortamı, OCI izolasyonu/temizliği ve artifact/evidence doğrulamasında gerçek sorunlar ortaya çıkardı. Düzeltmelerin final revision üzerinde tekrar sınanması gerekir.
+- Ayrıntılı yerel kanıtlar: `artifacts/qualification/macos-2026-09-05/`. Bu klasör Git tarafından taşınmaz. Staging paketleri final revision kanıtı değildir; son kaynak commit'inden sonra yeniden üret ve doğrula.
+- Gerçek Windows 11 x64 host üzerinde aynı final revision için yeni kanıt gereklidir. Mac cross-build Windows runtime PASS değildir. İnsan onayı veya Windows zorunlu gate'leri eksikse release `BLOCKED`, tag ve GitHub Release `NOT_CREATED` kalır.
+
 ## Kaldığımız yer
 
 - Son kod/tooling commit'i: `de4846895a1d017ef54023c0c74662028dc47f2a`.
@@ -30,7 +42,7 @@ Beklenen host Darwin/arm64. Dirty tree varsa koru ve analiz et. Qualification ar
 
 `artifacts/`, `dist/`, kullanıcı config'i ve araştırma workspace'i ignored/yereldir. Repo clone'u bunları getirmez.
 
-- Windows canonical workspace: `C:\Users\duzey\Documents\MathOS-Lab\mathos-first-research`
+- Windows canonical workspace: `%USERPROFILE%\Documents\MathOS-Lab\mathos-first-research`
 - Capsule/export: workspace altında `.mathos/artifacts/c001-*`
 - Yerel raporlar: repo altında `artifacts/qualification/`
 - Paketler: repo altında `artifacts/releases/1.0.0-rc.1/`
@@ -2157,4 +2169,3 @@ güvenli sandbox içerisinde hesaplama yapıp;
 tekrar üretilebilir ve yayımlanabilir matematiksel araştırma çıktısı üretmesidir.
 
 **MathOS 1.0 RC ancak bu gerçek ürün zinciri hem macOS arm64 hem Windows 11 x64 üzerinde kanıtlandığında tamamlanmış sayılacaktır.**
-

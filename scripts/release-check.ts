@@ -128,8 +128,7 @@ function commands(): Record<ReleaseCheckName, string[]> {
 }
 
 function unsupportedPlatform(name: ReleaseCheckName, platform: NodeJS.Platform): boolean {
-  return (name === "lean-smoke" && platform !== "darwin")
-    || (name === "sandbox-security-tests" && platform === "win32")
+  return name === "lean-smoke" && platform !== "darwin" && platform !== "win32"
 }
 
 function validatesEvidence(name: ReleaseCheckName, result: CommandResult): boolean {
@@ -140,7 +139,7 @@ function validatesEvidence(name: ReleaseCheckName, result: CommandResult): boole
     try { return JSON.parse(result.stdout).ready === true } catch { return false }
   }
   if (name === "final-product-capabilities") {
-    try { return JSON.parse(result.stdout).ready === true } catch { return /\b[1-9][0-9]* pass\b/u.test(output) }
+    try { return JSON.parse(result.stdout).ready === true } catch { return false }
   }
   if (name.endsWith("-regression") || name === "lean-smoke") {
     try {
@@ -193,7 +192,7 @@ export async function executeReleaseCheck(options: {
     version: mathosVersion(),
     gitRevision,
     checks,
-    ready: gitRevision !== "UNKNOWN" && checks.length === RELEASE_CHECK_ORDER.length && checks.every((check) => check.status === "PASS" || check.status === "SKIPPED_UNSUPPORTED_PLATFORM"),
+    ready: gitRevision !== "UNKNOWN" && checks.length === RELEASE_CHECK_ORDER.length && checks.every((check) => check.status === "PASS"),
   }
 }
 

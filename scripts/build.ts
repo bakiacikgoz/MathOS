@@ -4,6 +4,12 @@ import { prepareDevelopmentBuildOutput } from "./build-output.ts";
 
 const root = resolve(import.meta.dir, "..");
 const outdir = resolve(root, "dist");
+const solidClientRuntimePlugin: Bun.BunPlugin = {
+  name: "solid-client-runtime",
+  setup(build) {
+    build.onResolve({ filter: /^solid-js$/ }, () => ({ path: "solid-js/dist/solid.js", external: true }));
+  },
+};
 
 prepareDevelopmentBuildOutput(outdir);
 
@@ -12,7 +18,7 @@ const result = await Bun.build({
   outdir,
   target: "bun",
   packages: "external",
-  plugins: [solidPlugin],
+  plugins: [solidClientRuntimePlugin, solidPlugin],
 });
 
 if (!result.success) {

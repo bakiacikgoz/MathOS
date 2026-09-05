@@ -17,7 +17,7 @@ test("development CLI build applies the same OpenTUI Solid transform", () => {
   const source = readFileSync(resolve(import.meta.dir, "../scripts/build.ts"), "utf8")
 
   expect(source).toContain('import solidPlugin from "@opentui/solid/bun-plugin"')
-  expect(source).toContain("plugins: [solidPlugin]")
+  expect(source).toContain("plugins: [solidClientRuntimePlugin, solidPlugin]")
 })
 
 test("development CLI build cleanup preserves sibling distribution artifacts", () => {

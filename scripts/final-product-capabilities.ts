@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs"
 import { resolve } from "node:path"
 import { inspectSandbox } from "@mathos/computation"
+import { mandatoryPlatformGates } from "./qualification/platform-qualification.ts"
 
 type PlatformEvidence = {
   schemaVersion: "mathos.platform-qualification.v1"
@@ -11,7 +12,7 @@ type PlatformEvidence = {
 }
 
 export function releaseTarget(platform: NodeJS.Platform | string, arch: string): string {
-  const operatingSystem = platform === "win32" ? "windows" : platform === "darwin" ? "macos" : platform
+  const operatingSystem = platform === "win32" ? "windows" : platform
   return `${operatingSystem}-${arch}`
 }
 
@@ -20,7 +21,12 @@ function currentEvidence(root: string, name: string, revision: string): Platform
   if (!existsSync(path)) return null
   try {
     const value = JSON.parse(readFileSync(path, "utf8")) as PlatformEvidence
-    if (value.schemaVersion !== "mathos.platform-qualification.v1" || value.platform !== name || value.gitRevision !== revision || value.status !== "PASS") return null
+    if (value.schemaVersion !== "mathos.platform-qualification.v1" || value.platform !== name || value.gitRevision !== revision || !["PASS", "NOT_VERIFIED"].includes(value.status)) return null
+    // release-check consumes this prerequisite matrix. Its own result is recorded
+    // afterward, otherwise requiring it here creates a circular qualification gate.
+    if (!mandatoryPlatformGates.every(gate => gate === "releaseCheck"
+      ? value.gates?.[gate] === "PASS" || value.gates?.[gate] === "NOT_VERIFIED"
+      : value.gates?.[gate] === "PASS")) return null
     return value
   } catch { return null }
 }
@@ -38,10 +44,11 @@ export function evaluateEvidence(options: {
   const macos = currentEvidence(options.root, "macos-arm64", options.gitRevision)
   const qualifiedModel = windows?.gates?.providerLive === "PASS" || macos?.gates?.providerLive === "PASS"
   const target = releaseTarget(options.platform, options.arch)
+  const host = options.platform === "darwin" ? macos : options.platform === "win32" ? windows : null
   const checks = {
-    realModel: Boolean(options.directModel || qualifiedModel),
-    sandbox: options.sandbox,
-    vscodeHost: options.vscodeHost,
+    realModel: Boolean(qualifiedModel),
+    sandbox: options.sandbox && host?.gates?.sandbox === "PASS" && host.gates.networkIsolation === "PASS" && host.gates.filesystemIsolation === "PASS",
+    vscodeHost: options.vscodeHost && host?.gates?.vscodeHost === "PASS",
     standaloneArtifact: existsSync(resolve(options.root, "artifacts", "releases", "1.0.0-rc.1", target, "root", "bin", options.platform === "win32" ? "mathos.exe" : "mathos")),
     windowsRuntimeEvidence: Boolean(windows),
     macosRuntimeEvidence: Boolean(macos),

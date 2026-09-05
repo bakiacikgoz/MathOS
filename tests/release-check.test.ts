@@ -6,7 +6,7 @@ import { runRetrievalRegression } from "../scripts/retrieval-regression.ts"
 
 const successfulRunner: ReleaseCommandRunner = async (command) => ({
   exitCode: 0,
-  stdout: command[0] === "git" ? "0123456789abcdef0123456789abcdef01234567\n" : command.includes("--version") ? "MathOS 1.0.0-rc.1\n" : command.some((part) => part.endsWith("run-v1-qualification.ts")) ? "{\"ready\":true}\n" : command.some((part) => part.endsWith("-regression.ts") || part.endsWith("lean-smoke.ts")) ? "{\"passed\":true}\n" : "1 pass\n",
+  stdout: command[0] === "git" ? "0123456789abcdef0123456789abcdef01234567\n" : command.includes("--version") ? "MathOS 1.0.0-rc.1\n" : command.some((part) => part.endsWith("run-v1-qualification.ts") || part.endsWith("final-product-capabilities.ts")) ? "{\"ready\":true}\n" : command.some((part) => part.endsWith("-regression.ts") || part.endsWith("lean-smoke.ts")) ? "{\"passed\":true}\n" : "1 pass\n",
   stderr: "",
   timedOut: false,
   durationMs: 1,
@@ -40,14 +40,12 @@ describe("release check contract", () => {
     const report = await executeReleaseCheck({ runner: successfulRunner, platform: "linux" })
     expect(report.checks.filter((check) => check.status === "SKIPPED_UNSUPPORTED_PLATFORM").map((check) => check.name)).toEqual(["lean-smoke"])
     expect(report.checks.every((check) => ["PASS", "SKIPPED_UNSUPPORTED_PLATFORM"].includes(check.status))).toBe(true)
+    expect(report.ready).toBe(false)
   })
 
-  test("Windows skips only checks that require a supported OS sandbox or Lean release platform", async () => {
+  test("Windows runs every required check on the supported release platform", async () => {
     const report = await executeReleaseCheck({ runner: successfulRunner, platform: "win32" })
-    expect(report.checks.filter((check) => check.status === "SKIPPED_UNSUPPORTED_PLATFORM").map((check) => check.name)).toEqual([
-      "sandbox-security-tests",
-      "lean-smoke",
-    ])
+    expect(report.checks.filter((check) => check.status === "SKIPPED_UNSUPPORTED_PLATFORM").map((check) => check.name)).toEqual([])
     expect(report.ready).toBe(true)
   })
 
@@ -94,4 +92,20 @@ describe("release check contract", () => {
     const output = new TextDecoder().decode(result.stdout)
     expect(JSON.parse(output.slice(output.indexOf("{")))).toMatchObject({ ok: true })
   })
+})
+
+test("Windows release executes real Lean and sandbox checks", async () => {
+  const executed: string[][] = []
+  await executeReleaseCheck({ platform: "win32", runner: async (command, options) => { executed.push(command); return successfulRunner(command, options) } })
+  expect(executed.some(command => command.includes("tests/sandbox-security.test.ts"))).toBe(true)
+  expect(executed.some(command => command.includes("scripts/lean-smoke.ts"))).toBe(true)
+})
+
+test("generic pass text cannot substitute for final platform capability evidence", async () => {
+  const report = await executeReleaseCheck({ platform: "darwin", runner: async (command, options) => {
+    const result = await successfulRunner(command, options)
+    return command.includes("scripts/final-product-capabilities.ts") ? { ...result, stdout: "1 pass\n" } : result
+  } })
+  expect(report.checks.find(check => check.name === "final-product-capabilities")?.status).toBe("FAIL")
+  expect(report.ready).toBe(false)
 })
