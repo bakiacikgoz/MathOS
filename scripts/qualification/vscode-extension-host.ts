@@ -7,7 +7,8 @@ import { inspectGitHead, inspectProcessTable, revisionsMatch } from "./vscode-ex
 const root = resolve(import.meta.dir, "../..")
 const arguments_ = process.argv.slice(2)
 const positional = arguments_.filter((value) => !value.startsWith("--"))
-const workspaceRoot = resolve(positional[0] ?? "/Users/baki/Documents/ChatGPT/mathos-first-research")
+if (!positional[0]) throw new Error("QUALIFICATION_WORKSPACE_REQUIRED: pass the existing workspace path as the first argument")
+const workspaceRoot = resolve(positional[0])
 const evidenceRoot = resolve(positional[1] ?? join(root, "artifacts/qualification/macos-2026-09-05"))
 const executableOption = arguments_.find((value) => value.startsWith("--executable="))?.slice("--executable=".length)
 const vscodeCli = "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
