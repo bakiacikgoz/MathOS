@@ -19,7 +19,7 @@ export function Sidebar({ onPalette }: { onPalette: () => void }) {
     const order: ThemePref[] = ["system", "light", "dark"]
     app.theme.set(order[(order.indexOf(app.theme.pref) + 1) % order.length]!, { x: event.clientX, y: event.clientY })
   }
-  const themeLabel = app.theme.pref === "system" ? t("settings.system") : app.theme.pref === "dark" ? t("settings.dark") : t("settings.light")
+  const themeLabel = app.theme.pref === "system" ? t("theme.button.system") : app.theme.pref === "dark" ? t("theme.button.dark") : t("theme.button.light")
 
   return (
     <aside className="sidebar">

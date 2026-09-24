@@ -166,6 +166,8 @@ h1, h2, h3, p { margin: 0; }
 
 .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
 .eyebrow { font-size: 12px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+/* User data (workspace names) is shown as typed: locale-aware uppercasing turns "finite" into "FİNİTE" under lang="tr". */
+.eyebrow-name { text-transform: none; letter-spacing: 0.01em; }
 .title { font: 700 34px/1.12 var(--font-display); letter-spacing: -0.025em; }
 .subtitle { color: var(--text-2); font-size: 15px; margin-top: 6px; max-width: 60ch; }
 .section-title { font: 600 13px/1 var(--font); color: var(--text-2); margin: 32px 0 12px; letter-spacing: 0.01em; }
@@ -477,3 +479,15 @@ h1, h2, h3, p { margin: 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 1ms !important; animation-delay: 0ms !important; transition-duration: 1ms !important; scroll-behavior: auto !important; }
 }
+
+/* Model providers */
+.provider-row .attention { color: var(--text); font-weight: 600; }
+.provider-row .muted { color: var(--text-3); }
+.key-hint { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; font-size: 12.5px; color: var(--text-2); }
+.key-hint code { font: 500 12px/1.4 var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace); background: var(--fill); border-radius: 8px; padding: 4px 8px; }
+.provider-toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+.provider-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.provider-card { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 14px 16px; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+.provider-card .k { font-weight: 600; }
+.provider-card .v { font-size: 12.5px; color: var(--text-2); }
+.provider-card:disabled { cursor: not-allowed; opacity: 0.55; }

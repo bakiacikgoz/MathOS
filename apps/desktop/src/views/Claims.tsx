@@ -3,7 +3,7 @@ import { useApp, type Claim } from "../lib/app.ts"
 import { keys, useClaimPage, useClaims, useStatus } from "../lib/data.ts"
 import { run } from "../lib/bridge.ts"
 import { invalidate } from "../lib/query.ts"
-import { useT, type Lang } from "../lib/i18n.ts"
+import { useT, type Lang, type MessageKey } from "../lib/i18n.ts"
 import { isVerifiedStatus, kindLabel, statusMeta } from "../lib/status.ts"
 import { parseClaimPage } from "../lib/claim-page.ts"
 import { Icon } from "../components/Icon.tsx"
@@ -130,7 +130,7 @@ function ClaimDetail({ id, objective }: { id: string; objective: boolean }) {
       <div className="detail-head">
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <span className="kbd">{claim.id}</span>
-          <span className="pill pill-muted">{kindLabel(claim.kind, lang)}</span>
+          {kindLabel(claim.kind, lang) !== statusMeta(claim.status, lang).label && <span className="pill pill-muted">{kindLabel(claim.kind, lang)}</span>}
           <StatusPill status={claim.status} />
         </div>
         <div style={{ display: "flex", gap: 8, flex: "none" }}>
@@ -151,7 +151,7 @@ function ClaimDetail({ id, objective }: { id: string; objective: boolean }) {
             <div key={check.label} className="check-row" style={{ "--i": index } as React.CSSProperties}>
               <span className={`mark ${check.ok === true ? "ok" : check.ok === false ? "no" : "info"}`}><Icon name={check.ok === true ? "check" : check.ok === false ? "x" : "info"} size={12} stroke={2.4} /></span>
               <span>{label(check.label, lang)}</span>
-              {check.value && <span className="v">{check.label === "Current status" ? statusMeta(check.value, lang).label : check.value}</span>}
+              {check.value && <span className="v">{check.label === "Current status" ? statusMeta(check.value, lang).label : cliValue(check.value, t)}</span>}
             </div>
           ))}
         </div>
@@ -163,7 +163,7 @@ function ClaimDetail({ id, objective }: { id: string; objective: boolean }) {
           {facts.map((section, index) => (
             <div key={section.label} className="card fact" style={{ "--i": index } as React.CSSProperties}>
               <div className="k">{label(section.label, lang)}</div>
-              <div className="v selectable">{section.lines.join("\n") || "—"}</div>
+              <div className="v selectable">{section.lines.map((line) => cliValue(line, t)).join("\n") || "—"}</div>
             </div>
           ))}
         </div>
@@ -172,3 +172,6 @@ function ClaimDetail({ id, objective }: { id: string; objective: boolean }) {
     </div>
   )
 }
+
+// The CLI prints a few fixed English placeholders for empty values; show them in the UI language.
+function cliValue(value: string, t: (key: MessageKey) => string) { const key = value.trim().toLowerCase(); return key === "none" ? t("common.none") : key === "not created" ? t("common.notCreated") : value }

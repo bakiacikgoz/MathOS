@@ -2,7 +2,7 @@ import { createContext, useContext } from "react"
 import type { Lang, MessageKey } from "./i18n.ts"
 import type { ThemePref } from "./theme.ts"
 
-export type Route = "overview" | "claims" | "branches" | "health" | "console" | "settings"
+export type Route = "overview" | "claims" | "branches" | "health" | "providers" | "console" | "settings"
 export interface Workspace { root: string; name: string }
 export interface RecentWorkspace extends Workspace { at: number }
 
@@ -42,12 +42,13 @@ export function useApp(): AppApi {
   return value
 }
 
-export const NAV: Array<{ route: Route; label: MessageKey; icon: "overview" | "claims" | "branch" | "health" | "console"; key: string }> = [
+export const NAV: Array<{ route: Route; label: MessageKey; icon: "overview" | "claims" | "branch" | "health" | "plug" | "console"; key: string }> = [
   { route: "overview", label: "nav.overview", icon: "overview", key: "1" },
   { route: "claims", label: "nav.claims", icon: "claims", key: "2" },
   { route: "branches", label: "nav.branches", icon: "branch", key: "3" },
   { route: "health", label: "nav.health", icon: "health", key: "4" },
-  { route: "console", label: "nav.console", icon: "console", key: "5" },
+  { route: "providers", label: "nav.providers", icon: "plug", key: "5" },
+  { route: "console", label: "nav.console", icon: "console", key: "6" },
 ]
 
 export const mod = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘" : "Ctrl+"

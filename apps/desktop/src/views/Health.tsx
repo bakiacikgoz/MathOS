@@ -10,13 +10,16 @@ export function Health() {
   const doctor = useDoctor(app.workspace.root)
   const checks = doctor.data?.checks ?? []
   const pass = checks.filter((check) => check.status === "PASS").length
+  const failed = checks.some((check) => check.status === "FAIL")
+  // The headline must not read "all good" while warnings are listed below it.
+  const headline = failed || doctor.data?.ok === false ? "health.issues" : pass < checks.length ? "health.warnings" : "health.ok"
   const ratio = checks.length ? pass / checks.length : 0
   const circumference = 2 * Math.PI * 26
 
   return (
     <div className="page-inner">
       <div className="page-head">
-        <div><div className="eyebrow">{app.workspace.name}</div><h1 className="title">{t("health.title")}</h1></div>
+        <div><div className="eyebrow eyebrow-name">{app.workspace.name}</div><h1 className="title">{t("health.title")}</h1></div>
         <button className="btn btn-secondary" onClick={() => doctor.refetch()} disabled={doctor.loading}>{doctor.loading ? <span className="spinner" /> : <Icon name="refresh" size={16} />}{t("health.run")}</button>
       </div>
       {doctor.error ? <ErrorBox error={doctor.error} onRetry={() => doctor.refetch()} /> : null}
@@ -27,7 +30,7 @@ export function Health() {
         </svg>
         <div>
           {doctor.data ? <>
-            <div style={{ font: "600 22px/1.2 var(--font-display)", letterSpacing: "-0.02em" }}>{doctor.data.ok ? t("health.ok") : t("health.issues")}</div>
+            <div style={{ font: "600 22px/1.2 var(--font-display)", letterSpacing: "-0.02em" }}>{t(headline)}</div>
             <div className="subtitle" style={{ marginTop: 4 }}>{pass} / {checks.length} {t("health.pass").toLowerCase()}{doctor.data.mathosVersion ? ` · MathOS ${doctor.data.mathosVersion}` : ""}</div>
           </> : <><Skeleton height={22} width={220} /><Skeleton height={14} width={140} style={{ marginTop: 8 }} /></>}
         </div>

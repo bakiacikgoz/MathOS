@@ -20,7 +20,7 @@ export function Overview() {
     <div className="page-inner">
       <div className="page-head">
         <div>
-          <div className="eyebrow">{app.workspace.name}</div>
+          <div className="eyebrow eyebrow-name">{app.workspace.name}</div>
           <h1 className="title">{t("nav.overview")}</h1>
         </div>
         <button className="btn btn-ghost" onClick={() => { void status.refetch(); void claims.refetch() }} aria-label={t("common.refresh")}>

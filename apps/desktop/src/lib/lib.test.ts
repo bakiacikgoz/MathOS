@@ -34,3 +34,26 @@ describe("desktop helpers", () => {
     expect(errorFromResult({ code: 2, stdout: "", ms: 0, stderr: "DESKTOP_CWD_NOT_FOUND: /x\n" }).code).toBe("DESKTOP_CWD_NOT_FOUND")
   })
 })
+
+import { configureArgs, secretEnvName, suggestProfileId, validProfileId, type ProviderDescriptor } from "./providers.ts"
+
+describe("provider helpers", () => {
+  const descriptor = (id: string, extra: Partial<ProviderDescriptor> = {}): ProviderDescriptor => ({ id, displayName: id, vendor: "v", category: "api", transport: "openai-chat", authKinds: ["secret-ref"], billingClass: "payg", remote: true, terms: { policy: "STANDARD_API", summary: "", officialSources: [] }, endpointPresets: [], defaultModels: [], ...extra })
+
+  test("builds configure arguments without secrets and only with flags the provider accepts", () => {
+    expect(configureArgs({ descriptor: descriptor("deepseek-api"), profile: " ds ", model: "", baseUrl: "https://x.test", protocol: "openai-responses", headers: "X-Title: a" }))
+      .toEqual(["provider", "configure", "deepseek-api", "--profile", "ds", "--model", "auto"])
+    expect(configureArgs({ descriptor: descriptor("opencode-go", { modelProtocols: [{ model: "glm-5.1", protocol: "openai-chat" }] }), profile: "go", model: "glm-5.1", protocol: "anthropic-messages" }))
+      .toEqual(["provider", "configure", "opencode-go", "--profile", "go", "--model", "glm-5.1", "--protocol", "anthropic-messages"])
+    expect(configureArgs({ descriptor: descriptor("generic-openai-compatible", { category: "generic" }), profile: "gw", model: "m", baseUrl: " https://llm.test/v1 ", protocol: "openai-chat", headers: "X-Title: MathOS\n\n X-Env: lab " }))
+      .toEqual(["provider", "configure", "generic-openai-compatible", "--profile", "gw", "--model", "m", "--base-url", "https://llm.test/v1", "--protocol", "openai-chat", "--header", "X-Title: MathOS", "--header", "X-Env: lab"])
+  })
+
+  test("suggests free profile ids and mirrors the secret environment fallback name", () => {
+    expect(suggestProfileId(descriptor("deepseek-api"), [])).toBe("deepseek-main")
+    expect(suggestProfileId(descriptor("opencode-go"), ["opencode-go-main"])).toBe("opencode-go-2")
+    expect(validProfileId("go-main")).toBe(true)
+    expect(validProfileId("bad id")).toBe(false)
+    expect(secretEnvName("model.go-main")).toBe("MATHOS_SECRET_MODEL_GO_MAIN")
+  })
+})

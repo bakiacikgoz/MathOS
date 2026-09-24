@@ -29,7 +29,7 @@ export function Branches() {
   return (
     <div className="page-inner">
       <div className="page-head">
-        <div><div className="eyebrow">{app.workspace.name}</div><h1 className="title">{t("nav.branches")}</h1><p className="subtitle">{t("branches.hint")}</p></div>
+        <div><div className="eyebrow eyebrow-name">{app.workspace.name}</div><h1 className="title">{t("nav.branches")}</h1><p className="subtitle">{t("branches.hint")}</p></div>
       </div>
       {branches.error ? <ErrorBox error={branches.error} onRetry={() => branches.refetch()} /> : null}
       <div className="card stagger" style={{ overflow: "hidden" }}>

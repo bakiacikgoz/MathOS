@@ -62,7 +62,7 @@ export function Console() {
   return (
     <div className="console">
       <div className="console-head">
-        <div><div className="eyebrow">{app.workspace.name}</div><h1 className="title">{t("console.title")}</h1><p className="subtitle">{t("console.hint")}</p></div>
+        <div><div className="eyebrow eyebrow-name">{app.workspace.name}</div><h1 className="title">{t("console.title")}</h1><p className="subtitle">{t("console.hint")}</p></div>
         {entries.length > 0 && <button className="btn btn-ghost" onClick={() => setEntries([])}>{t("console.clear")}</button>}
       </div>
       <div className="console-out" ref={out}>

@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react"
 import { AppContext, NAV, type AppApi, type RecentWorkspace, type Route, type Workspace } from "./lib/app.ts"
-import { detectLang, LangContext, type Lang } from "./lib/i18n.ts"
+import { detectLang, LangContext, translate, type Lang } from "./lib/i18n.ts"
 import { useTheme } from "./lib/theme.ts"
 import { readPref, writePref } from "./lib/storage.ts"
 import { clearCache } from "./lib/query.ts"
@@ -10,22 +10,25 @@ import { Toasts, useToasts } from "./components/Overlay.tsx"
 import { Welcome } from "./views/Welcome.tsx"
 import { Overview } from "./views/Overview.tsx"
 import { NewClaimSheet } from "./views/NewClaim.tsx"
+import { ErrorBoundary } from "./components/ErrorBoundary.tsx"
 
 // Secondary screens are split out so the first paint only pays for what it shows.
 const Claims = lazy(() => import("./views/Claims.tsx").then((m) => ({ default: m.Claims })))
 const Branches = lazy(() => import("./views/Branches.tsx").then((m) => ({ default: m.Branches })))
 const Health = lazy(() => import("./views/Health.tsx").then((m) => ({ default: m.Health })))
 const Console = lazy(() => import("./views/Console.tsx").then((m) => ({ default: m.Console })))
+const Providers = lazy(() => import("./views/Providers.tsx").then((m) => ({ default: m.Providers })))
 const Settings = lazy(() => import("./views/Settings.tsx").then((m) => ({ default: m.Settings })))
 
-const preload = () => { void import("./views/Claims.tsx"); void import("./views/Branches.tsx"); void import("./views/Health.tsx"); void import("./views/Console.tsx"); void import("./views/Settings.tsx") }
+const preload = () => { void import("./views/Claims.tsx"); void import("./views/Branches.tsx"); void import("./views/Health.tsx"); void import("./views/Console.tsx"); void import("./views/Providers.tsx"); void import("./views/Settings.tsx") }
 
 export function App() {
   const theme = useTheme()
   const [lang, setLangState] = useState<Lang>(() => readPref<Lang>("lang", detectLang()))
-  const [workspace, setWorkspace] = useState<Workspace | null>(() => readPref<Workspace | null>("workspace", null))
-  const [recent, setRecent] = useState<RecentWorkspace[]>(() => readPref("recent", []))
-  const [route, setRoute] = useState<Route>(() => readPref<Route>("route", "overview"))
+  // Stored preferences are untrusted input: a stale or hand-edited value must not crash the first render.
+  const [workspace, setWorkspace] = useState<Workspace | null>(() => validWorkspace(readPref<unknown>("workspace", null)))
+  const [recent, setRecent] = useState<RecentWorkspace[]>(() => { const rows = readPref<unknown>("recent", []); return Array.isArray(rows) ? rows.filter((row): row is RecentWorkspace => validWorkspace(row) !== null && typeof (row as RecentWorkspace).at === "number") : [] })
+  const [route, setRoute] = useState<Route>(() => { const value = readPref<unknown>("route", "overview"); return ROUTES.includes(value as Route) ? value as Route : "overview" })
   const [selectedClaim, setSelectedClaim] = useState<string | null>(null)
   const [palette, setPalette] = useState(false)
   const [newClaim, setNewClaim] = useState(false)
@@ -78,9 +81,11 @@ export function App() {
             <div className="titlebar-drag" data-tauri-drag-region />
             <Sidebar onPalette={() => setPalette(true)} />
             <main className="main">
-              <Suspense fallback={null}>
-                <Screen route={route} />
-              </Suspense>
+              <ErrorBoundary key={route} title={translate(lang, "common.error")} detail={translate(lang, "error.viewCrashed")} resetLabel={translate(lang, "nav.overview")} onReset={() => navigate("overview")}>
+                <Suspense fallback={null}>
+                  <Screen route={route} />
+                </Suspense>
+              </ErrorBoundary>
             </main>
           </div>
           <Palette open={palette} onClose={() => setPalette(false)} />
@@ -100,7 +105,15 @@ function Screen({ route }: { route: Route }) {
       {route === "overview" && <Overview />}
       {route === "branches" && <Branches />}
       {route === "health" && <Health />}
+      {route === "providers" && <Providers />}
       {route === "settings" && <Settings />}
     </div>
   )
+}
+
+const ROUTES: Route[] = ["overview", "claims", "branches", "health", "providers", "console", "settings"]
+function validWorkspace(value: unknown): Workspace | null {
+  if (!value || typeof value !== "object") return null
+  const { root, name } = value as Partial<Workspace>
+  return typeof root === "string" && root.length > 0 && typeof name === "string" ? { root, name } : null
 }
