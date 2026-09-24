@@ -62,4 +62,4 @@ API credentials go through `mathos secrets set <secret-ref>`. Local Ollama, LM S
 
 [Features](docs/FEATURES.md) · [providers](docs/PROVIDERS.md) · [provider security](docs/PROVIDER_SECURITY.md) · [provider terms](docs/PROVIDER_TERMS_MATRIX.md) · [trust](docs/TRUST_MODEL_V1.md) · [operations](docs/OPERATIONS.md) · [error codes](docs/ERROR_CODES.md) · [security](docs/SECURITY_MODEL_V1.md) · [support](docs/SUPPORT.md)
 
-Developers working from source need Bun 1.2 or newer: `bun install`, `bun run typecheck`, `bun test`, and `bun run build`.
+Developers working from source need Bun 1.4.1 or newer (older versions cannot read `bun.lock` and produce a bundle that crashes at startup): `bun install`, `bun run typecheck`, `bun test`, and `bun run build`.

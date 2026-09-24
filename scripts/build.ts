@@ -1,6 +1,6 @@
 import { resolve } from "node:path";
 import solidPlugin from "@opentui/solid/bun-plugin";
-import { prepareDevelopmentBuildOutput } from "./build-output.ts";
+import { assertSupportedBun, prepareDevelopmentBuildOutput } from "./build-output.ts";
 
 const root = resolve(import.meta.dir, "..");
 const outdir = resolve(root, "dist");
@@ -10,6 +10,8 @@ const solidClientRuntimePlugin: Bun.BunPlugin = {
     build.onResolve({ filter: /^solid-js$/ }, () => ({ path: "solid-js/dist/solid.js", external: true }));
   },
 };
+
+try { assertSupportedBun(); } catch (error) { console.error((error as Error).message); process.exit(1); }
 
 prepareDevelopmentBuildOutput(outdir);
 

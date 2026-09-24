@@ -38,3 +38,13 @@ test("V1 qualification uses its bounded deterministic suite", () => {
   expect(source).toContain('execFileSync(process.execPath,["test",...commands[id]!]')
   expect(source).not.toContain('execFileSync(process.execPath,["test"],')
 })
+
+test("builds refuse Bun versions that produce a broken bundle", async () => {
+  const { assertSupportedBun, MINIMUM_BUN_VERSION } = await import("../scripts/build-output.ts")
+  expect(MINIMUM_BUN_VERSION).toBe("1.4.1")
+  expect(() => assertSupportedBun("1.3.11")).toThrow("BUN_VERSION_UNSUPPORTED")
+  expect(() => assertSupportedBun("1.4.0")).toThrow("BUN_VERSION_UNSUPPORTED")
+  expect(() => assertSupportedBun("1.4.1")).not.toThrow()
+  const manifest = JSON.parse(await Bun.file(new URL("../package.json", import.meta.url)).text())
+  expect(manifest.engines.bun).toBe(`>=${MINIMUM_BUN_VERSION}`)
+})

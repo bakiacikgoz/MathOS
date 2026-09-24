@@ -41,7 +41,7 @@
     ,"desktop:build": "$npm_execpath --cwd apps/desktop run tauri:build"
   },
   "engines": {
-    "bun": ">=1.2.0"
+    "bun": ">=1.4.1"
   },
   "devDependencies": {
     "@vscode/vsce": "^3.9.2",

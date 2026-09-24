@@ -4,7 +4,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { MathOS, FakeResearchPlanner } from "@mathos/core"
 import { FakeVcs } from "@mathos/vcs"
-import { allowedEnv } from "@mathos/computation"
+import { allowedEnv, inspectSandbox } from "@mathos/computation"
 
 const dirs: string[] = []
 function temp() {
@@ -23,7 +23,24 @@ async function boot() {
   return { app, claim }
 }
 
-describe.skipIf(process.platform === "win32" || (process.platform === "darwin" && !Bun.which("docker")))("computational experiments", () => {
+// Experiments only run inside an isolation sandbox. Without one they must fail closed (checked below)
+// rather than fail these tests; set MATHOS_REQUIRE_SANDBOX=1 in CI to make a missing sandbox an error.
+const sandbox = await inspectSandbox()
+const runSandboxed = process.platform !== "win32" && (sandbox.available || process.env.MATHOS_REQUIRE_SANDBOX === "1")
+
+describe.skipIf(runSandboxed)("computational experiments without a sandbox", () => {
+  test("fail closed as inconclusive and never run unsandboxed", async () => {
+    const { app, claim } = await boot()
+    const exp = await app.createExperiment({ claimId: claim.id, kind: "COUNTEREXAMPLE_SEARCH", parameters: { property: "n > 0", domainStart: -2, domainEnd: 2 } })
+    const result = await app.runExperiment(exp.id, { allowUserAuthored: true })
+    expect(result.outcome).toBe("INCONCLUSIVE")
+    expect(result.summary).toContain("SANDBOX_UNAVAILABLE")
+    expect(app.getClaim(claim.id).status).not.toBe("DISPROVED")
+    app.close()
+  })
+})
+
+describe.skipIf(!runSandboxed)("computational experiments", () => {
   test("python smoke does not verify", async () => {
     const { app, claim } = await boot()
     const exp = await app.createExperiment({

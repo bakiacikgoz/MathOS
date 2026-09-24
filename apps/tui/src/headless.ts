@@ -1,7 +1,7 @@
 import { MathOS, SetupService, createDemoWorkspace, experimentTrustLabels, formatInitReport, formatTypedUserError, formatConfigShow, inspectHostEnvironment, startAtlasServer, type SetupCapabilityName, type SetupReport } from "@mathos/core"
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
 import { dirname, extname, join, resolve } from "node:path"
-import { homedir } from "node:os"
+import { homedir, tmpdir } from "node:os"
 import { exportBlueprintLatex, importBlueprintLatex, parseMathosMarkdown } from "@mathos/notebook"
 import { MATHOS_PRODUCT_VERSION, MathOSError, cliExitCode, formatCliError, resolveRuntimeLayout, withWorkspaceOperationLock } from "@mathos/shared"
 import { repairWorkspaceRuntimeState } from "@mathos/workspace"
@@ -897,7 +897,7 @@ export async function runHeadless(argv: string[]): Promise<number> {
       }
 
       if(command==="plugin"){process.stdout.write(`${JSON.stringify({...pluginCommand(rest),securityBoundary:"OUT_OF_PROCESS"},null,2)}\n`);return 0}if(command==="capsule"){process.stdout.write(`${JSON.stringify({...capsuleCommand(rest),overwrite:false},null,2)}\n`);return 0}if(command==="publication"){process.stdout.write(`${JSON.stringify({...publicationCommand(rest),provenanceRequired:true},null,2)}\n`);return 0}if(command==="review"){process.stdout.write(`${JSON.stringify({...reviewCommand(rest),authority:"HUMAN_ATTESTATION"},null,2)}\n`);return 0}if(command==="conjecture"){process.stdout.write(`${JSON.stringify({...conjectureCommand(rest),trust:"PROPOSAL — HUMAN ACCEPTANCE REQUIRED"},null,2)}\n`);return 0}if(command==="agenda"){process.stdout.write(`${JSON.stringify({...agendaCommand(rest),mode:"RESEARCH_STATE"},null,2)}\n`);return 0}
-      if(command==="atlas"){const graph=app.buildGraph({includeLiterature:true}),snapshot=projectAtlas(graph), launch=rest.length===0||rest[0]==="open"||rest.includes("--no-open");if(launch){const atlasLayout=resolveRuntimeLayout({executablePath:process.execPath,platform:process.platform,home:homedir(),env:process.env}),session=startAtlasServer({snapshot:()=>snapshot,providers:()=>providerSummaries(atlasLayout.userConfigRoot)}),url=`${session.url}/?token=${session.token}`;if(!rest.includes("--no-open")){const opener=process.platform==="win32"?["explorer.exe",url]:process.platform==="darwin"?["open",url]:["xdg-open",url];Bun.spawn(opener,{stdout:"ignore",stderr:"ignore"})}process.stdout.write(`MathOS Atlas READ ONLY\n${session.url}\nCtrl+C to stop\n`);await new Promise<void>(resolve=>{const stop=()=>{session.stop();process.off("SIGINT",stop);process.off("SIGTERM",stop);resolve()};process.once("SIGINT",stop);process.once("SIGTERM",stop)});return 0}const parsed=atlasTextCommand(rest.filter(x=>x!=="--json"));if(parsed.action==="critical-path"){process.stdout.write(`${JSON.stringify(blockerCriticalPath(graph,parsed.args[0]??graph.metadata.focusNodeId??""),null,2)}\n`);return 0}if(parsed.action==="impact"){const id=parsed.args[0];process.stdout.write(`${JSON.stringify({id,edges:graph.edges.filter(e=>e.fromNodeId===id||e.toNodeId===id)},null,2)}\n`);return 0}if(parsed.action==="export"){const out=parsed.args[0]??"atlas-snapshot.json";writeFileSync(out,JSON.stringify(snapshot,null,2));process.stdout.write(`Atlas exported ${out}\n`);return 0}process.stdout.write(`${JSON.stringify(snapshot,null,2)}\n`);return 0}
+      if(command==="atlas"){const graph=app.buildGraph({includeLiterature:true}),snapshot=projectAtlas(graph), launch=rest.length===0||rest[0]==="open"||rest.includes("--no-open");if(launch){const atlasLayout=resolveRuntimeLayout({executablePath:process.execPath,platform:process.platform,home:homedir(),env:process.env}),session=startAtlasServer({snapshot:()=>snapshot,providers:()=>providerSummaries(atlasLayout.userConfigRoot)}),url=`${session.url}/?token=${session.token}`;if(!rest.includes("--no-open")){const opener=process.platform==="win32"?["explorer.exe",url]:process.platform==="darwin"?["open",url]:["xdg-open",url];Bun.spawn(opener,{stdout:"ignore",stderr:"ignore"})}const sessionFile=rest.includes("--no-open")?writeAtlasSessionFile(url):null;process.stdout.write(`MathOS Atlas READ ONLY\n${session.url}\n${sessionFile?`Session link (with token, readable only by you): ${sessionFile}\n`:""}Ctrl+C to stop\n`);await new Promise<void>(resolve=>{const stop=()=>{session.stop();if(sessionFile)rmSync(dirname(sessionFile),{recursive:true,force:true});process.off("SIGINT",stop);process.off("SIGTERM",stop);resolve()};process.once("SIGINT",stop);process.once("SIGTERM",stop)});return 0}const parsed=atlasTextCommand(rest.filter(x=>x!=="--json"));if(parsed.action==="critical-path"){process.stdout.write(`${JSON.stringify(blockerCriticalPath(graph,parsed.args[0]??graph.metadata.focusNodeId??""),null,2)}\n`);return 0}if(parsed.action==="impact"){const id=parsed.args[0];process.stdout.write(`${JSON.stringify({id,edges:graph.edges.filter(e=>e.fromNodeId===id||e.toNodeId===id)},null,2)}\n`);return 0}if(parsed.action==="export"){const out=parsed.args[0]??"atlas-snapshot.json";writeFileSync(out,JSON.stringify(snapshot,null,2));process.stdout.write(`Atlas exported ${out}\n`);return 0}process.stdout.write(`${JSON.stringify(snapshot,null,2)}\n`);return 0}
 
       if (command === "literature" || command === "source" || command === "citation" || command === "external") {
         const json = rest.includes("--json")
@@ -980,4 +980,13 @@ export async function runHeadless(argv: string[]): Promise<number> {
     else process.stderr.write(`${formatTypedUserError(error).text}${process.env.MATHOS_DEBUG === "1" && error instanceof Error && error.stack ? `\n${error.stack}` : ""}\n`)
     return code
   }
+}
+
+/** The Atlas token must not reach terminal output (logs, recordings, CI); with --no-open the full link goes to a private file instead. */
+function writeAtlasSessionFile(url: string): string {
+  const dir = mkdtempSync(join(tmpdir(), "mathos-atlas-"))
+  chmodSync(dir, 0o700)
+  const file = join(dir, "atlas-session.url")
+  writeFileSync(file, `${url}\n`, { encoding: "utf8", mode: 0o600 })
+  return file
 }
