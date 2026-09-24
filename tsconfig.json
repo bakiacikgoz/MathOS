@@ -36,5 +36,6 @@
       "@mathos/update": ["./packages/update/src/index.ts"]
     }
   },
-  "include": ["apps/**/*", "packages/**/*", "scripts/**/*", "tests/**/*"]
+  "include": ["apps/**/*", "packages/**/*", "scripts/**/*", "tests/**/*"],
+  "exclude": ["**/node_modules", "apps/desktop/src", "apps/desktop/dist", "apps/desktop/src-tauri", "apps/desktop/vite.config.ts"]
 }

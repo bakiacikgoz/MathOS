@@ -539,7 +539,7 @@ export async function runHeadless(argv: string[]): Promise<number> {
         const draft = await app.ingest(text)
         if (rest.includes("--create")) {
           const created = app.confirmIntake(draft)
-          process.stdout.write(`Created ${created.id}  ${created.status}  ${created.title}\n`)
+          process.stdout.write(rest.includes("--json") ? `${JSON.stringify(created, null, 2)}\n` : `Created ${created.id}  ${created.status}  ${created.title}\n`)
           return 0
         }
         if (rest.includes("--json")) {
@@ -552,7 +552,8 @@ export async function runHeadless(argv: string[]): Promise<number> {
       }
 
       if (command === "claims") {
-        process.stdout.write(`${formatClaims(app.listClaims())}\n`)
+        const claims = app.listClaims()
+        process.stdout.write(rest.includes("--json") ? `${JSON.stringify(claims, null, 2)}\n` : `${formatClaims(claims)}\n`)
         return 0
       }
 
@@ -569,11 +570,11 @@ export async function runHeadless(argv: string[]): Promise<number> {
             statement: statement ?? "",
             asMainObjective: asObjective,
           })
-          process.stdout.write(`Created ${created.id}  ${created.status}  ${created.title}\n`)
+          process.stdout.write(rest.includes("--json") ? `${JSON.stringify(created, null, 2)}\n` : `Created ${created.id}  ${created.status}  ${created.title}\n`)
           return 0
         }
         if (sub === "show" && rest[1]) {
-          process.stdout.write(`${app.claimPage(rest[1])}\n`)
+          process.stdout.write(rest.includes("--json") ? `${JSON.stringify({ claim: app.getClaim(rest[1]), page: app.claimPage(rest[1]) }, null, 2)}\n` : `${app.claimPage(rest[1])}\n`)
           return 0
         }
         process.stderr.write("Usage: mathos claim create --type <kind> --title <title> --statement <text>\n")
@@ -583,7 +584,7 @@ export async function runHeadless(argv: string[]): Promise<number> {
       if (command === "objective") {
         if (rest[0] === "set" && rest[1]) {
           const claim = app.setMainObjective(rest[1])
-          process.stdout.write(`Main objective: ${claim.id}  ${claim.title}\n`)
+          process.stdout.write(rest.includes("--json") ? `${JSON.stringify(claim, null, 2)}\n` : `Main objective: ${claim.id}  ${claim.title}\n`)
           return 0
         }
         process.stderr.write("Usage: mathos objective set <CLAIM-ID>\n")

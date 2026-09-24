@@ -6,7 +6,9 @@
   "license": "MIT",
   "description": "Agentic mathematical research environment",
   "workspaces": [
-    "apps/*",
+    "apps/tui",
+    "apps/atlas",
+    "apps/vscode-extension",
     "packages/*"
   ],
   "bin": {
@@ -35,6 +37,8 @@
     ,"providers:contract": "$npm_execpath scripts/providers/contract-test.ts"
     ,"providers:live-smoke": "$npm_execpath scripts/providers/live-smoke.ts"
     ,"providers:qualification": "$npm_execpath scripts/providers/qualification.ts --json"
+    ,"desktop:dev": "$npm_execpath --cwd apps/desktop run tauri:dev"
+    ,"desktop:build": "$npm_execpath --cwd apps/desktop run tauri:build"
   },
   "engines": {
     "bun": ">=1.2.0"

@@ -1,0 +1,35 @@
+{
+  "name": "@mathos/desktop",
+  "version": "1.0.0-rc.1",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "description": "MathOS desktop app (Tauri + React)",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit -p tsconfig.json && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "host": "bun host/host.ts",
+    "host:build": "bun scripts/build-host.ts",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "bun scripts/build-host.ts && tauri build --config src-tauri/tauri.bundle.conf.json"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.8.0",
+    "@tauri-apps/plugin-dialog": "^2.4.0",
+    "katex": "^0.16.22",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.8.4",
+    "@types/katex": "^0.16.7",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.2",
+    "typescript": "5.9.3",
+    "vite": "^7.1.5"
+  }
+}

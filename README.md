@@ -28,6 +28,14 @@ mathos atlas --no-open
 
 Atlas remains read-only. Stop its local loopback server with Ctrl+C. Continue with the [quickstart](docs/QUICKSTART.md) or inspect the [professional demo](examples/professional-demo/README.md).
 
+## Desktop app
+
+Prefer windows to terminals? `apps/desktop` is a native app (Tauri + React) with light and dark themes, LaTeX rendering and a command palette. It drives the same CLI, so the trust model is unchanged. See the [desktop README](apps/desktop/README.md).
+
+```sh
+bun run desktop:dev
+```
+
 ## Model providers
 
 List the provider catalog, configure a named profile, and assign it as the default without putting credentials on the command line:
