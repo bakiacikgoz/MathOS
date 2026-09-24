@@ -1,3 +1,4 @@
+// Entries reviewed 2026-09-24 use the base URL and documentation link published in the models.dev provider registry.
 import{descriptor}from"./presets-core.ts";import type{ProviderDescriptor}from"./types.ts"
 export const STANDARD_PROVIDER_PRESETS:ProviderDescriptor[]=[
  descriptor({id:"xai-api",name:"xAI API",vendor:"xAI",category:"api",transport:"openai-chat",billing:"payg",url:"https://api.x.ai/v1",source:"https://docs.x.ai/docs/api-reference"}),
@@ -8,5 +9,22 @@ export const STANDARD_PROVIDER_PRESETS:ProviderDescriptor[]=[
  descriptor({id:"fireworks-api",name:"Fireworks AI",vendor:"Fireworks AI",category:"api",transport:"openai-chat",billing:"payg",url:"https://api.fireworks.ai/inference/v1",source:"https://docs.fireworks.ai/api-reference/introduction"}),
  descriptor({id:"siliconflow-api",name:"SiliconFlow",vendor:"SiliconFlow",category:"api",transport:"openai-chat",billing:"payg",url:"https://api.siliconflow.com/v1",source:"https://docs.siliconflow.com/en/api-reference"}),
  descriptor({id:"moonshot-payg",name:"Moonshot PAYG",vendor:"Moonshot AI",category:"api",transport:"openai-chat",billing:"payg",url:"https://api.moonshot.ai/v1",source:"https://platform.moonshot.ai/docs"}),
+ descriptor({id:"nvidia-nim",name:"NVIDIA NIM",vendor:"NVIDIA",category:"api",transport:"openai-chat",billing:"payg",url:"https://integrate.api.nvidia.com/v1",source:"https://docs.api.nvidia.com/nim/",reviewedAt:"2026-09-24"}),
+ descriptor({id:"novita-ai",name:"Novita AI",vendor:"Novita AI",category:"api",transport:"openai-chat",billing:"payg",url:"https://api.novita.ai/openai",source:"https://novita.ai/docs/guides/introduction",reviewedAt:"2026-09-24"}),
+ descriptor({id:"requesty",name:"Requesty",vendor:"Requesty",category:"api",transport:"openai-chat",billing:"payg",url:"https://router.requesty.ai/v1",source:"https://requesty.ai/solution/llm-routing/models",reviewedAt:"2026-09-24"}),
+ descriptor({id:"chutes-api",name:"Chutes",vendor:"Chutes",category:"api",transport:"openai-chat",billing:"payg",url:"https://llm.chutes.ai/v1",source:"https://llm.chutes.ai/v1/models",reviewedAt:"2026-09-24"}),
+ descriptor({id:"nebius-api",name:"Nebius Token Factory",vendor:"Nebius",category:"api",transport:"openai-chat",billing:"payg",url:"https://api.tokenfactory.nebius.com/v1",source:"https://docs.tokenfactory.nebius.com/",reviewedAt:"2026-09-24"}),
+ descriptor({id:"baseten-api",name:"Baseten Model APIs",vendor:"Baseten",category:"api",transport:"openai-chat",billing:"payg",url:"https://inference.baseten.co/v1",source:"https://docs.baseten.co/inference/model-apis/overview",reviewedAt:"2026-09-24"}),
+ descriptor({id:"scaleway-api",name:"Scaleway Generative APIs",vendor:"Scaleway",category:"api",transport:"openai-chat",billing:"payg",url:"https://api.scaleway.ai/v1",source:"https://www.scaleway.com/en/docs/generative-apis/",reviewedAt:"2026-09-24"}),
+ descriptor({id:"ovhcloud-api",name:"OVHcloud AI Endpoints",vendor:"OVHcloud",category:"api",transport:"openai-chat",billing:"payg",url:"https://oai.endpoints.kepler.ai.cloud.ovh.net/v1",source:"https://www.ovhcloud.com/en/public-cloud/ai-endpoints/catalog/",reviewedAt:"2026-09-24"}),
+ descriptor({id:"meta-llama-api",name:"Meta Llama API",vendor:"Meta",category:"api",transport:"openai-chat",billing:"payg",url:"https://api.llama.com/compat/v1",source:"https://llama.developer.meta.com/docs/models",reviewedAt:"2026-09-24"}),
+ descriptor({id:"stepfun-api",name:"StepFun",vendor:"StepFun",category:"api",transport:"openai-chat",billing:"payg",url:"https://api.stepfun.ai/v1",source:"https://platform.stepfun.ai/docs/en/overview/concept",reviewedAt:"2026-09-24"}),
+ descriptor({id:"xiaomi-mimo-api",name:"Xiaomi MiMo",vendor:"Xiaomi",category:"api",transport:"openai-chat",billing:"payg",url:"https://api.xiaomimimo.com/v1",source:"https://platform.xiaomimimo.com/",reviewedAt:"2026-09-24"}),
+ descriptor({id:"ollama-cloud",name:"Ollama Cloud",vendor:"Ollama",category:"api",transport:"openai-chat",billing:"unknown",url:"https://ollama.com/v1",source:"https://docs.ollama.com/cloud",reviewedAt:"2026-09-24"}),
+ descriptor({id:"helicone-gateway",name:"Helicone AI Gateway",vendor:"Helicone",category:"api",transport:"openai-chat",billing:"payg",url:"https://ai-gateway.helicone.ai/v1",source:"https://helicone.ai/models",reviewedAt:"2026-09-24"}),
+ descriptor({id:"poe-api",name:"Poe",vendor:"Quora",category:"api",transport:"openai-chat",billing:"unknown",url:"https://api.poe.com/v1",source:"https://creator.poe.com/docs/external-applications/openai-compatible-api",reviewedAt:"2026-09-24"}),
+ descriptor({id:"wandb-inference",name:"W&B Inference",vendor:"Weights & Biases",category:"api",transport:"openai-chat",billing:"payg",url:"https://api.inference.wandb.ai/v1",source:"https://docs.wandb.ai/inference",reviewedAt:"2026-09-24"}),
+ descriptor({id:"inception-api",name:"Inception",vendor:"Inception Labs",category:"api",transport:"openai-chat",billing:"payg",url:"https://api.inceptionlabs.ai/v1",source:"https://docs.inceptionlabs.ai/get-started/models",reviewedAt:"2026-09-24"}),
+ descriptor({id:"ai21-api",name:"AI21 Studio",vendor:"AI21 Labs",category:"api",transport:"openai-chat",billing:"payg",url:"https://api.ai21.com/studio/v1",source:"https://docs.ai21.com/docs/jamba-foundation-models",reviewedAt:"2026-09-24"}),
  descriptor({id:"huggingface-inference",name:"Hugging Face Inference",vendor:"Hugging Face",category:"api",transport:"openai-chat",billing:"payg",url:"https://router.huggingface.co/v1",source:"https://huggingface.co/docs/inference-providers"}),
 ]

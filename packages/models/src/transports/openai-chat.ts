@@ -14,7 +14,7 @@ export class OpenAIChatTransport implements NormalizedTransport {
     if (request.reasoningEffort && request.reasoningEffort !== "none") body.reasoning_effort = request.reasoningEffort
     if (request.responseSchema) body.response_format = { type: "json_schema", json_schema: { name: request.responseSchema.name, strict: true, schema: request.responseSchema.jsonSchema } }
     try {
-      const response = await (this.config.fetch ?? fetch)(`${this.config.baseUrl.replace(/\/$/, "")}/chat/completions`, { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${this.config.apiKey}`, ...this.config.headers }, body: JSON.stringify(body), signal })
+      const response = await (this.config.fetch ?? fetch)(`${this.config.baseUrl.replace(/\/$/, "")}/chat/completions`, { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${this.config.apiKey}`, ...this.config.headers,...this.config.requestHeaders?.(request) }, body: JSON.stringify(body), signal })
       if (response.status === 401 || response.status === 403) throw new ModelAuthenticationFailed()
       if(response.status===402)throw new ProviderQuotaExhausted("PROVIDER_MEMBERSHIP_UNAVAILABLE")
       if(response.status===429)throw new ProviderRateLimited()

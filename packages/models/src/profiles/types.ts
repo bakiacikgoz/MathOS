@@ -5,6 +5,11 @@ export type ModelProfileAuth = { kind: "none" } | { kind: "secret-ref"; secretRe
 export interface ModelProfileV2 {
   schemaVersion: typeof MODEL_PROFILE_V2_SCHEMA; id: string; descriptorId: string; displayName: string; model: string | "auto"; endpointPresetId: string | null; baseUrlOverride: string | null
   auth: ModelProfileAuth; enabled: boolean; timeoutMs: number; maxResponseBytes: number; maxOutputTokens: number | null; reasoningEffort: "none" | "low" | "medium" | "high" | "max" | null
-  allowedRoles: ModelRole[]; requestConcurrency: number; metadata: { createdAt: string; updatedAt: string; migratedFromV1: boolean }
+  allowedRoles: ModelRole[]; requestConcurrency: number
+  /** Non-secret request headers for generic endpoints (gateway routing, app attribution). Credentials never go here. */
+  extraHeaders?: Record<string, string> | null
+  /** Header that carries a stable per-conversation session id, for gateways that route or cache by session. */
+  sessionHeader?: string | null
+  metadata: { createdAt: string; updatedAt: string; migratedFromV1: boolean }
 }
 export interface ModelProfileStoreV2 { schemaVersion: typeof MODEL_PROFILE_STORE_V2_SCHEMA; profiles: ModelProfileV2[] }

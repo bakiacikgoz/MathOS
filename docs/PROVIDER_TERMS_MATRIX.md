@@ -23,6 +23,10 @@ Reviewed on **2026-09-02**. A stale review produces a warning after 90 days and 
 | Z.AI Coding Plan | Terms review required; blocked by default | MathOS secure store | Subscription plan | https://docs.z.ai/devpack/faq |
 | DeepSeek API | Permitted | MathOS secure store | PAYG | https://api-docs.deepseek.com/ |
 | OpenRouter | Permitted | MathOS secure store | PAYG | https://openrouter.ai/docs/api/api-reference/models/get-models |
+| OpenCode Go | Permitted as a scoped plan; MathOS sends its own `User-Agent` and a stable `x-opencode-session` per research run, as the plan requires | MathOS secure store | Subscription plan | https://opencode.ai/docs/go/ |
+| OpenCode Zen | Permitted | MathOS secure store | PAYG | https://opencode.ai/docs/zen/ |
+| Registry-listed OpenAI-compatible APIs (NVIDIA NIM, Novita, Requesty, Chutes, Nebius, Baseten, Scaleway, OVHcloud, Meta Llama API, StepFun, Xiaomi MiMo, Ollama Cloud, Helicone, Poe, W&B Inference, Inception, AI21, Zhipu BigModel, Moonshot China, SiliconFlow China, Volcengine Ark) | Permitted API paths; reviewed 2026-09-24 against the models.dev registry | MathOS secure store | PAYG (Ollama Cloud and Poe: unknown) | Per-provider documentation link in `mathos provider catalog --json` |
+| Any other OpenAI- or Anthropic-compatible endpoint | Permitted through `generic-openai-compatible` / `generic-anthropic-compatible`; the endpoint operator's terms apply | MathOS secure store | Unknown | https://platform.openai.com/docs/api-reference |
 | Ollama | Permitted on loopback | None | Local | https://docs.ollama.com/api/chat |
 | LM Studio | Permitted on loopback | None or local token | Local | https://lmstudio.ai/docs/developer/openai-compat |
 

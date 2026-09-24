@@ -21,9 +21,34 @@ mathos provider status --json
 | Alibaba | `mathos provider configure alibaba-model-studio-payg --profile alibaba-payg --model auto` | PAYG is available; Token/Coding Plans remain terms restricted |
 | Z.AI | `mathos provider configure zai-payg --profile zai-payg --model GLM-5.1` | PAYG is available; Coding Plan is blocked pending vendor approval |
 | DeepSeek | `mathos provider configure deepseek-api --profile deepseek-main --model deepseek-v4-pro` | PAYG; MathOS secret store |
+| OpenCode Go | `mathos provider configure opencode-go --profile go-main --model kimi-k3` | $10/month subscription with per-model usage limits; MathOS secret store |
+| OpenCode Zen | `mathos provider configure opencode-zen --profile zen-main --model claude-sonnet-5` | PAYG balance; MathOS secret store |
 | Ollama | `mathos provider configure ollama --profile ollama-local --model auto` | Local, loopback only |
 | LM Studio | `mathos provider configure lm-studio --profile lmstudio-local --model auto` | Local, loopback only |
 | llama.cpp | `mathos provider configure llama-cpp --profile llama-local --model auto` | Local, loopback only |
+
+## Multi-protocol gateways
+
+OpenCode Zen and OpenCode Go serve every model with one API key, but not over one wire protocol: GPT, Grok and Muse models use OpenAI Responses, Claude and Qwen models use Anthropic Messages, and most others use Chat Completions (MiniMax uses Messages on Go but Chat Completions on Zen). MathOS picks the protocol from the model you configure, following the official endpoint tables. Models that are not in the table use Chat Completions. Pass `--protocol openai-chat|openai-responses|anthropic-messages` to override the choice. Gemini-native Zen models are refused with `PROVIDER_MODEL_PROTOCOL_UNSUPPORTED`.
+
+OpenCode Go asks clients to identify themselves truthfully and to keep routing stable per conversation. MathOS sends `User-Agent: MathOS/<version>` and an `x-opencode-session` value derived from the research run (a one-way hash, so run ids are not disclosed). Calls made outside a research run share one session per provider instance.
+
+## Any other compatible endpoint
+
+Every OpenAI- or Anthropic-compatible service can be used through the generic descriptors, including gateways and self-hosted proxies:
+
+```sh
+mathos provider configure generic-openai-compatible --profile my-gateway \
+  --base-url https://llm.example.com/v1 --model some-model \
+  --protocol openai-responses \
+  --header "X-Title: MathOS" --session-header x-session-id
+mathos secrets set model.my-gateway
+```
+
+- `--protocol` defaults to the descriptor's own protocol (`openai-chat` or `anthropic-messages`).
+- `--header "Name: value"` may be repeated up to 16 times. Header names that could carry a credential (`Authorization`, `*-Api-Key`, `*token*`, `Cookie`, ...) are refused; the API key always comes from the secret store. Transport headers such as `Host` and `User-Agent` are reserved.
+- `--session-header` sends a stable per-research-run id, for gateways that route or cache by session.
+- Custom headers are only accepted on the generic descriptors; curated providers keep their own verified identity headers.
 
 Qwen Code ACP uses the official client. Qwen Portal OAuth was retired on 2026-04-15 and cannot be re-enabled.
 
