@@ -1,0 +1,50 @@
+import { useApp } from "../lib/app.ts"
+import { useDoctor } from "../lib/data.ts"
+import { useT } from "../lib/i18n.ts"
+import { Icon } from "../components/Icon.tsx"
+import { ErrorBox, Skeleton } from "../components/Primitives.tsx"
+
+export function Health() {
+  const app = useApp()
+  const { t } = useT()
+  const doctor = useDoctor(app.workspace.root)
+  const checks = doctor.data?.checks ?? []
+  const pass = checks.filter((check) => check.status === "PASS").length
+  const ratio = checks.length ? pass / checks.length : 0
+  const circumference = 2 * Math.PI * 26
+
+  return (
+    <div className="page-inner">
+      <div className="page-head">
+        <div><div className="eyebrow">{app.workspace.name}</div><h1 className="title">{t("health.title")}</h1></div>
+        <button className="btn btn-secondary" onClick={() => doctor.refetch()} disabled={doctor.loading}>{doctor.loading ? <span className="spinner" /> : <Icon name="refresh" size={16} />}{t("health.run")}</button>
+      </div>
+      {doctor.error ? <ErrorBox error={doctor.error} onRetry={() => doctor.refetch()} /> : null}
+      <div className="card health-hero view-enter">
+        <svg className="health-ring" viewBox="0 0 64 64" aria-hidden>
+          <circle cx="32" cy="32" r="26" fill="none" stroke="var(--fill-2)" strokeWidth="6" />
+          <circle cx="32" cy="32" r="26" fill="none" stroke="var(--ink)" strokeWidth="6" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={circumference * (1 - ratio)} transform="rotate(-90 32 32)" />
+        </svg>
+        <div>
+          {doctor.data ? <>
+            <div style={{ font: "600 22px/1.2 var(--font-display)", letterSpacing: "-0.02em" }}>{doctor.data.ok ? t("health.ok") : t("health.issues")}</div>
+            <div className="subtitle" style={{ marginTop: 4 }}>{pass} / {checks.length} {t("health.pass").toLowerCase()}{doctor.data.mathosVersion ? ` · MathOS ${doctor.data.mathosVersion}` : ""}</div>
+          </> : <><Skeleton height={22} width={220} /><Skeleton height={14} width={140} style={{ marginTop: 8 }} /></>}
+        </div>
+      </div>
+      <div className="card health-list stagger" style={{ marginTop: 14, overflow: "hidden" }}>
+        {!doctor.data && !doctor.error && Array.from({ length: 6 }, (_, index) => <div key={index} className="row"><Skeleton height={16} width={16} /><Skeleton height={14} /><Skeleton height={14} /><span /></div>)}
+        {checks.map((check, index) => (
+          <div key={check.name} className="row" style={{ "--i": index } as React.CSSProperties}>
+            <span className={`check-row`} style={{ padding: 0, border: 0 }}>
+              <span className={`mark ${check.status === "PASS" ? "ok" : check.status === "FAIL" ? "no" : "info"}`}><Icon name={check.status === "PASS" ? "check" : check.status === "FAIL" ? "x" : "info"} size={12} stroke={2.4} /></span>
+            </span>
+            <span className="name">{check.name}</span>
+            <span className="detail selectable" title={check.detail}>{check.detail}</span>
+            <span className={`pill ${check.status === "PASS" ? "pill-soft" : check.status === "FAIL" ? "pill-solid" : "pill-dashed"}`}>{t(check.status === "PASS" ? "health.pass" : check.status === "FAIL" ? "health.fail" : "health.warn")}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
