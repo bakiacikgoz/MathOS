@@ -3,7 +3,7 @@ import { theme } from "../theme.ts"
 
 export function WorkspaceInfo(props: { status: StatusProjection }) {
   return (
-    <box height={11} flexShrink={0} flexDirection="column" padding={1}>
+    <box flexShrink={0} flexDirection="column" paddingLeft={1} paddingRight={1} border borderColor={theme.border}>
       <text fg={theme.blue}>WORKSPACE</text>
       <Row label="branch" value={props.status.branch?.name ?? "—"} />
       <Row label="integrity" value={props.status.integrity.initialized ? "ok" : "missing"} color={props.status.integrity.initialized ? theme.success : theme.danger} />

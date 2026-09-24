@@ -151,11 +151,12 @@ export function MainPanel(props: {
   onProviderAssign?: (role: "planner" | "researcher" | "formalizer" | "prover", row: ProviderCenterRow) => void
   compact?: boolean
   dashboardWidth?: number
+  dashboardHeight?: number
 }) {
   return (
     <box flexGrow={1} backgroundColor={theme.background} border borderColor={theme.border} flexDirection="column">
       <Show when={props.view === "home" || props.view === "status"}>
-        <ResearchSummary status={props.status} home={props.productText} compact={props.compact} dashboardWidth={props.dashboardWidth} naturalStatement={props.claims.find((claim) => claim.id === props.status.mainObjective?.id)?.naturalStatement} formalText={props.homeFormalText} run={props.researchRun} steps={props.researchSteps} />
+        <ResearchSummary status={props.status} home={props.productText} compact={props.compact} dashboardWidth={props.dashboardWidth} dashboardHeight={props.dashboardHeight} naturalStatement={props.claims.find((claim) => claim.id === props.status.mainObjective?.id)?.naturalStatement} formalText={props.homeFormalText} run={props.researchRun} steps={props.researchSteps} />
       </Show>
       <Show when={props.view === "doctor"}>
         <box flexDirection="column" padding={1} gap={1}>

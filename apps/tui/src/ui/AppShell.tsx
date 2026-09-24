@@ -951,6 +951,7 @@ export function AppShell(props: { mathos: MathOS }) {
         onProviderAssign={assignProviderRole}
         compact={compactDashboard()}
         dashboardWidth={width() - (showSidebar() ? sidebarWidth() : 0)}
+        dashboardHeight={height() - 9}
         />
         <Sidebar status={status()} visible={showSidebar()} width={sidebarWidth()} run={researchRun()} steps={researchSteps()} />
       </box>
