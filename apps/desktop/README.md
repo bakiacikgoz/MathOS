@@ -26,7 +26,7 @@ The Rust side (`src-tauri/src/host.rs`) starts the host lazily, restarts it if i
 
 ## Develop
 
-Requirements: Bun ≥ 1.2, Rust (stable) and the [Tauri system prerequisites](https://tauri.app/start/prerequisites/) for your OS.
+Requirements: Bun ≥ 1.4.1, Rust (stable) and the [Tauri system prerequisites](https://tauri.app/start/prerequisites/) for your OS.
 
 ```sh
 bun install                 # repo root
@@ -51,4 +51,27 @@ cd src-tauri && cargo clippy
 bun run tauri:build
 ```
 
-This compiles the host into a standalone executable (`scripts/build-host.ts` → `src-tauri/binaries/mathos-host-<target-triple>`), then builds the app and platform installers (`.dmg`/`.app`, `.msi`/`.exe`, `.deb`/`.AppImage`/`.rpm`) with the host bundled as a sidecar. Build on each target OS; cross-compiling native installers is not supported.
+This compiles the host into a standalone executable (`scripts/build-host.ts` → `src-tauri/binaries/mathos-host-<target-triple>`), then builds the app and platform installers (`.dmg`/`.app`, an NSIS `-setup.exe` on Windows, `.deb`/`.AppImage`/`.rpm`) with the host bundled as a sidecar. Build on each target OS; cross-compiling native installers is not supported.
+
+## Windows
+
+**Ready-made installer.** Every push that touches the app runs the `Desktop · Windows` workflow (GitHub → Actions; it can also be started by hand with *Run workflow*). It typechecks and tests the app. It builds the engine and checks that it answers CLI requests on Windows and stores and reads a key in Windows Credential Manager. Then it builds the installer. Download `MathOS-windows-x64-setup` from the run's *Artifacts*, unzip it and run `MathOS_<version>_x64-setup.exe`.
+
+- The installer is not code-signed yet, so SmartScreen shows "Windows protected your PC". Choose *More info → Run anyway*.
+- It installs for the current user only, with no administrator rights needed. WebView2 is already present on Windows 10/11; if it is missing, the installer downloads it.
+- API keys entered in the app go to **Windows Credential Manager** (*Control Panel → Credential Manager → Windows Credentials*, entries named `com.mathos.model-provider:<ref>`). They never reach a file on disk.
+
+**Building on your own Windows machine.**
+
+1. Install [Bun](https://bun.sh) (≥ 1.4.1), [Rust](https://rustup.rs) and the *Desktop development with C++* workload of [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/).
+2. From the repository root, in PowerShell:
+
+```powershell
+bun install
+cd apps/desktop
+bun install
+bun run tauri:dev      # run the app with hot reload
+bun run tauri:build    # installer at src-tauri\target\release\bundle\nsis\
+```
+
+Only the NSIS installer is built on Windows (`src-tauri/tauri.windows.conf.json`). The MSI format rejects pre-release versions such as `1.0.0-rc.1`.

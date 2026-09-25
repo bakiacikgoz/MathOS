@@ -106,6 +106,9 @@ h1, h2, h3, p { margin: 0; }
 
 .shell { display: grid; grid-template-columns: var(--sidebar) 1fr; height: 100%; }
 .titlebar-drag { position: fixed; inset: 0 0 auto 0; height: var(--titlebar); z-index: 5; }
+/* Windows/Linux: the native title bar already sits above the page, so no traffic-light gap or drag strip. */
+.native-titlebar { --titlebar: 14px; }
+.native-titlebar .titlebar-drag { display: none; }
 
 .shell { transition: grid-template-columns var(--mid) var(--ease); }
 .shell.sidebar-collapsed { grid-template-columns: 68px 1fr; }
