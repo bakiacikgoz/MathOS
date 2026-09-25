@@ -10,7 +10,7 @@
 Claims, dependencies, Lean formalizations, proof attempts, literature and experiments live in one local workspace.
 An AI assistant can work inside it with you. Only the Lean kernel can mark a claim verified.
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-black?style=flat-square)](LICENSE)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-black?style=flat-square)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.0.0--rc.1-black?style=flat-square)](package.json)
 [![Lean 4](https://img.shields.io/badge/Lean_4-v4.33.1_+_Mathlib-black?style=flat-square)](docs/INSTALLATION.md)
 [![Desktop](https://img.shields.io/badge/desktop-Tauri_2_·_Windows_installer-black?style=flat-square)](apps/desktop/README.md)
@@ -30,7 +30,7 @@ An AI assistant can work inside it with you. Only the Lean kernel can mark a cla
 
 Language models are good at suggesting ideas. They are also good at sounding confident about proofs that are wrong. Mathematicians need the first without the risk of the second.
 
-MathOS keeps the two apart by design:
+MathOS is not an automatic solver of open problems. It is where your research lives, and it keeps suggestions and proofs apart by design:
 
 - **Everything is a claim with a state.** Conjectures, lemmas, theorems and definitions live in a typed graph with their dependencies, sources and history. Nothing gets lost in a chat window.
 - **Models only propose.** An AI can draft a Lean statement, suggest a proof strategy or search the literature. It cannot approve the meaning of a formalization, and it can never mark anything verified.
@@ -143,6 +143,8 @@ On first launch, pick a folder or create a workspace (or open the sample project
 Download the release archive for your platform, verify it against `SHA256SUMS` and put `mathos` on your path. The user-scoped installer does all of this without sudo. See [installation](docs/INSTALLATION.md).
 
 ```sh
+mathos --version --json
+mathos help
 mkdir prime-gap-research && cd prime-gap-research
 mathos init --name prime-gap-research
 mathos claim create --type conjecture --title "Bounded prime gaps" \
@@ -223,4 +225,8 @@ bun run desktop:dev      # desktop app with hot reload
 
 ## License
 
-[MIT](LICENSE) © MathOS contributors
+Copyright © 2026 Baki Açıkgöz. MathOS is licensed under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0-only).
+
+You may use, study and change MathOS freely. If you distribute it, or run a modified version as a service for others, you must publish the complete source of that version under the same license. Closed-source products and services built on MathOS are not allowed under the AGPL. **Commercial licenses** for other uses are available on request through [GitHub](https://github.com/bakiacikgoz).
+
+The MathOS name and logo are not covered by the license. See [NOTICE](NOTICE).
