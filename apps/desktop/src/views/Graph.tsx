@@ -82,7 +82,8 @@ export function Graph() {
   const list = claims.data ?? []
   const edges = useMemo(() => (graph.data?.edges ?? []).filter((edge) => DRAWN.has(edge.kind) && list.some((claim) => claim.id === edge.fromNodeId) && list.some((claim) => claim.id === edge.toNodeId)), [graph.data, list])
   const placed = useMemo(() => layout(list, edges), [list, edges])
-  const fit = canvasSize.width ? Math.max(0.35, Math.min(1.2, (canvasSize.width - 8) / placed.width, (canvasSize.height - 8) / placed.height)) : 1
+  // Fitting never shrinks cards below readable size; a long chain scrolls sideways instead.
+  const fit = canvasSize.width ? Math.max(0.8, Math.min(1.2, (canvasSize.width - 8) / placed.width, (canvasSize.height - 8) / placed.height)) : 1
   const zoom = manualZoom ?? fit
   const setZoom = (next: (value: number) => number) => setManualZoom(Math.round(next(zoom) * 100) / 100)
   const objective = status.data?.status.mainObjective?.id ?? graph.data?.analysis.objectiveClaimId ?? null

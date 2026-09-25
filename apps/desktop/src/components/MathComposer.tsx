@@ -11,7 +11,8 @@ MathfieldElement.soundsDirectory = null
 
 const ZW = "​"
 const BY_SHOW = new Map(SYMBOL_GROUPS.flatMap((group) => group.items).map((item) => [item.show, item]))
-type Chip = HTMLSpanElement & { field: MathfieldElement }
+/** `closedAt`: when the formula was last left, so a focus request still in flight cannot pull the caret back in. */
+type Chip = HTMLSpanElement & { field: MathfieldElement; closedAt?: number }
 
 export interface MathComposerProps {
   value: string
@@ -67,6 +68,18 @@ export default function MathComposer({ value, onChange, label, placeholder, auto
   const [focusedChip, setFocusedChip] = useState(false)
   /** A formula just opened whose editor is not ready yet, and the keys typed meanwhile. */
   const opening = useRef<{ chip: Chip; keys: string } | null>(null)
+  /** Where the caret last was in the text, to put it back if a formula takes focus it should not have. */
+  const lastText = useRef<Range | null>(null)
+  useEffect(() => {
+    const track = () => {
+      const selection = window.getSelection(), node = root.current
+      if (!node || !selection?.rangeCount) return
+      const range = selection.getRangeAt(0)
+      if (node.contains(range.startContainer) && !(range.startContainer as Element).closest?.("[data-chip]") && !range.startContainer.parentElement?.closest("[data-chip]")) lastText.current = range.cloneRange()
+    }
+    document.addEventListener("selectionchange", track)
+    return () => document.removeEventListener("selectionchange", track)
+  }, [])
 
   const emit = useCallback((record = true) => {
     const node = root.current
@@ -105,6 +118,7 @@ export default function MathComposer({ value, onChange, label, placeholder, auto
       if (removeIfEmpty) chip.remove()
       placeCaret(previous, previous.textContent?.length ?? 0)
     }
+    chip.closedAt = performance.now()
     active.current = null; setFocusedChip(false)
     emit()
   }, [emit])
@@ -131,7 +145,15 @@ export default function MathComposer({ value, onChange, label, placeholder, auto
       else if (event.key === "Backspace" && !field.getValue("latex")) { event.preventDefault(); event.stopPropagation(); exit(chip, "backward") }
       else if ((event.metaKey || event.ctrlKey) && event.key === "Enter") { event.preventDefault(); event.stopPropagation(); exit(chip, "forward"); handlers.current.onSubmit?.() }
     }, { capture: true })
+    chip.addEventListener("pointerdown", () => { chip.closedAt = 0 })
     field.addEventListener("focusin", () => {
+      // A formula closed a moment ago (typing "$" fast) must not take focus back from the text after it.
+      if (chip.closedAt && performance.now() - chip.closedAt < 1000 && opening.current?.chip !== chip) {
+        const node = root.current, range = lastText.current
+        if (node) { node.focus({ preventScroll: true }); if (range && node.contains(range.startContainer)) { const selection = window.getSelection(); selection?.removeAllRanges(); selection?.addRange(range) } }
+        return
+      }
+      chip.closedAt = 0
       active.current = chip; setFocusedChip(true)
       const pending = opening.current
       if (pending?.chip === chip) { opening.current = null; if (pending.keys) { field.executeCommand(["typedText", pending.keys]); emit() } }
@@ -214,6 +236,7 @@ export default function MathComposer({ value, onChange, label, placeholder, auto
   }
 
   const enterChip = (chip: Chip, at: "start" | "end") => {
+    chip.closedAt = 0
     chip.field.focus()
     requestAnimationFrame(() => { chip.field.position = at === "start" ? 0 : chip.field.lastOffset })
   }
