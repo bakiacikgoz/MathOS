@@ -10,6 +10,11 @@ async fn mathos_exec(host: State<'_, Host>, cwd: String, args: Vec<String>) -> R
 }
 
 #[tauri::command]
+async fn mathos_secret_set(host: State<'_, Host>, secret_ref: String, value: String) -> Result<ExecResult, String> {
+    host.secret_set(secret_ref, value).await
+}
+
+#[tauri::command]
 async fn host_info(host: State<'_, Host>) -> Result<HostInfo, String> {
     Ok(host.info().await)
 }
@@ -24,8 +29,9 @@ async fn host_restart(host: State<'_, Host>) -> Result<(), String> {
 pub fn run() {
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .manage(Host::default())
-        .invoke_handler(tauri::generate_handler![mathos_exec, host_info, host_restart])
+        .invoke_handler(tauri::generate_handler![mathos_exec, mathos_secret_set, host_info, host_restart])
         .setup(|app| {
             // The window starts hidden so the first frame is already themed; the
             // frontend shows it after mount. This is the safety net if it cannot.

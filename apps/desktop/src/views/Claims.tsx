@@ -8,6 +8,7 @@ import { isVerifiedStatus, kindLabel, statusMeta } from "../lib/status.ts"
 import { parseClaimPage } from "../lib/claim-page.ts"
 import { Icon } from "../components/Icon.tsx"
 import { Empty, ErrorBox, Segmented, Skeleton, StatusPill } from "../components/Primitives.tsx"
+import { HelpButton, useAutoTour } from "../components/Tour.tsx"
 import { MathText } from "../components/MathText.tsx"
 
 type Filter = "all" | "open" | "verified" | "blocked"
@@ -45,21 +46,22 @@ export function Claims() {
     if (next) { app.selectClaim(next.id); document.getElementById(`claim-${next.id}`)?.scrollIntoView({ block: "nearest" }) }
   }
 
+  useAutoTour("claims", Boolean(claims.data), "app")
   return (
     <div className="split">
       <div className="list-pane" onKeyDown={onKeyDown}>
         <div className="list-head">
           <div className="row">
             <h1>{t("nav.claims")}</h1>
-            <button className="btn btn-primary btn-icon" onClick={app.newClaim} aria-label={t("claimForm.title")} title={t("claimForm.title")}><Icon name="plus" size={16} /></button>
+            <span className="head-actions"><HelpButton tour="claims" /><button className="btn btn-primary btn-icon" data-tour="claims-new" onClick={app.newClaim} aria-label={t("claimForm.title")} title={t("claimForm.title")}><Icon name="plus" size={16} /></button></span>
           </div>
           <div className="search-wrap"><Icon name="search" size={15} /><input className="input input-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t("claims.search")} spellCheck={false} /></div>
-          <Segmented value={filter} onChange={setFilter} options={[
+          <div data-tour="claims-filter"><Segmented value={filter} onChange={setFilter} options={[
             { value: "all", label: t("claims.all") }, { value: "open", label: t("claims.open") },
             { value: "verified", label: t("claims.verified") }, { value: "blocked", label: t("claims.blocked") },
-          ]} />
+          ]} /></div>
         </div>
-        <div className="list-scroll" role="listbox" aria-label={t("nav.claims")} tabIndex={0}>
+        <div className="list-scroll" data-tour="claims-list" role="listbox" aria-label={t("nav.claims")} tabIndex={0}>
           {claims.error ? <ErrorBox error={claims.error} onRetry={() => claims.refetch()} /> : null}
           {!claims.data && !claims.error && Array.from({ length: 5 }, (_, index) => <div key={index} style={{ padding: 12 }}><Skeleton height={12} width="30%" /><Skeleton height={16} width="80%" style={{ marginTop: 8 }} /></div>)}
           {claims.data && claims.data.length === 0 && <Empty glyph="∃" title={t("claims.empty")}><p>{t("claims.emptyHint")}</p><button className="btn btn-primary" onClick={app.newClaim}><Icon name="plus" size={16} />{t("claimForm.title")}</button></Empty>}
@@ -146,7 +148,7 @@ function ClaimDetail({ id, objective }: { id: string; objective: boolean }) {
 
       {page.checks.length > 0 && <>
         <div className="section-title">{t("claims.whyNot")}</div>
-        <div className="card card-pad checklist stagger" style={{ paddingTop: 6, paddingBottom: 6 }}>
+        <div data-tour="claims-why" className="card card-pad checklist stagger" style={{ paddingTop: 6, paddingBottom: 6 }}>
           {page.checks.map((check, index) => (
             <div key={check.label} className="check-row" style={{ "--i": index } as React.CSSProperties}>
               <span className={`mark ${check.ok === true ? "ok" : check.ok === false ? "no" : "info"}`}><Icon name={check.ok === true ? "check" : check.ok === false ? "x" : "info"} size={12} stroke={2.4} /></span>

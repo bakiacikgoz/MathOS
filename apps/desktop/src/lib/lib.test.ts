@@ -57,3 +57,32 @@ describe("provider helpers", () => {
     expect(secretEnvName("model.go-main")).toBe("MATHOS_SECRET_MODEL_GO_MAIN")
   })
 })
+
+import { TOURS, markSeen, normalizeTourPrefs, shouldAutoStart } from "./tours.ts"
+import { FEATURED, keyPage, providerLogo } from "./provider-meta.ts"
+
+describe("guided tours", () => {
+  test("stored preferences are validated and skipping a section is remembered", () => {
+    expect(normalizeTourPrefs(null)).toEqual({ seen: [], auto: true })
+    expect(normalizeTourPrefs({ seen: ["claims", "nope", 3, "claims"], auto: false })).toEqual({ seen: ["claims"], auto: false })
+    const prefs = markSeen(normalizeTourPrefs(null), "providers")
+    expect(shouldAutoStart(prefs, "providers")).toBe(false)
+    expect(shouldAutoStart(prefs, "claims")).toBe(true)
+    expect(shouldAutoStart({ ...prefs, auto: false }, "claims")).toBe(false)
+  })
+
+  test("every step is written in both languages", () => {
+    for (const steps of Object.values(TOURS)) for (const step of steps) {
+      expect(step.title.tr && step.title.en && step.body.tr && step.body.en).toBeTruthy()
+      expect(step.anchor).toMatch(/^[a-z-]+$/)
+    }
+  })
+})
+
+describe("provider presentation", () => {
+  test("featured providers have logos and key pages are https only", () => {
+    for (const id of FEATURED) expect(providerLogo(id)).toContain("<svg")
+    expect(providerLogo("generic-openai-compatible")).toBeNull()
+    for (const id of ["openai-api", "opencode-go", "deepseek-api"]) expect(keyPage(id)).toMatch(/^https:\/\//)
+  })
+})

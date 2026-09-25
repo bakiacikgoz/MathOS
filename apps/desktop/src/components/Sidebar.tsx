@@ -6,6 +6,7 @@ import { useProviderStatus } from "../lib/providers.ts"
 import { useT, type MessageKey } from "../lib/i18n.ts"
 import type { ThemePref } from "../lib/theme.ts"
 import { Icon, Mark, type IconName } from "./Icon.tsx"
+import { useAutoTour } from "./Tour.tsx"
 
 type Signal = { kind: "count"; value: number } | { kind: "dot"; tone: "strong" | "soft"; title: MessageKey } | null
 
@@ -16,6 +17,7 @@ export function Sidebar({ onPalette }: { onPalette: () => void }) {
   const nav = useRef<HTMLElement>(null)
   const [indicator, setIndicator] = useState<{ top: number; height: number } | null>(null)
   const signals = useNavSignals()
+  useAutoTour("app")
 
   // The highlight slides between items; measure the active row so grouping and wrapping never misplace it.
   useLayoutEffect(() => {
@@ -29,7 +31,7 @@ export function Sidebar({ onPalette }: { onPalette: () => void }) {
     <aside className={`sidebar ${collapsed ? "collapsed" : ""}`} aria-label={t("sidebar.label")}>
       <WorkspaceSwitcher collapsed={collapsed} />
 
-      <button className="sidebar-search" onClick={onPalette} title={collapsed ? `${t("nav.search")} (${mod}K)` : undefined} aria-label={t("nav.search")}>
+      <button className="sidebar-search" data-tour="search" onClick={onPalette} title={collapsed ? `${t("nav.search")} (${mod}K)` : undefined} aria-label={t("nav.search")}>
         <Icon name="search" size={15} />
         <span className="label">{t("sidebar.search")}</span>
         <span className="kbd">{mod}K</span>
@@ -38,7 +40,7 @@ export function Sidebar({ onPalette }: { onPalette: () => void }) {
       <nav className="nav" ref={nav}>
         <span className="nav-indicator" style={{ transform: `translateY(${indicator?.top ?? 0}px)`, height: indicator?.height ?? 34, opacity: indicator === null ? 0 : 1 }} />
         {groups.map((group) => (
-          <div key={group.id} className="nav-group" role="group" aria-label={t(group.label)}>
+          <div key={group.id} className="nav-group" role="group" aria-label={t(group.label)} data-tour={`nav-${group.id}`}>
             <div className="nav-group-label" aria-hidden>{t(group.label)}</div>
             {NAV.filter((item) => item.group === group.id).map((item) => (
               <NavItem key={item.route} route={item.route} icon={item.icon} label={t(item.label)} shortcut={`${mod}${item.key}`} signal={signals[item.route] ?? null} collapsed={collapsed} />
@@ -47,7 +49,7 @@ export function Sidebar({ onPalette }: { onPalette: () => void }) {
         ))}
       </nav>
 
-      <div className="sidebar-foot">
+      <div className="sidebar-foot" data-tour="sidebar-foot">
         <NavItem route="settings" icon="settings" label={t("nav.settings")} shortcut={`${mod},`} signal={null} collapsed={collapsed} />
         <div className="sidebar-foot-row">
           <ThemeSwitch />
@@ -66,7 +68,7 @@ function NavItem({ route, icon, label, shortcut, signal, collapsed }: { route: R
   const active = app.route === route
   const hint = signal?.kind === "dot" ? t(signal.title) : null
   return (
-    <button className={`nav-item ${active ? "active" : ""}`} onClick={() => app.navigate(route)} aria-current={active ? "page" : undefined}
+    <button className={`nav-item ${active ? "active" : ""}`} data-tour={`nav-${route}`} onClick={() => app.navigate(route)} aria-current={active ? "page" : undefined}
       title={collapsed ? [label, hint].filter(Boolean).join(" · ") : hint ?? undefined}>
       <span className="nav-icon"><Icon name={icon} size={17} />{collapsed && signal?.kind === "dot" && <span className={`nav-dot ${signal.tone}`} />}</span>
       <span className="label">{label}</span>
@@ -123,7 +125,7 @@ function WorkspaceSwitcher({ collapsed }: { collapsed: boolean }) {
   }
 
   return (
-    <div className="ws-switcher" ref={ref}>
+    <div className="ws-switcher" ref={ref} data-tour="ws">
       <button className={`workspace-chip ${open ? "open" : ""}`} onClick={() => setOpen((value) => !value)} aria-haspopup="menu" aria-expanded={open} title={collapsed ? app.workspace.name : app.workspace.root}>
         <Mark size={28} />
         <span className="meta"><span className="name">{app.workspace.name}</span><span className="path">{shortPath(app.workspace.root)}</span></span>

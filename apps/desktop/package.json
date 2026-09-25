@@ -17,8 +17,11 @@
     "tauri:build": "bun scripts/build-host.ts && tauri build --config src-tauri/tauri.bundle.conf.json"
   },
   "dependencies": {
+    "@lobehub/icons-static-svg": "1.95.1",
     "@tauri-apps/api": "^2.8.0",
     "@tauri-apps/plugin-dialog": "^2.4.0",
+    "@tauri-apps/plugin-opener": "^2",
+    "driver.js": "1.8.0",
     "katex": "^0.16.22",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"

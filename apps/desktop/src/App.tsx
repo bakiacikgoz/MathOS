@@ -11,6 +11,7 @@ import { Welcome } from "./views/Welcome.tsx"
 import { Overview } from "./views/Overview.tsx"
 import { NewClaimSheet } from "./views/NewClaim.tsx"
 import { ErrorBoundary } from "./components/ErrorBoundary.tsx"
+import { TourProvider } from "./components/Tour.tsx"
 
 // Secondary screens are split out so the first paint only pays for what it shows.
 const Claims = lazy(() => import("./views/Claims.tsx").then((m) => ({ default: m.Claims })))
@@ -78,8 +79,9 @@ export function App() {
 
   return (
     <LangContext.Provider value={lang}>
+      <TourProvider lang={lang}>
       {!api ? (
-        <Welcome recent={recent} onOpen={openWorkspace} onForget={forget} toast={push} theme={{ pref: theme.pref, set: theme.set }} />
+        <Welcome setLang={setLang} recent={recent} onOpen={openWorkspace} onForget={forget} toast={push} theme={{ pref: theme.pref, set: theme.set }} />
       ) : (
         <AppContext.Provider value={api}>
           <div className={`shell ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
@@ -98,6 +100,7 @@ export function App() {
         </AppContext.Provider>
       )}
       <Toasts toasts={toasts} />
+      </TourProvider>
     </LangContext.Provider>
   )
 }

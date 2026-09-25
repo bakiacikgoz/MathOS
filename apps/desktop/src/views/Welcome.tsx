@@ -4,9 +4,13 @@ import { useT } from "../lib/i18n.ts"
 import type { RecentWorkspace, Workspace, StatusProjection } from "../lib/app.ts"
 import type { ThemePref } from "../lib/theme.ts"
 import { Icon, Mark } from "../components/Icon.tsx"
+import { HelpButton, useAutoTour } from "../components/Tour.tsx"
+import { Segmented } from "../components/Primitives.tsx"
+import type { Lang } from "../lib/i18n.ts"
 import { Sheet } from "../components/Overlay.tsx"
 
 interface Props {
+  setLang: (lang: Lang) => void
   recent: RecentWorkspace[]
   onOpen: (workspace: Workspace) => void
   onForget: (root: string) => void
@@ -19,8 +23,9 @@ export async function inspectWorkspace(path: string): Promise<Workspace> {
   return { root: status.workspaceRoot, name: status.projectName }
 }
 
-export function Welcome({ recent, onOpen, onForget, toast, theme }: Props) {
-  const { t } = useT()
+export function Welcome({ recent, onOpen, onForget, toast, theme, setLang }: Props) {
+  const { t, lang } = useT()
+  useAutoTour("welcome")
   const [busy, setBusy] = useState<string | null>(null)
   const [sheet, setSheet] = useState<null | "create" | "demo">(null)
   const [notWorkspace, setNotWorkspace] = useState<string | null>(null)
@@ -49,6 +54,8 @@ export function Welcome({ recent, onOpen, onForget, toast, theme }: Props) {
     <div className="welcome">
       <div className="titlebar-drag" data-tauri-drag-region />
       <div className="welcome-corner">
+        <Segmented value={lang} onChange={setLang} label={t("settings.language")} options={[{ value: "tr", label: "TR" }, { value: "en", label: "EN" }]} />
+        <HelpButton tour="welcome" />
         <button className="btn btn-ghost btn-icon" onClick={cycleTheme} title={t("settings.appearance")} aria-label={t("settings.appearance")}>
           <Icon name={theme.pref === "system" ? "system" : theme.pref === "dark" ? "moon" : "sun"} />
         </button>
@@ -59,15 +66,15 @@ export function Welcome({ recent, onOpen, onForget, toast, theme }: Props) {
         <p className="lead">{t("welcome.subtitle")}</p>
 
         <div className="welcome-actions stagger">
-          <button className="card card-interactive action-card primary" style={{ "--i": 3 } as React.CSSProperties} onClick={choose} disabled={!!busy}>
+          <button data-tour="welcome-open" className="card card-interactive action-card primary" style={{ "--i": 3 } as React.CSSProperties} onClick={choose} disabled={!!busy}>
             <div className="icon-wrap"><Icon name="folder" /></div>
             <div><strong>{t("welcome.open")}</strong><span>{t("welcome.openHint")}</span></div>
           </button>
-          <button className="card card-interactive action-card" style={{ "--i": 4 } as React.CSSProperties} onClick={() => setSheet("create")}>
+          <button data-tour="welcome-new" className="card card-interactive action-card" style={{ "--i": 4 } as React.CSSProperties} onClick={() => setSheet("create")}>
             <div className="icon-wrap"><Icon name="plus" /></div>
             <div><strong>{t("welcome.create")}</strong><span>{t("welcome.createHint")}</span></div>
           </button>
-          <button className="card card-interactive action-card" style={{ "--i": 5 } as React.CSSProperties} onClick={() => setSheet("demo")}>
+          <button data-tour="welcome-demo" className="card card-interactive action-card" style={{ "--i": 5 } as React.CSSProperties} onClick={() => setSheet("demo")}>
             <div className="icon-wrap"><Icon name="sparkles" /></div>
             <div><strong>{t("welcome.demo")}</strong><span>{t("welcome.demoHint")}</span></div>
           </button>

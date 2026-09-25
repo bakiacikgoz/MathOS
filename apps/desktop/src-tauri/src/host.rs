@@ -65,9 +65,19 @@ pub struct HostInfo {
 
 impl Host {
     pub async fn exec(&self, cwd: String, args: Vec<String>) -> Result<ExecResult, String> {
+        self.send(serde_json::json!({ "cwd": cwd, "args": args })).await
+    }
+
+    /// Stores a provider key in the OS secret store. The value is written only to the host's
+    /// stdin; the host never echoes it and it never appears in a command line.
+    pub async fn secret_set(&self, secret_ref: String, value: String) -> Result<ExecResult, String> {
+        self.send(serde_json::json!({ "op": "secret-set", "ref": secret_ref, "value": value })).await
+    }
+
+    async fn send(&self, mut message: serde_json::Value) -> Result<ExecResult, String> {
         let id = self.next_id.fetch_add(1, Ordering::Relaxed).to_string();
-        let line = serde_json::to_string(&serde_json::json!({ "id": id, "cwd": cwd, "args": args }))
-            .map_err(|e| e.to_string())?;
+        message["id"] = serde_json::Value::String(id.clone());
+        let line = serde_json::to_string(&message).map_err(|e| e.to_string())?;
         let (tx, rx) = oneshot::channel();
         {
             let mut guard = self.running.lock().await;

@@ -3,6 +3,7 @@ import { useClaims, useStatus } from "../lib/data.ts"
 import { useT } from "../lib/i18n.ts"
 import { Icon } from "../components/Icon.tsx"
 import { CountUp, ErrorBox, Skeleton, StatusPill } from "../components/Primitives.tsx"
+import { HelpButton, useAutoTour } from "../components/Tour.tsx"
 import { MathText } from "../components/MathText.tsx"
 
 export function Overview() {
@@ -16,6 +17,7 @@ export function Overview() {
   const pct = (value: number) => total ? `${Math.round((value / total) * 100)}%` : "0%"
   const hour = new Date().getHours()
 
+  useAutoTour("overview", Boolean(status.data), "app")
   return (
     <div className="page-inner">
       <div className="page-head">
@@ -23,15 +25,18 @@ export function Overview() {
           <div className="eyebrow eyebrow-name">{app.workspace.name}</div>
           <h1 className="title">{t("nav.overview")}</h1>
         </div>
-        <button className="btn btn-ghost" onClick={() => { void status.refetch(); void claims.refetch() }} aria-label={t("common.refresh")}>
-          {status.refreshing ? <span className="spinner" /> : <Icon name="refresh" size={16} />}
-        </button>
+        <div className="head-actions">
+          <button className="btn btn-ghost" onClick={() => { void status.refetch(); void claims.refetch() }} aria-label={t("common.refresh")}>
+            {status.refreshing ? <span className="spinner" /> : <Icon name="refresh" size={16} />}
+          </button>
+          <HelpButton tour="overview" />
+        </div>
       </div>
 
       {status.error ? <ErrorBox error={status.error} onRetry={() => status.refetch()} /> : null}
 
       <div className="stagger">
-        <section className="card hero-objective" style={{ "--i": 0 } as React.CSSProperties}>
+        <section data-tour="objective" className="card hero-objective" style={{ "--i": 0 } as React.CSSProperties}>
           <span className="glyph-bg" aria-hidden>{hour < 12 ? "∂" : hour < 18 ? "∑" : "∞"}</span>
           <div className="row"><Icon name="target" size={16} /><span className="eyebrow" style={{ margin: 0 }}>{t("overview.objective")}</span></div>
           {!s ? (
@@ -57,7 +62,7 @@ export function Overview() {
           )}
         </section>
 
-        <div className="stats">
+        <div className="stats" data-tour="stats">
           {([
             ["overview.claims", s?.research.totalClaims, null],
             ["overview.verified", s?.research.verified, s ? pct(s.research.verified) : null],
@@ -82,14 +87,14 @@ export function Overview() {
               </div>
             ) : <Skeleton height={22} width="50%" style={{ marginTop: 10 }} />}
           </section>
-          <section className="card card-pad" style={{ "--i": 6 } as React.CSSProperties}>
+          <section className="card card-pad" data-tour="integrity" style={{ "--i": 6 } as React.CSSProperties}>
             <div className="eyebrow">{t("overview.integrity")}</div>
             <div className="kv"><span className="k">{t("overview.database")}</span><Check ok={s ? s.integrity.database === "connected" : null} /></div>
             <div className="kv"><span className="k">{t("overview.eventLog")}</span><Check ok={s ? s.integrity.eventLog === "ok" : null} /></div>
           </section>
         </div>
 
-        <div className="quick" style={{ "--i": 7 } as React.CSSProperties}>
+        <div className="quick" data-tour="overview-actions" style={{ "--i": 7 } as React.CSSProperties}>
           <button className="btn btn-primary" onClick={app.newClaim}><Icon name="plus" size={16} />{t("overview.newClaim")}</button>
           <button className="btn btn-secondary" onClick={() => app.navigate("claims")}><Icon name="claims" size={16} />{t("overview.viewClaims")}</button>
           <button className="btn btn-secondary" onClick={() => app.navigate("health")}><Icon name="health" size={16} />{t("overview.checkHealth")}</button>

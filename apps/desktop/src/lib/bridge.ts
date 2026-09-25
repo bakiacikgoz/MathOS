@@ -48,6 +48,21 @@ export async function runJson<T>(cwd: string, args: string[], options: { allowNo
   catch { throw new MathosError("DESKTOP_JSON_INVALID", result.stdout.slice(0, 400), undefined, result) }
 }
 
+/** Stores a provider key through the host into the OS secret store; the value is never passed as a CLI argument. */
+export async function setSecret(ref: string, value: string): Promise<void> {
+  let result: ExecResult
+  if (isTauri) {
+    const { invoke } = await import("@tauri-apps/api/core")
+    try { result = await invoke<ExecResult>("mathos_secret_set", { secretRef: ref, value }) }
+    catch (error) { throw toError(String(error)) }
+  } else {
+    const response = await fetch("/__mathos/secret", { method: "POST", body: JSON.stringify({ ref, value }) })
+    if (!response.ok) throw new MathosError("DESKTOP_BRIDGE_UNAVAILABLE", await response.text())
+    result = await response.json() as ExecResult
+  }
+  if (result.code !== 0) throw errorFromResult(result)
+}
+
 export async function hostInfo(): Promise<HostInfo | null> {
   if (!isTauri) return { running: true, version: null, source: "vite dev bridge" }
   const { invoke } = await import("@tauri-apps/api/core")
@@ -67,6 +82,17 @@ export async function pickFolder(title: string): Promise<string | null> {
     return typeof picked === "string" ? picked : null
   }
   return window.prompt(title)?.trim() || null
+}
+
+/** Opens an https link (for example a provider's key page) in the user's browser. */
+export async function openExternal(url: string): Promise<void> {
+  if (!/^https:\/\//.test(url)) throw new MathosError("DESKTOP_URL_REJECTED", url)
+  if (isTauri) {
+    const { openUrl } = await import("@tauri-apps/plugin-opener")
+    await openUrl(url)
+    return
+  }
+  window.open(url, "_blank", "noopener,noreferrer")
 }
 
 export async function showWindow(): Promise<void> {

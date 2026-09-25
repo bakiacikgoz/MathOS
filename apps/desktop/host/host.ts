@@ -5,7 +5,8 @@
 import { statSync } from "node:fs"
 import { MATHOS_PRODUCT_VERSION } from "@mathos/shared"
 import { runHeadless } from "../../tui/src/headless.ts"
-import { DESKTOP_HOST_PROTOCOL, blockedCommandReason, createLineSplitter, parseHostRequest, type HostReady, type HostResponse } from "./protocol.ts"
+import { createSecretStore } from "@mathos/models"
+import { DESKTOP_HOST_PROTOCOL, blockedCommandReason, createLineSplitter, parseHostMessage, type HostReady, type HostResponse, type SecretSetRequest } from "./protocol.ts"
 
 const rawStdout = process.stdout.write.bind(process.stdout)
 const rawStderr = process.stderr.write.bind(process.stderr)
@@ -21,12 +22,18 @@ console.warn = console.error = (...parts: unknown[]) => { process.stderr.write(l
 const send = (value: HostResponse | HostReady) => { rawStdout(`${JSON.stringify(value)}\n`) }
 const homeCwd = process.cwd()
 
+function requestIdOf(raw: string): string {
+  try { const value = JSON.parse(raw) as { id?: unknown }; return typeof value?.id === "string" && value.id.length <= 128 ? value.id : "unknown" } catch { return "unknown" }
+}
+
 async function execute(raw: string): Promise<void> {
   const started = performance.now()
-  let id = "unknown"
+  // Answer under the caller's id even when validation fails, so no request is left waiting.
+  let id = requestIdOf(raw)
   try {
-    const request = parseHostRequest(raw)
+    const request = parseHostMessage(raw)
     id = request.id
+    if ("op" in request) { send(await storeSecret(request, started)); return }
     const blocked = blockedCommandReason(request.args)
     if (blocked) { send({ protocol: DESKTOP_HOST_PROTOCOL, id, code: 2, stdout: "", stderr: `DESKTOP_COMMAND_NEEDS_TERMINAL: ${blocked}\n`, ms: 0 }); return }
     if (!statSync(request.cwd, { throwIfNoEntry: false })?.isDirectory()) { send({ protocol: DESKTOP_HOST_PROTOCOL, id, code: 2, stdout: "", stderr: `DESKTOP_CWD_NOT_FOUND: ${request.cwd}\n`, ms: 0 }); return }
@@ -42,6 +49,15 @@ async function execute(raw: string): Promise<void> {
     capture = null
     try { process.chdir(homeCwd) } catch {}
   }
+}
+
+// The key is written straight to the OS secret store; responses carry only the reference and backend.
+async function storeSecret(request: SecretSetRequest, started: number): Promise<HostResponse> {
+  const ms = () => Math.round(performance.now() - started)
+  const store = createSecretStore(), capability = await store.capability()
+  if (!capability.writable) return { protocol: DESKTOP_HOST_PROTOCOL, id: request.id, code: 2, stdout: "", stderr: `SECRET_STORE_BLOCKED: ${capability.detail}; set MATHOS_SECRET_${request.ref.toUpperCase().replace(/[^A-Z0-9]+/g, "_")} instead\n`, ms: ms() }
+  await store.set(request.ref, request.value)
+  return { protocol: DESKTOP_HOST_PROTOCOL, id: request.id, code: 0, stdout: `${JSON.stringify({ stored: request.ref, backend: capability.backend })}\n`, stderr: "", ms: ms() }
 }
 
 let queue = Promise.resolve()

@@ -34,6 +34,20 @@ function mathosDevBridge(): Plugin {
     name: "mathos-dev-bridge",
     apply: "serve",
     configureServer(server) {
+      const forward = (message: Record<string, unknown>, res: import("node:http").ServerResponse) => {
+        const id = String(++seq)
+        pending.set(id, (row) => { res.setHeader("content-type", "application/json"); res.end(JSON.stringify(row)) })
+        ensure().stdin.write(`${JSON.stringify({ ...message, id })}\n`)
+      }
+      // Keys go to the host over stdin, exactly like the Tauri path; the host validates the message.
+      server.middlewares.use("/__mathos/secret", (req, res) => {
+        if (req.method !== "POST") { res.statusCode = 405; res.end(); return }
+        let body = ""
+        req.setEncoding("utf8").on("data", (chunk: string) => { body += chunk }).on("end", () => {
+          try { const { ref, value } = JSON.parse(body) as { ref: string; value: string }; forward({ op: "secret-set", ref, value }, res) }
+          catch { res.statusCode = 400; res.end("DESKTOP_BRIDGE_REQUEST_INVALID") }
+        })
+      })
       server.middlewares.use("/__mathos/exec", (req, res) => {
         if (req.method !== "POST") { res.statusCode = 405; res.end(); return }
         let body = ""
