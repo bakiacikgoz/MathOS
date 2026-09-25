@@ -129,3 +129,12 @@ describe("assistant turns", () => {
     expect(assistantSystemPrompt("w", "snap")).toContain("never say the meaning is approved")
   })
 })
+
+test("the assistant links claims only with the relations the graph draws", async () => {
+  const { assistantTool } = await import("@mathos/core")
+  const link = assistantTool("link_claims")!
+  expect(link.kind).toBe("action")
+  expect(link.argv!({ from: "t-001", to: "L-002" })).toEqual(["claim", "depend", "T-001", "--on", "L-002", "--relation", "depends_on", "--json"])
+  expect(() => link.argv!({ from: "T-001", to: "T-001" })).toThrow("cannot depend on itself")
+  expect(() => link.argv!({ from: "T-001", to: "L-002", relation: "loves" })).toThrow("relation must be")
+})

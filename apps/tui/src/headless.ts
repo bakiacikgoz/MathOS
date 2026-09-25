@@ -5,6 +5,7 @@ import { homedir, tmpdir } from "node:os"
 import { exportBlueprintLatex, importBlueprintLatex, parseMathosMarkdown } from "@mathos/notebook"
 import { MATHOS_PRODUCT_VERSION, MathOSError, cliExitCode, formatCliError, resolveRuntimeLayout, withWorkspaceOperationLock } from "@mathos/shared"
 import { repairWorkspaceRuntimeState } from "@mathos/workspace"
+import { DEPENDENCY_RELATIONS, type DependencyRelation } from "@mathos/domain"
 import { SCHEMA_EPOCH } from "@mathos/storage"
 import { type ModelProvider, FileModelUsageLedger, ProviderProfileRegistry, bunClientRuntime, clientArgv, clientLoginFor, clientSignedIn, openClientInstaller, startClientLogin, createSecretStore, discoverLocalEngines, evaluateProviderPolicy, loadConfigFiles, loadModelProfileStore, parseMathOSConfig, providerCatalog, readSecretInput, redactedProviderSummary, saveModelProfileStore, serializeConfigValues, type ConfigScalar, type ModelProfileAuth, type ModelProfileV2, type ModelRole } from "@mathos/models"
 import { formatBranchDetail, formatBranches, formatClaims, formatDoctor, formatMergePreview, formatProviderCatalog, formatProviderStatus, formatResearchRun, formatStatus, HELP_TEXT } from "./format.ts"
@@ -653,6 +654,17 @@ export async function runHeadless(argv: string[]): Promise<number> {
 
       if (command === "claim") {
         const sub = rest[0]
+        // How claims relate ("T-001 depends on L-002"): what the research graph, blockers and frontier are built from.
+        if (sub === "depend" && rest[1]) {
+          const from = rest[1].toUpperCase(), to = flag(rest, "--on")?.toUpperCase(), relation = flag(rest, "--relation") ?? "depends_on"
+          if (!to) throw new Error("Usage: mathos claim depend <claim> --on <claim> [--relation depends_on|implies|generalizes|special_case_of|uses_definition|contradicts]")
+          if (!(DEPENDENCY_RELATIONS as readonly string[]).includes(relation)) throw new Error(`DEPENDENCY_RELATION_INVALID: ${relation}`)
+          if (from === to) throw new Error("DEPENDENCY_SELF_REFERENCE: a claim cannot depend on itself")
+          const existing = app.claimDependencies(from).find((item) => item.fromClaimId === from && item.toClaimId === to && item.relation === relation)
+          const dependency = existing ?? app.addDependency(from, to, relation as DependencyRelation)
+          process.stdout.write(rest.includes("--json") ? `${JSON.stringify({ dependency, created: !existing })}\n` : `${from} ${relation} ${to}\n`)
+          return 0
+        }
         if (sub === "create") {
           const type = flag(rest, "--type")
           const title = flag(rest, "--title")

@@ -740,6 +740,8 @@ export class MathOS {
   setMainObjective(claimId: string): Claim { return this.claimService.setMainObjective(claimId) }
 
   addDependency(fromClaimId: string, toClaimId: string, relation: DependencyRelation = "depends_on"): Dependency { return this.claimService.addDependency(fromClaimId, toClaimId, relation) }
+  /** Dependencies in which the claim takes part, in either direction. */
+  claimDependencies(claimId: string): Dependency[] { const workspace = this.workspaces.get(); return workspace ? this.dependencies.listForClaim(workspace.id, claimId) : [] }
 
   addEvidence(input: AddEvidenceInput): Evidence { return this.claimService.addEvidence(input) }
 

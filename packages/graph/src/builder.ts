@@ -13,6 +13,8 @@ import { PROOF_NODE_KINDS } from "./types.ts"
 
 const RELATION_EDGE: Partial<Record<DependencyRelation, ResearchGraphEdgeKind>> = {
   depends_on: "DEPENDS_ON",
+  // A claim that uses a definition cannot be settled without it, like any other requirement.
+  uses_definition: "REQUIRES",
   supported_by: "SUPPORTS",
   derived_from: "DERIVED_FROM",
   blocks: "BLOCKS",

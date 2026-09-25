@@ -17,6 +17,7 @@ import { WindowControls } from "./components/WindowControls.tsx"
 // Secondary screens are split out so the first paint only pays for what it shows.
 const Assistant = lazy(() => import("./views/Assistant.tsx").then((m) => ({ default: m.Assistant })))
 const Reports = lazy(() => import("./views/Reports.tsx").then((m) => ({ default: m.Reports })))
+const Graph = lazy(() => import("./views/Graph.tsx").then((m) => ({ default: m.Graph })))
 const Claims = lazy(() => import("./views/Claims.tsx").then((m) => ({ default: m.Claims })))
 const Branches = lazy(() => import("./views/Branches.tsx").then((m) => ({ default: m.Branches })))
 const Health = lazy(() => import("./views/Health.tsx").then((m) => ({ default: m.Health })))
@@ -113,6 +114,7 @@ export function App() {
 function Screen({ route }: { route: Route }) {
   if (route === "claims") return <div key={route} className="view-enter" style={{ height: "100%" }}><Claims /></div>
   if (route === "assistant") return <div key={route} className="view-enter" style={{ height: "100%" }}><Suspense fallback={null}><Assistant /></Suspense></div>
+  if (route === "graph") return <div key={route} className="view-enter" style={{ height: "100%" }}><Graph /></div>
   if (route === "console") return <div key={route} className="view-enter" style={{ height: "100%" }}><Console /></div>
   return (
     <div key={route} className="page view-enter">
@@ -126,7 +128,7 @@ function Screen({ route }: { route: Route }) {
   )
 }
 
-const ROUTES: Route[] = ["overview", "assistant", "claims", "branches", "reports", "health", "providers", "console", "settings"]
+const ROUTES: Route[] = ["overview", "assistant", "claims", "graph", "branches", "reports", "health", "providers", "console", "settings"]
 function validWorkspace(value: unknown): Workspace | null {
   if (!value || typeof value !== "object") return null
   const { root, name } = value as Partial<Workspace>

@@ -26,7 +26,7 @@ const TOOL_LABEL: Record<string, [string, string]> = {
   lean_status: ["Lean durumu", "Lean status"], search_mathlib: ["Mathlib'de arama: {query}", "Mathlib search: {query}"], research_graph: ["Araştırma grafiği", "Research graph"],
   list_branches: ["Araştırma dalları", "Research branches"], create_claim: ["Yeni önerme: {title}", "New claim: {title}"], formalize: ["{id} Lean'e çevrilsin", "Formalize {id}"],
   compare_meaning: ["{id} için anlam karşılaştırması", "Compare the meanings of {id}"], prove: ["{id} için ispat aransın", "Search a proof of {id}"], verify: ["{id} Lean çekirdeğinde doğrulansın", "Verify {id} in the Lean kernel"],
-  set_objective: ["{id} ana hedef olsun", "Make {id} the objective"], create_branch: ["Yeni araştırma dalı: {name}", "New research branch: {name}"], search_literature: ["Literatür araması: {query}", "Literature search: {query}"],
+  link_claims: ["{from} → {to} bağlantısı", "Link {from} → {to}"], set_objective: ["{id} ana hedef olsun", "Make {id} the objective"], create_branch: ["Yeni araştırma dalı: {name}", "New research branch: {name}"], search_literature: ["Literatür araması: {query}", "Literature search: {query}"],
 }
 function toolLabel(part: Extract<Part, { type: "tool" }>, lang: Lang): string {
   const template = TOOL_LABEL[part.tool]?.[lang === "tr" ? 0 : 1]

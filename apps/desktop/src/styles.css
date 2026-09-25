@@ -1011,3 +1011,42 @@ h1, h2, h3, p { margin: 0; }
 .reports-body { max-height: 520px; overflow: auto; padding: 16px 18px; border-radius: 12px; background: var(--bg-2); }
 .reports-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
 @media (max-width: 900px) { .reports-split, .reports-grid { grid-template-columns: 1fr; } }
+
+/* Research graph */
+.graph-page { display: grid; grid-template-columns: minmax(0, 1fr) 320px; height: 100%; min-height: 0; }
+.graph-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; padding: calc(var(--titlebar) + 8px) 32px 20px; }
+.graph-head { margin-bottom: 8px; }
+.zoom { display: inline-flex; align-items: center; gap: 2px; padding: 2px; border-radius: 10px; background: var(--fill); }
+.graph-legend { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 12px; font-size: 12.5px; color: var(--text-2); }
+.graph-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.graph-legend .lg { width: 18px; height: 12px; border-radius: 4px; border: 1.5px solid var(--text-2); }
+.graph-legend .lg.verified { background: var(--ink); border-color: var(--ink); } .graph-legend .lg.open { border-style: dashed; }
+.graph-canvas { flex: 1; min-height: 0; overflow: auto; border: 1px solid var(--line); border-radius: var(--r-lg); background: radial-gradient(circle at 1px 1px, var(--fill-2) 1px, transparent 0) 0 0 / 22px 22px, var(--bg-2); }
+.graph-canvas svg { display: block; color: var(--text-3); }
+.g-edge path { fill: none; stroke: currentColor; stroke-width: 1.5; transition: opacity var(--mid), stroke var(--mid); }
+.g-edge.requires path, .g-edge.derived_from path { stroke-dasharray: 5 4; }
+.g-edge.blocks path { stroke-dasharray: 2 3; }
+.g-edge text { font: 600 10.5px var(--font); fill: var(--text-3); }
+.g-edge.hot { color: var(--ink); } .g-edge.hot path { stroke-width: 2.2; } .g-edge.dim { opacity: 0.25; }
+.g-node { cursor: pointer; outline: none; transition: opacity var(--mid); }
+.g-node rect { fill: var(--card); stroke: var(--line-2); stroke-width: 1.5; transition: stroke var(--fast), fill var(--fast); }
+.g-node.open rect { stroke-dasharray: 5 4; stroke: var(--text-3); }
+.g-node.formal rect { stroke: var(--text-2); }
+.g-node.verified rect { fill: var(--ink); stroke: var(--ink); } .g-node.verified text { fill: var(--ink-text); }
+.g-node.objective rect { stroke: var(--ink); stroke-width: 2.5; stroke-dasharray: none; }
+.g-node:hover rect, .g-node:focus-visible rect { stroke: var(--ink); } .g-node.on rect { stroke: var(--ink); stroke-width: 2.5; }
+.g-node.dim { opacity: 0.35; }
+.g-id { font: 700 11.5px var(--font-mono); fill: var(--text-2); } .g-status { font: 600 10.5px var(--font); fill: var(--text-3); } .g-title { font: 600 13.5px var(--font); fill: var(--text); }
+.g-target { fill: var(--ink); } .g-node.verified .g-target { fill: var(--ink-text); }
+.graph-side { border-left: 1px solid var(--line); background: var(--bg-2); overflow-y: auto; padding: calc(var(--titlebar) + 8px) 18px 20px; }
+.graph-detail { display: flex; flex-direction: column; gap: 12px; }
+.graph-detail h2 { font: 600 18px/1.3 var(--font-display); margin: 0; }
+.graph-detail-head { display: flex; align-items: center; gap: 8px; }
+.statement-card.small { padding: 12px 14px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); font-size: 14px; line-height: 1.6; }
+.graph-rel { display: flex; flex-direction: column; gap: 4px; } .graph-rel .k { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-3); }
+.graph-rel button, .frontier button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 8px; border: 0; border-radius: 9px; background: none; color: var(--text); text-align: left; cursor: pointer; font-size: 13px; }
+.graph-rel button:hover, .frontier button:hover { background: var(--fill); }
+.graph-rel .name, .frontier .name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.graph-rel .rel { font-size: 11.5px; color: var(--text-3); }
+.frontier { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+@media (max-width: 1000px) { .graph-page { grid-template-columns: 1fr; } .graph-side { display: none; } }
