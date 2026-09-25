@@ -13,12 +13,12 @@ export class AlignmentService{
   constructor(private readonly d:AlignmentDependencies){}
   async run(input:{claimId:string;naturalRevisionId:string;formalRevisionId:string;contextRevisionId:string}):Promise<{alignment:FormalAlignment;findings:AlignmentFinding[]}>{
     const natural=this.d.revisions.get(input.naturalRevisionId),formal=this.d.revisions.get(input.formalRevisionId);if(!natural||!formal||natural.claimId!==input.claimId||formal.claimId!==input.claimId)throw new Error("ALIGNMENT_REVISION_NOT_FOUND");if(natural.contextRevisionId!==input.contextRevisionId||formal.contextRevisionId!==input.contextRevisionId)throw new Error("ALIGNMENT_CONTEXT_MISMATCH")
-    let output:AlignmentAuditOutput|undefined
-    if(this.d.auditor){for(let attempt=0;attempt<2&&!output;attempt++)try{output=parse(await this.d.auditor.audit({system:ALIGNMENT_SYSTEM_PROMPT,naturalText:natural.text,formalText:formal.text,contextRevisionId:input.contextRevisionId,...(attempt?{repair:"Return valid schema only"}:{})}))}catch{if(attempt===1)output=undefined}}
+    let output:AlignmentAuditOutput|undefined,failure="NO_ALIGNMENT_MODEL"
+    if(this.d.auditor){for(let attempt=0;attempt<2&&!output;attempt++)try{output=parse(await this.d.auditor.audit({system:ALIGNMENT_SYSTEM_PROMPT,naturalText:natural.text,formalText:formal.text,contextRevisionId:input.contextRevisionId,...(attempt?{repair:"Return valid schema only"}:{})}))}catch(error){failure=/^[A-Z][A-Z0-9_]{3,}/.exec(error instanceof Error?error.message:"")?.[0]??"ALIGNMENT_MODEL_FAILED"}}
     const now=this.d.clock.now(),id=this.d.nextId("AL")
     const alignment:FormalAlignment={id,claimId:input.claimId,naturalRevisionId:natural.id,formalRevisionId:formal.id,contextRevisionId:input.contextRevisionId,status:output?"REVIEWED":"PENDING",verdict:output?.verdict??"POTENTIAL_MISMATCH",backTranslation:output?.backTranslation??"",symbolMapping:output?.symbolMapping??[],auditorProvider:this.d.auditor?.id??null,auditorModel:this.d.auditor?.model??null,promptHash:hash(ALIGNMENT_SYSTEM_PROMPT),createdAt:now,decidedAt:output?now:null}
     this.d.alignments.insert(alignment)
-    const raw=output?.findings??[{dimension:"SCOPE" as const,severity:"WARNING" as const,naturalFragment:"",formalFragment:"",message:"MANUAL_REVIEW_REQUIRED: alignment model unavailable or invalid",resolutionStatus:"OPEN",reviewerNote:null}]
+    const raw=output?.findings??[{dimension:"SCOPE" as const,severity:"WARNING" as const,naturalFragment:"",formalFragment:"",message:`MANUAL_REVIEW_REQUIRED: alignment model unavailable or invalid (${failure})`,resolutionStatus:"OPEN",reviewerNote:null}]
     const findings=raw.map((finding)=>({...finding,id:this.d.nextId("AF"),alignmentId:id}));for(const finding of findings)this.d.findings.insert(finding)
     return{alignment,findings}
   }

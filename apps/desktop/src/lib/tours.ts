@@ -57,6 +57,7 @@ export const TOURS: Record<TourId, TourStep[]> = {
   settings: [
     s("settings-appearance", "bottom", "Görünüm", "Açık, koyu ya da sistem teması.", "Appearance", "Light, dark or follow the system."),
     s("settings-language", "top", "Dil", "Türkçe ve İngilizce arasında anında geçiş.", "Language", "Switch between Turkish and English instantly."),
+    s("settings-privacy", "top", "Gizlilik", "Bulut modelleri varsayılan olarak kapalıdır. Açtığınızda metinleriniz seçtiğiniz sağlayıcıya gider.", "Privacy", "Cloud models are off by default. When on, your text goes to the provider you choose."),
     s("settings-tours", "top", "Rehberler", "Rehberleri buradan kapatabilir ya da baştan izleyebilirsiniz.", "Guides", "Turn guides off or watch them again from here."),
   ],
 }

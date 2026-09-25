@@ -11,6 +11,8 @@ import { ErrorBox, Segmented, Skeleton } from "../components/Primitives.tsx"
 import { errorText, policyReason, providerName, providerVendor } from "../lib/cli-text.ts"
 import { HelpButton, useAutoTour } from "../components/Tour.tsx"
 import { ClientLogin } from "./ClientLogin.tsx"
+import { RemoteBlockedCallout } from "../components/Privacy.tsx"
+import { useRemoteModels } from "../lib/privacy.ts"
 
 const BILLING: Record<string, MessageKey> = { subscription: "providers.billing.subscription", payg: "providers.billing.payg", local: "providers.billing.local", enterprise: "providers.billing.enterprise", unknown: "providers.billing.unknown" }
 const GROUPS: Array<ProviderGroup | "all"> = ["all", "plan", "api", "local", "generic"]
@@ -73,10 +75,12 @@ export function Providers() {
 
       {rows.length > 0 && <>
         <div className="section-title" style={{ marginTop: 8 }}>{t("providers.mine")}</div>
+        {rows.some((row) => row.remote) && <RemoteBlockedCallout />}
         <div className="card profile-list stagger" data-tour="providers-mine">
           {rows.map((row, index) => {
             const entry = byId.get(row.descriptor), isDefault = defaultProfile === row.profile
-            const ready = row.connection === "CONFIGURED" || row.connection === "CONNECTED" || row.connection === "LOCAL_OFFLINE"
+            const blockedByPrivacy = row.remote === true && status.data?.remoteModelsAllowed === false
+            const ready = !blockedByPrivacy && (row.connection === "CONFIGURED" || row.connection === "CONNECTED" || row.connection === "LOCAL_OFFLINE")
             return (
               <div key={row.profile} className="profile-row" style={{ "--i": index } as React.CSSProperties}>
                 <ProviderLogo descriptor={entry?.descriptor ?? { id: row.descriptor, displayName: row.descriptor }} size={36} />
@@ -84,7 +88,7 @@ export function Providers() {
                   <div className="n">{entry ? providerName(entry.descriptor, lang) : row.descriptor}{isDefault && <span className="pill pill-solid pill-xs">{t("providers.default")}</span>}</div>
                   <div className="p">{row.profile} · {row.model} · {t(BILLING[row.billing] ?? "providers.billing.unknown")}</div>
                 </div>
-                <span className={`status-chip ${ready ? "ok" : "todo"}`}><span className="dot" />{t(ready ? "providers.state.ready" : row.connection === "LOGIN_REQUIRED" ? "providers.state.login" : row.connection === "CLIENT_MISSING" ? "providers.state.client" : row.connection === "SECRET_REQUIRED" ? "providers.state.key" : "providers.state.blocked")}</span>
+                <span className={`status-chip ${ready ? "ok" : "todo"}`}><span className="dot" />{t(ready ? "providers.state.ready" : blockedByPrivacy && (row.connection === "CONFIGURED" || row.connection === "CONNECTED") ? "providers.state.privacy" : row.connection === "LOGIN_REQUIRED" ? "providers.state.login" : row.connection === "CLIENT_MISSING" ? "providers.state.client" : row.connection === "SECRET_REQUIRED" ? "providers.state.key" : "providers.state.blocked")}</span>
                 <div className="actions">
                   {row.connection === "SECRET_REQUIRED" ? <button className="btn btn-primary btn-sm" onClick={() => openFor(row, "key")}><Icon name="plus" size={14} />{t("providers.addKey")}</button>
                     : row.connection === "LOGIN_REQUIRED" || row.connection === "CLIENT_MISSING" ? <button className="btn btn-primary btn-sm" onClick={() => openFor(row, "key")}>{t(row.connection === "CLIENT_MISSING" ? "providers.installClient" : "providers.howToLogin")}</button>
@@ -156,6 +160,7 @@ function ConnectWizard({ state, profiles, taken, hasDefault, secretRefOf, onStep
   const [busy, setBusy] = useState(false)
   const [touched, setTouched] = useState(false)
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null)
+  const privacy = useRemoteModels(app.workspace.root)
   // The settings last written to the profile; going back to "Set up" and changing them updates it.
   const [saved, setSaved] = useState<string | null>(null)
   const identity = state ? String(state.session) : null
@@ -199,11 +204,13 @@ function ConnectWizard({ state, profiles, taken, hasDefault, secretRefOf, onStep
     app.toast(t("providers.keySaved"))
     onStep("test")
   })
+  // The test obeys the same privacy rule as real use, so it is not offered while cloud models are off.
+  const privacyBlocked = descriptor.remote && privacy.data?.value === false
   const runTest = () => guard(async () => {
     const args = ["provider", "test", profileId, "--live", ...(descriptor.billingClass === "payg" ? ["--accept-usage"] : [])]
     const report = await runJson<{ connection: string; liveRequest: string }>(app.workspace.root, args, { allowNonZero: true })
     const ok = report.connection === "CONNECTED"
-    setResult({ ok, text: ok ? t("providers.testOk") : `${t("providers.testFail")} (${report.connection} · ${report.liveRequest})` })
+    setResult({ ok, text: ok ? t("providers.testOk") : report.liveRequest === "REMOTE_MODELS_DISABLED" ? t("privacy.blockedHint") : `${t("providers.testFail")} (${report.connection} · ${report.liveRequest})` })
     invalidate(providerKeys.all)
   })
   const protocols: Array<{ value: WireProtocol | ""; label: string }> = [...(!generic ? [{ value: "" as const, label: t("providers.protocolAuto") }] : []), { value: "openai-chat", label: "Chat" }, { value: "openai-responses", label: "Responses" }, { value: "anthropic-messages", label: "Anthropic" }]
@@ -224,7 +231,7 @@ function ConnectWizard({ state, profiles, taken, hasDefault, secretRefOf, onStep
     </> : <>
       {back}
       <button className="btn btn-secondary" onClick={onClose}>{t("providers.done")}</button>
-      <button className="btn btn-primary" onClick={() => void runTest()} disabled={busy || !consent}>{busy ? <span className="spinner" /> : t("providers.runTest")}</button>
+      <button className="btn btn-primary" onClick={() => void runTest()} disabled={busy || !consent || privacyBlocked}>{busy ? <span className="spinner" /> : t("providers.runTest")}</button>
     </>
 
   return (
@@ -293,6 +300,7 @@ function ConnectWizard({ state, profiles, taken, hasDefault, secretRefOf, onStep
 
       {state.step === "test" && <div className="test-step">
         <p className="subtitle" style={{ margin: 0 }}>{t("providers.testHint")}</p>
+        {descriptor.remote && <RemoteBlockedCallout compact />}
         <label className="check"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />{t(descriptor.billingClass === "payg" ? "providers.consentPaid" : "providers.consent")}</label>
         {result && <div className={`test-result ${result.ok ? "ok" : "no"}`} role="status"><Icon name={result.ok ? "check" : "info"} size={16} />{result.text}</div>}
       </div>}

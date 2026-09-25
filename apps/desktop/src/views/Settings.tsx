@@ -1,3 +1,4 @@
+import { RemoteModelsSetting } from "../components/Privacy.tsx"
 import { Fragment, useEffect, useState } from "react"
 import { mod, useApp } from "../lib/app.ts"
 import { hostInfo, restartHost, type HostInfo } from "../lib/bridge.ts"
@@ -60,6 +61,11 @@ export function Settings() {
           <div className="settings-row"><div><div className="k">{t("tour.resetTitle")}</div><div className="d">{t("tour.resetHint")}</div></div>
             <button className="btn btn-secondary" onClick={() => { tours.reset(); app.navigate("overview"); app.toast(t("tour.resetDone")) }}>{t("tour.reset")}</button></div>
         </div>
+      </div>
+
+      <div className="settings-group">
+        <div className="section-title">{t("privacy.section")}</div>
+        <div className="card" data-tour="settings-privacy"><RemoteModelsSetting /></div>
       </div>
 
       <div className="settings-group">

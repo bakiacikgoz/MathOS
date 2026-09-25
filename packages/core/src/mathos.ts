@@ -1,3 +1,4 @@
+import { modelAlignmentAuditor } from "./services/model-alignment-auditor.ts"
 import { basename, join, resolve } from "node:path"
 import { homedir } from "node:os"
 import { existsSync, writeFileSync } from "node:fs"
@@ -301,7 +302,8 @@ export class MathOS {
       options.computationRuntime ?? new PythonRuntime(),
       options.literatureProvider ?? (() => { const layout = resolveRuntimeLayout({ platform: process.platform, home: homedir(), executablePath: process.execPath, env: process.env }); return createProductionLiteratureProvider({ cachePath: join(layout.userCacheRoot, "literature", "search-cache.json"), offline: options.literatureOffline === true || process.env.MATHOS_LITERATURE_OFFLINE === "1" || process.env.MATHOS_LITERATURE_OFFLINE === "true" }) })(),
       options.eventProjectionHook,
-      createServiceContainer(workspaceRoot, client.db, options.serviceOverrides),
+      // `mathos align run` compares the natural and Lean statements with the same auditor model formalize uses.
+      createServiceContainer(workspaceRoot, client.db, { ...options.serviceOverrides, alignmentAuditor: options.serviceOverrides?.alignmentAuditor ?? modelAlignmentAuditor(auditorProvider) }),
     )
     instance.claimService = new ClaimService({
       client,

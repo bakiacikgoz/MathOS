@@ -75,4 +75,19 @@ describe("provider CLI for gateways and generic endpoints", () => {
     expect(await configure("opencode-zen", "--profile", id, "--model", "gpt-5.5", "--update")).not.toBe(0)
     expect(await configure("opencode-go", "--profile", `${id}-missing`, "--model", "kimi-k3", "--update")).not.toBe(0)
   })
+
+  test("a live test of a remote provider honours the cloud-model privacy setting, like real use does", async () => {
+    const id = `cli-priv-${process.pid}`; ids.push(id)
+    const previous = process.env.MATHOS_ALLOW_REMOTE_MODELS
+    process.env.MATHOS_ALLOW_REMOTE_MODELS = "false"
+    try {
+      expect(await configure("opencode-go", "--profile", id, "--model", "kimi-k3")).toBe(0)
+      expect(await run("provider", "test", id, "--live", "--json")).toBe(2)
+      expect(JSON.parse(output)).toMatchObject({ profile: id, connection: "BLOCKED", liveRequest: "REMOTE_MODELS_DISABLED" })
+      expect(await run("provider", "status", id, "--json")).toBe(0)
+      const status = JSON.parse(output)
+      expect(status.remoteModelsAllowed).toBe(false)
+      expect(status.profiles[0].remote).toBe(true)
+    } finally { if (previous === undefined) delete process.env.MATHOS_ALLOW_REMOTE_MODELS; else process.env.MATHOS_ALLOW_REMOTE_MODELS = previous }
+  })
 })

@@ -12,12 +12,12 @@ export interface ProviderDescriptor {
 }
 export interface CatalogEntry { descriptor: ProviderDescriptor; policy: { allowed: boolean; code: string; remediation: string | null } }
 export interface ProfileRow { id: string; descriptorId: string; model: string; auth: { kind: string; secretRef?: string }; endpointPresetId?: string | null; baseUrlOverride?: string | null; extraHeaders?: Record<string, string> }
-export interface StatusRow { profile: string; descriptor: string; connection: string; model: string; billing: string; terms: string; auth: string }
+export interface StatusRow { profile: string; descriptor: string; connection: string; model: string; billing: string; terms: string; auth: string; remote?: boolean }
 
 export const providerKeys = { all: "providers|", catalog: "providers|catalog", list: "providers|list", status: "providers|status" }
 export const useCatalog = (root: string) => useQuery(providerKeys.catalog, () => runJson<{ providers: CatalogEntry[] }>(root, ["provider", "catalog"]), 5 * 60_000)
 export const useProfiles = (root: string) => useQuery(providerKeys.list, () => runJson<{ defaultProfile: string | null; profiles: ProfileRow[] }>(root, ["provider", "list"]))
-export const useProviderStatus = (root: string) => useQuery(providerKeys.status, () => runJson<{ profiles: StatusRow[] }>(root, ["provider", "status"]))
+export const useProviderStatus = (root: string) => useQuery(providerKeys.status, () => runJson<{ profiles: StatusRow[]; remoteModelsAllowed?: boolean }>(root, ["provider", "status"]))
 
 export const isGeneric = (descriptor: ProviderDescriptor) => descriptor.id.startsWith("generic-")
 /** Gateways (one key, several wire protocols) and generic endpoints accept an explicit protocol. */
