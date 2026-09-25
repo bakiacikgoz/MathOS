@@ -29,7 +29,7 @@ export async function runProviderLiveSmoke(argv:string[],options:LiveSmokeOption
   if(!policy.allowed)return{...base,connection:"POLICY_BLOCKED_EXPECTED",liveRequest:"POLICY_BLOCKED_EXPECTED"}
   if(!argv.includes("--live"))return{...base,connection:"NOT_CONFIGURED",liveRequest:"NOT_REQUESTED"}
   if(descriptor.billingClass==="payg"&&!argv.includes("--accept-usage"))throw new Error("LIVE_USAGE_ACCEPTANCE_REQUIRED")
-  if(profile.model==="auto")return{...base,connection:"NOT_CONFIGURED",liveRequest:"MODEL_UNRESOLVED"}
+  if(profile.model==="auto"&&!descriptor.externalClient)return{...base,connection:"NOT_CONFIGURED",liveRequest:"MODEL_UNRESOLVED"}
   const secrets=createSecretStore();if(profile.auth.kind==="secret-ref"&&!await secrets.get(profile.auth.secretRef))return{...base,connection:"NOT_CONFIGURED",liveRequest:"NOT_CONFIGURED"}
   let provider:LiveProvider|undefined
   try{
