@@ -33,6 +33,10 @@ export function App() {
   const [palette, setPalette] = useState(false)
   const [newClaim, setNewClaim] = useState(false)
   const [pendingConsole, setPendingConsole] = useState<string | null>(null)
+  const [sidebarPinnedCollapsed, setSidebarPinnedCollapsed] = useState<boolean>(() => readPref<unknown>("sidebarCollapsed", false) === true)
+  const narrow = useNarrowWindow()
+  const sidebarCollapsed = sidebarPinnedCollapsed || narrow
+  const toggleSidebar = useCallback(() => setSidebarPinnedCollapsed((value) => { writePref("sidebarCollapsed", !value); return !value }), [])
   const { toasts, push } = useToasts()
 
   useEffect(() => { document.documentElement.lang = lang }, [lang])
@@ -55,8 +59,8 @@ export function App() {
     newClaim: () => setNewClaim(true),
     runInConsole: (command) => { setPendingConsole(command); navigate("console") },
     pendingConsole, consumeConsole: () => setPendingConsole(null),
-    closeWorkspace, lang, setLang, theme: { pref: theme.pref, set: theme.set },
-  }), [workspace, route, navigate, selectedClaim, push, pendingConsole, closeWorkspace, lang, setLang, theme.pref, theme.set])
+    closeWorkspace, recent, openWorkspace, sidebar: { collapsed: sidebarCollapsed, toggle: toggleSidebar }, lang, setLang, theme: { pref: theme.pref, set: theme.set },
+  }), [workspace, route, navigate, selectedClaim, push, pendingConsole, closeWorkspace, recent, openWorkspace, sidebarCollapsed, toggleSidebar, lang, setLang, theme.pref, theme.set])
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -66,10 +70,11 @@ export function App() {
       if (event.key === "k") { event.preventDefault(); setPalette((value) => !value) }
       else if (event.key === "n") { event.preventDefault(); setNewClaim(true) }
       else if (event.key === ",") { event.preventDefault(); navigate("settings") }
+      else if (event.key === "b") { event.preventDefault(); toggleSidebar() }
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [workspace, navigate])
+  }, [workspace, navigate, toggleSidebar])
 
   return (
     <LangContext.Provider value={lang}>
@@ -77,7 +82,7 @@ export function App() {
         <Welcome recent={recent} onOpen={openWorkspace} onForget={forget} toast={push} theme={{ pref: theme.pref, set: theme.set }} />
       ) : (
         <AppContext.Provider value={api}>
-          <div className="shell">
+          <div className={`shell ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
             <div className="titlebar-drag" data-tauri-drag-region />
             <Sidebar onPalette={() => setPalette(true)} />
             <main className="main">
@@ -116,4 +121,16 @@ function validWorkspace(value: unknown): Workspace | null {
   if (!value || typeof value !== "object") return null
   const { root, name } = value as Partial<Workspace>
   return typeof root === "string" && root.length > 0 && typeof name === "string" ? { root, name } : null
+}
+
+/** Narrow windows get the icon rail automatically, without changing the saved preference. */
+function useNarrowWindow() {
+  const query = "(max-width: 860px)"
+  const [narrow, setNarrow] = useState(() => typeof window !== "undefined" && window.matchMedia(query).matches)
+  useEffect(() => {
+    const media = window.matchMedia(query), onChange = () => setNarrow(media.matches)
+    media.addEventListener("change", onChange)
+    return () => media.removeEventListener("change", onChange)
+  }, [])
+  return narrow
 }

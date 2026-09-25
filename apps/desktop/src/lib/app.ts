@@ -30,6 +30,9 @@ export interface AppApi {
   pendingConsole: string | null
   consumeConsole: () => void
   closeWorkspace: () => void
+  recent: RecentWorkspace[]
+  openWorkspace: (workspace: Workspace) => void
+  sidebar: { collapsed: boolean; toggle: () => void }
   lang: Lang
   setLang: (lang: Lang) => void
   theme: { pref: ThemePref; set: (pref: ThemePref, origin?: { x: number; y: number }) => void }
@@ -42,13 +45,13 @@ export function useApp(): AppApi {
   return value
 }
 
-export const NAV: Array<{ route: Route; label: MessageKey; icon: "overview" | "claims" | "branch" | "health" | "plug" | "console"; key: string }> = [
-  { route: "overview", label: "nav.overview", icon: "overview", key: "1" },
-  { route: "claims", label: "nav.claims", icon: "claims", key: "2" },
-  { route: "branches", label: "nav.branches", icon: "branch", key: "3" },
-  { route: "health", label: "nav.health", icon: "health", key: "4" },
-  { route: "providers", label: "nav.providers", icon: "plug", key: "5" },
-  { route: "console", label: "nav.console", icon: "console", key: "6" },
+export const NAV: Array<{ route: Route; label: MessageKey; icon: "overview" | "claims" | "branch" | "health" | "plug" | "console"; key: string; group: "research" | "system" }> = [
+  { route: "overview", label: "nav.overview", icon: "overview", key: "1", group: "research" },
+  { route: "claims", label: "nav.claims", icon: "claims", key: "2", group: "research" },
+  { route: "branches", label: "nav.branches", icon: "branch", key: "3", group: "research" },
+  { route: "health", label: "nav.health", icon: "health", key: "4", group: "system" },
+  { route: "providers", label: "nav.providers", icon: "plug", key: "5", group: "system" },
+  { route: "console", label: "nav.console", icon: "console", key: "6", group: "system" },
 ]
 
 export const mod = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘" : "Ctrl+"
