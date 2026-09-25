@@ -435,6 +435,13 @@ const tr = {
   "lean.sheetTitle": "Lean ve Mathlib",
   "lean.bannerTitle": "Lean henüz kurulu değil",
   "lean.bannerBody": "Önermelerinizi Lean'e çevirip doğrulamak için Lean ve Mathlib'i bir kere kurun.",
+  "math.formula": "Formül",
+  "math.hintComposer": "Formül için $ yazın · sembol aramak için \\ (ör. \\integral, \\alt küme) · Ctrl+M formül açar",
+  "math.hintInside": "Formül düzenleniyor: x^2, 1/n, sqrt, sum, pi, <= yazın · $, Enter veya → ile metne dönün",
+  "math.searchTitle": "Sembol ara",
+  "math.searchPlaceholder": "integral, toplam, alt küme, ≤ …",
+  "math.searchTry": "Deneyin",
+  "math.searchNone": "Eşleşen sembol yok",
   "error.viewCrashed": "Bu ekran beklenmedik bir hatayla karşılaştı. Çalışma alanınız etkilenmedi.",
 } as const
 
@@ -873,6 +880,13 @@ const en: Record<MessageKey, string> = {
   "lean.sheetTitle": "Lean and Mathlib",
   "lean.bannerTitle": "Lean is not installed yet",
   "lean.bannerBody": "Install Lean and Mathlib once to formalize and verify your claims.",
+  "math.formula": "Formula",
+  "math.hintComposer": "Type $ for a formula · \\ to search symbols (e.g. \\integral, \\subset) · Ctrl+M opens a formula",
+  "math.hintInside": "Editing a formula: type x^2, 1/n, sqrt, sum, pi, <= · $, Enter or → returns to text",
+  "math.searchTitle": "Search symbols",
+  "math.searchPlaceholder": "integral, sum, subset, ≤ …",
+  "math.searchTry": "Try",
+  "math.searchNone": "No matching symbol",
   "error.viewCrashed": "This screen hit an unexpected error. Your workspace is not affected.",
 }
 

@@ -25,7 +25,8 @@ export function Sheet({ open, onClose, title, children, footer }: { open: boolea
   useEffect(() => {
     if (!open) return
     restore.current = document.activeElement
-    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") { event.stopPropagation(); onClose() } }
+    // Escape inside a formula or the symbol search only leaves that; it must not close the whole sheet.
+    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape" && !(event.target as Element | null)?.closest?.(".mchip, .math-search")) { event.stopPropagation(); onClose() } }
     window.addEventListener("keydown", onKey, true)
     requestAnimationFrame(() => ref.current?.querySelector<HTMLElement>("input, textarea, button.autofocus")?.focus())
     return () => { window.removeEventListener("keydown", onKey, true); (restore.current as HTMLElement | null)?.focus?.() }

@@ -7,7 +7,7 @@ import { CLAIM_KINDS, kindLabel, type ClaimKind } from "../lib/status.ts"
 import { Sheet } from "../components/Overlay.tsx"
 import { Segmented } from "../components/Primitives.tsx"
 import { errorText } from "../lib/cli-text.ts"
-import { MathInput } from "../components/MathInput.tsx"
+import { MathEditor } from "../components/MathEditor.tsx"
 
 export function NewClaimSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const app = useApp()
@@ -56,7 +56,7 @@ export function NewClaimSheet({ open, onClose }: { open: boolean; onClose: () =>
         </label>
         <div className="field">
           <span className="field-label">{t("claimForm.statement")}</span>
-          <MathInput value={statement} onChange={setStatement} label={t("claimForm.statement")} placeholder={t("claimForm.statementPlaceholder")} />
+          <MathEditor value={statement} onChange={setStatement} label={t("claimForm.statement")} placeholder={t("claimForm.statementPlaceholder")} />
           {touched && !statement.trim() && <span className="field-error">{t("common.required")}</span>}
         </div>
         <label className="check"><input type="checkbox" checked={objective} onChange={(event) => setObjective(event.target.checked)} />{t("claimForm.objective")}</label>
