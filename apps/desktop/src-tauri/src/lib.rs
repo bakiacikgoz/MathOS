@@ -33,6 +33,13 @@ pub fn run() {
         .manage(Host::default())
         .invoke_handler(tauri::generate_handler![mathos_exec, mathos_secret_set, host_info, host_restart])
         .setup(|app| {
+            // Windows: the native title bar ignores the app theme, so the app draws its own
+            // caption row (src/components/WindowControls.tsx). The shadow keeps resize edges.
+            #[cfg(target_os = "windows")]
+            if let Some(window) = app.get_webview_window("main") {
+                window.set_decorations(false)?;
+                window.set_shadow(true)?;
+            }
             // The window starts hidden so the first frame is already themed; the
             // frontend shows it after mount. This is the safety net if it cannot.
             let handle = app.handle().clone();

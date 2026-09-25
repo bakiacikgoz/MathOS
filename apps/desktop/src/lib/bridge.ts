@@ -2,6 +2,11 @@ export interface ExecResult { code: number; stdout: string; stderr: string; ms: 
 export interface HostInfo { running: boolean; version: string | null; source: string }
 
 export const isTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
+const platform = typeof navigator !== "undefined" ? navigator.platform : ""
+/** Windows runs without a native title bar and draws its own caption buttons in the app theme. */
+export const customTitlebar = isTauri && /Win/.test(platform)
+/** Linux keeps the native title bar; macOS draws the app under a transparent one. */
+export const nativeTitlebar = isTauri && !customTitlebar && !/Mac/.test(platform)
 
 export class MathosError extends Error {
   constructor(public code: string, message: string, public remediation?: string, public result?: ExecResult) { super(message) }

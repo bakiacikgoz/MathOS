@@ -12,6 +12,7 @@ import { Overview } from "./views/Overview.tsx"
 import { NewClaimSheet } from "./views/NewClaim.tsx"
 import { ErrorBoundary } from "./components/ErrorBoundary.tsx"
 import { TourProvider } from "./components/Tour.tsx"
+import { WindowControls } from "./components/WindowControls.tsx"
 
 // Secondary screens are split out so the first paint only pays for what it shows.
 const Claims = lazy(() => import("./views/Claims.tsx").then((m) => ({ default: m.Claims })))
@@ -99,6 +100,7 @@ export function App() {
           <NewClaimSheet open={newClaim} onClose={() => setNewClaim(false)} />
         </AppContext.Provider>
       )}
+      <WindowControls />
       <Toasts toasts={toasts} />
       </TourProvider>
     </LangContext.Provider>

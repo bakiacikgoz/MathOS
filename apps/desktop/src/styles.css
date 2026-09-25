@@ -109,6 +109,23 @@ h1, h2, h3, p { margin: 0; }
 /* Windows/Linux: the native title bar already sits above the page, so no traffic-light gap or drag strip. */
 .native-titlebar { --titlebar: 14px; }
 .native-titlebar .titlebar-drag { display: none; }
+/* Windows: no native title bar; a themed caption row with the system's own button glyphs. */
+.custom-titlebar { --titlebar: 32px; --caption-w: 138px; }
+.custom-titlebar .titlebar-drag { right: var(--caption-w); }
+.custom-titlebar .welcome-corner { top: calc(var(--titlebar) + 8px); }
+.window-controls { position: fixed; top: 0; right: 0; display: flex; height: var(--titlebar); z-index: 1000; }
+.window-controls button {
+  width: 46px; height: 100%;
+  display: grid; place-items: center;
+  font: 10px/1 "Segoe Fluent Icons", "Segoe MDL2 Assets";
+  color: var(--text);
+  transition: background-color var(--fast) var(--ease), color var(--fast) var(--ease);
+}
+.window-controls button:hover { background: var(--fill); }
+.window-controls button:active { background: var(--fill-2); }
+.window-controls button.close:hover { background: #c42b1c; color: #ffffff; }
+.window-controls button.close:active { background: #c42b1c; color: rgba(255, 255, 255, 0.7); }
+.window-inactive .window-controls button:not(:hover) { color: var(--text-3); }
 
 .shell { transition: grid-template-columns var(--mid) var(--ease); }
 .shell.sidebar-collapsed { grid-template-columns: 68px 1fr; }
