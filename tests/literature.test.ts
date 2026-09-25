@@ -85,6 +85,22 @@ describe("literature provenance", () => {
     app.close()
   })
 
+  test("a person searching again gets the earlier results; an empty earlier search runs again", async () => {
+    const { app } = await boot()
+    const first = await app.searchLiterature("fixed point")
+    expect(first.resultCount).toBeGreaterThan(0)
+    const again = await app.searchLiterature("fixed point", { reuse: true })
+    expect(again.id).toBe(first.id)
+    expect(app.literatureHits(again.id).length).toBe(first.resultCount)
+    await expect(app.searchLiterature("fixed point")).rejects.toThrow("LITERATURE_SEARCH_REPETITION")
+    const created = await MathOS.init(temp(), "offline")
+    const offline = MathOS.open(created.root, { vcs: new FakeVcs(), literatureProvider: { name: new FakeLiteratureProvider().name, search: async () => [] } as unknown as FakeLiteratureProvider })
+    const nothing = await offline.searchLiterature("fixed point", { reuse: true })
+    expect(nothing.resultCount).toBe(0)
+    const retried = await offline.searchLiterature("fixed point", { reuse: true })
+    expect(retried.id).not.toBe(nothing.id)
+  })
+
   test("local document fingerprint and research action", async () => {
     expect(isPublicHttpUrl("http://127.0.0.1/x")).toBe(false)
     expect(isPublicHttpUrl("file:///etc/passwd")).toBe(false)

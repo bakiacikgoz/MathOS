@@ -50,13 +50,18 @@ export class LiteratureService {
 
   constructor(private readonly dependencies: LiteratureServiceDependencies) {}
 
-  async search(query: string, opts: { claimId?: string; runId?: string; stepId?: string; agentId?: string; maxResults?: number } = {}) {
+  /**
+   * `reuse` is for a person searching again: an earlier search that found something is returned as it was, and
+   * one that found nothing (often an unreachable service) runs again. Agents keep the strict no-repetition rule.
+   */
+  async search(query: string, opts: { claimId?: string; runId?: string; stepId?: string; agentId?: string; maxResults?: number; reuse?: boolean } = {}) {
     const workspace = this.requireWorkspace()
     const branch = this.requireCurrentBranch()
     const maxResults = Math.min(opts.maxResults ?? 10, 10)
     const fingerprint = queryFingerprint(this.dependencies.provider.name, { text: query, maxResults })
     const prior = this.dependencies.searches.findFingerprint(workspace.id, fingerprint)
-    if (prior && (!opts.runId || prior.researchRunId === opts.runId)) throw new Error("LITERATURE_SEARCH_REPETITION")
+    if (prior && opts.reuse && !opts.runId && prior.resultCount > 0) { this.lastSearchId = prior.id; return prior }
+    if (prior && !(opts.reuse && !opts.runId) && (!opts.runId || prior.researchRunId === opts.runId)) throw new Error("LITERATURE_SEARCH_REPETITION")
     this.dependencies.recorder.record("literature_search_started", { target: workspace.id, metadata: { query, provider: this.dependencies.provider.name, branchId: branch.id, runId: opts.runId, stepId: opts.stepId, agentId: opts.agentId } })
     const hits = await this.dependencies.provider.search({ text: query, maxResults })
     const search = {

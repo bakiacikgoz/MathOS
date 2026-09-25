@@ -1010,7 +1010,8 @@ export async function runHeadless(argv: string[]): Promise<number> {
         const sub = rest.find((item) => !item.startsWith("--") && !item.startsWith("\""))
         if (command === "literature" && sub === "search") {
           const query = rest.filter((item) => item !== "search" && item !== "--json").join(" ").replace(/^"|"$/g, "")
-          const search = await app.searchLiterature(query)
+          // A person searching again sees the earlier results (or a fresh search if that one found nothing).
+          const search = await app.searchLiterature(query, { reuse: true })
           const hits = app.literatureHits(search.id)
           process.stdout.write(json ? `${JSON.stringify({ search, hits }, null, 2)}\n` : `EXTERNAL SOURCE\nNOT A PROOF\n${hits.map((hit, i) => `${i}. ${hit.title} (${hit.year ?? "?"})`).join("\n")}\n`)
           return 0

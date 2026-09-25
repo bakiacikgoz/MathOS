@@ -18,6 +18,7 @@ import { WindowControls } from "./components/WindowControls.tsx"
 const Assistant = lazy(() => import("./views/Assistant.tsx").then((m) => ({ default: m.Assistant })))
 const Reports = lazy(() => import("./views/Reports.tsx").then((m) => ({ default: m.Reports })))
 const Graph = lazy(() => import("./views/Graph.tsx").then((m) => ({ default: m.Graph })))
+const Literature = lazy(() => import("./views/Literature.tsx").then((m) => ({ default: m.Literature })))
 const Claims = lazy(() => import("./views/Claims.tsx").then((m) => ({ default: m.Claims })))
 const Branches = lazy(() => import("./views/Branches.tsx").then((m) => ({ default: m.Branches })))
 const Health = lazy(() => import("./views/Health.tsx").then((m) => ({ default: m.Health })))
@@ -121,6 +122,7 @@ function Screen({ route }: { route: Route }) {
       {route === "overview" && <Overview />}
       {route === "branches" && <Branches />}
       {route === "reports" && <Reports />}
+      {route === "literature" && <Literature />}
       {route === "health" && <Health />}
       {route === "providers" && <Providers />}
       {route === "settings" && <Settings />}
@@ -128,7 +130,7 @@ function Screen({ route }: { route: Route }) {
   )
 }
 
-const ROUTES: Route[] = ["overview", "assistant", "claims", "graph", "branches", "reports", "health", "providers", "console", "settings"]
+const ROUTES: Route[] = ["overview", "assistant", "claims", "graph", "literature", "branches", "reports", "health", "providers", "console", "settings"]
 function validWorkspace(value: unknown): Workspace | null {
   if (!value || typeof value !== "object") return null
   const { root, name } = value as Partial<Workspace>
