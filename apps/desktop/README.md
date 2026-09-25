@@ -5,7 +5,7 @@ A native desktop app for MathOS built with [Tauri 2](https://tauri.app) (Rust) a
 - Monochrome, Apple-style interface with light, dark and system themes (the switch animates as a circular reveal).
 - Turkish and English UI, detected from the system language.
 - LaTeX in statements (`$…$`, `$$…$$`) rendered with KaTeX, loaded only when needed.
-- Keyboard first: `⌘K` palette, `⌘N` new claim, `⌘1…5` screens, `⌘,` settings (`Ctrl` on Windows/Linux).
+- Keyboard first: `⌘K` palette, `⌘N` new claim, `⌘1…0` screens, `⌘,` settings (`Ctrl` on Windows/Linux).
 
 The app does not reimplement MathOS. It drives the real CLI, so every trust rule stays where it is: only the Lean kernel and the VerificationGate can mark a claim verified.
 
@@ -18,7 +18,7 @@ React UI  ──invoke──▶  Rust (src-tauri)  ──stdio JSON lines──�
 
 `host/host.ts` is a long-lived process that keeps the MathOS CLI warm. A cold `mathos` start costs about 0.9 s; a warm request through the host costs about 30 ms. Requests run one at a time because the CLI relies on the process-wide working directory. Commands that need a terminal (`secrets set`, `provider login`, `atlas` server, `update apply`) are refused with a clear message instead of hanging.
 
-The Rust side (`src-tauri/src/host.rs`) starts the host lazily, restarts it if it dies, and kills it on exit. It looks for the host in this order:
+The Rust side (`src-tauri/src/host.rs`) starts the host when the app launches, so the first click never waits for it to load. It restarts the host if it dies and kills it on exit. The sidecar is compiled to bytecode, so it becomes ready in tens of milliseconds. It looks for the host in this order:
 
 1. `MATHOS_DESKTOP_HOST` (path to an executable)
 2. the bundled sidecar next to the app binary (`mathos-host`)
