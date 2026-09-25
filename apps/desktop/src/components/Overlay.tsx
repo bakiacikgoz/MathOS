@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { createPortal } from "react-dom"
 import { Icon } from "./Icon.tsx"
+import { useT } from "../lib/i18n.ts"
 
 /** Keeps an overlay mounted for its exit animation. */
 export function usePresence(open: boolean, exitMs = 160) {
@@ -17,6 +18,7 @@ export function usePresence(open: boolean, exitMs = 160) {
 }
 
 export function Sheet({ open, onClose, title, children, footer }: { open: boolean; onClose: () => void; title: string; children: ReactNode; footer?: ReactNode }) {
+  const { t } = useT()
   const { mounted, closing } = usePresence(open)
   const ref = useRef<HTMLDivElement>(null)
   const restore = useRef<Element | null>(null)
@@ -33,7 +35,7 @@ export function Sheet({ open, onClose, title, children, footer }: { open: boolea
     <>
       <div className={`scrim ${closing ? "closing" : ""}`} onClick={onClose} />
       <div className={`sheet ${closing ? "closing" : ""}`} role="dialog" aria-modal="true" aria-label={title} ref={ref}>
-        <div className="sheet-head"><h2>{title}</h2><button className="btn btn-ghost btn-icon" onClick={onClose} aria-label="Close"><Icon name="x" size={16} /></button></div>
+        <div className="sheet-head"><h2>{title}</h2><button className="btn btn-ghost btn-icon" onClick={onClose} aria-label={t("common.close")}><Icon name="x" size={16} /></button></div>
         <div className="sheet-body">{children}</div>
         {footer && <div className="sheet-foot">{footer}</div>}
       </div>

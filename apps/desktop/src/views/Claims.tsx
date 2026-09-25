@@ -3,12 +3,13 @@ import { useApp, type Claim } from "../lib/app.ts"
 import { keys, useClaimPage, useClaims, useStatus } from "../lib/data.ts"
 import { run } from "../lib/bridge.ts"
 import { invalidate } from "../lib/query.ts"
-import { useT, type Lang, type MessageKey } from "../lib/i18n.ts"
+import { useT, type Lang } from "../lib/i18n.ts"
 import { isVerifiedStatus, kindLabel, statusMeta } from "../lib/status.ts"
 import { parseClaimPage } from "../lib/claim-page.ts"
 import { Icon } from "../components/Icon.tsx"
 import { Empty, ErrorBox, Segmented, Skeleton, StatusPill } from "../components/Primitives.tsx"
 import { HelpButton, useAutoTour } from "../components/Tour.tsx"
+import { claimNote, claimValue, errorText } from "../lib/cli-text.ts"
 import { MathText } from "../components/MathText.tsx"
 
 type Filter = "all" | "open" | "verified" | "blocked"
@@ -123,7 +124,7 @@ function ClaimDetail({ id, objective }: { id: string; objective: boolean }) {
   const makeObjective = async () => {
     setBusy(true)
     try { await run(app.workspace.root, ["objective", "set", id]); invalidate(keys.status(app.workspace.root)); app.toast(t("claims.objectiveSet")) }
-    catch (error) { app.toast((error as Error).message, "error") } finally { setBusy(false) }
+    catch (error) { app.toast(errorText(error, app.lang), "error") } finally { setBusy(false) }
   }
   const facts = page.sections.filter((section) => section.label !== "Statement" && section.label !== "Status")
 
@@ -153,7 +154,7 @@ function ClaimDetail({ id, objective }: { id: string; objective: boolean }) {
             <div key={check.label} className="check-row" style={{ "--i": index } as React.CSSProperties}>
               <span className={`mark ${check.ok === true ? "ok" : check.ok === false ? "no" : "info"}`}><Icon name={check.ok === true ? "check" : check.ok === false ? "x" : "info"} size={12} stroke={2.4} /></span>
               <span>{label(check.label, lang)}</span>
-              {check.value && <span className="v">{check.label === "Current status" ? statusMeta(check.value, lang).label : cliValue(check.value, t)}</span>}
+              {check.value && <span className="v">{check.label === "Current status" ? statusMeta(check.value, lang).label : claimValue(check.value, lang)}</span>}
             </div>
           ))}
         </div>
@@ -165,15 +166,13 @@ function ClaimDetail({ id, objective }: { id: string; objective: boolean }) {
           {facts.map((section, index) => (
             <div key={section.label} className="card fact" style={{ "--i": index } as React.CSSProperties}>
               <div className="k">{label(section.label, lang)}</div>
-              <div className="v selectable">{section.lines.map((line) => cliValue(line, t)).join("\n") || "—"}</div>
+              <div className="v selectable">{section.lines.map((line) => claimValue(line, lang)).join("\n") || "—"}</div>
             </div>
           ))}
         </div>
       </>}
-      {page.notes.length > 0 && <p className="disclaimer">{page.notes.join(" ")}</p>}
+      {page.notes.length > 0 && <p className="disclaimer">{page.notes.map((note) => claimNote(note, lang)).join(" ")}</p>}
     </div>
   )
 }
 
-// The CLI prints a few fixed English placeholders for empty values; show them in the UI language.
-function cliValue(value: string, t: (key: MessageKey) => string) { const key = value.trim().toLowerCase(); return key === "none" ? t("common.none") : key === "not created" ? t("common.notCreated") : value }

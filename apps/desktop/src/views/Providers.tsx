@@ -8,6 +8,7 @@ import { FEATURED, keyPage, providerLogo, termsText } from "../lib/provider-meta
 import { Icon } from "../components/Icon.tsx"
 import { Sheet } from "../components/Overlay.tsx"
 import { ErrorBox, Segmented, Skeleton } from "../components/Primitives.tsx"
+import { errorText, policyReason, providerName, providerVendor } from "../lib/cli-text.ts"
 import { HelpButton, useAutoTour } from "../components/Tour.tsx"
 
 const BILLING: Record<string, MessageKey> = { subscription: "providers.billing.subscription", payg: "providers.billing.payg", local: "providers.billing.local", enterprise: "providers.billing.enterprise", unknown: "providers.billing.unknown" }
@@ -37,8 +38,8 @@ export function Providers() {
   const featured = FEATURED.map((id) => byId.get(id)).filter((entry): entry is CatalogEntry => Boolean(entry?.policy.allowed))
   const visible = useMemo(() => entries
     .filter((entry) => group === "all" || groupOf(entry.descriptor) === group)
-    .filter((entry) => !deferred || `${entry.descriptor.displayName} ${entry.descriptor.vendor} ${entry.descriptor.id}`.toLowerCase().includes(deferred))
-    .sort((a, b) => Number(b.policy.allowed) - Number(a.policy.allowed) || a.descriptor.displayName.localeCompare(b.descriptor.displayName)), [entries, group, deferred])
+    .filter((entry) => !deferred || `${entry.descriptor.displayName} ${providerName(entry.descriptor, lang)} ${entry.descriptor.vendor} ${entry.descriptor.id}`.toLowerCase().includes(deferred))
+    .sort((a, b) => Number(b.policy.allowed) - Number(a.policy.allowed) || providerName(a.descriptor, lang).localeCompare(providerName(b.descriptor, lang), lang)), [entries, group, deferred, lang])
   const rows = status.data?.profiles ?? []
   const defaultProfile = profiles.data?.defaultProfile ?? null
   useAutoTour("providers", Boolean(status.data && catalog.data), "app")
@@ -46,7 +47,7 @@ export function Providers() {
   const act = async (key: string, args: string[], message: string) => {
     setBusy(key)
     try { await run(root, args); invalidate(providerKeys.all); app.toast(message) }
-    catch (error) { app.toast((error as Error).message, "error") } finally { setBusy(null) }
+    catch (error) { app.toast(errorText(error, app.lang), "error") } finally { setBusy(null) }
   }
   const openFor = (row: StatusRow, step: WizardStep) => { const entry = byId.get(row.descriptor); if (entry) setWizard({ descriptor: entry.descriptor, step, profile: row.profile }) }
 
@@ -76,7 +77,7 @@ export function Providers() {
               <div key={row.profile} className="profile-row" style={{ "--i": index } as React.CSSProperties}>
                 <ProviderLogo descriptor={entry?.descriptor ?? { id: row.descriptor, displayName: row.descriptor }} size={36} />
                 <div className="meta">
-                  <div className="n">{entry?.descriptor.displayName ?? row.descriptor}{isDefault && <span className="pill pill-solid pill-xs">{t("providers.default")}</span>}</div>
+                  <div className="n">{entry ? providerName(entry.descriptor, lang) : row.descriptor}{isDefault && <span className="pill pill-solid pill-xs">{t("providers.default")}</span>}</div>
                   <div className="p">{row.profile} · {row.model} · {t(BILLING[row.billing] ?? "providers.billing.unknown")}</div>
                 </div>
                 <span className={`status-chip ${ready ? "ok" : "todo"}`}><span className="dot" />{t(ready ? "providers.state.ready" : row.connection === "LOGIN_REQUIRED" ? "providers.state.login" : row.connection === "SECRET_REQUIRED" ? "providers.state.key" : "providers.state.blocked")}</span>
@@ -103,7 +104,7 @@ export function Providers() {
         {featured.map(({ descriptor }, index) => (
           <button key={descriptor.id} type="button" className="card card-interactive featured-card" style={{ "--i": index } as React.CSSProperties} onClick={() => setWizard({ descriptor, step: "setup", profile: null })}>
             <ProviderLogo descriptor={descriptor} size={40} />
-            <span className="k">{descriptor.displayName}</span>
+            <span className="k">{providerName(descriptor, lang)}</span>
             <span className="v">{t(BILLING[descriptor.billingClass] ?? "providers.billing.unknown")}</span>
             <span className="go">{t("providers.connect")} <Icon name="arrow" size={14} /></span>
           </button>
@@ -119,9 +120,9 @@ export function Providers() {
       <div className="provider-grid">
         {visible.map(({ descriptor, policy }) => (
           <button key={descriptor.id} type="button" className="provider-tile" disabled={!policy.allowed} onClick={() => setWizard({ descriptor, step: "setup", profile: null })}
-            title={policy.allowed ? termsText(descriptor, lang) : `${t("providers.restricted")} · ${policy.code}${policy.remediation ? ` · ${policy.remediation}` : ""}`}>
+            title={policy.allowed ? termsText(descriptor, lang) : `${t("providers.restricted")} · ${policyReason(policy, lang)}`}>
             <ProviderLogo descriptor={descriptor} size={30} />
-            <span className="meta"><span className="k">{descriptor.displayName}</span><span className="v">{descriptor.vendor} · {t(BILLING[descriptor.billingClass] ?? "providers.billing.unknown")}</span></span>
+            <span className="meta"><span className="k">{providerName(descriptor, lang)}</span><span className="v">{providerVendor(descriptor.vendor, lang)} · {t(BILLING[descriptor.billingClass] ?? "providers.billing.unknown")}</span></span>
             {!policy.allowed ? <span className="pill pill-dashed pill-xs">{t("providers.restricted")}</span> : <Icon name="plus" size={15} />}
           </button>
         ))}
@@ -163,7 +164,7 @@ function ConnectWizard({ state, taken, hasDefault, secretRefOf, onStep, onClose 
   const profileId = state.profile ?? form.profile.trim()
   const errors = { profile: !state.profile && (!validProfileId(form.profile) || taken.includes(form.profile.trim())), baseUrl: generic && !/^https?:\/\/\S+$/.test(form.baseUrl.trim()), model: generic && !form.model.trim() }
   const set = (key: keyof typeof form) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm((value) => ({ ...value, [key]: event.target.value }))
-  const guard = async (work: () => Promise<void>) => { setBusy(true); try { await work() } catch (error) { app.toast((error as Error).message, "error") } finally { setBusy(false) } }
+  const guard = async (work: () => Promise<void>) => { setBusy(true); try { await work() } catch (error) { app.toast(errorText(error, app.lang), "error") } finally { setBusy(false) } }
 
   const saveSetup = () => guard(async () => {
     setTouched(true)
@@ -207,10 +208,10 @@ function ConnectWizard({ state, taken, hasDefault, secretRefOf, onStep, onClose 
     </>
 
   return (
-    <Sheet open onClose={onClose} title={descriptor.displayName} footer={footer}>
+    <Sheet open onClose={onClose} title={providerName(descriptor, lang)} footer={footer}>
       <div className="wizard-head">
         <ProviderLogo descriptor={descriptor} size={44} />
-        <div><div className="subtitle" style={{ margin: 0 }}>{descriptor.vendor} · {t(BILLING[descriptor.billingClass] ?? "providers.billing.unknown")}</div>
+        <div><div className="subtitle" style={{ margin: 0 }}>{providerVendor(descriptor.vendor, lang)} · {t(BILLING[descriptor.billingClass] ?? "providers.billing.unknown")}</div>
           {docs && <button className="link-btn" onClick={() => void openExternal(docs)}>{t("providers.docs")} <Icon name="arrow" size={12} /></button>}</div>
       </div>
       <ol className="stepper" aria-label={t("providers.progress")}>

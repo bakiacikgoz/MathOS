@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, useState, type ReactNode } from "react"
 import { statusMeta } from "../lib/status.ts"
 import { useT } from "../lib/i18n.ts"
 import { Icon } from "./Icon.tsx"
+import { errorText } from "../lib/cli-text.ts"
 import type { MathosError } from "../lib/bridge.ts"
 
 export function StatusPill({ status }: { status: string }) {
@@ -32,14 +33,14 @@ export function Empty({ glyph = "∅", title, children }: { glyph?: string; titl
 }
 
 export function ErrorBox({ error, onRetry }: { error: unknown; onRetry?: () => void }) {
-  const { t } = useT()
+  const { t, lang } = useT()
   const typed = error as Partial<MathosError>
   return (
     <div className="error-box">
       <Icon name="info" />
       <div style={{ flex: 1 }}>
         <strong>{t("common.error")}</strong>
-        <div className="selectable">{typed?.message ?? String(error)}</div>
+        <div className="selectable">{errorText(error, lang)}</div>
         {typed?.code && <code>{typed.code}</code>}
       </div>
       {onRetry && <button className="btn btn-secondary" onClick={onRetry}>{t("common.retry")}</button>}

@@ -107,6 +107,7 @@ export function Overview() {
 }
 
 function Check({ ok }: { ok: boolean | null }) {
+  const { t } = useT()
   if (ok === null) return <Skeleton height={16} width={40} />
-  return <span className={`pill ${ok ? "pill-solid" : "pill-dashed"}`}><Icon name={ok ? "check" : "x"} size={12} stroke={2.4} />{ok ? "OK" : "FAIL"}</span>
+  return <span className={`pill ${ok ? "pill-solid" : "pill-dashed"}`}><Icon name={ok ? "check" : "x"} size={12} stroke={2.4} />{t(ok ? "overview.ok" : "overview.fail")}</span>
 }

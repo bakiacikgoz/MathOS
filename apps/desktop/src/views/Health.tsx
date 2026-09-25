@@ -3,11 +3,12 @@ import { useDoctor } from "../lib/data.ts"
 import { useT } from "../lib/i18n.ts"
 import { Icon } from "../components/Icon.tsx"
 import { HelpButton, useAutoTour } from "../components/Tour.tsx"
+import { checkDetail, checkName } from "../lib/cli-text.ts"
 import { ErrorBox, Skeleton } from "../components/Primitives.tsx"
 
 export function Health() {
   const app = useApp()
-  const { t } = useT()
+  const { t, lang } = useT()
   const doctor = useDoctor(app.workspace.root)
   const checks = doctor.data?.checks ?? []
   const pass = checks.filter((check) => check.status === "PASS").length
@@ -47,8 +48,8 @@ export function Health() {
             <span className={`check-row`} style={{ padding: 0, border: 0 }}>
               <span className={`mark ${check.status === "PASS" ? "ok" : check.status === "FAIL" ? "no" : "info"}`}><Icon name={check.status === "PASS" ? "check" : check.status === "FAIL" ? "x" : "info"} size={12} stroke={2.4} /></span>
             </span>
-            <span className="name">{check.name}</span>
-            <span className="detail selectable" title={check.detail}>{check.detail}</span>
+            <span className="name">{checkName(check.name, lang)}</span>
+            <span className="detail selectable" title={check.detail}>{checkDetail(check.detail, lang)}</span>
             <span className={`pill ${check.status === "PASS" ? "pill-soft" : check.status === "FAIL" ? "pill-solid" : "pill-dashed"}`}>{t(check.status === "PASS" ? "health.pass" : check.status === "FAIL" ? "health.fail" : "health.warn")}</span>
           </div>
         ))}

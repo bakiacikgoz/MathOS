@@ -87,7 +87,7 @@ export function Console() {
       <form className="console-input" data-tour="console-input" onSubmit={(event) => { event.preventDefault(); void submit(value) }}>
         <span className="prompt">mathos</span>
         <input ref={input} value={value} onChange={(event) => setValue(event.target.value)} onKeyDown={onKeyDown} placeholder={t("console.placeholder")} spellCheck={false} autoCapitalize="off" autoCorrect="off" aria-label={t("console.title")} />
-        <button className="btn btn-primary btn-icon" disabled={running || !value.trim()} aria-label="Run">{running ? <span className="spinner" /> : <Icon name="arrow" size={16} />}</button>
+        <button className="btn btn-primary btn-icon" disabled={running || !value.trim()} aria-label={t("console.run")}>{running ? <span className="spinner" /> : <Icon name="arrow" size={16} />}</button>
       </form>
     </div>
   )

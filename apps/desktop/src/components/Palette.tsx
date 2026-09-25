@@ -26,6 +26,7 @@ export function Palette({ open, onClose }: { open: boolean; onClose: () => void 
       ...NAV.map((nav) => ({ id: nav.route, label: t(nav.label), hint: `${mod}${nav.key}`, icon: nav.icon, run: done(() => app.navigate(nav.route)) })),
       { id: "settings", label: t("nav.settings"), hint: `${mod},`, icon: "settings" as IconName, run: done(() => app.navigate("settings")) },
       { id: "theme", label: `${t("settings.appearance")}: ${app.theme.pref === "dark" ? t("settings.light") : t("settings.dark")}`, icon: app.theme.pref === "dark" ? "sun" : "moon", run: done(() => app.theme.set(app.theme.pref === "dark" ? "light" : "dark", { x: innerWidth / 2, y: innerHeight / 3 })) },
+      { id: "lang", label: app.lang === "tr" ? "Dil: English" : "Language: Türkçe", hint: app.lang === "tr" ? "EN" : "TR", icon: "globe", run: done(() => app.setLang(app.lang === "tr" ? "en" : "tr")) },
       { id: "switch", label: t("nav.switchWorkspace"), icon: "folder", run: done(app.closeWorkspace) },
     ]
     const claimItems: Item[] = (claims.data ?? []).map((claim) => ({ id: `claim-${claim.id}`, label: claim.title, hint: claim.id, icon: "claims" as IconName, run: done(() => { app.selectClaim(claim.id); app.navigate("claims") }) }))

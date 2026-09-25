@@ -7,6 +7,7 @@ import { Icon, Mark } from "../components/Icon.tsx"
 import { HelpButton, useAutoTour } from "../components/Tour.tsx"
 import { Segmented } from "../components/Primitives.tsx"
 import type { Lang } from "../lib/i18n.ts"
+import { errorText } from "../lib/cli-text.ts"
 import { Sheet } from "../components/Overlay.tsx"
 
 interface Props {
@@ -35,7 +36,7 @@ export function Welcome({ recent, onOpen, onForget, toast, theme, setLang }: Pro
     try { onOpen(await inspectWorkspace(path)) }
     catch (error) {
       if (error instanceof MathosError && /WORKSPACE.?NOT.?FOUND/i.test(error.code)) setNotWorkspace(path)
-      else toast((error as Error).message, "error")
+      else toast(errorText(error, lang), "error")
     } finally { setBusy(null) }
   }
   const choose = async () => { const path = await pickFolder(t("welcome.pickFolder")); if (path) await open(path) }
@@ -43,7 +44,7 @@ export function Welcome({ recent, onOpen, onForget, toast, theme, setLang }: Pro
     if (!notWorkspace) return
     setBusy(notWorkspace)
     try { const created = await runJson<{ root: string; name: string }>(notWorkspace, ["init"]); setNotWorkspace(null); onOpen({ root: created.root, name: created.name }) }
-    catch (error) { toast((error as Error).message, "error") } finally { setBusy(null) }
+    catch (error) { toast(errorText(error, lang), "error") } finally { setBusy(null) }
   }
   const cycleTheme = (event: React.MouseEvent) => {
     const order: ThemePref[] = ["system", "light", "dark"]
@@ -114,7 +115,7 @@ export function Welcome({ recent, onOpen, onForget, toast, theme, setLang }: Pro
 }
 
 function CreateSheet({ mode, onClose, onCreated, toast }: { mode: null | "create" | "demo"; onClose: () => void; onCreated: (workspace: Workspace) => void; toast: Props["toast"] }) {
-  const { t } = useT()
+  const { t, lang } = useT()
   const [name, setName] = useState("")
   const [parent, setParent] = useState("")
   const [busy, setBusy] = useState(false)
@@ -135,7 +136,7 @@ function CreateSheet({ mode, onClose, onCreated, toast }: { mode: null | "create
         onCreated({ root: created.root, name: created.name })
       }
       setName("")
-    } catch (error) { toast((error as Error).message, "error") } finally { setBusy(false) }
+    } catch (error) { toast(errorText(error, lang), "error") } finally { setBusy(false) }
   }
   return (
     <Sheet open={mode !== null} onClose={onClose} title={demo ? t("create.demoTitle") : t("create.title")}

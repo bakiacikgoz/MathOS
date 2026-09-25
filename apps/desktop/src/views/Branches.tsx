@@ -6,11 +6,12 @@ import { invalidate } from "../lib/query.ts"
 import { useT } from "../lib/i18n.ts"
 import { Icon } from "../components/Icon.tsx"
 import { HelpButton, useAutoTour } from "../components/Tour.tsx"
+import { branchPurpose, branchStatus, errorText } from "../lib/cli-text.ts"
 import { ErrorBox, Skeleton } from "../components/Primitives.tsx"
 
 export function Branches() {
   const app = useApp()
-  const { t } = useT()
+  const { t, lang } = useT()
   const branches = useBranches(app.workspace.root)
   const [name, setName] = useState("")
   const [busy, setBusy] = useState<string | null>(null)
@@ -19,7 +20,7 @@ export function Branches() {
   const act = async (key: string, args: string[], message: string) => {
     setBusy(key)
     try { await run(app.workspace.root, args); invalidate(app.workspace.root); app.toast(message) }
-    catch (error) { app.toast((error as Error).message, "error") } finally { setBusy(null) }
+    catch (error) { app.toast(errorText(error, app.lang), "error") } finally { setBusy(null) }
   }
   const create = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -42,7 +43,7 @@ export function Branches() {
             <span className="node" />
             <div className="meta">
               <div className="n">{branch.name} <span className="kbd" style={{ marginLeft: 6 }}>{branch.id}</span></div>
-              <div className="p">{branch.purpose ?? branch.slug} · {branch.status.toLowerCase()}</div>
+              <div className="p">{branch.purpose ? branchPurpose(branch.purpose, lang) : branch.slug} · {branchStatus(branch.status, lang)}</div>
             </div>
             {branch.isCurrent ? <span className="pill pill-solid">{t("branches.current")}</span> : (
               <button className="btn btn-secondary" disabled={busy !== null} onClick={() => act(branch.id, ["branch", "switch", branch.id], `${t("branches.switched")} · ${branch.name}`)}>

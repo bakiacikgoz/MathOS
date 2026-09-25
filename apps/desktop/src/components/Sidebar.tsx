@@ -6,6 +6,7 @@ import { useProviderStatus } from "../lib/providers.ts"
 import { useT, type MessageKey } from "../lib/i18n.ts"
 import type { ThemePref } from "../lib/theme.ts"
 import { Icon, Mark, type IconName } from "./Icon.tsx"
+import { errorText } from "../lib/cli-text.ts"
 import { useAutoTour } from "./Tour.tsx"
 
 type Signal = { kind: "count"; value: number } | { kind: "dot"; tone: "strong" | "soft"; title: MessageKey } | null
@@ -53,6 +54,7 @@ export function Sidebar({ onPalette }: { onPalette: () => void }) {
         <NavItem route="settings" icon="settings" label={t("nav.settings")} shortcut={`${mod},`} signal={null} collapsed={collapsed} />
         <div className="sidebar-foot-row">
           <ThemeSwitch />
+          <LangSwitch />
           <button className="icon-btn" onClick={app.sidebar.toggle} title={`${t(collapsed ? "sidebar.expand" : "sidebar.collapse")} (${mod}B)`} aria-label={t(collapsed ? "sidebar.expand" : "sidebar.collapse")} aria-expanded={!collapsed}>
             <Icon name="panel" size={16} />
           </button>
@@ -115,7 +117,7 @@ function WorkspaceSwitcher({ collapsed }: { collapsed: boolean }) {
   const switchTo = async (row: RecentWorkspace) => {
     setBusy(row.root)
     try { await runJson(row.root, ["status"]); setOpen(false); app.openWorkspace({ root: row.root, name: row.name }) }
-    catch (error) { app.toast(`${row.name}: ${(error as Error).message}`, "error") } finally { setBusy(null) }
+    catch (error) { app.toast(`${row.name}: ${errorText(error, app.lang)}`, "error") } finally { setBusy(null) }
   }
   const onMenuKey = (event: React.KeyboardEvent) => {
     if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return
@@ -148,6 +150,23 @@ function WorkspaceSwitcher({ collapsed }: { collapsed: boolean }) {
           </button>
         </div>
       )}
+    </div>
+  )
+}
+
+/** Language lives next to the theme: both are "how the app looks", reachable from every screen. */
+function LangSwitch() {
+  const app = useApp()
+  const { t } = useT()
+  const options: Array<{ value: "tr" | "en"; label: string; name: string }> = [{ value: "tr", label: "TR", name: "Türkçe" }, { value: "en", label: "EN", name: "English" }]
+  return (
+    <div className="theme-switch lang-switch" role="radiogroup" aria-label={t("settings.language")}>
+      {options.map((option) => (
+        <button key={option.value} role="radio" aria-checked={app.lang === option.value} className={app.lang === option.value ? "on" : ""}
+          title={`${t("settings.language")}: ${option.name}`} aria-label={option.name} lang={option.value} onClick={() => app.setLang(option.value)}>
+          {option.label}
+        </button>
+      ))}
     </div>
   )
 }

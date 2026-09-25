@@ -86,3 +86,25 @@ describe("provider presentation", () => {
     for (const id of ["openai-api", "opencode-go", "deepseek-api"]) expect(keyPage(id)).toMatch(/^https:\/\//)
   })
 })
+
+import { branchPurpose, branchStatus, checkDetail, checkName, claimNote, claimValue, errorText, policyReason, providerName } from "./cli-text.ts"
+
+describe("CLI text in the UI language", () => {
+  test("translates fixed CLI phrases and keeps everything else as printed", () => {
+    expect(checkName("Event log", "tr")).toBe("Olay günlüğü")
+    expect(checkName("Some new check", "tr")).toBe("Some new check")
+    expect(checkDetail("MATHOS_API_KEY is not set", "tr")).toBe("MATHOS_API_KEY tanımlı değil")
+    expect(checkDetail("1.4.2", "tr")).toBe("1.4.2")
+    expect(claimValue("0 computational", "tr")).toBe("0 hesaplamalı")
+    expect(claimValue("LOCAL · B-000", "tr")).toBe("Yerel · B-000")
+    expect(claimValue("LOCAL · B-000", "en")).toBe("LOCAL · B-000")
+    expect(claimValue("none", "en")).toBe("None")
+    expect(claimNote("KERNEL_VERIFIED requires VerificationGate. Computation and literature are not proofs.", "tr")).toContain("VerificationGate")
+    expect(branchStatus("ACTIVE", "tr")).toBe("etkin")
+    expect(branchPurpose("Primary research line", "tr")).toBe("Ana araştırma hattı")
+    expect(providerName({ id: "generic-openai-compatible", displayName: "Generic OpenAI-compatible" }, "tr")).toBe("Özel OpenAI uyumlu uç nokta")
+    expect(policyReason({ code: "PROVIDER_TERMS_RESTRICTED", remediation: "zai-payg" }, "tr")).toBe("Sağlayıcının koşulları bu kullanıma henüz izin vermiyor. Bunun yerine Z.AI PAYG kullanın.")
+    expect(errorText(Object.assign(new Error("x"), { code: "DESKTOP_HOST_TIMEOUT" }), "tr")).toBe("MathOS motoru zamanında yanıt vermedi.")
+    expect(errorText(new Error("Something else"), "tr")).toBe("Something else")
+  })
+})

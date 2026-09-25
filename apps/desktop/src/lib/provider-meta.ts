@@ -132,6 +132,7 @@ const SUMMARY_TR: Record<string, string> = {
 }
 /** The catalog's terms summary is English; show a localized sentence instead of a raw policy code. */
 export function termsText(descriptor: { id: string; terms: { policy: string; summary: string } }, lang: Lang): string {
+  if (descriptor.id.startsWith("generic-")) return lang === "tr" ? "Kendi bağladığınız uç nokta. O servisin kullanım koşulları ve ücretlendirmesi geçerlidir." : "An endpoint you connect yourself. That service's terms and billing apply."
   const custom = descriptor.terms.summary !== descriptor.terms.policy && descriptor.terms.summary !== "Standard provider API"
   if (custom) return lang === "tr" ? SUMMARY_TR[descriptor.id] ?? POLICY_TEXT[descriptor.terms.policy]?.tr ?? descriptor.terms.summary : descriptor.terms.summary
   return POLICY_TEXT[descriptor.terms.policy]?.[lang] ?? descriptor.terms.summary

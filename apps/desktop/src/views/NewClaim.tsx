@@ -6,6 +6,7 @@ import { useT } from "../lib/i18n.ts"
 import { CLAIM_KINDS, kindLabel, type ClaimKind } from "../lib/status.ts"
 import { Sheet } from "../components/Overlay.tsx"
 import { Segmented } from "../components/Primitives.tsx"
+import { errorText } from "../lib/cli-text.ts"
 import { MathText } from "../components/MathText.tsx"
 
 export function NewClaimSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -35,7 +36,7 @@ export function NewClaimSheet({ open, onClose }: { open: boolean; onClose: () =>
       app.navigate("claims")
       setTitle(""); setStatement(""); setObjective(false); setTouched(false)
       onClose()
-    } catch (error) { app.toast((error as Error).message, "error") } finally { setBusy(false) }
+    } catch (error) { app.toast(errorText(error, app.lang), "error") } finally { setBusy(false) }
   }
 
   return (
