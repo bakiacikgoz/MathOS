@@ -38,7 +38,8 @@ export function blockedCommandReason(args: string[]): string | null {
   if (!command) return "The interactive TUI runs in a terminal. Use the desktop views instead."
   if (command === "bridge") return "The editor bridge owns its own process."
   if (command === "secrets" && sub === "set") return "Enter keys in Model Providers, or run `mathos secrets set` in a terminal."
-  if (command === "provider" && sub === "login") return "Provider login opens an interactive flow. Run `mathos provider login` in a terminal."
+  // With --json the CLI starts the client's sign-in in the background (or in its own window); without it, it would take over this process's terminal.
+  if (command === "provider" && sub === "login" && !rest.includes("--json")) return "Provider login opens an interactive flow. Run `mathos provider login` in a terminal."
   if (command === "atlas" && (rest.length === 0 || sub === "open" || rest.includes("--no-open"))) return "Atlas runs a long-lived server. Run `mathos atlas` in a terminal."
   if (command === "update" && (sub === "apply" || sub === "rollback")) return "Updates replace the running binary. Run them from a terminal."
   return null

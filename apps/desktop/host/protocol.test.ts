@@ -13,6 +13,7 @@ describe("desktop host protocol", () => {
     expect(blockedCommandReason([])).not.toBeNull()
     expect(blockedCommandReason(["secrets", "set", "openai"])).not.toBeNull()
     expect(blockedCommandReason(["provider", "login", "p"])).not.toBeNull()
+    expect(blockedCommandReason(["provider", "login", "p", "--background", "--json"])).toBeNull()
     expect(blockedCommandReason(["atlas", "--no-open"])).not.toBeNull()
     expect(blockedCommandReason(["bridge", "stdio"])).not.toBeNull()
     expect(blockedCommandReason(["atlas", "snapshot", "--json"])).toBeNull()

@@ -607,7 +607,13 @@ h1, h2, h3, p { margin: 0; }
 /* Connect wizard */
 .wizard-head { display: flex; align-items: center; gap: 14px; }
 .stepper { display: flex; gap: 6px; margin: 4px 0 2px; padding: 0; list-style: none; }
-.stepper li { flex: 1; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--r-sm); background: var(--fill); font-size: 12.5px; font-weight: 600; color: var(--text-3); }
+.stepper li { flex: 1; display: flex; border-radius: var(--r-sm); background: var(--fill); font-size: 12.5px; font-weight: 600; color: var(--text-3); }
+.stepper .step-btn { flex: 1; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 0; border-radius: inherit; background: none; color: inherit; font: inherit; text-align: left; }
+.stepper button.step-btn { cursor: pointer; transition: background var(--fast) var(--ease); }
+.stepper button.step-btn:hover:not(:disabled) { background: var(--fill-2); }
+.stepper button.step-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.wizard-back { margin-right: auto; }
+.flip { display: inline-flex; transform: scaleX(-1); }
 .stepper li.current { background: var(--ink); color: var(--ink-text); }
 .stepper li.current .n { background: var(--ink-text); color: var(--ink); }
 .stepper li.done { color: var(--text); }
@@ -652,3 +658,19 @@ h1, h2, h3, p { margin: 0; }
 .callout { display: flex; gap: 10px; align-items: flex-start; margin-top: 10px; padding: 12px 14px; border-radius: var(--r); background: var(--fill-2); font-size: 12.5px; line-height: 1.55; color: var(--text); }
 .callout > svg { flex: none; margin-top: 2px; }
 .callout code { font: 500 12px/1.4 var(--font-mono); }
+
+/* ---------- Official-client sign-in ---------- */
+.login-panel { display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: var(--r); background: var(--fill); }
+.login-panel.column { flex-direction: column; align-items: stretch; }
+.login-panel.ok { background: var(--fill); }
+.login-panel strong { font-size: 14px; }
+.login-panel .field-hint { margin: 2px 0 0; }
+.login-panel .field-hint.center { text-align: center; }
+.login-row { display: flex; align-items: flex-start; gap: 12px; }
+.login-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.login-badge { display: grid; place-items: center; flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--card); color: var(--text); box-shadow: inset 0 0 0 1px var(--line); }
+.login-badge.ok { background: var(--ink); color: var(--ink-text); box-shadow: none; }
+.login-cta { width: 100%; justify-content: center; gap: 8px; }
+.login-panel .command.small { margin-top: 0; font-size: 11.5px; color: var(--text-2); white-space: pre-wrap; word-break: break-all; }
+.login-panel .link-btn { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; }
+.spinner.lg { width: 22px; height: 22px; flex: none; }

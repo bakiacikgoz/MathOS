@@ -15,6 +15,14 @@ mathos provider status --json
 | ChatGPT/Codex | `mathos provider configure openai-codex-chatgpt --profile codex-personal` then `mathos provider login codex-personal` | Subscription; Codex owns login |
 | Claude Code | `mathos provider configure claude-code-account --profile claude-main` then login | Subscription; Claude Code owns login; terms review gate applies |
 | GitHub Copilot | `mathos provider configure github-copilot-account --profile copilot-main` | Subscription; official SDK/client owns login |
+
+### Signing in to subscription clients
+
+Codex, Claude Code, Gemini CLI, Qwen Code and GitHub Copilot keep their own credentials; MathOS never sees them.
+
+- **Desktop app:** Model Providers → the provider → *Sign in*. For Codex and Claude Code the official sign-in page opens in the browser and the step moves on by itself when you are done. Gemini CLI, Qwen Code and Copilot sign in inside their own window, which the app opens for you. If the client is not installed, *Install for me* runs the vendor's official installer in a visible window.
+- **Terminal:** `mathos provider login <profile>` runs the client's own sign-in in place (`codex login`, `claude auth login`, or the client's window). `mathos provider install-client <profile>` opens the official installer. `--json` adds `--check` (report only), `--background` and `--window` for scripts.
+- `mathos provider status` asks the client whether you are signed in (`codex login status`, `claude auth status --json`) and reports `CLIENT_MISSING`, `LOGIN_REQUIRED` or `CONFIGURED`. Gemini CLI, Qwen Code and Copilot have no status command, so they stay `LOGIN_REQUIRED` until a test request succeeds.
 | OpenRouter | `mathos provider configure openrouter --profile openrouter-main --model auto` | PAYG; MathOS secret store |
 | Kimi Code | `mathos provider configure kimi-code-membership --profile kimi-main --model k3-256k` | Subscription plan, distinct from Kimi Platform PAYG |
 | MiniMax | `mathos provider configure minimax-token-plan-global --profile minimax-main --model MiniMax-M2.7` | Token subscription plan, distinct from MiniMax PAYG |

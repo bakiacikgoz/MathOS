@@ -15,7 +15,8 @@ function mathosDevBridge(): Plugin {
   let seq = 0
   const pending = new Map<string, (value: unknown) => void>()
   const ensure = () => {
-    if (host && host.exitCode === null) return host
+    // A host killed by a signal has exitCode null but signalCode set; both mean it is gone.
+    if (host && host.exitCode === null && host.signalCode === null) return host
     host = spawn(process.env.MATHOS_BUN ?? "bun", [resolve(repoRoot, "apps/desktop/host/host.ts")], { cwd: repoRoot, stdio: ["pipe", "pipe", "pipe"] })
     let buffer = ""
     host.stdout.setEncoding("utf8").on("data", (chunk: string) => {

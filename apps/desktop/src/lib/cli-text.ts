@@ -95,6 +95,7 @@ const ERRORS: Record<string, Pair> = {
   PROVIDER_TERMS_RESTRICTED: ["Sağlayıcının koşulları bu kullanıma izin vermiyor.", "The provider's terms do not allow this use."],
   PROVIDER_MODEL_PROTOCOL_UNSUPPORTED: ["Bu model MathOS'un desteklemediği bir protokol kullanıyor.", "This model uses a protocol MathOS does not support."],
   SECRET_VALUE_INVALID: ["Anahtar boş olamaz ve tek satır olmalı.", "The key cannot be empty and must be a single line."],
+  PROVIDER_LOGIN_NOT_SUPPORTED: ["Bu sağlayıcı uygulama içinden giriş desteklemiyor.", "This provider does not support signing in from the app."],
   LIVE_USAGE_ACCEPTANCE_REQUIRED: ["Ücretli deneme isteği için onay gerekiyor.", "Consent is required for a paid test request."],
 }
 /** A readable message for a CLI or bridge error, falling back to the original text. */

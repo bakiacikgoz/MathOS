@@ -60,4 +60,19 @@ describe("provider CLI for gateways and generic endpoints", () => {
     expect(await configure("generic-openai-compatible", "--profile", `cli-leak-${process.pid}`, "--base-url", "https://llm.example.test/v1", "--model", "m1", "--header", "Authorization: Bearer sk-live")).not.toBe(0); expect(errors + output).toContain("MODEL_PROFILE_SECRET_FORBIDDEN")
     expect(output + errors).not.toContain("sk-live")
   })
+
+  test("configure --update changes a profile in place and keeps its key reference", async () => {
+    const id = `cli-upd-${process.pid}`; ids.push(id)
+    expect(await configure("opencode-go", "--profile", id, "--model", "kimi-k3")).toBe(0)
+    const before = JSON.parse(output).profile
+    expect(await configure("opencode-go", "--profile", id, "--model", "glm-5.3", "--update")).toBe(0)
+    const after = JSON.parse(output).profile
+    expect(after.model).toBe("glm-5.3")
+    expect(after.auth).toEqual(before.auth)
+    expect(after.metadata.createdAt).toBe(before.metadata.createdAt)
+    // Without --update the same id is refused; --update for a missing or different provider is refused.
+    expect(await configure("opencode-go", "--profile", id, "--model", "kimi-k3")).not.toBe(0)
+    expect(await configure("opencode-zen", "--profile", id, "--model", "gpt-5.5", "--update")).not.toBe(0)
+    expect(await configure("opencode-go", "--profile", `${id}-missing`, "--model", "kimi-k3", "--update")).not.toBe(0)
+  })
 })

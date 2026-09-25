@@ -11,7 +11,7 @@ export interface ProviderDescriptor {
   defaultModels: string[]; modelProtocols?: Array<{ model: string; protocol: WireProtocol | "unsupported" }>
 }
 export interface CatalogEntry { descriptor: ProviderDescriptor; policy: { allowed: boolean; code: string; remediation: string | null } }
-export interface ProfileRow { id: string; descriptorId: string; model: string; auth: { kind: string; secretRef?: string } }
+export interface ProfileRow { id: string; descriptorId: string; model: string; auth: { kind: string; secretRef?: string }; endpointPresetId?: string | null; baseUrlOverride?: string | null; extraHeaders?: Record<string, string> }
 export interface StatusRow { profile: string; descriptor: string; connection: string; model: string; billing: string; terms: string; auth: string }
 
 export const providerKeys = { all: "providers|", catalog: "providers|catalog", list: "providers|list", status: "providers|status" }
@@ -34,6 +34,13 @@ export function configureArgs(input: ConfigureInput): string[] {
   if (input.protocol && acceptsProtocol(input.descriptor)) args.push("--protocol", input.protocol)
   if (isGeneric(input.descriptor)) for (const line of (input.headers ?? "").split("\n").map((value) => value.trim()).filter(Boolean)) args.push("--header", line)
   return args
+}
+
+const WIRE: readonly string[] = ["openai-chat", "openai-responses", "anthropic-messages"]
+/** The wizard form for a saved profile, so returning to "Set up" shows what is stored. */
+export function formFromProfile(descriptor: ProviderDescriptor, profile: ProfileRow) {
+  const protocol: WireProtocol | "" = acceptsProtocol(descriptor) && profile.endpointPresetId && WIRE.includes(profile.endpointPresetId) && (isGeneric(descriptor) || profile.endpointPresetId !== descriptor.endpointPresets[0]?.id) ? profile.endpointPresetId as WireProtocol : ""
+  return { profile: profile.id, model: profile.model === "auto" ? "" : profile.model, baseUrl: profile.baseUrlOverride ?? "", protocol, headers: Object.entries(profile.extraHeaders ?? {}).map(([name, value]) => `${name}: ${value}`).join("\n") }
 }
 
 export const validProfileId = (value: string) => /^[a-z0-9][a-z0-9._-]{0,63}$/i.test(value.trim())
