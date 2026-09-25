@@ -49,7 +49,7 @@ export function Sidebar({ onPalette }: { onPalette: () => void }) {
           <div key={group.id} className="nav-group" role="group" aria-label={t(group.label)} data-tour={`nav-${group.id}`}>
             <div className="nav-group-label" aria-hidden>{t(group.label)}</div>
             {NAV.filter((item) => item.group === group.id).map((item) => (
-              <NavItem key={item.route} route={item.route} icon={item.icon} label={t(item.label)} shortcut={`${mod}${item.key}`} signal={signals[item.route] ?? null} collapsed={collapsed} />
+              <NavItem key={item.route} route={item.route} icon={item.icon} label={t(item.label)} shortcut={item.key ? `${mod}${item.key}` : ""} signal={signals[item.route] ?? null} collapsed={collapsed} />
             ))}
           </div>
         ))}

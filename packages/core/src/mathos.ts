@@ -984,6 +984,10 @@ export class MathOS {
   researchTrace(id: string) { return this.researchEngine.trace(id) }
   answerResearch(runId: string, blockerId: string, text: string) { return this.researchEngine.answer(runId, blockerId, text) }
   latestResearch() { return this.researchEngine.latest() }
+  /** All research runs of the workspace, newest first. */
+  listResearch() { const workspace = this.workspaces.get(); return workspace ? this.researchStores().runs.ids(workspace.id).map((id) => this.researchEngine.get(id)).reverse() : [] }
+  /** Open questions a run has put to the person (REQUEST_HUMAN and other blockers raised by its steps). */
+  researchBlockers(runId: string) { const run = this.researchEngine.get(runId), steps = new Set(this.researchEngine.history(run.id).map((step) => step.id)); return this.researchStores().blockers.open(run.branchId).filter((blocker) => blocker.createdByStepId !== null && steps.has(blocker.createdByStepId)) }
   pauseResearch(id: string) { return this.researchEngine.pause(id) }
   resumeResearch(id: string) { return this.researchEngine.resume(id) }
   stepResearch(id: string) { return this.researchEngine.step(id) }

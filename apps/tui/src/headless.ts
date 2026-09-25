@@ -757,8 +757,10 @@ export async function runHeadless(argv: string[]): Promise<number> {
       if (command === "research") {
         const json = rest.includes("--json")
         const sub = rest.find((item) => !item.startsWith("--"))
+        if (sub === "list") { process.stdout.write(`${JSON.stringify({ schemaVersion: "mathos.research.list.v1", runs: app.listResearch() })}\n`); return 0 }
         if (sub === "start") {
-          const run = app.startResearch()
+          const objective = flag(rest, "--claim"), maxSteps = flag(rest, "--max-steps")
+          const run = app.startResearch({ ...(objective ? { objectiveClaimId: objective.toUpperCase() } : {}), ...(maxSteps ? { limits: { maxSteps: Math.max(1, Math.min(200, Number(maxSteps))) } } : {}) })
           process.stdout.write(json ? `${JSON.stringify(run, null, 2)}\n` : `Started ${run.id} on ${run.branchId}\n`)
           return 0
         }
@@ -796,7 +798,7 @@ export async function runHeadless(argv: string[]): Promise<number> {
         }
         if (sub === "show" && rest[1]) {
           const run = app.getResearch(rest[1])
-          process.stdout.write(json ? `${JSON.stringify({ run, steps: app.researchHistory(run.id) }, null, 2)}\n` : `${formatResearchRun(run, app.researchHistory(run.id))}\n`)
+          process.stdout.write(json ? `${JSON.stringify({ run, steps: app.researchHistory(run.id), questions: app.researchBlockers(run.id) }, null, 2)}\n` : `${formatResearchRun(run, app.researchHistory(run.id))}\n`)
           return 0
         }
         if (sub === "history" && rest[1]) {

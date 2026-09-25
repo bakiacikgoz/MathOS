@@ -19,6 +19,7 @@ const Assistant = lazy(() => import("./views/Assistant.tsx").then((m) => ({ defa
 const Reports = lazy(() => import("./views/Reports.tsx").then((m) => ({ default: m.Reports })))
 const Graph = lazy(() => import("./views/Graph.tsx").then((m) => ({ default: m.Graph })))
 const Literature = lazy(() => import("./views/Literature.tsx").then((m) => ({ default: m.Literature })))
+const Research = lazy(() => import("./views/Research.tsx").then((m) => ({ default: m.Research })))
 const Claims = lazy(() => import("./views/Claims.tsx").then((m) => ({ default: m.Claims })))
 const Branches = lazy(() => import("./views/Branches.tsx").then((m) => ({ default: m.Branches })))
 const Health = lazy(() => import("./views/Health.tsx").then((m) => ({ default: m.Health })))
@@ -71,7 +72,7 @@ export function App() {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (!(event.metaKey || event.ctrlKey) || event.altKey || !workspace) return
-      const nav = NAV.find((item) => item.key === event.key)
+      const nav = NAV.find((item) => item.key && item.key === event.key)
       if (nav) { event.preventDefault(); navigate(nav.route); return }
       if (event.key === "k") { event.preventDefault(); setPalette((value) => !value) }
       else if (event.key === "n") { event.preventDefault(); setNewClaim(true) }
@@ -123,6 +124,7 @@ function Screen({ route }: { route: Route }) {
       {route === "branches" && <Branches />}
       {route === "reports" && <Reports />}
       {route === "literature" && <Literature />}
+      {route === "research" && <Research />}
       {route === "health" && <Health />}
       {route === "providers" && <Providers />}
       {route === "settings" && <Settings />}
@@ -130,7 +132,7 @@ function Screen({ route }: { route: Route }) {
   )
 }
 
-const ROUTES: Route[] = ["overview", "assistant", "claims", "graph", "literature", "branches", "reports", "health", "providers", "console", "settings"]
+const ROUTES: Route[] = ["overview", "assistant", "claims", "graph", "literature", "research", "branches", "reports", "health", "providers", "console", "settings"]
 function validWorkspace(value: unknown): Workspace | null {
   if (!value || typeof value !== "object") return null
   const { root, name } = value as Partial<Workspace>
