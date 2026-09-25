@@ -680,3 +680,33 @@ h1, h2, h3, p { margin: 0; }
 .login-panel .command.small { margin-top: 0; font-size: 11.5px; color: var(--text-2); white-space: pre-wrap; word-break: break-all; }
 .login-panel .link-btn { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; }
 .spinner.lg { width: 22px; height: 22px; flex: none; }
+
+/* ---------- Math input ---------- */
+.math-input { display: flex; flex-direction: column; gap: 6px; }
+.math-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.math-key { min-width: 30px; height: 30px; padding: 0 7px; border: 0; border-radius: 8px; background: var(--fill); color: var(--text); font: 500 14px/1 var(--font-serif, serif); cursor: pointer; transition: background var(--fast) var(--ease); }
+.math-key:hover { background: var(--fill-2); }
+.math-key:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.math-key.tpl { font-size: 13px; }
+.math-key.wide { display: inline-flex; align-items: center; gap: 5px; font: 600 12px/1 var(--font); padding: 0 10px; }
+.math-key.on { background: var(--ink); color: var(--ink-text); }
+.math-sep { width: 1px; height: 18px; margin: 0 3px; background: var(--line-2); }
+.math-spacer { flex: 1; }
+.math-palette { padding: 8px; border-radius: 12px; background: var(--fill); }
+.math-tabs { display: flex; flex-wrap: wrap; gap: 2px; margin-bottom: 6px; }
+.math-tabs button { border: 0; background: none; padding: 5px 9px; border-radius: 7px; font: 600 12px/1 var(--font); color: var(--text-2); cursor: pointer; }
+.math-tabs button.on { background: var(--card); color: var(--text); box-shadow: var(--shadow-sm); }
+.math-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)); gap: 4px; }
+.math-grid .math-key { background: var(--card); }
+.math-grid .math-key:hover { background: var(--fill-2); }
+.textarea.mono { font-family: var(--font-mono); font-size: 13px; }
+.math-hint { min-height: 30px; font-size: 12px; color: var(--text-3); }
+.math-suggest { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.math-suggest button { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 8px; border: 0; border-radius: 8px; background: var(--fill); color: var(--text); cursor: pointer; }
+.math-suggest button.on { background: var(--ink); color: var(--ink-text); }
+.math-suggest .sym { font: 500 15px/1 var(--font-serif, serif); }
+.math-suggest .cmd { font: 500 11.5px/1 var(--font-mono); opacity: 0.75; }
+.math-suggest .key { margin-left: 4px; }
+.math-preview { margin-top: 2px; }
+.equation-field { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; background: var(--fill); }
+.equation-field math-field { flex: 1; min-height: 48px; font-size: 22px; background: transparent; color: var(--text); border: 0; outline: none; --caret-color: var(--text); --selection-background-color: var(--fill-2); --contains-highlight-background-color: var(--fill-2); }

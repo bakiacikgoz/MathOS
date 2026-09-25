@@ -1,0 +1,33 @@
+import { describe, expect, test } from "bun:test"
+import { completions, insertion, insideMath, leanAbbreviation } from "./math-symbols.ts"
+
+describe("math input helpers", () => {
+  test("detects whether the cursor is inside $…$ or \\(…\\)", () => {
+    expect(insideMath("a $x", 4)).toBe(true)
+    expect(insideMath("a $x$ b", 7)).toBe(false)
+    expect(insideMath("cost \\$5 and $y", 15)).toBe(true)
+    expect(insideMath("\\(x", 3)).toBe(true)
+  })
+
+  test("symbols outside math are wrapped in dollars; templates put the cursor in the first slot", () => {
+    expect(insertion("for ", 4, "\\le", "latex")).toEqual({ insert: "$\\le $", caret: 5 })
+    expect(insertion("$x", 2, "\\le", "latex")).toEqual({ insert: "\\le ", caret: 4 })
+    expect(insertion("$", 1, "\\frac{‸}{}", "latex")).toEqual({ insert: "\\frac{}{}", caret: 6 })
+    expect(insertion("", 0, "\\le", "lean", "≤")).toEqual({ insert: "≤", caret: 1 })
+  })
+
+  test("backslash completions rank exact and prefix matches first; Lean mode lists only Lean symbols", () => {
+    expect(completions("alp", "latex")[0]?.show).toBe("α")
+    expect(completions("fora", "lean")[0]?.show).toBe("∀")
+    expect(completions("propto", "lean")).toHaveLength(0)
+    expect(completions("", "latex")).toHaveLength(0)
+  })
+
+  test("Lean abbreviations follow the editor input method", () => {
+    expect(leanAbbreviation("forall")).toBe("∀")
+    expect(leanAbbreviation("N")).toBe("ℕ")
+    expect(leanAbbreviation("to")).toBe("→")
+    expect(leanAbbreviation("_2")).toBe("₂")
+    expect(leanAbbreviation("nosuch")).toBeNull()
+  })
+})

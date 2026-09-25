@@ -1,4 +1,4 @@
-import { useDeferredValue, useState } from "react"
+import { useState } from "react"
 import { useApp, type Claim } from "../lib/app.ts"
 import { runJson } from "../lib/bridge.ts"
 import { invalidate } from "../lib/query.ts"
@@ -7,7 +7,7 @@ import { CLAIM_KINDS, kindLabel, type ClaimKind } from "../lib/status.ts"
 import { Sheet } from "../components/Overlay.tsx"
 import { Segmented } from "../components/Primitives.tsx"
 import { errorText } from "../lib/cli-text.ts"
-import { MathText } from "../components/MathText.tsx"
+import { MathInput } from "../components/MathInput.tsx"
 
 export function NewClaimSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const app = useApp()
@@ -18,7 +18,6 @@ export function NewClaimSheet({ open, onClose }: { open: boolean; onClose: () =>
   const [objective, setObjective] = useState(false)
   const [busy, setBusy] = useState(false)
   const [touched, setTouched] = useState(false)
-  const preview = useDeferredValue(statement)
   const valid = title.trim() && statement.trim()
 
   const submit = async (event?: React.FormEvent) => {
@@ -55,14 +54,11 @@ export function NewClaimSheet({ open, onClose }: { open: boolean; onClose: () =>
           <input className="input" value={title} onChange={(event) => setTitle(event.target.value)} placeholder={t("claimForm.namePlaceholder")} />
           {touched && !title.trim() && <span className="field-error">{t("common.required")}</span>}
         </label>
-        <label className="field">
+        <div className="field">
           <span className="field-label">{t("claimForm.statement")}</span>
-          <textarea className="textarea" value={statement} onChange={(event) => setStatement(event.target.value)} placeholder={t("claimForm.statementPlaceholder")} spellCheck={false} />
+          <MathInput value={statement} onChange={setStatement} label={t("claimForm.statement")} placeholder={t("claimForm.statementPlaceholder")} />
           {touched && !statement.trim() && <span className="field-error">{t("common.required")}</span>}
-        </label>
-        {preview.includes("$") || preview.includes("\\(") || preview.includes("\\[") ? (
-          <div className="field"><span className="field-label">{t("claimForm.preview")}</span><div className="preview-box"><MathText text={preview} /></div></div>
-        ) : null}
+        </div>
         <label className="check"><input type="checkbox" checked={objective} onChange={(event) => setObjective(event.target.checked)} />{t("claimForm.objective")}</label>
         <button type="submit" hidden />
       </form>
