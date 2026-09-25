@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node
 import { homedir } from "node:os"
 import { delimiter, join, resolve } from "node:path"
 import type { DoctorCheck, LeanDiagnostic } from "@mathos/domain"
-import { PINNED_LEAN_TOOLCHAIN, PINNED_MATHLIB_REV } from "./pin.ts"
+import { FORMAL_PROJECT_DIR, MATHLIB_GIT_URL, PINNED_LEAN_TOOLCHAIN, PINNED_MATHLIB_REV } from "./pin.ts"
 import type {
   LeanAdapter,
   LeanCheckResult,
@@ -133,6 +133,43 @@ export function parseAxioms(text: string): string[] {
   return lines
 }
 
+/** Writes the workspace's Lean project (toolchain, lakefile with the pinned Mathlib, a smoke module) where missing. */
+export function writeFormalProject(workspaceRoot: string, existingRoot: string | null = null): { projectRoot: string; created: boolean; toolchainPath: string } {
+  const projectRoot = existingRoot ?? join(workspaceRoot, FORMAL_PROJECT_DIR)
+  mkdirSync(projectRoot, { recursive: true })
+  mkdirSync(join(projectRoot, "MathosFormal"), { recursive: true })
+  mkdirSync(join(projectRoot, "Claims"), { recursive: true })
+
+  let created = false
+  const toolchainPath = join(projectRoot, "lean-toolchain")
+  const lakefilePath = join(projectRoot, "lakefile.toml")
+  if (!existsSync(toolchainPath)) {
+    writeFileSync(toolchainPath, `${PINNED_LEAN_TOOLCHAIN}\n`, "utf8")
+    created = true
+  }
+  // Mathlib comes straight from its git repository rather than through the Reservoir index, which is one less
+  // service to reach (and the one most often blocked on locked-down networks). Older MathOS lakefiles are migrated.
+  const lakefile = `name = "mathosFormal"\nversion = "0.1.0"\ndefaultTargets = ["MathosFormal"]\n\n[[require]]\nname = "mathlib"\ngit = "${MATHLIB_GIT_URL}"\nrev = "${PINNED_MATHLIB_REV}"\n\n[[lean_lib]]\nname = "MathosFormal"\n`
+  const legacy = `name = "mathosFormal"\nversion = "0.1.0"\ndefaultTargets = ["MathosFormal"]\n\n[[require]]\nname = "mathlib"\nscope = "leanprover-community"\nrev = "${PINNED_MATHLIB_REV}"\n\n[[lean_lib]]\nname = "MathosFormal"\n`
+  if ((!existsSync(lakefilePath) && !existsSync(join(projectRoot, "lakefile.lean"))) || (existsSync(lakefilePath) && readFileSync(lakefilePath, "utf8") === legacy)) {
+    writeFileSync(lakefilePath, lakefile, "utf8")
+    created = true
+  }
+  if (!existsSync(join(projectRoot, "MathosFormal.lean"))) {
+    writeFileSync(join(projectRoot, "MathosFormal.lean"), "import MathosFormal.Smoke\n", "utf8")
+    created = true
+  }
+  if (!existsSync(join(projectRoot, "MathosFormal", "Smoke.lean"))) {
+    writeFileSync(
+      join(projectRoot, "MathosFormal", "Smoke.lean"),
+      "import Mathlib\n\ntheorem mathos_smoke (n : Nat) : n = n := by\n  rfl\n",
+      "utf8",
+    )
+    created = true
+  }
+  return { projectRoot, created, toolchainPath }
+}
+
 export class NativeLeanAdapter implements LeanAdapter {
   async detect(workspaceRoot: string): Promise<LeanEnvironment> {
     const lean = run("lean", ["--version"])
@@ -244,38 +281,7 @@ export class NativeLeanAdapter implements LeanAdapter {
 
   async setupProject(workspaceRoot: string): Promise<LeanSetupResult> {
     const existing = await this.detect(workspaceRoot)
-    const projectRoot = existing.projectRoot ?? join(workspaceRoot, "formal")
-    mkdirSync(projectRoot, { recursive: true })
-    mkdirSync(join(projectRoot, "MathosFormal"), { recursive: true })
-    mkdirSync(join(projectRoot, "Claims"), { recursive: true })
-
-    let created = false
-    const toolchainPath = join(projectRoot, "lean-toolchain")
-    const lakefilePath = join(projectRoot, "lakefile.toml")
-    if (!existsSync(toolchainPath)) {
-      writeFileSync(toolchainPath, `${PINNED_LEAN_TOOLCHAIN}\n`, "utf8")
-      created = true
-    }
-    if (!existsSync(lakefilePath) && !existsSync(join(projectRoot, "lakefile.lean"))) {
-      writeFileSync(
-        lakefilePath,
-        `name = "mathosFormal"\nversion = "0.1.0"\ndefaultTargets = ["MathosFormal"]\n\n[[require]]\nname = "mathlib"\nscope = "leanprover-community"\nrev = "${PINNED_MATHLIB_REV}"\n\n[[lean_lib]]\nname = "MathosFormal"\n`,
-        "utf8",
-      )
-      created = true
-    }
-    if (!existsSync(join(projectRoot, "MathosFormal.lean"))) {
-      writeFileSync(join(projectRoot, "MathosFormal.lean"), "import MathosFormal.Smoke\n", "utf8")
-      created = true
-    }
-    if (!existsSync(join(projectRoot, "MathosFormal", "Smoke.lean"))) {
-      writeFileSync(
-        join(projectRoot, "MathosFormal", "Smoke.lean"),
-        "import Mathlib\n\ntheorem mathos_smoke (n : Nat) : n = n := by\n  rfl\n",
-        "utf8",
-      )
-      created = true
-    }
+    const { projectRoot, created, toolchainPath } = writeFormalProject(workspaceRoot, existing.projectRoot)
 
     const toolchain = readFileSync(toolchainPath, "utf8").trim()
     run("elan", ["toolchain", "install", toolchain])

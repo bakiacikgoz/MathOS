@@ -8,6 +8,7 @@ import { Icon } from "../components/Icon.tsx"
 import { Sheet } from "../components/Overlay.tsx"
 import { MathText } from "../components/MathText.tsx"
 import { MathInput } from "../components/MathInput.tsx"
+import { LeanSetup, useLeanStatus } from "../components/LeanSetup.tsx"
 
 // Shape of `workflow` in `mathos claim show <id> --json` (MathOS.claimWorkflow).
 export interface Workflow {
@@ -50,6 +51,8 @@ export function ClaimWorkflow({ claimId, statement, workflow }: { claimId: strin
   const [busy, setBusy] = useState<string | null>(null)
   const [editor, setEditor] = useState(false)
   const [notice, setNotice] = useState<{ step: StepId; tone: "ok" | "no"; text: string } | null>(null)
+  const [setup, setSetup] = useState(false)
+  const lean = useLeanStatus(root)
   const reached = (step: StepId) => workflow.next === "done" || ORDER.indexOf(step) <= ORDER.indexOf(workflow.next as StepId)
 
   const act = async (key: string, step: StepId, work: () => Promise<{ tone: "ok" | "no"; text: string } | void>) => {
@@ -162,6 +165,13 @@ export function ClaimWorkflow({ claimId, statement, workflow }: { claimId: strin
   return (
     <>
       <div className="section-title">{t("wf.title")}</div>
+      {lean.data && !lean.data.ready && !workflow.verified && (
+        <div className="wf-notice no wf-lean" role="status"><Icon name="info" size={15} />
+          <div style={{ flex: 1 }}><strong>{t("lean.bannerTitle")}</strong><div>{t("lean.bannerBody")}</div></div>
+          <button className="btn btn-primary btn-sm" onClick={() => setSetup(true)}><Icon name="download" size={14} />{lean.data.job ? t("lean.installing") : t("lean.setupNow")}</button>
+        </div>
+      )}
+      {setup && <Sheet open onClose={() => setSetup(false)} title={t("lean.sheetTitle")}><LeanSetup compact /></Sheet>}
       <ol className="wf" data-tour="claims-workflow">
         {steps.map((step, index) => {
           const current = workflow.next === step.id, open = current || step.done || notice?.step === step.id

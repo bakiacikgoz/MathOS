@@ -5,12 +5,14 @@ import { Icon } from "../components/Icon.tsx"
 import { CountUp, ErrorBox, Skeleton, StatusPill } from "../components/Primitives.tsx"
 import { HelpButton, useAutoTour } from "../components/Tour.tsx"
 import { MathText } from "../components/MathText.tsx"
+import { useLeanStatus } from "../components/LeanSetup.tsx"
 
 export function Overview() {
   const app = useApp()
   const { t } = useT()
   const status = useStatus(app.workspace.root)
   const claims = useClaims(app.workspace.root)
+  const lean = useLeanStatus(app.workspace.root)
   const s = status.data?.status
   const objective = s?.mainObjective ? claims.data?.find((claim) => claim.id === s.mainObjective!.id) : undefined
   const total = s?.research.totalClaims ?? 0
@@ -34,6 +36,12 @@ export function Overview() {
       </div>
 
       {status.error ? <ErrorBox error={status.error} onRetry={() => status.refetch()} /> : null}
+      {lean.data && !lean.data.ready && (
+        <div className="wf-notice no wf-lean" role="status"><Icon name="info" size={15} />
+          <div style={{ flex: 1 }}><strong>{lean.data.job ? t("lean.installing") : t("lean.bannerTitle")}</strong><div>{t("lean.bannerBody")}</div></div>
+          <button className="btn btn-primary btn-sm" onClick={() => app.navigate("health")}><Icon name="download" size={14} />{lean.data.job ? t("lean.showProgress") : t("lean.setupNow")}</button>
+        </div>
+      )}
 
       <div className="stagger">
         <section data-tour="objective" className="card hero-objective" style={{ "--i": 0 } as React.CSSProperties}>

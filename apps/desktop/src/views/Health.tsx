@@ -5,6 +5,7 @@ import { Icon } from "../components/Icon.tsx"
 import { HelpButton, useAutoTour } from "../components/Tour.tsx"
 import { checkDetail, checkName } from "../lib/cli-text.ts"
 import { ErrorBox, Skeleton } from "../components/Primitives.tsx"
+import { LeanSetup } from "../components/LeanSetup.tsx"
 
 export function Health() {
   const app = useApp()
@@ -29,6 +30,7 @@ export function Health() {
         </div>
       </div>
       {doctor.error ? <ErrorBox error={doctor.error} onRetry={() => doctor.refetch()} /> : null}
+      <div style={{ marginBottom: 14 }}><LeanSetup onReady={() => void doctor.refetch()} /></div>
       <div className="card health-hero view-enter" data-tour="health-hero">
         <svg className="health-ring" viewBox="0 0 64 64" aria-hidden>
           <circle cx="32" cy="32" r="26" fill="none" stroke="var(--fill-2)" strokeWidth="6" />

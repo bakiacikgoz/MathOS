@@ -99,7 +99,7 @@ const ERRORS: Record<string, Pair> = {
   SECRET_VALUE_INVALID: ["Anahtar boş olamaz ve tek satır olmalı.", "The key cannot be empty and must be a single line."],
   MODEL_ROUTE_UNAVAILABLE: ["Bu adım için bir model yapılandırılmamış. Model Sağlayıcıları'ndan bir varsayılan seçin.", "No model is configured for this step. Choose a default in Model Providers."],
   MODEL_ROUTE_BLOCKED: ["Model kullanılamıyor: bulut modelleri kapalı ya da profil engelli. Ayarlar > Gizlilik'e bakın.", "The model cannot be used: cloud models are off or the profile is blocked. See Settings > Privacy."],
-  LEANNOTINSTALLED: ["Lean bu bilgisayarda kurulu değil. Sistem Durumu sayfası kurulum adımlarını gösterir.", "Lean is not installed on this computer. The Health page shows how to install it."],
+  LEANNOTINSTALLED: ["Lean bu bilgisayarda kurulu değil. Sistem Durumu sayfasından tek tıkla kurabilirsiniz.", "Lean is not installed on this computer. Install it with one click from the Health page."],
   PROOFPREREQUISITEFAILED: ["İspat için önce anlamın aynı olduğunu onaylayın.", "Approve that the meanings match before proving."],
   UNRESOLVED_ALIGNMENT_ERROR: ["Model ciddi bir anlam farkı buldu; onaydan önce Lean ifadesini düzeltin.", "The model found a serious difference in meaning; fix the Lean statement before approving."],
   FORMALSTATEMENTNOTFOUND: ["Bu önermenin henüz bir Lean ifadesi yok.", "This claim has no Lean statement yet."],

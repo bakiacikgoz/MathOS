@@ -25,6 +25,8 @@ import { PersistentPluginRegistry } from "@mathos/plugins"
 import { applyAtomicUpdate, checkUpdate, rollbackUpdate, verifyUpdateArtifact, type UpdateManifest } from "@mathos/update"
 import { runProviderLiveSmoke } from "../../../scripts/providers/live-smoke.ts"
 import { configuredModelProviders, configuredModelRoleAssignments } from "./model-runtime.ts"
+import { installLean, leanInstallStatus, type LeanInstallEvent } from "@mathos/lean"
+import { cancelJob, jobsCanRunInBackground, listJobs, pollJob, startJob } from "./jobs.ts"
 
 function joinCwdBackups(): string {
   return join(process.cwd(), "backups")
@@ -56,7 +58,7 @@ function flag(args: string[], name: string): string | undefined {
 export const CLI_COMMAND_CATEGORIES = {
   workspace: ["init", "demo", "workspace", "backup", "restore", "events", "status"],
   claims: ["claim", "claims", "objective"],
-  formal: ["formalize", "formal", "prove", "verify", "search-theorem", "premises", "index"],
+  formal: ["formalize", "formal", "prove", "verify", "search-theorem", "premises", "index", "lean"],
   research: ["research", "graph", "ledger", "why", "report"],
   literature: ["literature", "source", "citation", "external", "ingest"],
   experiments: ["experiment", "solver"],
@@ -64,7 +66,7 @@ export const CLI_COMMAND_CATEGORIES = {
   notebook: ["notebook", "context", "align", "portfolio", "failures"],
   atlas: ["atlas"],
   distribution: ["plugin", "capsule", "publication"],
-  setup: ["setup", "config", "provider", "secrets", "usage"],
+  setup: ["setup", "config", "provider", "secrets", "usage", "job"],
   diagnostics: ["doctor", "diagnostics", "update", "version", "--version", "help", "--help", "-h"],
 } as const
 
@@ -110,6 +112,33 @@ export async function runHeadless(argv: string[]): Promise<number> {
       if (action === "set") { const path = rest[1], raw = rest[2]; if (!path || raw === undefined) throw new Error("Usage: mathos config set <path> <value>"); const existing = existsSync(userPath) ? parseMathOSConfig(readFileSync(userPath, "utf8")) : {}; const value: ConfigScalar = raw === "true" || raw === "false" ? raw === "true" : raw.startsWith("[") ? JSON.parse(raw) : raw; const text = serializeConfigValues({ ...existing, [path]: value }); mkdirSync(dirname(userPath), { recursive: true }); writeFileSync(userPath, text, { encoding: "utf8", mode: 0o600 }); process.stdout.write(`${path} updated in ${userPath}\n`); return 0 }
       if (action === "validate" || action === "doctor") { const report = { ok: true, userPath, workspace: workspaceRoot ?? null, secretValuesPersisted: false }; process.stdout.write(`${JSON.stringify(report, null, 2)}\n`); return 0 }
       throw new Error(`Unknown config action: ${action}`)
+    }
+
+    // Background jobs of the desktop host (Lean install, assistant turns): the app polls them for new events.
+    if (command === "job") {
+      const action = rest[0], id = rest[1]
+      if (action === "list") { process.stdout.write(`${JSON.stringify({ schemaVersion: "mathos.jobs.v1", jobs: listJobs(flag(rest, "--kind")) }, null, 2)}\n`); return 0 }
+      if (!id) throw new Error("Usage: mathos job poll <id> [--since N] | cancel <id> | list [--kind K]")
+      if (action === "poll") { process.stdout.write(`${JSON.stringify(pollJob(id, Number(flag(rest, "--since") ?? 0)))}\n`); return 0 }
+      if (action === "cancel") { process.stdout.write(`${JSON.stringify({ id, cancelled: cancelJob(id) })}\n`); return 0 }
+      throw new Error(`Unknown job action: ${action}`)
+    }
+
+    // Lean and Mathlib for this workspace. The desktop starts the install as a job; in a terminal it runs in place.
+    if (command === "lean") {
+      const root = MathOS.tryLocate(process.cwd()) ?? process.cwd(), action = rest[0] ?? "status"
+      if (action === "status") { const running = listJobs("lean-install").find((job) => job.state === "running" && job.key === `lean-install:${root}`); process.stdout.write(`${JSON.stringify({ ...leanInstallStatus(root), job: running?.id ?? null }, null, 2)}\n`); return 0 }
+      if (action === "install") {
+        const accepted = (flag(rest, "--accept-downloads") ?? rest.find((value) => value.startsWith("--accept-downloads="))?.slice(19))?.split(",") ?? []
+        if (!accepted.includes("lean") || !accepted.includes("mathlib")) throw new Error("SETUP_CONSENT_REQUIRED: use --accept-downloads=lean,mathlib")
+        if (rest.includes("--background") && jobsCanRunInBackground()) {
+          const started = startJob("lean-install", `lean-install:${root}`, (emit, signal) => installLean(root, (event) => emit(event as unknown as Record<string, unknown>), { signal }))
+          process.stdout.write(`${JSON.stringify({ job: started.id, reused: started.reused })}\n`); return 0
+        }
+        const print = (event: LeanInstallEvent) => { if (event.type === "step") process.stdout.write(`${event.state === "failed" ? "✗" : event.state === "done" ? "✓" : event.state === "skipped" ? "·" : "→"} ${event.step}${event.detail ? `  ${event.detail}` : ""}\n`); else if (event.type === "log" && !rest.includes("--quiet")) process.stdout.write(`    ${event.line}\n`) }
+        const status = await installLean(root, print); process.stdout.write(`${JSON.stringify(status, null, 2)}\n`); return status.ready ? 0 : 2
+      }
+      throw new Error(`Unknown lean action: ${action}`)
     }
 
     if (command === "setup") {

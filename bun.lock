@@ -35,6 +35,7 @@
         "@mathos/core": "workspace:*",
         "@mathos/domain": "workspace:*",
         "@mathos/graph": "workspace:*",
+        "@mathos/lean": "workspace:*",
         "@mathos/notebook": "workspace:*",
         "@mathos/plugins": "workspace:*",
         "@mathos/shared": "workspace:*",

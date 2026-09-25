@@ -19,6 +19,9 @@ const line = (...parts: unknown[]) => `${parts.map((part) => typeof part === "st
 console.log = console.info = (...parts: unknown[]) => { process.stdout.write(line(...parts)) }
 console.warn = console.error = (...parts: unknown[]) => { process.stderr.write(line(...parts)) }
 
+// Jobs (Lean install, assistant turns) keep running here after the request that started them returns.
+;(globalThis as { __mathosDesktopHost?: boolean }).__mathosDesktopHost = true
+
 const send = (value: HostResponse | HostReady) => { rawStdout(`${JSON.stringify(value)}\n`) }
 const homeCwd = process.cwd()
 
