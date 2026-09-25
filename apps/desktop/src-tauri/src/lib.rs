@@ -40,6 +40,12 @@ pub fn run() {
                 window.set_decorations(false)?;
                 window.set_shadow(true)?;
             }
+            // Load the host while the welcome screen is shown: a cold start (and, on Windows,
+            // the first antivirus scan of the sidecar) otherwise lands on the first click.
+            let warm = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                warm.state::<Host>().warm().await;
+            });
             // The window starts hidden so the first frame is already themed; the
             // frontend shows it after mount. This is the safety net if it cannot.
             let handle = app.handle().clone();

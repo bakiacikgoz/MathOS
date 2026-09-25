@@ -31,6 +31,9 @@ const result = await Bun.build({
   plugins: [solidPlugin],
   compile: { target: target as never, outfile, autoloadBunfig: false },
   minify: true,
+  // Precompiled bytecode starts the host several times faster than parsing the bundle on every launch.
+  bytecode: true,
+  format: "esm",
 })
 if (!result.success) { for (const log of result.logs) console.error(log); process.exit(1) }
 console.log(`Built desktop host: ${outfile}`)

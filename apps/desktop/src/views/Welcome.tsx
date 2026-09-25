@@ -32,7 +32,9 @@ export function Welcome({ recent, onOpen, onForget, toast, theme, setLang }: Pro
   const [sheet, setSheet] = useState<null | "create" | "demo">(null)
   const [notWorkspace, setNotWorkspace] = useState<string | null>(null)
 
+  const [picked, setPicked] = useState(false)
   const open = async (path: string) => {
+    if (busy) return
     setBusy(path)
     try { onOpen(await inspectWorkspace(path)) }
     catch (error) {
@@ -40,7 +42,11 @@ export function Welcome({ recent, onOpen, onForget, toast, theme, setLang }: Pro
       else toast(errorText(error, lang), "error")
     } finally { setBusy(null) }
   }
-  const choose = async () => { const path = await pickFolder(t("welcome.pickFolder")); if (path) await open(path) }
+  const choose = async () => {
+    if (busy) return
+    setPicked(true)
+    try { const path = await pickFolder(t("welcome.pickFolder")); if (path) await open(path) } finally { setPicked(false) }
+  }
   const initHere = async () => {
     if (!notWorkspace) return
     setBusy(notWorkspace)
@@ -67,9 +73,9 @@ export function Welcome({ recent, onOpen, onForget, toast, theme, setLang }: Pro
         <p className="lead">{t("welcome.subtitle")}</p>
 
         <div className="welcome-actions stagger">
-          <button data-tour="welcome-open" className="card card-interactive action-card primary" style={{ "--i": 3 } as React.CSSProperties} onClick={choose} disabled={!!busy}>
-            <div className="icon-wrap"><Icon name="folder" /></div>
-            <div><strong>{t("welcome.open")}</strong><span>{t("welcome.openHint")}</span></div>
+          <button data-tour="welcome-open" className="card card-interactive action-card primary" style={{ "--i": 3 } as React.CSSProperties} onClick={choose} disabled={!!busy || picked} aria-busy={picked && !!busy}>
+            <div className="icon-wrap">{picked && busy ? <span className="spinner" /> : <Icon name="folder" />}</div>
+            <div><strong>{t("welcome.open")}</strong><span>{picked && busy ? t("welcome.opening") : t("welcome.openHint")}</span></div>
           </button>
           <button data-tour="welcome-new" className="card card-interactive action-card" style={{ "--i": 4 } as React.CSSProperties} onClick={() => setSheet("create")}>
             <div className="icon-wrap"><Icon name="plus" /></div>
@@ -95,7 +101,7 @@ export function Welcome({ recent, onOpen, onForget, toast, theme, setLang }: Pro
             <div className="section-title">{t("welcome.recent")}</div>
             <div className="card stagger" style={{ padding: 6 }}>
               {recent.map((row, index) => (
-                <div key={row.root} className="recent-row" style={{ "--i": index + 6 } as React.CSSProperties} role="button" tabIndex={0}
+                <div key={row.root} className="recent-row" aria-disabled={!!busy} style={{ "--i": index + 6 } as React.CSSProperties} role="button" tabIndex={0}
                   onClick={() => open(row.root)} onKeyDown={(event) => { if (event.key === "Enter") void open(row.root) }}>
                   <span className="ws-initial lg" aria-hidden>{row.name.slice(0, 1).toUpperCase()}</span>
                   <div className="meta"><div className="name">{row.name}</div><div className="path">{row.root}</div></div>

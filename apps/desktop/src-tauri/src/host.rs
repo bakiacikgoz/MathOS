@@ -108,6 +108,21 @@ impl Host {
         }
     }
 
+    /// Starts the host ahead of the first request, so opening a workspace does not wait for it to load.
+    pub async fn warm(&self) {
+        let mut guard = self.running.lock().await;
+        let alive = match guard.as_mut() {
+            Some(running) => matches!(running.child.try_wait(), Ok(None)),
+            None => false,
+        };
+        if !alive {
+            match self.spawn() {
+                Ok(running) => *guard = Some(running),
+                Err(error) => eprintln!("[mathos-host] {error}"),
+            }
+        }
+    }
+
     pub async fn info(&self) -> HostInfo {
         let mut guard = self.running.lock().await;
         let running = match guard.as_mut() {
