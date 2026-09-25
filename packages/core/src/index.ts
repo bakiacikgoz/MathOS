@@ -48,3 +48,4 @@ export { SolverLabService,type SolverLabDependencies,type SolverLabRunInput } fr
 export { LeanNativeProver } from "./provers/lean-native-prover.ts"
 export { ModelProofProver } from "./provers/model-proof-prover.ts"
 export { ModelPlanProveProver } from "./provers/model-plan-prove-prover.ts"
+export * from "./assistant/index.ts"

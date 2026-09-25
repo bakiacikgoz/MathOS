@@ -23,13 +23,19 @@ export interface ModelRequest {
   maxOutputTokens?: number
   reasoningEffort?: "none" | "low" | "medium" | "high" | "max"
   metadata?: { role?: ModelRole; researchRunId?: string }
+  /** Streams the answer as it is written (text and, where the provider exposes it, reasoning). Providers that cannot stream answer at once. */
+  onDelta?: (delta: ModelDelta) => void
 }
+
+export interface ModelDelta { text?: string; reasoning?: string }
 
 export interface ModelResponse {
   text: string
   provider: string
   model: string
   usage?: { inputTokens?: number; outputTokens?: number }
+  /** The model's visible reasoning, when the provider returns it. */
+  reasoning?: string
 }
 
 export interface StructuredModelRequest<T> extends ModelRequest {

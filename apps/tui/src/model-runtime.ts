@@ -34,21 +34,26 @@ export function configuredModelRoleAssignments(workspaceRoot: string): Record<st
   return loadConfigFiles({ userPath: paths.configPath, workspaceRoot }).config.model.roles
 }
 
-export async function configuredModelProviders(workspaceRoot: string, roles: readonly ModelRole[]): Promise<ConnectedModelRoutes | undefined> {
+/**
+ * Model routes for the given roles from the user's configuration. `profile` pins every role to one profile (the
+ * assistant's model picker); privacy and billing rules still apply to it.
+ */
+export async function configuredModelProviders(workspaceRoot: string, roles: readonly ModelRole[], override: { profile?: string } = {}): Promise<ConnectedModelRoutes | undefined> {
   const paths = runtimePaths(workspaceRoot)
   const loaded = loadConfigFiles({ userPath: paths.configPath, workspaceRoot })
-  if (!loaded.config.model.default_profile && !Object.keys(loaded.config.model.roles).length) return undefined
+  if (!override.profile && !loaded.config.model.default_profile && !Object.keys(loaded.config.model.roles).length) return undefined
   const profiles = loadModelProfileStore(paths.profilesPath).profiles
   const registry = new ProviderProfileRegistry(profiles)
+  if (override.profile && !registry.get(override.profile)) throw new Error(`MODEL_PROFILE_NOT_FOUND: ${override.profile}`)
   const metadata = Object.fromEntries(profiles.map(profile => {
     const descriptor = providerCatalog.get(profile.descriptorId)
     if (!descriptor) throw new Error(`PROVIDER_DESCRIPTOR_NOT_FOUND: ${profile.descriptorId}`)
     return [profile.id, { billingClass: descriptor.billingClass, remote: descriptor.remote, connectionState: descriptor.remote && !loaded.config.privacy.allow_remote_models ? "BLOCKED" as const : undefined }]
   }))
   const router = new ProviderProfileRouter(registry, {
-    defaultProfile: loaded.config.model.default_profile || undefined,
-    roles: loaded.config.model.roles as Partial<Record<ModelRole, string>>,
-    fallback: Object.fromEntries(Object.entries(loaded.config.model.fallback).map(([role, fallback]) => [role, {
+    defaultProfile: override.profile ?? (loaded.config.model.default_profile || undefined),
+    roles: override.profile ? {} : loaded.config.model.roles as Partial<Record<ModelRole, string>>,
+    fallback: override.profile ? {} : Object.fromEntries(Object.entries(loaded.config.model.fallback).map(([role, fallback]) => [role, {
       profiles: fallback.profiles,
       allowBillingTransition: fallback.allow_billing_transition,
       allowLocalToRemoteTransition: fallback.allow_local_to_remote_transition,

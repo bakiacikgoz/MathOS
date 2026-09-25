@@ -1,3 +1,4 @@
+import { writePref } from "../lib/storage.ts"
 import { useDeferredValue, useEffect, useMemo, useState } from "react"
 import { useApp, type Claim } from "../lib/app.ts"
 import { keys, useClaimPage, useClaims, useStatus } from "../lib/data.ts"
@@ -138,6 +139,7 @@ function ClaimDetail({ id, objective }: { id: string; objective: boolean }) {
           <StatusPill status={claim.status} />
         </div>
         <div style={{ display: "flex", gap: 8, flex: "none" }}>
+          <button className="btn btn-secondary" onClick={() => { writePref("assistant.claim", claim.id); app.navigate("assistant") }}><Icon name="chat" size={16} />{t("claims.askAssistant")}</button>
           <button className="btn btn-ghost btn-icon" title={t("claims.copyId")} aria-label={t("claims.copyId")} onClick={() => { void navigator.clipboard?.writeText(claim.id); app.toast(`${t("claims.copied")} · ${claim.id}`) }}><Icon name="copy" size={16} /></button>
           {objective ? <span className="pill pill-solid" style={{ height: 32, padding: "0 14px" }}><Icon name="target" size={14} />{t("claims.isObjective")}</span>
             : <button className="btn btn-secondary" onClick={makeObjective} disabled={busy}>{busy ? <span className="spinner" /> : <Icon name="target" size={16} />}{t("claims.makeObjective")}</button>}

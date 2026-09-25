@@ -63,3 +63,19 @@ export function listJobs(kind?: string): Array<Omit<JobSnapshot, "events">> {
 
 /** Test hook: forget every job. */
 export function resetJobs() { for (const job of jobs.values()) job.controller.abort(); jobs.clear() }
+
+export interface CommandResult { code: number; stdout: string; stderr: string }
+type CommandRunner = (cwd: string, args: string[]) => Promise<CommandResult>
+let commandRunner: CommandRunner | null = null
+
+/** The desktop host runs a job's commands through its request queue, so they never overlap with the app's own. */
+export function setCommandRunner(runner: CommandRunner | null) { commandRunner = runner }
+
+/** Runs a MathOS command for a job: through the host when there is one, otherwise as a child process. */
+export async function runCommand(cwd: string, args: string[]): Promise<CommandResult> {
+  if (commandRunner) return commandRunner(cwd, args)
+  const script = process.argv[1] && /\.(ts|js|mjs)$/.test(process.argv[1]) ? [process.argv[1]] : []
+  const proc = Bun.spawn([process.execPath, ...script, ...args], { cwd, stdin: "ignore", stdout: "pipe", stderr: "pipe", env: { ...process.env, MATHOS_NO_COLOR: "1" } })
+  const [code, stdout, stderr] = await Promise.all([proc.exited, new Response(proc.stdout).text(), new Response(proc.stderr).text()])
+  return { code, stdout, stderr }
+}

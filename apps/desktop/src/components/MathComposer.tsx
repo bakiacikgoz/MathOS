@@ -65,6 +65,8 @@ export default function MathComposer({ value, onChange, label, placeholder, auto
   const [search, setSearch] = useState<{ x: number; y: number; query: string; index: number } | null>(null)
   const saved = useRef<Range | null>(null)
   const [focusedChip, setFocusedChip] = useState(false)
+  /** A formula just opened whose editor is not ready yet, and the keys typed meanwhile. */
+  const opening = useRef<{ chip: Chip; keys: string } | null>(null)
 
   const emit = useCallback((record = true) => {
     const node = root.current
@@ -129,7 +131,11 @@ export default function MathComposer({ value, onChange, label, placeholder, auto
       else if (event.key === "Backspace" && !field.getValue("latex")) { event.preventDefault(); event.stopPropagation(); exit(chip, "backward") }
       else if ((event.metaKey || event.ctrlKey) && event.key === "Enter") { event.preventDefault(); event.stopPropagation(); exit(chip, "forward"); handlers.current.onSubmit?.() }
     }, { capture: true })
-    field.addEventListener("focusin", () => { active.current = chip; setFocusedChip(true) })
+    field.addEventListener("focusin", () => {
+      active.current = chip; setFocusedChip(true)
+      const pending = opening.current
+      if (pending?.chip === chip) { opening.current = null; if (pending.keys) { field.executeCommand(["typedText", pending.keys]); emit() } }
+    })
     field.addEventListener("focusout", () => {
       window.setTimeout(() => {
         if (active.current === chip && document.activeElement !== field) { active.current = null; setFocusedChip(false) }
@@ -174,11 +180,17 @@ export default function MathComposer({ value, onChange, label, placeholder, auto
     range.insertNode(chip)
     if (!chip.nextSibling || chip.nextSibling.nodeType !== Node.TEXT_NODE) chip.after(document.createTextNode(ZW))
     saved.current = null
-    requestAnimationFrame(() => {
+    // The editor needs a moment to mount; keys typed meanwhile are kept and replayed into it (see onKeyDown).
+    opening.current = { chip, keys: "" }
+    let tries = 0
+    const focus = () => {
+      if (opening.current?.chip !== chip && document.activeElement !== chip.field) return
       chip.field.focus()
+      if (document.activeElement !== chip.field && tries++ < 30 && chip.isConnected) { requestAnimationFrame(focus); return }
       if (latex) chip.field.insert(toMathfieldInsert(latex), { selectionMode: "placeholder", format: "latex" })
       emit()
-    })
+    }
+    focus()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [makeChip, emit])
 
@@ -231,6 +243,13 @@ export default function MathComposer({ value, onChange, label, placeholder, auto
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.target !== root.current) return
+    const pending = opening.current
+    // MathLive reports focus before the browser has moved it, so the real test is where the key event came from.
+    if (pending?.chip.isConnected) {
+      if (event.key === "$" || event.key === "Escape") { event.preventDefault(); opening.current = null; if (pending.keys) pending.chip.field.value = pending.keys; exit(pending.chip, "forward"); return }
+      if (event.key.length === 1 && !event.metaKey && !event.ctrlKey) { event.preventDefault(); pending.keys += event.key; return }
+      if (event.key === "Backspace") { event.preventDefault(); pending.keys = pending.keys.slice(0, -1); return }
+    }
     const mod = event.metaKey || event.ctrlKey
     if (event.key === "$") { event.preventDefault(); insertFormula(""); return }
     if (event.key === "\\") { event.preventDefault(); openSearch(); return }

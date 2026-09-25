@@ -21,8 +21,13 @@
     "@tauri-apps/api": "^2.8.0",
     "@tauri-apps/plugin-dialog": "^2.4.0",
     "@tauri-apps/plugin-opener": "^2",
+    "docx": "^9",
+    "dompurify": "^3",
     "driver.js": "1.8.0",
+    "exceljs": "^4",
+    "highlight.js": "^11",
     "katex": "^0.16.22",
+    "marked": "^16",
     "mathlive": "0.110.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"

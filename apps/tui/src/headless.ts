@@ -27,6 +27,7 @@ import { runProviderLiveSmoke } from "../../../scripts/providers/live-smoke.ts"
 import { configuredModelProviders, configuredModelRoleAssignments } from "./model-runtime.ts"
 import { installLean, leanInstallStatus, type LeanInstallEvent } from "@mathos/lean"
 import { cancelJob, jobsCanRunInBackground, listJobs, pollJob, startJob } from "./jobs.ts"
+import { assistantCommand } from "./assistant-cli.ts"
 
 function joinCwdBackups(): string {
   return join(process.cwd(), "backups")
@@ -59,7 +60,7 @@ export const CLI_COMMAND_CATEGORIES = {
   workspace: ["init", "demo", "workspace", "backup", "restore", "events", "status"],
   claims: ["claim", "claims", "objective"],
   formal: ["formalize", "formal", "prove", "verify", "search-theorem", "premises", "index", "lean"],
-  research: ["research", "graph", "ledger", "why", "report"],
+  research: ["research", "graph", "ledger", "why", "report", "assistant"],
   literature: ["literature", "source", "citation", "external", "ingest"],
   experiments: ["experiment", "solver"],
   team: ["branch", "team", "review", "agenda", "conjecture"],
@@ -123,6 +124,8 @@ export async function runHeadless(argv: string[]): Promise<number> {
       if (action === "cancel") { process.stdout.write(`${JSON.stringify({ id, cancelled: cancelJob(id) })}\n`); return 0 }
       throw new Error(`Unknown job action: ${action}`)
     }
+
+    if (command === "assistant") return await assistantCommand(rest)
 
     // Lean and Mathlib for this workspace. The desktop starts the install as a job; in a terminal it runs in place.
     if (command === "lean") {

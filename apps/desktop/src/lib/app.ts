@@ -2,7 +2,7 @@ import { createContext, useContext } from "react"
 import type { Lang, MessageKey } from "./i18n.ts"
 import type { ThemePref } from "./theme.ts"
 
-export type Route = "overview" | "claims" | "branches" | "health" | "providers" | "console" | "settings"
+export type Route = "overview" | "assistant" | "claims" | "branches" | "health" | "providers" | "console" | "settings"
 export interface Workspace { root: string; name: string }
 export interface RecentWorkspace extends Workspace { at: number }
 
@@ -45,13 +45,14 @@ export function useApp(): AppApi {
   return value
 }
 
-export const NAV: Array<{ route: Route; label: MessageKey; icon: "overview" | "claims" | "branch" | "health" | "plug" | "console"; key: string; group: "research" | "system" }> = [
+export const NAV: Array<{ route: Route; label: MessageKey; icon: "overview" | "chat" | "claims" | "branch" | "health" | "plug" | "console"; key: string; group: "research" | "system" }> = [
   { route: "overview", label: "nav.overview", icon: "overview", key: "1", group: "research" },
-  { route: "claims", label: "nav.claims", icon: "claims", key: "2", group: "research" },
-  { route: "branches", label: "nav.branches", icon: "branch", key: "3", group: "research" },
-  { route: "health", label: "nav.health", icon: "health", key: "4", group: "system" },
-  { route: "providers", label: "nav.providers", icon: "plug", key: "5", group: "system" },
-  { route: "console", label: "nav.console", icon: "console", key: "6", group: "system" },
+  { route: "assistant", label: "nav.assistant", icon: "chat", key: "2", group: "research" },
+  { route: "claims", label: "nav.claims", icon: "claims", key: "3", group: "research" },
+  { route: "branches", label: "nav.branches", icon: "branch", key: "4", group: "research" },
+  { route: "health", label: "nav.health", icon: "health", key: "5", group: "system" },
+  { route: "providers", label: "nav.providers", icon: "plug", key: "6", group: "system" },
+  { route: "console", label: "nav.console", icon: "console", key: "7", group: "system" },
 ]
 
 export const mod = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘" : "Ctrl+"
