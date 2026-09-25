@@ -44,6 +44,8 @@ export function claimValue(value: string, lang: Lang): string {
   const text = value.trim(), key = text.toLowerCase()
   if (key === "none") return lang === "tr" ? "Yok" : "None"
   if (key === "not created") return lang === "tr" ? "Oluşturulmadı" : "Not created"
+  const fidelity: Record<string, Pair> = { HUMAN_APPROVED: ["İnsan onayladı", "Approved by a person"], AI_REVIEWED: ["Model inceledi, onay bekliyor", "Reviewed by a model, awaiting approval"], NOT_REVIEWED: ["İncelenmedi", "Not reviewed"], REVIEW_REQUIRED: ["İnceleme gerekli", "Review required"], REJECTED: ["Reddedildi", "Rejected"] }
+  if (fidelity[text]) return pick(fidelity[text], lang, text)
   if (lang === "en") return value
   const counted = /^(\d+) (computational|literature|citations?|experiments?)$/i.exec(text)
   if (counted) return `${counted[1]} ${{ computational: "hesaplamalı", literature: "literatür", citation: "alıntı", citations: "alıntı", experiment: "deney", experiments: "deney" }[counted[2]!.toLowerCase()]}`
@@ -95,6 +97,14 @@ const ERRORS: Record<string, Pair> = {
   PROVIDER_TERMS_RESTRICTED: ["Sağlayıcının koşulları bu kullanıma izin vermiyor.", "The provider's terms do not allow this use."],
   PROVIDER_MODEL_PROTOCOL_UNSUPPORTED: ["Bu model MathOS'un desteklemediği bir protokol kullanıyor.", "This model uses a protocol MathOS does not support."],
   SECRET_VALUE_INVALID: ["Anahtar boş olamaz ve tek satır olmalı.", "The key cannot be empty and must be a single line."],
+  MODEL_ROUTE_UNAVAILABLE: ["Bu adım için bir model yapılandırılmamış. Model Sağlayıcıları'ndan bir varsayılan seçin.", "No model is configured for this step. Choose a default in Model Providers."],
+  MODEL_ROUTE_BLOCKED: ["Model kullanılamıyor: bulut modelleri kapalı ya da profil engelli. Ayarlar > Gizlilik'e bakın.", "The model cannot be used: cloud models are off or the profile is blocked. See Settings > Privacy."],
+  LEANNOTINSTALLED: ["Lean bu bilgisayarda kurulu değil. Sistem Durumu sayfası kurulum adımlarını gösterir.", "Lean is not installed on this computer. The Health page shows how to install it."],
+  PROOFPREREQUISITEFAILED: ["İspat için önce anlamın aynı olduğunu onaylayın.", "Approve that the meanings match before proving."],
+  UNRESOLVED_ALIGNMENT_ERROR: ["Model ciddi bir anlam farkı buldu; onaydan önce Lean ifadesini düzeltin.", "The model found a serious difference in meaning; fix the Lean statement before approving."],
+  FORMALSTATEMENTNOTFOUND: ["Bu önermenin henüz bir Lean ifadesi yok.", "This claim has no Lean statement yet."],
+  PROOFBODYREJECTED: ["Buraya yalnızca ifadeyi yazın; ispat (:= …) sonraki adımda aranır.", "Write only the statement here; the proof (:= …) comes in the next step."],
+  STATEMENT_REVISIONS_REQUIRED: ["Karşılaştırma için önce Lean ifadesi gerekiyor.", "A Lean statement is needed before comparing."],
   PROVIDER_LOGIN_NOT_SUPPORTED: ["Bu sağlayıcı uygulama içinden giriş desteklemiyor.", "This provider does not support signing in from the app."],
   LIVE_USAGE_ACCEPTANCE_REQUIRED: ["Ücretli deneme isteği için onay gerekiyor.", "Consent is required for a paid test request."],
 }

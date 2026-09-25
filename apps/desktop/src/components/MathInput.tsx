@@ -1,10 +1,11 @@
-import { lazy, Suspense, useDeferredValue, useRef, useState } from "react"
+import { lazy, Suspense, useDeferredValue, useLayoutEffect, useRef, useState } from "react"
 import { useT, type MessageKey } from "../lib/i18n.ts"
 import { SYMBOL_GROUPS, TEMPLATES, QUICK, completions, insertion, insideMath, leanAbbreviation, type MathSymbol } from "../lib/math-symbols.ts"
 import { MathText } from "./MathText.tsx"
 import { Icon } from "./Icon.tsx"
 
 const EquationEditor = lazy(() => import("./EquationEditor.tsx"))
+const SEPARATORS = new Set([" ", ",", ")", "]", "}", ";", ":"])
 const TOKEN = /\\([A-Za-z0-9_^<>=.\-]*)$/
 const BY_SHOW = new Map(SYMBOL_GROUPS.flatMap((group) => group.items).map((item) => [item.show, item]))
 
@@ -31,10 +32,16 @@ export function MathInput({ value, onChange, mode = "latex", placeholder, label,
   const suggestions = token && token[1] ? completions(token[1], mode) : []
   const active = suggestions.length ? Math.min(highlight, suggestions.length - 1) : 0
 
-  const place = (next: string, position: number) => {
-    onChange(next)
-    requestAnimationFrame(() => { const node = area.current; if (!node) return; node.focus(); node.setSelectionRange(position, position); setCaret(position) })
-  }
+  // The caret moves in a layout effect right after React writes the new value, so fast typing after a
+  // conversion (\forall + space) keeps its place instead of landing where the old value put it.
+  const pending = useRef<number | null>(null)
+  useLayoutEffect(() => {
+    const node = area.current, position = pending.current
+    if (!node || position === null) return
+    pending.current = null
+    node.focus(); node.setSelectionRange(position, position); setCaret(position)
+  })
+  const place = (next: string, position: number) => { pending.current = position; onChange(next) }
   /** Inserts a symbol or template at the cursor (replacing a selection, or `from` characters before it). */
   const insert = (latex: string, lean?: string, from?: number) => {
     const node = area.current
@@ -52,10 +59,10 @@ export function MathInput({ value, onChange, mode = "latex", placeholder, label,
       if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); setHighlight((index) => (index + (event.key === "ArrowDown" ? 1 : suggestions.length - 1)) % suggestions.length); return }
       if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); place(value, caret); setCaret(-1); return }
     }
-    // Lean's input method: an exact abbreviation turns into its symbol when a space is typed.
-    if (mode === "lean" && event.key === " " && token?.[1]) {
+    // Lean's input method: an exact abbreviation turns into its symbol when a separator is typed (\N, → ℕ,).
+    if (mode === "lean" && SEPARATORS.has(event.key) && token?.[1]) {
       const symbol = leanAbbreviation(token[1])
-      if (symbol) { event.preventDefault(); const start = caret - token[0].length; place(value.slice(0, start) + symbol + " " + value.slice(caret), start + symbol.length + 1) }
+      if (symbol) { event.preventDefault(); const start = caret - token[0].length; place(value.slice(0, start) + symbol + event.key + value.slice(caret), start + symbol.length + 1) }
     }
   }
   const track = (event: React.SyntheticEvent<HTMLTextAreaElement>) => setCaret(event.currentTarget.selectionStart)

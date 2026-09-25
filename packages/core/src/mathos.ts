@@ -780,8 +780,8 @@ export class MathOS {
 
   mergeBranch(sourceId: string, options: { applySafe?: boolean } = {}): MergePreview { return this.branchService.merge(sourceId, options) }
 
-  async formalize(claimId: string): Promise<FormalizationSession> {
-    return this.formalizationService.formalize(claimId)
+  async formalize(claimId: string, options: { leanStatement?: string } = {}): Promise<FormalizationSession> {
+    return this.formalizationService.formalize(claimId, options)
   }
 
   getFormal(claimId: string): FormalStatement {
@@ -800,6 +800,40 @@ export class MathOS {
 
   rejectFormal(formalId: string): FormalStatement {
     return this.formalizationService.rejectFormal(formalId)
+  }
+
+  /**
+   * Where a claim stands on the way to kernel verification, as data for the desktop's step view:
+   * the current Lean statement, the fidelity review, the human approval, proof attempts and the last gate run.
+   */
+  claimWorkflow(claimId: string) {
+    const claim = this.getClaim(claimId)
+    let formal: FormalStatement | null = null
+    try { formal = this.getFormal(claimId) } catch {}
+    const repos = this.services.repositories
+    const latestFormal = repos.statementRevisions.latest(claimId, "FORMAL")
+    const alignment = repos.formalAlignments.latestForClaim(claimId)
+    // An alignment for an earlier version of the statement no longer says anything about the current one.
+    const current = alignment && latestFormal && alignment.formalRevisionId === latestFormal.id ? alignment : null
+    const approved = Boolean(formal && formal.fidelityStatus === "HUMAN_APPROVED" && this.services.alignment.currentApproval(claimId))
+    const proofs = formal ? this.listProofs(claimId).filter((attempt) => attempt.formalStatementId === formal!.id) : []
+    const accepted = proofs.find((attempt) => attempt.status === "KERNEL_ACCEPTED") ?? null
+    const run = formal ? this.verificationRuns.latestForFormal(formal.id) : null
+    const verified = claim.status === "KERNEL_VERIFIED"
+    const parse = (text: string | undefined) => { try { return JSON.parse(text ?? "[]") } catch { return [] } }
+    return {
+      claimId,
+      claimStatus: claim.status,
+      next: verified ? "done" : !formal ? "formalize" : !approved ? "review" : !accepted ? "prove" : "verify",
+      formal: formal && { id: formal.id, declarationName: formal.declarationName, statement: formal.sourceText, createdBy: formal.createdBy, provider: formal.provider, model: formal.modelName, elaborates: formal.verificationStatus !== "UNVERIFIED", fidelityStatus: formal.fidelityStatus },
+      fidelity: formal ? this.getFidelity(formal.id) : null,
+      alignment: current && { id: current.id, status: current.status, verdict: current.verdict, backTranslation: current.backTranslation, symbolMapping: current.symbolMapping, auditorProvider: current.auditorProvider, auditorModel: current.auditorModel, findings: repos.alignmentFindings.listByAlignment(current.id) },
+      approved,
+      proofs: proofs.slice(-6).map((attempt) => ({ id: attempt.id, status: attempt.status, attemptNumber: attempt.attemptNumber, provider: attempt.provider, model: attempt.modelName })),
+      acceptedProof: accepted && { id: accepted.id, source: accepted.proofSource },
+      verification: run && { result: run.result, checks: parse(run.gateJson), axioms: parse(run.axiomsJson), at: run.createdAt },
+      verified,
+    }
   }
 
   formalSetup() {

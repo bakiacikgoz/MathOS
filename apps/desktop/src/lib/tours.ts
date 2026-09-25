@@ -34,7 +34,7 @@ export const TOURS: Record<TourId, TourStep[]> = {
     s("claims-new", "bottom", "Yeni önerme", "Varsayım, lemma ya da teoremi LaTeX desteğiyle yazın.", "New claim", "Write a conjecture, lemma or theorem with LaTeX support."),
     s("claims-filter", "bottom", "Filtreler", "Açık, doğrulanmış ya da engelli önermelere odaklanın.", "Filters", "Focus on open, verified or blocked claims."),
     s("claims-list", "right", "Önerme listesi", "Ok tuşlarıyla gezinin; hedef simgesi ana hedefi gösterir.", "Claim list", "Move with the arrow keys; the target icon marks the main objective."),
-    s("claims-why", "left", "Neden henüz doğrulanmadı?", "Doğrulamaya giden yolda eksik kalan adımlar: biçimselleştirme, sadakat incelemesi ve kanıt.", "Why not verified yet?", "The steps still missing on the way to verification: formalization, fidelity review and proof."),
+    s("claims-workflow", "left", "Doğrulama yolu", "Dört adım: Lean'e çevir (model ya da siz), anlamı karşılaştırıp onaylayın, ispat arayın, çekirdekte doğrulayın. Sıradaki adım işaretlidir.", "Road to verification", "Four steps: translate to Lean (a model or you), compare and approve the meaning, search for a proof, verify in the kernel. The next step is marked."),
   ],
   branches: [
     s("branches-list", "bottom", "Araştırma dalları", "Farklı yaklaşımları ana dalı bozmadan ayrı dallarda deneyin.", "Research branches", "Try different approaches on separate branches without touching the main one."),

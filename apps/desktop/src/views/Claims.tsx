@@ -11,6 +11,7 @@ import { Empty, ErrorBox, Segmented, Skeleton, StatusPill } from "../components/
 import { HelpButton, useAutoTour } from "../components/Tour.tsx"
 import { claimNote, claimValue, errorText } from "../lib/cli-text.ts"
 import { MathText } from "../components/MathText.tsx"
+import { ClaimWorkflow } from "./ClaimWorkflow.tsx"
 
 type Filter = "all" | "open" | "verified" | "blocked"
 const isOpen = (status: string) => !isVerifiedStatus(status) && !["disproved", "blocked", "stale"].includes(status.toLowerCase())
@@ -147,7 +148,7 @@ function ClaimDetail({ id, objective }: { id: string; objective: boolean }) {
 
       <div className="card statement-card selectable"><MathText text={claim.naturalStatement} /></div>
 
-      {page.checks.length > 0 && <>
+      {detail.data?.workflow ? <ClaimWorkflow claimId={claim.id} statement={claim.naturalStatement} workflow={detail.data.workflow} /> : page.checks.length > 0 && <>
         <div className="section-title">{t("claims.whyNot")}</div>
         <div data-tour="claims-why" className="card card-pad checklist stagger" style={{ paddingTop: 6, paddingBottom: 6 }}>
           {page.checks.map((check, index) => (

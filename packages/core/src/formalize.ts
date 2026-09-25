@@ -30,6 +30,24 @@ export function parseFormalizationDraft(value: unknown, provenance: { provider: 
   }
 }
 
+/**
+ * A Lean statement written by a person instead of a model. Accepts a full declaration
+ * (`theorem name (n : ℕ) : P n`) or just the proposition (`∀ n : ℕ, P n`), which is named after the claim.
+ */
+export function manualFormalizationDraft(claimId: string, text: string): FormalizationDraft {
+  const source = text.trim()
+  if (!source) throw new FormalizationFailed("FORMALIZATION_STATEMENT_REQUIRED")
+  if (hasProofBody(source)) throw new ProofBodyRejected()
+  const declared = /^(?:theorem|lemma)\s+([^\s:({[]+)/.exec(source)
+  const declarationName = declared?.[1] ?? `claim_${claimId.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`
+  return {
+    declarationName,
+    leanStatement: declared ? source.replace(/^lemma\b/, "theorem") : `theorem ${declarationName} : ${source}`,
+    variableMapping: [], assumptionMapping: [], uncertainties: [],
+    modelProvenance: { provider: "user", model: "manual" },
+  }
+}
+
 function asPairs(value: unknown): Array<{ natural: string; lean: string }> {
   if (!Array.isArray(value)) return []
   return value

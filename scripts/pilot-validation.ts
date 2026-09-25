@@ -250,13 +250,10 @@ export async function runPilotValidation(options: { output?: string; keepWorkspa
     capabilityBlock(formalize, missing("API key") || missing("Model") || missing("Lean"), ["ModelNotConfigured", "LeanNotAvailable"], "Formalization is blocked by the doctor-confirmed model or Lean capability gap; configure the reported capability and rerun.")
     if (formalize.step.status === "PASS") formalize.step.evidence = "formalization JSON returned by built CLI; human fidelity remains separate"
 
+    // `formal approve` records the human fidelity decision; it needs a Lean statement, so it inherits formalize's block.
     const fidelity = run("fidelity_approval", ["formal", "approve", "C-001"])
-    if (fidelity.step.status === "FAIL" && fidelity.rawStderr.includes("Usage: mathos formal setup")) {
-      fidelity.step.status = "BLOCKED"
-      fidelity.step.reason = "Built CLI was probed and exposes no headless fidelity-approval command; human semantic review is required in the TUI."
-      fidelity.step.evidence = "unsupported headless surface confirmed by CLI usage response"
-      fidelity.step.rerun = "mathos; review C-001 formalization and approve only after checking meaning"
-    }
+    capabilityBlock(fidelity, formalize.step.status === "BLOCKED", ["FormalStatementNotFound", "FormalizationRequired"], "Fidelity approval is blocked because formalization produced no Lean statement to review.")
+    if (fidelity.step.status === "PASS") fidelity.step.evidence = "human fidelity approval recorded by the built CLI"
 
     const premises = run("premise_search", ["premises", "C-001", "--explain"])
     if (premises.step.status === "PASS" && /^\d+\. /m.test(premises.rawStdout)) premises.step.evidence = "at least one ranked premise with explanation returned"

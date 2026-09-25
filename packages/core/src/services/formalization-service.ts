@@ -19,7 +19,7 @@ import {
   nowIso,
 } from "@mathos/shared"
 import { reviewFidelity } from "../fidelity.ts"
-import { draftFormalization } from "../formalize.ts"
+import { draftFormalization, manualFormalizationDraft } from "../formalize.ts"
 import type { MutationRecorder } from "../mutation-recorder.ts"
 import type { StatementRevisionService } from "./statement-revision-service.ts"
 
@@ -42,10 +42,12 @@ interface FormalizationServiceDependencies {
 export class FormalizationService {
   constructor(private readonly dependencies: FormalizationServiceDependencies) {}
 
-  async formalize(claimId: string): Promise<FormalizationSession> {
+  /** Drafts a Lean statement with the model, or checks one the user wrote (`leanStatement`), then reviews its fidelity. */
+  async formalize(claimId: string, options: { leanStatement?: string } = {}): Promise<FormalizationSession> {
     const workspace = this.requireWorkspace()
     const claim = this.requireClaim(claimId)
-    let draft = await draftFormalization(this.dependencies.modelProvider, claim)
+    const manual = options.leanStatement !== undefined
+    let draft = manual ? manualFormalizationDraft(claim.id, options.leanStatement!) : await draftFormalization(this.dependencies.modelProvider, claim)
     this.dependencies.recorder.record("formalization_drafted", {
       target: claim.id,
       metadata: { declaration: draft.declarationName, provider: draft.modelProvenance.provider },
@@ -53,7 +55,7 @@ export class FormalizationService {
 
     let repairs = 0
     let check = await this.dependencies.leanAdapter.checkStatement(draft.leanStatement, this.statementContext())
-    while (check.result !== "ELABORATES" && repairs < 2) {
+    while (!manual && check.result !== "ELABORATES" && repairs < 2) {
       repairs += 1
       draft = await draftFormalization(this.dependencies.modelProvider, claim, {
         previous: draft.leanStatement,
@@ -62,6 +64,8 @@ export class FormalizationService {
       check = await this.dependencies.leanAdapter.checkStatement(draft.leanStatement, this.statementContext())
     }
     if (check.result !== "ELABORATES") {
+      // A person fixes their own statement, so give them Lean's own words.
+      if (manual) throw new FormalizationFailed(`FORMALIZATION_FAILED: ${check.diagnostics.map((item) => item.message).join("\n").slice(0, 2_000) || "Lean did not accept the statement."}`)
       throw new FormalizationFailed("FORMALIZATION_FAILED: Lean statement did not elaborate after 2 repairs.")
     }
 
@@ -77,10 +81,10 @@ export class FormalizationService {
       filePath: null,
       isCurrent: true,
       verificationStatus: "ELABORATES",
-      fidelityStatus: "AI_REVIEWED",
-      createdBy: "model",
-      provider: draft.modelProvenance.provider,
-      modelName: draft.modelProvenance.model,
+      fidelityStatus: manual ? "NOT_REVIEWED" : "AI_REVIEWED",
+      createdBy: manual ? "user" : "model",
+      provider: manual ? null : draft.modelProvenance.provider,
+      modelName: manual ? null : draft.modelProvenance.model,
       leanVersion: check.leanVersion,
       createdAt: timestamp,
       updatedAt: timestamp,
@@ -117,24 +121,19 @@ export class FormalizationService {
     this.dependencies.statementRevisions?.capture({claimId:claim.id,kind:"NATURAL",sourceEntityId:claim.id,text:claim.naturalStatement,contextRevisionId,createdBy:claim.createdBy})
     this.dependencies.statementRevisions?.capture({claimId:claim.id,kind:"FORMAL",sourceEntityId:statement.id,text:statement.sourceText,contextRevisionId,createdBy:statement.createdBy})
 
-    const reviewed = await reviewFidelity(this.dependencies.auditorProvider, {
-      claimId: claim.id,
-      naturalStatement: claim.naturalStatement,
-      leanStatement: statement.sourceText,
-    })
-    const fidelity: FidelityReview = {
-      ...reviewed,
-      id: createId("fr"),
-      workspaceId: workspace.id,
-      formalStatementId: statement.id,
-      createdAt: timestamp,
+    // A user-written statement is still offered to the auditor model, but a missing model must not lose it.
+    let reviewed: Awaited<ReturnType<typeof reviewFidelity>> | null = null
+    try { reviewed = await reviewFidelity(this.dependencies.auditorProvider, { claimId: claim.id, naturalStatement: claim.naturalStatement, leanStatement: statement.sourceText }) }
+    catch (error) { if (!manual) throw error }
+    const fidelity: FidelityReview | null = reviewed ? { ...reviewed, id: createId("fr"), workspaceId: workspace.id, formalStatementId: statement.id, createdAt: timestamp } : null
+    if (fidelity) {
+      this.dependencies.recorder.mutate("fidelity_review_completed", {
+        target: statement.id,
+        metadata: { verdict: fidelity.verdict, provider: fidelity.provider },
+      }, () => {
+        this.dependencies.fidelityReviews.insert(fidelity)
+      })
     }
-    this.dependencies.recorder.mutate("fidelity_review_completed", {
-      target: statement.id,
-      metadata: { verdict: fidelity.verdict, provider: fidelity.provider },
-    }, () => {
-      this.dependencies.fidelityReviews.insert(fidelity)
-    })
 
     if (claim.status === "KERNEL_VERIFIED") {
       throw new FormalizationFailed("Refusing to treat elaboration as kernel verification.")

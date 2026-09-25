@@ -6,7 +6,7 @@ import { exportBlueprintLatex, importBlueprintLatex, parseMathosMarkdown } from 
 import { MATHOS_PRODUCT_VERSION, MathOSError, cliExitCode, formatCliError, resolveRuntimeLayout, withWorkspaceOperationLock } from "@mathos/shared"
 import { repairWorkspaceRuntimeState } from "@mathos/workspace"
 import { SCHEMA_EPOCH } from "@mathos/storage"
-import { FileModelUsageLedger, ProviderProfileRegistry, bunClientRuntime, clientArgv, clientLoginFor, clientSignedIn, openClientInstaller, startClientLogin, createSecretStore, discoverLocalEngines, evaluateProviderPolicy, loadConfigFiles, loadModelProfileStore, parseMathOSConfig, providerCatalog, readSecretInput, redactedProviderSummary, saveModelProfileStore, serializeConfigValues, type ConfigScalar, type ModelProfileAuth, type ModelProfileV2, type ModelRole } from "@mathos/models"
+import { type ModelProvider, FileModelUsageLedger, ProviderProfileRegistry, bunClientRuntime, clientArgv, clientLoginFor, clientSignedIn, openClientInstaller, startClientLogin, createSecretStore, discoverLocalEngines, evaluateProviderPolicy, loadConfigFiles, loadModelProfileStore, parseMathOSConfig, providerCatalog, readSecretInput, redactedProviderSummary, saveModelProfileStore, serializeConfigValues, type ConfigScalar, type ModelProfileAuth, type ModelProfileV2, type ModelRole } from "@mathos/models"
 import { formatBranchDetail, formatBranches, formatClaims, formatDoctor, formatMergePreview, formatProviderCatalog, formatProviderStatus, formatResearchRun, formatStatus, HELP_TEXT } from "./format.ts"
 import { portfolioSnapshot } from "./ui/PortfolioViews.tsx"
 import { failureMemorySnapshot } from "./ui/FailureMemoryViews.tsx"
@@ -31,6 +31,11 @@ function joinCwdBackups(): string {
 }
 
 function providerSummaries(userConfigRoot: string) { const profiles=loadModelProfileStore(join(userConfigRoot,"model-profiles.json")).profiles;return profiles.map(profile=>{const descriptor=providerCatalog.get(profile.descriptorId);if(!descriptor)throw new Error(`PROVIDER_DESCRIPTOR_NOT_FOUND: ${profile.descriptorId}`);return redactedProviderSummary(profile,descriptor)}) }
+
+/** Stands in for a model that could not be reached, so the caller records the reason instead of silently using another one. */
+function unavailableModel(reason: Error): ModelProvider {
+  return { id: "unavailable", model: "none", capabilities: { structuredOutput: false, toolCalling: false, reasoning: false, streaming: false, vision: false }, generate: () => Promise.reject(reason), generateStructured: () => Promise.reject(reason) }
+}
 
 const MODEL_COMMANDS = new Set(["formalize", "prove", "research", "team", "ingest", "align"])
 
@@ -165,7 +170,7 @@ export async function runHeadless(argv: string[]): Promise<number> {
       }
       if (action === "disconnect") { const profile = registry.get(id); if (!profile) throw new Error(`MODEL_PROFILE_NOT_FOUND: ${id}`); registry.update({ ...profile, enabled: false, metadata: { ...profile.metadata, updatedAt: new Date().toISOString() } }); save(); process.stdout.write(`${JSON.stringify({ profile: id, connection: "DISCONNECTED" })}\n`); return 0 }
       if (action === "logout") { const profile = registry.get(id); if (!profile) throw new Error(`MODEL_PROFILE_NOT_FOUND: ${id}`); if (!rest.includes("--upstream") || !rest.includes("--confirm")) throw new Error("PROVIDER_UPSTREAM_LOGOUT_CONFIRMATION_REQUIRED"); if (!["upstream-client","copilot-logged-in-user"].includes(profile.auth.kind)) throw new Error("PROVIDER_LOGOUT_NOT_SUPPORTED"); process.stdout.write(`${JSON.stringify({ delegated: true, profile: id, authOwner: profile.auth.kind, state: "LOGOUT_REQUESTED" })}\n`); return 0 }
-      if (action === "test") { const profile = registry.get(id); if (!profile) throw new Error(`MODEL_PROFILE_NOT_FOUND: ${id}`); const descriptor = providerCatalog.get(profile.descriptorId)!; const policy = evaluateProviderPolicy(descriptor.id); if (!policy.allowed) throw new Error(policy.code); if (rest.includes("--live") && descriptor.remote && !remoteModelsAllowed()) { process.stdout.write(`${JSON.stringify({ schemaVersion: "mathos.provider-live-smoke.v1", profile: profile.id, providerDescriptor: descriptor.id, model: profile.model, connection: "BLOCKED", liveRequest: "REMOTE_MODELS_DISABLED", remoteModelsAllowed: false }, null, 2)}\n`); return 2 } if (rest.includes("--live") && descriptor.billingClass === "payg" && !rest.includes("--accept-usage")) throw new Error("LIVE_USAGE_ACCEPTANCE_REQUIRED"); const report=await runProviderLiveSmoke([id,...rest.slice(2).filter(value=>value.startsWith("--"))],{profiles:registry.list()}); process.stdout.write(`${JSON.stringify(report,null,2)}\n`); return report.connection==="ERROR"||report.liveRequest==="INVALID_STRUCTURED_RESPONSE"?2:0 }
+      if (action === "test") { const profile = registry.get(id); if (!profile) throw new Error(`MODEL_PROFILE_NOT_FOUND: ${id}`); const descriptor = providerCatalog.get(profile.descriptorId)!; const policy = evaluateProviderPolicy(descriptor.id); if (!policy.allowed) throw new Error(policy.code); if (rest.includes("--live") && descriptor.billingClass === "payg" && !rest.includes("--accept-usage")) throw new Error("LIVE_USAGE_ACCEPTANCE_REQUIRED"); if (rest.includes("--live") && descriptor.remote && !remoteModelsAllowed()) { process.stdout.write(`${JSON.stringify({ schemaVersion: "mathos.provider-live-smoke.v1", profile: profile.id, providerDescriptor: descriptor.id, model: profile.model, connection: "BLOCKED", liveRequest: "REMOTE_MODELS_DISABLED", remoteModelsAllowed: false }, null, 2)}\n`); return 2 }  const report=await runProviderLiveSmoke([id,...rest.slice(2).filter(value=>value.startsWith("--"))],{profiles:registry.list()}); process.stdout.write(`${JSON.stringify(report,null,2)}\n`); return report.connection==="ERROR"||report.liveRequest==="INVALID_STRUCTURED_RESPONSE"?2:0 }
       if (action === "use") { if (!registry.get(id)) throw new Error(`MODEL_PROFILE_NOT_FOUND: ${id}`); const configPath = join(layout.userConfigRoot, "config.toml"), existing = existsSync(configPath) ? parseMathOSConfig(readFileSync(configPath, "utf8")) : {}, role = flag(rest, "--role"); mkdirSync(dirname(configPath), { recursive: true }); writeFileSync(configPath, serializeConfigValues({ ...existing, [role ? `model.roles.${role}` : "model.default_profile"]: id }), { encoding: "utf8", mode: 0o600 }); process.stdout.write(`${JSON.stringify(role ? { role, profile: id } : { defaultProfile: id })}\n`); return 0 }
       throw new Error(`Unknown provider action: ${action}`)
     }
@@ -216,13 +221,19 @@ export async function runHeadless(argv: string[]): Promise<number> {
     }
 
     // Only the model-using subcommands resolve a model, so `align show/approve` work even when no model can be reached.
+    // Comparing statements (align run) and checking a statement the user wrote (formalize --lean) only use the
+    // auditor, and they still work without one: the review falls back to a person and records why.
+    const manualFormalize = command === "formalize" && rest.includes("--lean")
+    const auditorOptional = command === "align" || manualFormalize
+    let routeFailure: Error | undefined
     const modelRoutes = command && MODEL_COMMANDS.has(command) && (command !== "align" || rest[0] === "run")
-      ? await configuredModelProviders(process.cwd(), requiredModelRoles(command, configuredModelRoleAssignments(process.cwd())))
+      ? await configuredModelProviders(process.cwd(), manualFormalize ? requiredModelRoles("align", configuredModelRoleAssignments(process.cwd())) : requiredModelRoles(command, configuredModelRoleAssignments(process.cwd())))
+        .catch((error: unknown) => { if (!auditorOptional) throw error; routeFailure = error instanceof Error ? error : new Error(String(error)); return undefined })
       : undefined
-    const modelProvider = modelRoutes ? Object.values(modelRoutes.providers)[0] : undefined
+    const modelProvider = modelRoutes && !manualFormalize ? Object.values(modelRoutes.providers)[0] : undefined
     let app: MathOS
     try {
-      app = MathOS.open(process.cwd(), { literatureOffline: command === "literature" && rest.includes("--offline"), modelProvider, modelProviders: modelRoutes?.providers })
+      app = MathOS.open(process.cwd(), { literatureOffline: command === "literature" && rest.includes("--offline"), modelProvider, modelProviders: modelRoutes?.providers, ...(routeFailure ? { auditorProvider: unavailableModel(routeFailure) } : {}) })
     } catch (error) {
       await modelRoutes?.close().catch(() => undefined)
       throw error
@@ -420,7 +431,23 @@ export async function runHeadless(argv: string[]): Promise<number> {
           )
           return result.build === "FAIL" ? 1 : 0
         }
-        process.stderr.write("Usage: mathos formal setup\n")
+        // Human fidelity decision for the claim's current Lean statement. Approval binds the model review (if any)
+        // and the statement together, which is what both /prove (theorems) and VerificationGate require.
+        if ((rest[0] === "approve" || rest[0] === "reject") && rest[1]) {
+          const claimId = rest[1], formal = app.getFormal(claimId), actor = flag(rest, "--actor") ?? "desktop-reviewer"
+          const revisions = app.services.repositories.statementRevisions, natural = revisions.latest(claimId, "NATURAL"), latest = revisions.latest(claimId, "FORMAL")
+          const alignment = app.services.repositories.formalAlignments.latestForClaim(claimId)
+          const current = alignment && latest && natural && alignment.formalRevisionId === latest.id && alignment.naturalRevisionId === natural.id ? alignment : null
+          if (rest[0] === "reject") {
+            if (current) app.services.alignment.reject(current.id, flag(rest, "--reason") ?? "rejected by reviewer")
+            const rejected = app.rejectFormal(formal.id)
+            process.stdout.write(`${JSON.stringify({ claimId, formalId: rejected.id, fidelityStatus: rejected.fidelityStatus })}\n`); return 0
+          }
+          if (current && current.status !== "HUMAN_APPROVED" && natural && latest) app.services.alignment.approve(current.id, { actorId: actor, actorType: "human", naturalHash: natural.contentHash, formalHash: latest.contentHash, contextRevisionId: current.contextRevisionId })
+          const approved = app.approveFormal(formal.id)
+          process.stdout.write(`${JSON.stringify({ claimId, formalId: approved.id, fidelityStatus: approved.fidelityStatus })}\n`); return 0
+        }
+        process.stderr.write("Usage: mathos formal setup | formal approve <claim-id> | formal reject <claim-id> [--reason <text>]\n")
         return 1
       }
 
@@ -532,11 +559,15 @@ export async function runHeadless(argv: string[]): Promise<number> {
           process.stderr.write("Usage: mathos formalize C-001 [--json]\n")
           return 1
         }
-        const session = await app.formalize(id)
+        // --lean "<statement>" checks a statement the user wrote instead of asking the model for one.
+        const leanStatement = flag(rest, "--lean")
+        const session = await app.formalize(id, leanStatement === undefined ? {} : { leanStatement })
         if (rest.includes("--json")) {
           process.stdout.write(`${JSON.stringify({
             claimId: session.claimId,
             formalId: session.formalStatement.id,
+            statement: session.formalStatement.sourceText,
+            createdBy: session.formalStatement.createdBy,
             lean: session.check.result,
             fidelity: session.fidelity?.verdict,
             claimStatus: app.getClaim(session.claimId).status,
@@ -594,7 +625,7 @@ export async function runHeadless(argv: string[]): Promise<number> {
           return 0
         }
         if (sub === "show" && rest[1]) {
-          process.stdout.write(rest.includes("--json") ? `${JSON.stringify({ claim: app.getClaim(rest[1]), page: app.claimPage(rest[1]) }, null, 2)}\n` : `${app.claimPage(rest[1])}\n`)
+          process.stdout.write(rest.includes("--json") ? `${JSON.stringify({ claim: app.getClaim(rest[1]), page: app.claimPage(rest[1]), workflow: app.claimWorkflow(rest[1]) }, null, 2)}\n` : `${app.claimPage(rest[1])}\n`)
           return 0
         }
         process.stderr.write("Usage: mathos claim create --type <kind> --title <title> --statement <text>\n")
