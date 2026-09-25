@@ -60,8 +60,10 @@ function backupWorkspaceUnlocked(root: string, destDir: string): { archive: stri
       for (const file of walkFiles(src)) {
         const from = join(src, file)
         const to = join(dest, file)
-        mkdirSync(dirname(to), { recursive: true })
         if (file.endsWith("debug.log") || file.endsWith(".db-wal") || file.endsWith(".db-shm")) continue
+        // Lake's downloads and build output (Mathlib alone is ~6 GB) come back from lakefile + lake-manifest.json.
+        if (rel === "formal" && /^\.lake[\\/]/.test(file)) continue
+        mkdirSync(dirname(to), { recursive: true })
         copyFileSync(from, to)
         copied.push(join(rel, file))
       }

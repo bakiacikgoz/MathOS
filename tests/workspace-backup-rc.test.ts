@@ -11,3 +11,14 @@ test("locked backup and restore preserve semantic workspace without lock or secr
   const backup = backupWorkspace(created.root, join(root, "backups")); expect(backup.manifest.files.some(file => file.path.includes("locks/"))).toBe(false)
   const restored = restoreWorkspace(backup.archive, join(root, "restored")), reopened = MathOS.open(restored.root); expect(reopened.getClaim(claim.id).title).toBe("L"); reopened.close()
 })
+
+test("backups keep the Lean project but not Lake's downloads and build output", async () => {
+  const { mkdirSync, writeFileSync } = await import("node:fs")
+  const root = mkdtempSync(join(tmpdir(), "mathos-backup-lake-")), created = await MathOS.init(root, "source")
+  mkdirSync(join(created.root, "formal", ".lake", "packages", "mathlib"), { recursive: true })
+  writeFileSync(join(created.root, "formal", ".lake", "packages", "mathlib", "Mathlib.lean"), "-- huge")
+  writeFileSync(join(created.root, "formal", "lakefile.toml"), "name = \"x\"\n")
+  const backup = backupWorkspace(created.root, join(root, "backups"))
+  expect(backup.manifest.files.some(file => file.path.includes(".lake"))).toBe(false)
+  expect(backup.manifest.files.some(file => file.path.endsWith("lakefile.toml"))).toBe(true)
+})

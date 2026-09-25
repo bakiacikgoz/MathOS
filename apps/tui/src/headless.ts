@@ -1,6 +1,6 @@
 import { MathOS, SetupService, createDemoWorkspace, experimentTrustLabels, formatInitReport, formatTypedUserError, formatConfigShow, inspectHostEnvironment, startAtlasServer, type SetupCapabilityName, type SetupReport } from "@mathos/core"
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
-import { dirname, extname, join, resolve } from "node:path"
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs"
+import { basename, dirname, extname, join, resolve } from "node:path"
 import { homedir, tmpdir } from "node:os"
 import { exportBlueprintLatex, importBlueprintLatex, parseMathosMarkdown } from "@mathos/notebook"
 import { MATHOS_PRODUCT_VERSION, MathOSError, cliExitCode, formatCliError, resolveRuntimeLayout, withWorkspaceOperationLock } from "@mathos/shared"
@@ -380,9 +380,20 @@ export async function runHeadless(argv: string[]): Promise<number> {
       }
 
       if (command === "report") {
-        const format = rest.includes("--json") || flag(rest, "--format") === "json" ? "json" : "md"
+        const dir = join(app.root, "reports")
+        // The desktop lists and previews reports; names are plain files inside reports/, never a path.
+        if (rest[0] === "list") {
+          const rows = existsSync(dir) ? readdirSync(dir).filter((name) => /\.(md|json)$/.test(name)).map((name) => { const info = statSync(join(dir, name)); return { name, format: name.endsWith(".json") ? "json" : "md", bytes: info.size, modifiedAt: info.mtime.toISOString() } }).sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt)) : []
+          process.stdout.write(`${JSON.stringify({ schemaVersion: "mathos.reports.v1", dir, reports: rows })}\n`); return 0
+        }
+        if (rest[0] === "show") {
+          const name = rest[1] ?? ""
+          if (!/^[\w.-]+\.(md|json)$/.test(name) || !existsSync(join(dir, name))) throw new Error(`REPORT_NOT_FOUND: ${name}`)
+          process.stdout.write(`${JSON.stringify({ name, path: join(dir, name), content: readFileSync(join(dir, name), "utf8") })}\n`); return 0
+        }
+        const format = flag(rest, "--format") === "json" || (rest.includes("--json") && !rest.includes("--with-content")) ? "json" : "md"
         const written = app.exportReport(format)
-        process.stdout.write(`${written.path}\n`)
+        process.stdout.write(rest.includes("--with-content") ? `${JSON.stringify({ name: basename(written.path), path: written.path, format, content: readFileSync(written.path, "utf8") })}\n` : `${written.path}\n`)
         return 0
       }
 

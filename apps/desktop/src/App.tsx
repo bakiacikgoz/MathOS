@@ -16,6 +16,7 @@ import { WindowControls } from "./components/WindowControls.tsx"
 
 // Secondary screens are split out so the first paint only pays for what it shows.
 const Assistant = lazy(() => import("./views/Assistant.tsx").then((m) => ({ default: m.Assistant })))
+const Reports = lazy(() => import("./views/Reports.tsx").then((m) => ({ default: m.Reports })))
 const Claims = lazy(() => import("./views/Claims.tsx").then((m) => ({ default: m.Claims })))
 const Branches = lazy(() => import("./views/Branches.tsx").then((m) => ({ default: m.Branches })))
 const Health = lazy(() => import("./views/Health.tsx").then((m) => ({ default: m.Health })))
@@ -117,6 +118,7 @@ function Screen({ route }: { route: Route }) {
     <div key={route} className="page view-enter">
       {route === "overview" && <Overview />}
       {route === "branches" && <Branches />}
+      {route === "reports" && <Reports />}
       {route === "health" && <Health />}
       {route === "providers" && <Providers />}
       {route === "settings" && <Settings />}
@@ -124,7 +126,7 @@ function Screen({ route }: { route: Route }) {
   )
 }
 
-const ROUTES: Route[] = ["overview", "assistant", "claims", "branches", "health", "providers", "console", "settings"]
+const ROUTES: Route[] = ["overview", "assistant", "claims", "branches", "reports", "health", "providers", "console", "settings"]
 function validWorkspace(value: unknown): Workspace | null {
   if (!value || typeof value !== "object") return null
   const { root, name } = value as Partial<Workspace>

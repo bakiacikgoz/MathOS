@@ -89,6 +89,16 @@ export async function pickFolder(title: string): Promise<string | null> {
   return window.prompt(title)?.trim() || null
 }
 
+/** Picks one file (desktop dialog); in a browser, asks for a path. */
+export async function pickFile(title: string, extensions: string[]): Promise<string | null> {
+  if (isTauri) {
+    const { open } = await import("@tauri-apps/plugin-dialog")
+    const picked = await open({ directory: false, multiple: false, title, filters: [{ name: extensions.join(", "), extensions }] })
+    return typeof picked === "string" ? picked : null
+  }
+  return window.prompt(title)?.trim() || null
+}
+
 /** Opens an https link (for example a provider's key page) in the user's browser. */
 export async function openExternal(url: string): Promise<void> {
   if (!/^https:\/\//.test(url)) throw new MathosError("DESKTOP_URL_REJECTED", url)
