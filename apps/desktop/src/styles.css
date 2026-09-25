@@ -136,9 +136,10 @@ h1, h2, h3, p { margin: 0; }
 }
 .workspace-chip:hover, .workspace-chip.open { background: var(--fill); }
 .app-mark { display: grid; place-items: center; flex: none; background: var(--ink); color: var(--ink-text); }
-.sidebar-brand { display: flex; align-items: center; height: 40px; padding: 0 10px; color: var(--text); }
-.sidebar-brand .wordmark { display: block; height: 34px; width: auto; }
-.sidebar.collapsed .sidebar-brand { justify-content: center; padding: 0; }
+/* The logo is symmetric (a baseline with a dot at each end), so it sits centred. The row keeps its
+   height when the sidebar collapses to the compact mark, so the menu below does not jump. */
+.sidebar-brand { display: flex; align-items: center; justify-content: center; height: 64px; margin-bottom: 4px; color: var(--text); }
+.sidebar-brand .wordmark { display: block; height: 54px; width: auto; }
 .ws-initial.lg { width: 28px; height: 28px; border-radius: 8px; font-size: 13px; }
 .workspace-chip > svg:last-child { flex: none; color: var(--text-3); }
 .workspace-chip .meta, .menu-item .meta { display: flex; flex-direction: column; min-width: 0; flex: 1; }

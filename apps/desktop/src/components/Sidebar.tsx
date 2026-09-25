@@ -33,7 +33,7 @@ export function Sidebar({ onPalette }: { onPalette: () => void }) {
     <aside className={`sidebar ${collapsed ? "collapsed" : ""}`} aria-label={t("sidebar.label")}>
       {/* The full logo when there is room; the compact mark when the sidebar is collapsed. */}
       <div className="sidebar-brand" data-tauri-drag-region>
-        {collapsed ? <Mark size={30} /> : <Wordmark height={34} className="wordmark" />}
+        {collapsed ? <Mark size={34} /> : <Wordmark height={54} className="wordmark" />}
       </div>
       <WorkspaceSwitcher collapsed={collapsed} />
 
