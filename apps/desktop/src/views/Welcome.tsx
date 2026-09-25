@@ -3,7 +3,8 @@ import { MathosError, pickFolder, run, runJson } from "../lib/bridge.ts"
 import { useT } from "../lib/i18n.ts"
 import type { RecentWorkspace, Workspace, StatusProjection } from "../lib/app.ts"
 import type { ThemePref } from "../lib/theme.ts"
-import { Icon, Mark } from "../components/Icon.tsx"
+import { Icon } from "../components/Icon.tsx"
+import { Wordmark } from "../components/Brand.tsx"
 import { HelpButton, useAutoTour } from "../components/Tour.tsx"
 import { Segmented } from "../components/Primitives.tsx"
 import type { Lang } from "../lib/i18n.ts"
@@ -62,8 +63,7 @@ export function Welcome({ recent, onOpen, onForget, toast, theme, setLang }: Pro
         </button>
       </div>
       <div className="welcome-inner">
-        <div className="welcome-mark"><Mark size={88} /></div>
-        <h1>{t("welcome.title")}</h1>
+        <h1 className="welcome-logo"><Wordmark height={112} /></h1>
         <p className="lead">{t("welcome.subtitle")}</p>
 
         <div className="welcome-actions stagger">
@@ -97,7 +97,7 @@ export function Welcome({ recent, onOpen, onForget, toast, theme, setLang }: Pro
               {recent.map((row, index) => (
                 <div key={row.root} className="recent-row" style={{ "--i": index + 6 } as React.CSSProperties} role="button" tabIndex={0}
                   onClick={() => open(row.root)} onKeyDown={(event) => { if (event.key === "Enter") void open(row.root) }}>
-                  <Mark size={26} />
+                  <span className="ws-initial lg" aria-hidden>{row.name.slice(0, 1).toUpperCase()}</span>
                   <div className="meta"><div className="name">{row.name}</div><div className="path">{row.root}</div></div>
                   {busy === row.root ? <span className="spinner" /> : (
                     <button className="btn btn-ghost btn-icon remove" aria-label={t("welcome.remove")} title={t("welcome.remove")} onClick={(event) => { event.stopPropagation(); onForget(row.root) }}><Icon name="x" size={14} /></button>

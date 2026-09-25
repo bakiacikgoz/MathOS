@@ -1,3 +1,4 @@
+import { MarkGlyph } from "./Brand.tsx"
 import type { ReactElement } from "react"
 
 const paths: Record<string, ReactElement> = {
@@ -40,12 +41,7 @@ export function Icon({ name, size = 18, stroke = 1.7 }: { name: IconName; size?:
   )
 }
 
+/** The app mark: the logo's "O" on an ink tile, as in the app icon. */
 export function Mark({ size = 28 }: { size?: number }) {
-  return (
-    <svg className="mark" width={size} height={size} viewBox="0 0 1024 1024" aria-hidden="true">
-      <rect x="64" y="64" width="896" height="896" rx="200" fill="var(--ink)" />
-      <circle cx="512" cy="512" r="210" fill="none" stroke="var(--ink-text)" strokeWidth="64" />
-      <line x1="512" y1="220" x2="512" y2="804" stroke="var(--ink-text)" strokeWidth="64" strokeLinecap="round" />
-    </svg>
-  )
+  return <span className="app-mark" style={{ width: size, height: size, borderRadius: Math.round(size * 0.24) }} aria-hidden="true"><MarkGlyph size={Math.round(size * 0.82)} /></span>
 }

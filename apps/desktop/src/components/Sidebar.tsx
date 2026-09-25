@@ -6,6 +6,7 @@ import { useProviderStatus } from "../lib/providers.ts"
 import { useT, type MessageKey } from "../lib/i18n.ts"
 import type { ThemePref } from "../lib/theme.ts"
 import { Icon, Mark, type IconName } from "./Icon.tsx"
+import { Wordmark } from "./Brand.tsx"
 import { errorText } from "../lib/cli-text.ts"
 import { useAutoTour } from "./Tour.tsx"
 
@@ -30,6 +31,10 @@ export function Sidebar({ onPalette }: { onPalette: () => void }) {
 
   return (
     <aside className={`sidebar ${collapsed ? "collapsed" : ""}`} aria-label={t("sidebar.label")}>
+      {/* The full logo when there is room; the compact mark when the sidebar is collapsed. */}
+      <div className="sidebar-brand" data-tauri-drag-region>
+        {collapsed ? <Mark size={30} /> : <Wordmark height={34} className="wordmark" />}
+      </div>
       <WorkspaceSwitcher collapsed={collapsed} />
 
       <button className="sidebar-search" data-tour="search" onClick={onPalette} title={collapsed ? `${t("nav.search")} (${mod}K)` : undefined} aria-label={t("nav.search")}>
@@ -129,7 +134,7 @@ function WorkspaceSwitcher({ collapsed }: { collapsed: boolean }) {
   return (
     <div className="ws-switcher" ref={ref} data-tour="ws">
       <button className={`workspace-chip ${open ? "open" : ""}`} onClick={() => setOpen((value) => !value)} aria-haspopup="menu" aria-expanded={open} title={collapsed ? app.workspace.name : app.workspace.root}>
-        <Mark size={28} />
+        <span className="ws-initial lg" aria-hidden>{app.workspace.name.slice(0, 1).toUpperCase()}</span>
         <span className="meta"><span className="name">{app.workspace.name}</span><span className="path">{shortPath(app.workspace.root)}</span></span>
         <Icon name="chevrons" size={14} />
       </button>
