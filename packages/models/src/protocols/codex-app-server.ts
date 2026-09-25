@@ -11,7 +11,7 @@ export class CodexAppServerClient{
  account(){return this.rpc.request<any>("account/read",{refreshToken:false})}
  login(type:"chatgpt"|"chatgptDeviceCode"){return this.rpc.request<any>("account/login/start",{type})}
  logout(confirmed:boolean){if(!confirmed)throw new Error("CODEX_LOGOUT_CONFIRMATION_REQUIRED");return this.rpc.request("account/logout",{})}
- async infer(input:{model:string;messages:Array<{role:string;content:string}>;signal?:AbortSignal}){
+ async infer(input:{model?:string;messages:Array<{role:string;content:string}>;signal?:AbortSignal}){
   this.messages=[];this.protocolViolation=null
   const thread:any=await this.rpc.request("thread/start",{ephemeral:true,cwd:this.scratch,approvalPolicy:"never",sandbox:"read-only",config:{default_tools_enabled:false},baseInstructions:"Act only as a text generation model. Do not call tools, commands, files, shells, skills, or external services. Return the requested answer directly."})
   const threadId=thread.thread?.id??thread.threadId;if(!threadId)throw new Error("CODEX_THREAD_ID_MISSING")
