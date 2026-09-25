@@ -27,6 +27,21 @@ describe("provider CLI for gateways and generic endpoints", () => {
     expect(status.profiles.some((row: { profile: string; descriptor: string; billing: string }) => row.profile === id && row.descriptor === "opencode-go" && row.billing === "subscription")).toBe(true)
   })
 
+  // Linux without Secret Service reads keys from MATHOS_SECRET_* only; other platforms use the OS keychain.
+  test.skipIf(process.platform !== "linux")("status reports CONFIGURED once the key exists and never prints it", async () => {
+    const id = `cli-key-${process.pid}`; ids.push(id)
+    expect(await configure("opencode-go", "--profile", id, "--model", "glm-5.1")).toBe(0)
+    const env = `MATHOS_SECRET_MODEL_${id.toUpperCase().replace(/[^A-Z0-9]+/g, "_")}`
+    expect(await run("provider", "status", id, "--json")).toBe(0)
+    expect(JSON.parse(output).profiles[0].connection).toBe("SECRET_REQUIRED")
+    process.env[env] = "sk-status-canary"
+    try {
+      expect(await run("provider", "status", id, "--json")).toBe(0)
+      expect(JSON.parse(output).profiles[0].connection).toBe("CONFIGURED")
+      expect(output).not.toContain("sk-status-canary")
+    } finally { delete process.env[env] }
+  })
+
   test("gateways accept a protocol override; curated single-protocol providers refuse it", async () => {
     const id = `cli-zen-${process.pid}`; ids.push(id)
     expect(await configure("opencode-zen", "--profile", id, "--model", "glm-5.1", "--protocol", "openai-responses")).toBe(0)
