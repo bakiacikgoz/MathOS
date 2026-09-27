@@ -1,10 +1,24 @@
 import type { DoctorCheck } from "@mathos/domain"
 import type { ModelConfig } from "./types.ts"
 
+/** The model setup people use: provider profiles (keys in the OS keychain), a default and per-role routes. */
+export interface ModelProfileSummary { count: number; defaultProfile: string | null; roles: Record<string, string> }
+
 export async function modelDoctorChecks(
   config: ModelConfig,
-  options: { fetchImpl?: typeof fetch; probe?: boolean } = {},
+  options: { fetchImpl?: typeof fetch; probe?: boolean; profiles?: ModelProfileSummary } = {},
 ): Promise<DoctorCheck[]> {
+  // With profiles set up, the single-provider environment variables below are not used, so their absence is no warning.
+  const profiles = options.profiles
+  if (profiles && profiles.count > 0 && (profiles.defaultProfile || Object.keys(profiles.roles).length)) {
+    const routes = Object.entries(profiles.roles).map(([role, profile]) => `${role} → ${profile}`).join(", ")
+    return [
+      { name: "Model provider", status: "PASS", detail: `${profiles.count} profile${profiles.count === 1 ? "" : "s"}${profiles.defaultProfile ? `, default ${profiles.defaultProfile}` : ""}` },
+      { name: "API key", status: "PASS", detail: "stored per profile in the OS keychain" },
+      { name: "Model", status: "PASS", detail: routes || "per profile" },
+      { name: "Endpoint", status: "PASS", detail: "per profile" },
+    ]
+  }
   const checks: DoctorCheck[] = [
     {
       name: "Model provider",

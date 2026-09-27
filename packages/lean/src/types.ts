@@ -10,6 +10,8 @@ export interface LeanEnvironment {
   lakefile: string | null
   toolchain: string | null
   mathlib: boolean
+  /** Whose Mathlib Lean runs with: the workspace's own project, or the shared runtime every workspace uses. */
+  source?: "workspace" | "shared" | null
 }
 
 export interface LeanCheckResult {

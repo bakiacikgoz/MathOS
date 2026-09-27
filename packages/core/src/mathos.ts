@@ -57,8 +57,11 @@ import { experimentTrustLabels } from "./product-ux.ts"
 import { EventLog, EventProjection, makeEvent, type EventProjectionHealth, type EventProjectionPoint } from "@mathos/events"
 import {
   createDefaultModelProvider,
+  loadConfigFiles,
+  loadModelProfileStore,
   modelDoctorChecks,
   resolveModelConfig,
+  type ModelProfileSummary,
   type ModelProvider,
   type ModelRole,
 } from "@mathos/models"
@@ -665,6 +668,7 @@ export class MathOS {
     const base = buildDoctorReport(this.root, queryOk, await inspectPlatformCapabilities())
     const modelChecks = await modelDoctorChecks(resolveModelConfig({ workspaceRoot: this.root }), {
       probe: this.probeModel,
+      profiles: modelProfileSummary(this.root),
     })
     const env = await this.leanAdapter.detect(this.root)
     const leanChecks = this.leanAdapter.doctorChecks(env)
@@ -1254,3 +1258,13 @@ export class MathOS {
 }
 
 export { buildDoctorReport } from "./doctor.ts"
+
+/** The provider profiles and routes the user set up (never their keys), for the doctor. */
+function modelProfileSummary(workspaceRoot: string): ModelProfileSummary | undefined {
+  try {
+    const layout = resolveRuntimeLayout({ executablePath: process.execPath, platform: process.platform, home: homedir(), env: process.env })
+    const config = loadConfigFiles({ userPath: join(layout.userConfigRoot, "config.toml"), workspaceRoot }).config
+    const profiles = loadModelProfileStore(join(layout.userConfigRoot, "model-profiles.json")).profiles.filter((profile) => profile.enabled)
+    return { count: profiles.length, defaultProfile: config.model.default_profile || null, roles: config.model.roles }
+  } catch { return undefined }
+}

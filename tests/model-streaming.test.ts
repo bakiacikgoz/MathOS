@@ -62,6 +62,36 @@ describe("streamed answers", () => {
     expect(result).toMatchObject({ text: "Done", reasoning: "Plan.", usage: { inputTokens: 2, outputTokens: 1 }, rawResponseId: "r1" })
   })
 
+  test("responses request a summary when effort is automatic", async () => {
+    const seen: Array<Record<string, unknown>> = [], deltas: ModelDelta[] = []
+    const transport = new OpenAIResponsesTransport({ ...config(() => sse([
+      { type: "response.output_text.delta", delta: "Done" },
+      { type: "response.completed", response: { output: [{ type: "reasoning", summary: [{ type: "summary_text", text: "Checked the result." }] }] } },
+    ]), seen), model: "gpt-6-luna" })
+    const result = await transport.generate({ messages: [{ role: "user", content: "x" }], onDelta: (delta) => deltas.push(delta) })
+    expect(seen[0]!.reasoning).toEqual({ summary: "auto" })
+    expect(result.reasoning).toBe("Checked the result.")
+    expect(deltas).toEqual([{ text: "Done" }, { reasoning: "Checked the result." }])
+  })
+
+  test("responses leave reasoning options alone for an unknown model", async () => {
+    const seen: Array<Record<string, unknown>> = []
+    const transport = new OpenAIResponsesTransport(config(() => sse([{ type: "response.output_text.delta", delta: "Done" }]), seen))
+    await transport.generate({ messages: [{ role: "user", content: "x" }], onDelta: () => {} })
+    expect(seen[0]!.reasoning).toBeUndefined()
+  })
+
+  test("responses keep a summary sent only in a completion event", async () => {
+    const deltas: ModelDelta[] = []
+    const transport = new OpenAIResponsesTransport(config(() => sse([
+      { type: "response.output_text.delta", delta: "Done" },
+      { type: "response.reasoning_summary_text.done", text: "Checked the result." },
+    ])))
+    const result = await transport.generate({ messages: [{ role: "user", content: "x" }], onDelta: (delta) => deltas.push(delta) })
+    expect(result.reasoning).toBe("Checked the result.")
+    expect(deltas).toEqual([{ text: "Done" }, { reasoning: "Checked the result." }])
+  })
+
   test("a stream that reports an error fails instead of returning partial text", async () => {
     const transport = new OpenAIChatTransport(config(() => sse([{ choices: [{ delta: { content: "par" } }] }, { error: { message: "overloaded" } }])))
     await expect(transport.generate({ messages: [{ role: "user", content: "x" }], onDelta: () => {} })).rejects.toThrow("overloaded")

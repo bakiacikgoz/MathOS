@@ -2,7 +2,8 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node
 import { homedir } from "node:os"
 import { delimiter, join, resolve } from "node:path"
 import type { DoctorCheck, LeanDiagnostic } from "@mathos/domain"
-import { FORMAL_PROJECT_DIR, MATHLIB_GIT_URL, PINNED_LEAN_TOOLCHAIN, PINNED_MATHLIB_REV } from "./pin.ts"
+import { installLean, leanInstallStatus } from "./install.ts"
+import { leanRuntimeRoot, mathlibReadyAt, writeFormalProject } from "./project.ts"
 import type {
   LeanAdapter,
   LeanCheckResult,
@@ -133,58 +134,23 @@ export function parseAxioms(text: string): string[] {
   return lines
 }
 
-/** Writes the workspace's Lean project (toolchain, lakefile with the pinned Mathlib, a smoke module) where missing. */
-export function writeFormalProject(workspaceRoot: string, existingRoot: string | null = null): { projectRoot: string; created: boolean; toolchainPath: string } {
-  const projectRoot = existingRoot ?? join(workspaceRoot, FORMAL_PROJECT_DIR)
-  mkdirSync(projectRoot, { recursive: true })
-  mkdirSync(join(projectRoot, "MathosFormal"), { recursive: true })
-  mkdirSync(join(projectRoot, "Claims"), { recursive: true })
-
-  let created = false
-  const toolchainPath = join(projectRoot, "lean-toolchain")
-  const lakefilePath = join(projectRoot, "lakefile.toml")
-  if (!existsSync(toolchainPath)) {
-    writeFileSync(toolchainPath, `${PINNED_LEAN_TOOLCHAIN}\n`, "utf8")
-    created = true
-  }
-  // Mathlib comes straight from its git repository rather than through the Reservoir index, which is one less
-  // service to reach (and the one most often blocked on locked-down networks). Older MathOS lakefiles are migrated.
-  const lakefile = `name = "mathosFormal"\nversion = "0.1.0"\ndefaultTargets = ["MathosFormal"]\n\n[[require]]\nname = "mathlib"\ngit = "${MATHLIB_GIT_URL}"\nrev = "${PINNED_MATHLIB_REV}"\n\n[[lean_lib]]\nname = "MathosFormal"\n`
-  const legacy = `name = "mathosFormal"\nversion = "0.1.0"\ndefaultTargets = ["MathosFormal"]\n\n[[require]]\nname = "mathlib"\nscope = "leanprover-community"\nrev = "${PINNED_MATHLIB_REV}"\n\n[[lean_lib]]\nname = "MathosFormal"\n`
-  if ((!existsSync(lakefilePath) && !existsSync(join(projectRoot, "lakefile.lean"))) || (existsSync(lakefilePath) && readFileSync(lakefilePath, "utf8") === legacy)) {
-    writeFileSync(lakefilePath, lakefile, "utf8")
-    created = true
-  }
-  if (!existsSync(join(projectRoot, "MathosFormal.lean"))) {
-    writeFileSync(join(projectRoot, "MathosFormal.lean"), "import MathosFormal.Smoke\n", "utf8")
-    created = true
-  }
-  if (!existsSync(join(projectRoot, "MathosFormal", "Smoke.lean"))) {
-    writeFileSync(
-      join(projectRoot, "MathosFormal", "Smoke.lean"),
-      "import Mathlib\n\ntheorem mathos_smoke (n : Nat) : n = n := by\n  rfl\n",
-      "utf8",
-    )
-    created = true
-  }
-  return { projectRoot, created, toolchainPath }
-}
-
 export class NativeLeanAdapter implements LeanAdapter {
+  /**
+   * Where Lean runs for a workspace: in the workspace's own project when it already has a built Mathlib (installs
+   * from older MathOS versions, or a project the user set up), otherwise in the shared runtime once it is ready.
+   * Without either, Lean runs bare: a check never starts a Mathlib download in the middle of a proof.
+   */
   async detect(workspaceRoot: string): Promise<LeanEnvironment> {
-    const lean = run("lean", ["--version"])
-    const lake = run("lake", ["--version"])
     const toolchainFile = findNamed(workspaceRoot, ["lean-toolchain"])
     const lakefile = findNamed(workspaceRoot, ["lakefile.toml", "lakefile.lean"])
-    const projectRoot = toolchainFile ? resolve(toolchainFile, "..") : lakefile ? resolve(lakefile, "..") : null
-    const toolchain = toolchainFile && existsSync(toolchainFile) ? readFileSync(toolchainFile, "utf8").trim() : null
-    const mathlib =
-      (lakefile && existsSync(lakefile) && /mathlib/i.test(readFileSync(lakefile, "utf8"))) ||
-      Boolean(
-        projectRoot &&
-          existsSync(join(projectRoot, "lake-manifest.json")) &&
-          /mathlib/i.test(readFileSync(join(projectRoot, "lake-manifest.json"), "utf8")),
-      )
+    const local = toolchainFile ? resolve(toolchainFile, "..") : lakefile ? resolve(lakefile, "..") : null
+    const shared = leanRuntimeRoot()
+    const source = local && mathlibReadyAt(local) ? "workspace" as const : mathlibReadyAt(shared) ? "shared" as const : null
+    const projectRoot = source === "workspace" ? local : source === "shared" ? shared : null
+    const toolchainPath = projectRoot ? join(projectRoot, "lean-toolchain") : toolchainFile
+    const toolchain = toolchainPath && existsSync(toolchainPath) ? readFileSync(toolchainPath, "utf8").trim() : null
+    const lean = run("lean", ["--version"], projectRoot ?? undefined)
+    const lake = run("lake", ["--version"], projectRoot ?? undefined)
 
     return {
       leanAvailable: lean.ok,
@@ -192,9 +158,10 @@ export class NativeLeanAdapter implements LeanAdapter {
       leanVersion: lean.ok ? lean.out.split("\n")[0] ?? lean.out : null,
       lakeVersion: lake.ok ? lake.out.split("\n")[0] ?? lake.out : null,
       projectRoot,
-      lakefile,
+      lakefile: projectRoot ? join(projectRoot, "lakefile.toml") : lakefile,
       toolchain,
-      mathlib,
+      mathlib: source !== null,
+      source,
     }
   }
 
@@ -202,8 +169,8 @@ export class NativeLeanAdapter implements LeanAdapter {
     return [
       { name: "Lean", status: env.leanAvailable ? "PASS" : "WARN", detail: env.leanVersion ?? "not installed" },
       { name: "Lake", status: env.lakeAvailable ? "PASS" : "WARN", detail: env.lakeVersion ?? "not installed" },
-      { name: "Lean project", status: env.projectRoot ? "PASS" : "WARN", detail: env.projectRoot ?? "no lean-toolchain / lakefile" },
-      { name: "Mathlib", status: env.mathlib ? "PASS" : "WARN", detail: env.mathlib ? "detected" : "not detected" },
+      { name: "Lean project", status: env.projectRoot ? "PASS" : "WARN", detail: env.projectRoot ? `${env.source === "shared" ? "shared runtime" : "workspace"}: ${env.projectRoot}` : "Mathlib is not installed yet" },
+      { name: "Mathlib", status: env.mathlib ? "PASS" : "WARN", detail: env.mathlib ? "ready" : "not installed yet" },
       {
         name: "Toolchain pinned",
         status: env.toolchain && !/^(stable|latest)$/i.test(env.toolchain) ? "PASS" : "WARN",
@@ -279,24 +246,25 @@ export class NativeLeanAdapter implements LeanAdapter {
     return parseAxioms(checked.out)
   }
 
+  /** Writes the workspace's Lean project and makes sure the shared runtime is installed (a no-op once it is). */
   async setupProject(workspaceRoot: string): Promise<LeanSetupResult> {
-    const existing = await this.detect(workspaceRoot)
-    const { projectRoot, created, toolchainPath } = writeFormalProject(workspaceRoot, existing.projectRoot)
-
+    const existing = findNamed(workspaceRoot, ["lean-toolchain"])
+    const { projectRoot, created, toolchainPath } = writeFormalProject(workspaceRoot, existing ? resolve(existing, "..") : null)
     const toolchain = readFileSync(toolchainPath, "utf8").trim()
-    run("elan", ["toolchain", "install", toolchain])
-    const updated = run("lake", ["update"], projectRoot)
-    const cache = run("lake", ["exe", "cache", "get"], projectRoot)
-    const build = run("lake", ["build"], projectRoot)
-    const env = await this.detect(workspaceRoot)
+    let detail = "shared Lean runtime ready"
+    let status = leanInstallStatus()
+    if (!status.ready) {
+      try { status = await installLean(() => {}) }
+      catch (error) { detail = error instanceof Error ? error.message : String(error); status = leanInstallStatus() }
+    }
     return {
       created,
       projectRoot,
       toolchain,
-      mathlib: env.mathlib,
-      cache: cache.ok ? "ok" : cache.out.slice(0, 160),
-      build: build.ok ? "PASS" : "FAIL",
-      detail: build.ok ? "lake build ok" : `${updated.out}\n${build.out}`.slice(0, 400),
+      mathlib: status.ready,
+      cache: status.mathlibBuilt ? "ok" : "missing",
+      build: status.ready ? "PASS" : "FAIL",
+      detail: status.ready ? detail : detail.slice(0, 400),
     }
   }
 

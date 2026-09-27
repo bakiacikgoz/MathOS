@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import type { LeanAdapter, LeanDeclarationInspection } from "@mathos/lean"
+import { leanRuntimeRoot, type LeanAdapter, type LeanDeclarationInspection } from "@mathos/lean"
 import type { LeanDeclaration, PremiseRetrievalRequest, PremiseRetrievalResult, PremiseRetriever } from "./types.ts"
 import { resolveRetrievalConfig } from "./config.ts"
 import { fingerprintFiles, hashText } from "./fingerprint.ts"
@@ -62,7 +62,8 @@ export class HybridPremiseRetriever implements PremiseRetriever {
   build(leanVersion: string | null): IndexManifest {
     const project = existsSync(join(this.workspaceRoot, "formal")) ? join(this.workspaceRoot, "formal") : this.workspaceRoot
     const workspaceDecls = scanLeanTree(join(this.workspaceRoot, "formal"), "workspace", "formal")
-    const mathlibRoot = findMathlibRoot(project)
+    // A workspace uses the shared Lean runtime's Mathlib unless it has one of its own.
+    const mathlibRoot = findMathlibRoot(project) ?? findMathlibRoot(leanRuntimeRoot())
     const mathlibDecls = mathlibRoot ? scanLeanTree(mathlibRoot, "mathlib", "Mathlib") : []
     const initRoot = findInitRoot()
     const initDecls = initRoot ? scanLeanTree(initRoot, "mathlib", "Init") : []
@@ -164,7 +165,8 @@ export class HybridPremiseRetriever implements PremiseRetriever {
       if (missing.length) {
         const fresh = await this.leanAdapter.inspectDeclarations(missing, { workspaceRoot: this.workspaceRoot }, {
           timeoutMs: config.inspectionTimeoutMs,
-          extraImports: existsSync(join(this.workspaceRoot, "formal", "MathosFormal.lean")) ? ["MathosFormal"] : [],
+          // The workspace's own modules can be imported only where they were built (a workspace with its own Mathlib).
+          extraImports: existsSync(join(this.workspaceRoot, "formal", ".lake", "build", "lib", "lean", "MathosFormal.olean")) ? ["MathosFormal"] : [],
         })
         if (fresh.failed || fresh.timedOut) {
           return {

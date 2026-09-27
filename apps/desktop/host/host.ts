@@ -7,6 +7,8 @@ import { MATHOS_PRODUCT_VERSION } from "@mathos/shared"
 import { runHeadless } from "../../tui/src/headless.ts"
 import { createSecretStore } from "@mathos/models"
 import { cancelJob, listJobs, pollJob, setCommandRunner } from "../../tui/src/jobs.ts"
+import { autoInstallLean, leanRuntimeState } from "../../tui/src/lean-runtime.ts"
+import { autoPullSandboxImage } from "../../tui/src/sandbox-runtime.ts"
 import { DESKTOP_HOST_PROTOCOL, blockedCommandReason, createLineSplitter, parseHostMessage, type HostReady, type HostResponse, type SecretSetRequest } from "./protocol.ts"
 
 const rawStdout = process.stdout.write.bind(process.stdout)
@@ -68,15 +70,16 @@ setCommandRunner((cwd, args) => new Promise((resolve, reject) => { queue = queue
 
 /**
  * Following a job never waits behind the queue: a proof can hold it for minutes, and the app must keep showing
- * progress meanwhile. These only read the job table in memory.
+ * progress meanwhile. These only read the job table in memory (and, for Lean, a few files).
  */
 function fastPath(raw: string): boolean {
   let request
   try { request = parseHostMessage(raw) } catch { return false }
-  if ("op" in request || request.args[0] !== "job") return false
-  const [, action, jobId] = request.args, started = performance.now()
+  if ("op" in request || !(request.args[0] === "job" || (request.args[0] === "lean" && request.args[1] === "status"))) return false
+  const [command, action, jobId] = request.args, started = performance.now()
   try {
-    const out = action === "poll" && jobId ? pollJob(jobId, Number(request.args[request.args.indexOf("--since") + 1] ?? 0) || 0)
+    const out = command === "lean" ? leanRuntimeState()
+      : action === "poll" && jobId ? pollJob(jobId, Number(request.args[request.args.indexOf("--since") + 1] ?? 0) || 0)
       : action === "cancel" && jobId ? { id: jobId, cancelled: cancelJob(jobId) }
       : action === "list" ? { schemaVersion: "mathos.jobs.v1", jobs: listJobs() } : null
     if (!out) return false
@@ -99,6 +102,12 @@ async function storeSecret(request: SecretSetRequest, started: number): Promise<
 let queue = Promise.resolve()
 const onLine = createLineSplitter((raw) => { if (!fastPath(raw)) queue = queue.then(() => execute(raw)) })
 send({ protocol: DESKTOP_HOST_PROTOCOL, type: "ready", version: MATHOS_PRODUCT_VERSION, pid: process.pid })
+// What formal work and experiments need installs itself once per computer, in the background, a moment after the
+// app is up: Lean and Mathlib, and (when Docker is running) the experiment sandbox's image.
+setTimeout(() => {
+  try { autoInstallLean() } catch (error) { rawStderr(`lean auto-install: ${error instanceof Error ? error.message : String(error)}\n`) }
+  void autoPullSandboxImage().catch((error: unknown) => rawStderr(`sandbox image: ${error instanceof Error ? error.message : String(error)}\n`))
+}, 2_000)
 const decoder = new TextDecoder()
 for await (const chunk of Bun.stdin.stream()) onLine(decoder.decode(chunk, { stream: true }))
 await queue

@@ -9,6 +9,7 @@ import { Icon, Mark, type IconName } from "./Icon.tsx"
 import { Wordmark } from "./Brand.tsx"
 import { errorText } from "../lib/cli-text.ts"
 import { useAutoTour } from "./Tour.tsx"
+import { LeanIndicator } from "./LeanSetup.tsx"
 
 type Signal = { kind: "count"; value: number } | { kind: "dot"; tone: "strong" | "soft"; title: MessageKey } | null
 
@@ -56,6 +57,7 @@ export function Sidebar({ onPalette }: { onPalette: () => void }) {
       </nav>
 
       <div className="sidebar-foot" data-tour="sidebar-foot">
+        <LeanIndicator collapsed={collapsed} />
         <NavItem route="settings" icon="settings" label={t("nav.settings")} shortcut={`${mod},`} signal={null} collapsed={collapsed} />
         <div className="sidebar-foot-row">
           <ThemeSwitch />

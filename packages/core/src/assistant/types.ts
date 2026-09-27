@@ -34,6 +34,8 @@ export interface AssistantConversation {
   createdAt: string
   updatedAt: string
   profile: string | null
+  /** A model of the profile's provider picked for this conversation, in place of the profile's own model. */
+  model?: string | null
   effort: AssistantEffort
   /** A claim the conversation is about (opened from the claim page, or picked). */
   claimId: string | null

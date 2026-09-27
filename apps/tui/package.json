@@ -20,6 +20,7 @@
     "@opentui/keymap": "^0.5.7",
     "@opentui/solid": "^0.5.7",
     "solid-js": "1.9.12",
-    "@mathos/lean": "workspace:*"
+    "@mathos/lean": "workspace:*",
+    "@mathos/computation": "workspace:*"
   }
 }

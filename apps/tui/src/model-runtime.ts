@@ -11,6 +11,7 @@ import {
   loadModelProfileStore,
   providerCatalog,
   type ConnectedModelRoutes,
+  type ModelProfileV2,
   type ModelProvider,
   type ModelRole,
   type ProviderFactoryOptions,
@@ -38,11 +39,13 @@ export function configuredModelRoleAssignments(workspaceRoot: string): Record<st
  * Model routes for the given roles from the user's configuration. `profile` pins every role to one profile (the
  * assistant's model picker); privacy and billing rules still apply to it.
  */
-export async function configuredModelProviders(workspaceRoot: string, roles: readonly ModelRole[], override: { profile?: string } = {}): Promise<ConnectedModelRoutes | undefined> {
+export async function configuredModelProviders(workspaceRoot: string, roles: readonly ModelRole[], override: { profile?: string; model?: string } = {}): Promise<ConnectedModelRoutes | undefined> {
   const paths = runtimePaths(workspaceRoot)
   const loaded = loadConfigFiles({ userPath: paths.configPath, workspaceRoot })
   if (!override.profile && !loaded.config.model.default_profile && !Object.keys(loaded.config.model.roles).length) return undefined
-  const profiles = loadModelProfileStore(paths.profilesPath).profiles
+  // A picked model applies to the profile that actually answers: the one named, else the role's route, else the default.
+  const routed = roles.length === 1 ? (loaded.config.model.roles as Partial<Record<ModelRole, string>>)[roles[0]!] : undefined
+  const profiles = withModel(loadModelProfileStore(paths.profilesPath).profiles, override.profile ?? (routed || loaded.config.model.default_profile), override.model)
   const registry = new ProviderProfileRegistry(profiles)
   if (override.profile && !registry.get(override.profile)) throw new Error(`MODEL_PROFILE_NOT_FOUND: ${override.profile}`)
   const metadata = Object.fromEntries(profiles.map(profile => {
@@ -66,6 +69,17 @@ export async function configuredModelProviders(workspaceRoot: string, roles: rea
     const profileOptions = { ...options }
     if (profile.descriptorId === "openai-codex-chatgpt") profileOptions.codex = codex ??= await codexOptions()
     return await createProviderFromProfile(profile, profileOptions) as ModelProvider & { connect?: () => Promise<unknown>; close?: () => Promise<void> }
+  })
+}
+
+/** The profile with another model of its own provider, as picked for one conversation; only models the provider lists. */
+export function withModel(profiles: ModelProfileV2[], profileId: string | undefined, model: string | undefined): ModelProfileV2[] {
+  if (!model || !profileId) return profiles
+  return profiles.map(profile => {
+    if (profile.id !== profileId || profile.model === model) return profile
+    const listed = providerCatalog.get(profile.descriptorId)?.defaultModels ?? []
+    if (!listed.includes(model)) throw new Error(`MODEL_NOT_OFFERED: ${model} is not a model of ${profile.displayName}`)
+    return { ...profile, model }
   })
 }
 

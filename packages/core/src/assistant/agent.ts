@@ -1,6 +1,6 @@
 import type { ModelMessage, ModelProvider } from "@mathos/models"
 import { AssistantStore, newId } from "./store.ts"
-import { ASSISTANT_TOOLS, assistantTool } from "./tools.ts"
+import { ASSISTANT_TOOLS, assistantTool, leanSummary } from "./tools.ts"
 import type { AssistantCommandRunner, AssistantConversation, AssistantEvent, AssistantMessage, AssistantPart } from "./types.ts"
 
 const TOOL_BLOCK = /```(?:mathos-tool|tool)[^\n]*\n([\s\S]*?)(?:```|$)/
@@ -48,6 +48,11 @@ MathOS trust rules — never break them:
 - Whether a Lean statement means the same as the natural-language statement is the user's decision. You can explain differences and run the comparison, but never say the meaning is approved unless the workspace shows it; the user approves on the claim page.
 - Separate what is established from what is conjectured, and say when you are unsure.
 
+How to help with mathematics:
+- When the user asks you to solve or prove something, answer it yourself first: a complete, careful argument in the chat. Do not create claims or start the Lean workflow unless they ask for it or it is clearly what they want.
+- After a proof, you may offer once, in one sentence, to check it formally with Lean (create a claim, formalize, prove, verify). Say plainly that until Lean accepts it, your proof is an argument, not a verification.
+- Lean's state is in the snapshot below. formalize, prove and verify need Lean and Mathlib; while they are not ready, do not propose these tools. Say how far the automatic install is instead. Never say a tool will install or set up Lean; installing happens on its own in the background.
+
 Formatting: Markdown. Math in $…$ inline and $$…$$ on its own line. Lean in \`\`\`lean blocks, other code in fenced blocks with a language. Be direct; use headings and lists only when they help.
 
 Tools. To use one, end your reply with exactly one block like this, then stop and wait:
@@ -63,9 +68,17 @@ ${snapshot}`
 
 async function snapshot(runner: AssistantCommandRunner, claimId: string | null): Promise<string> {
   const run = async (args: string[], summarize: (out: string) => string) => { try { const result = await runner(args); return result.code === 0 ? summarize(result.stdout) : `(unavailable: ${(result.stderr || result.stdout).trim().split("\n")[0]})` } catch (error) { return `(unavailable: ${error instanceof Error ? error.message : String(error)})` } }
-  const parts = [`Status:\n${await run(["status", "--json"], assistantTool("workspace_status")!.summarize!)}`, `Claims:\n${await run(["claims", "--json"], assistantTool("list_claims")!.summarize!)}`]
+  const parts = [`Status:\n${await run(["status", "--json"], assistantTool("workspace_status")!.summarize!)}`, `Lean: ${await run(["lean", "status"], leanSummary)}`, `Claims:\n${await run(["claims", "--json"], assistantTool("list_claims")!.summarize!)}`]
   if (claimId) parts.push(`The user opened this conversation from ${claimId}:\n${await run(["claim", "show", claimId, "--json"], assistantTool("show_claim")!.summarize!)}`)
   return parts.join("\n\n")
+}
+
+async function leanState(runner: AssistantCommandRunner): Promise<{ ready: boolean; summary: string }> {
+  try {
+    const result = await runner(["lean", "status"])
+    const value = JSON.parse(result.stdout) as { ready?: unknown }
+    return { ready: value.ready === true, summary: leanSummary(result.stdout) }
+  } catch { return { ready: true, summary: "" } }
 }
 
 /** What the model sees: the conversation so far (recent turns), with the current turn's tool calls and results. */
@@ -221,6 +234,16 @@ export async function runAssistantTurn(options: AssistantTurnOptions): Promise<A
     try { tool.argv!(call!.args) }
     catch (error) { conversation.scratch.push({ role: "user", messageId: assistant.id, content: `TOOL_RESULT error: ${error instanceof Error ? error.message : String(error)}` }); store.save(conversation); continue }
     const part: Extract<AssistantPart, { type: "tool" }> = { type: "tool", id: newId("tool"), tool: tool.name, args: call!.args, kind: tool.kind === "read" ? "read" : "action", status: tool.kind === "read" ? "running" : "proposed", title: tool.title(call!.args) }
+    // Asking the user to approve something that cannot run yet only wastes their click: say why instead.
+    const lean = tool.needsLean ? await leanState(runner) : null
+    if (lean && !lean.ready) {
+      part.status = "failed"; part.error = lean.summary
+      parts.push(part); emit({ type: "part", part: { ...part } })
+      conversation.scratch.push({ role: "user", messageId: assistant.id, content: `TOOL_RESULT ${tool.name} (not run, LEAN_NOT_READY): ${lean.summary} Tell the user this plainly and continue without it.` })
+      context = null
+      store.save(conversation)
+      continue
+    }
     parts.push(part); emit({ type: "part", part: { ...part } })
     if (tool.kind === "action") return finish("awaiting_approval")
     store.save(conversation)

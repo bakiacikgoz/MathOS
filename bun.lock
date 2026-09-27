@@ -32,6 +32,7 @@
         "mathos": "./src/cli.ts",
       },
       "dependencies": {
+        "@mathos/computation": "workspace:*",
         "@mathos/core": "workspace:*",
         "@mathos/domain": "workspace:*",
         "@mathos/graph": "workspace:*",

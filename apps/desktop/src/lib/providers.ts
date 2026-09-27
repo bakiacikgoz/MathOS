@@ -16,7 +16,7 @@ export interface StatusRow { profile: string; descriptor: string; connection: st
 
 export const providerKeys = { all: "providers|", catalog: "providers|catalog", list: "providers|list", status: "providers|status" }
 export const useCatalog = (root: string) => useQuery(providerKeys.catalog, () => runJson<{ providers: CatalogEntry[] }>(root, ["provider", "catalog"]), 5 * 60_000)
-export const useProfiles = (root: string) => useQuery(providerKeys.list, () => runJson<{ defaultProfile: string | null; profiles: ProfileRow[] }>(root, ["provider", "list"]))
+export const useProfiles = (root: string) => useQuery(providerKeys.list, () => runJson<{ defaultProfile: string | null; assistantProfile?: string | null; profiles: ProfileRow[] }>(root, ["provider", "list"]))
 export const useProviderStatus = (root: string) => useQuery(providerKeys.status, () => runJson<{ profiles: StatusRow[]; remoteModelsAllowed?: boolean }>(root, ["provider", "status"]))
 
 export const isGeneric = (descriptor: ProviderDescriptor) => descriptor.id.startsWith("generic-")

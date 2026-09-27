@@ -30,14 +30,16 @@ export async function assistantCommand(rest: string[]): Promise<number> {
     write({ written: path, bytes: bytes.byteLength }); return 0
   }
   if (action === "list") { write({ schemaVersion: "mathos.assistant.list.v1", conversations: store.list() }); return 0 }
-  if (action === "new") { write(store.create({ profile: flag(rest, "--profile") ?? null, effort: effort(flag(rest, "--effort")) ?? "auto", claimId: claim(flag(rest, "--claim")) ?? null })); return 0 }
+  if (action === "new") { write(store.create({ profile: flag(rest, "--profile") ?? null, model: flag(rest, "--model") ?? null, effort: effort(flag(rest, "--effort")) ?? "auto", claimId: claim(flag(rest, "--claim")) ?? null })); return 0 }
   if (!id) throw new Error("ASSISTANT_CONVERSATION_ID_REQUIRED")
   if (action === "show") { write(store.get(id)); return 0 }
   if (action === "delete") { store.delete(id); write({ deleted: id }); return 0 }
   if (action === "rename") { write(store.rename(id, rest.slice(2).filter((value) => value !== "--json").join(" "))); return 0 }
   if (action === "settings") {
-    const conversation = store.get(id), profile = flag(rest, "--profile"), nextEffort = effort(flag(rest, "--effort")), nextClaim = claim(flag(rest, "--claim"))
-    if (profile !== undefined) conversation.profile = profile === "default" ? null : profile
+    const conversation = store.get(id), profile = flag(rest, "--profile"), model = flag(rest, "--model"), nextEffort = effort(flag(rest, "--effort")), nextClaim = claim(flag(rest, "--claim"))
+    // A picked model belongs to its profile's provider: choosing another profile without a model goes back to that profile's own.
+    if (profile !== undefined) { conversation.profile = profile === "default" ? null : profile; conversation.model = null }
+    if (model !== undefined) conversation.model = model === "default" ? null : model
     if (nextEffort) conversation.effort = nextEffort
     if (nextClaim !== undefined) conversation.claimId = nextClaim
     store.save(conversation); write(conversation); return 0
@@ -50,7 +52,7 @@ export async function assistantCommand(rest: string[]): Promise<number> {
   const resume = action === "approve" || action === "reject" ? { partId: rest[2] ?? "", approved: action === "approve" } : undefined
 
   const turn = async (emit: (event: AssistantEvent) => void, signal?: AbortSignal) => {
-    const routes = await configuredModelProviders(root, ["researcher"], conversation.profile ? { profile: conversation.profile } : {}).catch((error: unknown) => { throw error instanceof Error ? error : new Error(String(error)) })
+    const routes = await configuredModelProviders(root, ["researcher"], { ...(conversation.profile ? { profile: conversation.profile } : {}), ...(conversation.model ? { model: conversation.model } : {}) }).catch((error: unknown) => { throw error instanceof Error ? error : new Error(String(error)) })
     const provider = routes?.providers.researcher
     if (!provider) throw new Error("MODEL_ROUTE_UNAVAILABLE: connect a model in Model Providers first")
     try {

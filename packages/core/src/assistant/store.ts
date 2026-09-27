@@ -12,9 +12,9 @@ export class AssistantStore {
   private readonly dir: string
   constructor(workspaceRoot: string) { this.dir = join(workspaceRoot, ".mathos", "assistant") }
 
-  create(options: { profile?: string | null; effort?: AssistantEffort; claimId?: string | null } = {}): AssistantConversation {
+  create(options: { profile?: string | null; model?: string | null; effort?: AssistantEffort; claimId?: string | null } = {}): AssistantConversation {
     const now = new Date().toISOString()
-    const conversation: AssistantConversation = { schemaVersion: "mathos.assistant.conversation.v1", id: newId("conv"), title: "", createdAt: now, updatedAt: now, profile: options.profile ?? null, effort: options.effort ?? "auto", claimId: options.claimId ?? null, messages: [], scratch: [] }
+    const conversation: AssistantConversation = { schemaVersion: "mathos.assistant.conversation.v1", id: newId("conv"), title: "", createdAt: now, updatedAt: now, profile: options.profile ?? null, model: options.model ?? null, effort: options.effort ?? "auto", claimId: options.claimId ?? null, messages: [], scratch: [] }
     this.save(conversation)
     return conversation
   }

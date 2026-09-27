@@ -30,7 +30,7 @@ export {
 } from "./config.ts"
 export { OpenAICompatibleProvider } from "./openai.ts"
 export { FakeModelProvider } from "./fake.ts"
-export { modelDoctorChecks } from "./doctor.ts"
+export { modelDoctorChecks, type ModelProfileSummary } from "./doctor.ts"
 export { redactText, redactValue, containsSecret, collectKnownSecrets, redactedProviderSummary, assertSafeProviderUrl, type RedactedProviderSummary } from "./redact.ts"
 export * from "./unified-config.ts"
 export * from "./secret-store.ts"

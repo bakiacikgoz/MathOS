@@ -27,7 +27,7 @@ function scripted(answers: Array<string | Error>, seen: ModelRequest[] = []): Mo
 }
 const tool = (name: string, args: Record<string, unknown>) => `\n\`\`\`mathos-tool\n${JSON.stringify({ tool: name, args })}\n\`\`\``
 
-function setup(answers: Array<string | Error>) {
+function setup(answers: Array<string | Error>, lean: Record<string, unknown> | null = null) {
   const root = mkdtempSync(join(tmpdir(), "mathos-assistant-")); dirs.push(root)
   const store = new AssistantStore(root), conversation = store.create()
   const commands: string[][] = [], events: AssistantEvent[] = [], seen: ModelRequest[] = []
@@ -37,6 +37,7 @@ function setup(answers: Array<string | Error>) {
     if (args[0] === "status") return { code: 0, stdout: JSON.stringify({ text: "Objective: none" }), stderr: "" }
     if (args[0] === "claim" && args[1] === "show") return { code: 0, stdout: JSON.stringify({ claim: { id: "C-001", kind: "conjecture", title: "Odd sums", naturalStatement: "…", status: "CONJECTURE" }, workflow: { next: "formalize", formal: null, approved: false, proofs: [], verified: false } }), stderr: "" }
     if (args[0] === "claim" && args[1] === "create") return { code: 0, stdout: JSON.stringify({ id: "C-002", title: "New" }), stderr: "" }
+    if (args[0] === "lean" && lean) return { code: 0, stdout: JSON.stringify(lean), stderr: "" }
     return { code: 1, stdout: "", stderr: "unexpected" }
   }
   const turn = (extra: Partial<Parameters<typeof runAssistantTurn>[0]> = {}) => runAssistantTurn({ store, conversationId: conversation.id, provider: scripted(answers, seen), profile: null, workspaceName: "demo", runner, emit: (event) => events.push(event), ...extra })
@@ -137,4 +138,24 @@ test("the assistant links claims only with the relations the graph draws", async
   expect(link.argv!({ from: "t-001", to: "L-002" })).toEqual(["claim", "depend", "T-001", "--on", "L-002", "--relation", "depends_on", "--json"])
   expect(() => link.argv!({ from: "T-001", to: "T-001" })).toThrow("cannot depend on itself")
   expect(() => link.argv!({ from: "T-001", to: "L-002", relation: "loves" })).toThrow("relation must be")
+})
+
+describe("assistant and Lean readiness", () => {
+  test("while Lean is still installing, a Lean action is not offered for approval and the model hears why", async () => {
+    const installing = { ready: false, job: "job-1", progress: { step: "cache", percent: 62 }, pinnedToolchain: "leanprover/lean4:v4.33.1" }
+    const { store, conversation, commands, seen, turn } = setup([`I'll formalize it.${tool("formalize", { id: "C-001" })}`, "Lean is still being installed (62%); here is the proof in words instead."], installing)
+    const message = await turn({ input: { text: "Prove C-001" } })
+    expect(message.state).toBe("done")
+    expect(message.parts?.find((part) => part.type === "tool")).toMatchObject({ tool: "formalize", status: "failed", error: expect.stringContaining("62%") })
+    expect(commands.some((args) => args[0] === "formalize")).toBe(false)
+    expect(seen[0]!.messages[0]!.content).toContain("being installed automatically in the background, 62% done")
+    expect(store.get(conversation.id).scratch.some((entry) => entry.content.includes("LEAN_NOT_READY"))).toBe(true)
+  })
+
+  test("once Lean is ready, a Lean action waits for approval as usual", async () => {
+    const { turn } = setup([`Formalizing.${tool("formalize", { id: "C-001" })}`], { ready: true, pinnedToolchain: "leanprover/lean4:v4.33.1" })
+    const message = await turn({ input: { text: "Formalize C-001" } })
+    expect(message.state).toBe("awaiting_approval")
+    expect(message.parts?.find((part) => part.type === "tool")).toMatchObject({ tool: "formalize", status: "proposed" })
+  })
 })

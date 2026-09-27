@@ -1,12 +1,12 @@
-import { existsSync, mkdirSync, readFileSync, rmSync, statfsSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statfsSync, writeFileSync } from "node:fs"
 import { homedir, tmpdir } from "node:os"
-import { delimiter, join } from "node:path"
-import { FORMAL_PROJECT_DIR, PINNED_LEAN_TOOLCHAIN } from "./pin.ts"
-import { writeFormalProject } from "./native.ts"
+import { basename, delimiter, dirname, join } from "node:path"
+import { PINNED_LEAN_TOOLCHAIN } from "./pin.ts"
+import { leanRuntimeRoot, mathlibBuiltAt, mathlibFetchedAt, writeRuntimeProject } from "./project.ts"
 
-// Installs what formal work needs, one visible step at a time: elan (Lean's official version manager), the pinned
-// Lean toolchain, the workspace's Lean project with the pinned Mathlib, Mathlib's prebuilt cache, and a first build.
-// Every command is an official one; nothing is installed without the caller's explicit consent.
+// Installs what formal work needs into the shared Lean runtime, one visible step at a time: elan (Lean's official
+// version manager), the pinned Lean toolchain, the runtime's Lake project with the pinned Mathlib, Mathlib's prebuilt
+// cache, and a first build. It happens once per computer; every workspace then uses it. Every command is an official one.
 
 export type LeanInstallStep = "git" | "elan" | "toolchain" | "project" | "mathlib" | "cache" | "build"
 export const LEAN_INSTALL_STEPS: LeanInstallStep[] = ["git", "elan", "project", "toolchain", "mathlib", "cache", "build"]
@@ -27,17 +27,19 @@ export interface LeanInstallRuntime {
 }
 
 export interface LeanInstallStatus {
-  schemaVersion: "mathos.lean-status.v1"
+  schemaVersion: "mathos.lean-status.v2"
   pinnedToolchain: string
   git: boolean
   elan: string | null
   toolchainInstalled: boolean
-  projectRoot: string
+  /** The shared runtime every workspace uses. */
+  runtimeRoot: string
   project: boolean
   mathlibFetched: boolean
   mathlibBuilt: boolean
   ready: boolean
   freeBytes: number | null
+  requiredBytes: number
 }
 
 /** Mathlib's cache and sources take about 6 GB; ask for some headroom before starting. */
@@ -66,20 +68,45 @@ function readToolchain(projectRoot: string): string {
   return existsSync(path) ? readFileSync(path, "utf8").trim() || PINNED_LEAN_TOOLCHAIN : PINNED_LEAN_TOOLCHAIN
 }
 
-export function leanInstallStatus(workspaceRoot: string, runtime: LeanInstallRuntime = bunInstallRuntime()): LeanInstallStatus {
-  const projectRoot = join(workspaceRoot, FORMAL_PROJECT_DIR)
-  const project = existsSync(join(projectRoot, "lakefile.toml")) || existsSync(join(projectRoot, "lakefile.lean"))
-  const mathlibRoot = join(projectRoot, ".lake", "packages", "mathlib")
-  const mathlibFetched = existsSync(join(mathlibRoot, "Mathlib.lean"))
-  const mathlibBuilt = existsSync(join(mathlibRoot, ".lake", "build", "lib", "lean", "Mathlib.olean")) || existsSync(join(mathlibRoot, ".lake", "build", "lib", "Mathlib.olean"))
+/** The nearest folder that exists, to measure free space before the runtime folder is created. */
+function existingAncestor(path: string): string {
+  let current = path
+  while (!existsSync(current) && dirname(current) !== current) current = dirname(current)
+  return current
+}
+
+/**
+ * One install at a time per computer, across processes (the desktop's background install and a terminal's
+ * `mathos lean install`): two Lake runs in one folder would corrupt it. The lock names its process and dies with it.
+ */
+const lockPath = (runtimeRoot: string) => `${runtimeRoot}.install-lock`
+export function leanInstallHolder(runtimeRoot = leanRuntimeRoot()): number | null {
+  try {
+    const pid = Number(readFileSync(lockPath(runtimeRoot), "utf8").trim())
+    if (!Number.isInteger(pid) || pid <= 0 || pid === process.pid) return null
+    process.kill(pid, 0)
+    return pid
+  } catch { return null }
+}
+function takeLock(runtimeRoot: string): () => void {
+  const holder = leanInstallHolder(runtimeRoot)
+  if (holder) throw new LeanInstallError("LEAN_INSTALL_BUSY", "git", `another MathOS process (${holder}) is installing Lean`)
+  mkdirSync(dirname(runtimeRoot), { recursive: true })
+  writeFileSync(lockPath(runtimeRoot), String(process.pid))
+  return () => { try { if (readFileSync(lockPath(runtimeRoot), "utf8").trim() === String(process.pid)) rmSync(lockPath(runtimeRoot), { force: true }) } catch {} }
+}
+
+export function leanInstallStatus(runtimeRoot = leanRuntimeRoot(), runtime: LeanInstallRuntime = bunInstallRuntime()): LeanInstallStatus {
+  const project = existsSync(join(runtimeRoot, "lakefile.toml"))
+  const mathlibFetched = mathlibFetchedAt(runtimeRoot), mathlibBuilt = mathlibBuiltAt(runtimeRoot)
   const elan = findElan(runtime)
-  const toolchain = readToolchain(projectRoot)
+  const toolchain = readToolchain(runtimeRoot)
   const toolchainInstalled = Boolean(elan) && existsSync(toolchainDir(runtime, toolchain))
   const git = Boolean(runtime.which("git"))
   return {
-    schemaVersion: "mathos.lean-status.v1", pinnedToolchain: toolchain, git, elan, toolchainInstalled, projectRoot, project, mathlibFetched, mathlibBuilt,
-    ready: git && Boolean(elan) && toolchainInstalled && project && mathlibFetched && mathlibBuilt,
-    freeBytes: runtime.freeBytes(existsSync(workspaceRoot) ? workspaceRoot : runtime.home),
+    schemaVersion: "mathos.lean-status.v2", pinnedToolchain: toolchain, git, elan, toolchainInstalled, runtimeRoot, project, mathlibFetched, mathlibBuilt,
+    ready: Boolean(elan) && toolchainInstalled && project && mathlibFetched && mathlibBuilt,
+    freeBytes: runtime.freeBytes(existingAncestor(runtimeRoot)), requiredBytes: LEAN_INSTALL_MIN_FREE_BYTES,
   }
 }
 
@@ -106,8 +133,14 @@ function classify(step: LeanInstallStep, exitCode: number, tail: string[]): Lean
  * Runs the whole installation. Steps already satisfied are reported as skipped, so re-running after a failure
  * (or on a machine that already has Lean) only does what is missing.
  */
-export async function installLean(workspaceRoot: string, emit: (event: LeanInstallEvent) => void, options: { signal?: AbortSignal; runtime?: LeanInstallRuntime } = {}): Promise<LeanInstallStatus> {
-  const runtime = options.runtime ?? bunInstallRuntime(), signal = options.signal
+export async function installLean(emit: (event: LeanInstallEvent) => void, options: { signal?: AbortSignal; runtime?: LeanInstallRuntime; runtimeRoot?: string } = {}): Promise<LeanInstallStatus> {
+  const runtime = options.runtime ?? bunInstallRuntime(), signal = options.signal, runtimeRoot = options.runtimeRoot ?? leanRuntimeRoot()
+  const release = takeLock(runtimeRoot)
+  try { return await installLocked(runtimeRoot, emit, runtime, signal) }
+  finally { release() }
+}
+
+async function installLocked(runtimeRoot: string, emit: (event: LeanInstallEvent) => void, runtime: LeanInstallRuntime, signal: AbortSignal | undefined): Promise<LeanInstallStatus> {
   const env = { ...process.env, PATH: leanSearchPath(runtime), RUST_BACKTRACE: "0" }
   const run = async (step: LeanInstallStep, argv: string[], cwd?: string) => {
     const tail: string[] = []
@@ -143,7 +176,7 @@ export async function installLean(workspaceRoot: string, emit: (event: LeanInsta
     }
   }
 
-  const before = leanInstallStatus(workspaceRoot, runtime)
+  const before = leanInstallStatus(runtimeRoot, runtime)
   const free = before.freeBytes
   if (!before.mathlibFetched && free !== null && free < LEAN_INSTALL_MIN_FREE_BYTES) {
     const error = new LeanInstallError("LEAN_INSTALL_DISK_FULL", "git", `${Math.round(free / 1024 ** 3)} GB free; Mathlib needs about 8 GB`)
@@ -169,8 +202,8 @@ export async function installLean(workspaceRoot: string, emit: (event: LeanInsta
     if (!findElan(runtime)) throw new LeanInstallError("LEAN_INSTALL_STEP_FAILED", "elan", "elan finished but was not found in ~/.elan/bin")
   })
 
-  const projectRoot = before.projectRoot
-  await step("project", null, async () => { writeFormalProject(workspaceRoot, projectRoot); return projectRoot })
+  const projectRoot = runtimeRoot
+  await step("project", null, async () => { writeRuntimeProject(projectRoot); return projectRoot })
 
   const toolchain = readToolchain(projectRoot)
   const elan = findElan(runtime) ?? exe(runtime, "elan")
@@ -180,13 +213,21 @@ export async function installLean(workspaceRoot: string, emit: (event: LeanInsta
 
   const lake = join(elanBin(runtime), exe(runtime, "lake"))
   const lakeCmd = existsSync(lake) ? lake : "lake"
-  await step("mathlib", leanInstallStatus(workspaceRoot, runtime).mathlibFetched ? "already downloaded" : null, async () => {
+  await step("mathlib", mathlibFetchedAt(projectRoot) ? "already downloaded" : null, async () => {
     await run("mathlib", [lakeCmd, "update"], projectRoot)
   })
   await step("cache", null, async () => { await run("cache", [lakeCmd, "exe", "cache", "get"], projectRoot) })
   await step("build", null, async () => { await run("build", [lakeCmd, "build"], projectRoot) })
 
-  return leanInstallStatus(workspaceRoot, runtime)
+  pruneOldRuntimes(projectRoot)
+  return leanInstallStatus(projectRoot, runtime)
+}
+
+/** Once the runtime for the current pin works, runtimes for older pins are only taking up space. */
+function pruneOldRuntimes(runtimeRoot: string) {
+  const parent = dirname(runtimeRoot), current = basename(runtimeRoot)
+  if (!/^mathlib-/.test(current)) return
+  try { for (const name of readdirSync(parent)) if (/^mathlib-/.test(name) && name !== current) rmSync(join(parent, name), { recursive: true, force: true }) } catch {}
 }
 
 export function bunInstallRuntime(): LeanInstallRuntime {

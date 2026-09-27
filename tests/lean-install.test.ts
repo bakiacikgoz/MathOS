@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test"
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { installLean, leanInstallStatus, progressFromLine, writeFormalProject, type LeanInstallEvent, type LeanInstallRuntime } from "@mathos/lean"
+import { installLean, leanInstallHolder, leanInstallProgress, leanInstallStatus, NativeLeanAdapter, progressFromLine, writeFormalProject, type LeanInstallEvent, type LeanInstallRuntime } from "@mathos/lean"
 import { cancelJob, pollJob, resetJobs, startJob } from "../apps/tui/src/jobs.ts"
 import { blockedCommandReason } from "../apps/desktop/host/protocol.ts"
 
@@ -41,54 +41,102 @@ describe("Lean install", () => {
     expect(progressFromLine("no numbers here")).toBeNull()
   })
 
-  test("installs every missing piece in order and ends ready", async () => {
-    const home = temp(), workspace = temp(), { runtime, calls } = fakeRuntime(home), events: LeanInstallEvent[] = []
-    const status = await installLean(workspace, (event) => events.push(event), { runtime })
+  test("installs every missing piece in order into the shared runtime and ends ready", async () => {
+    const home = temp(), runtimeRoot = join(temp(), "lean", "mathlib-v4.33.1"), { runtime, calls } = fakeRuntime(home), events: LeanInstallEvent[] = []
+    const status = await installLean((event) => events.push(event), { runtime, runtimeRoot })
     expect(status.ready).toBe(true)
     const done = events.filter((event) => event.type === "step" && event.state === "done").map((event) => event.step)
     expect(done).toEqual(["git", "elan", "project", "toolchain", "mathlib", "cache", "build"])
     expect(calls[0]).toEqual(["sh", join(home, "tmp", "elan-init.sh"), "-y", "--default-toolchain", "leanprover/lean4:v4.33.1"])
     expect(events.some((event) => event.type === "progress" && event.step === "cache" && event.percent === 50)).toBe(true)
     // Mathlib is fetched from git directly, not through the Reservoir index.
-    expect(readFileSync(join(workspace, "formal", "lakefile.toml"), "utf8")).toContain('git = "https://github.com/leanprover-community/mathlib4"')
+    expect(readFileSync(join(runtimeRoot, "lakefile.toml"), "utf8")).toContain('git = "https://github.com/leanprover-community/mathlib4"')
+    expect(calls.find((argv) => argv.at(-1) === "update")).toBeDefined()
+    expect(status.runtimeRoot).toBe(runtimeRoot)
+  })
+
+  test("only one process installs at a time; a lock left by a dead process does not block", async () => {
+    const home = temp(), runtimeRoot = join(temp(), "runtime"), { runtime, calls } = fakeRuntime(home)
+    writeFileSync(`${runtimeRoot}.install-lock`, String(process.ppid))
+    expect(leanInstallHolder(runtimeRoot)).toBe(process.ppid)
+    await expect(installLean(() => {}, { runtime, runtimeRoot })).rejects.toThrow("LEAN_INSTALL_BUSY")
+    expect(calls).toEqual([])
+    writeFileSync(`${runtimeRoot}.install-lock`, "999999")
+    expect(leanInstallHolder(runtimeRoot)).toBeNull()
+    expect((await installLean(() => {}, { runtime, runtimeRoot })).ready).toBe(true)
+    expect(existsSync(`${runtimeRoot}.install-lock`)).toBe(false)
+  })
+
+  test("a runtime for an older Mathlib pin is removed once the new one works", async () => {
+    const home = temp(), parent = join(temp(), "lean"), { runtime } = fakeRuntime(home)
+    mkdirSync(join(parent, "mathlib-v4.20.0", ".lake"), { recursive: true })
+    mkdirSync(join(parent, "notes"), { recursive: true })
+    await installLean(() => {}, { runtime, runtimeRoot: join(parent, "mathlib-v4.33.1") })
+    expect(existsSync(join(parent, "mathlib-v4.20.0"))).toBe(false)
+    expect(existsSync(join(parent, "notes"))).toBe(true)
+  })
+
+  test("one overall percentage: finished steps in full, the running one by its progress", () => {
+    const events = [
+      { type: "step", step: "git", state: "done" }, { type: "step", step: "elan", state: "skipped" }, { type: "step", step: "project", state: "done" },
+      { type: "step", step: "toolchain", state: "skipped" }, { type: "step", step: "mathlib", state: "done" },
+      { type: "step", step: "cache", state: "running" }, { type: "progress", step: "cache", percent: 50 },
+    ]
+    expect(leanInstallProgress(events)).toEqual({ step: "cache", percent: 65 })
+    expect(leanInstallProgress([])).toEqual({ step: null, percent: 0 })
+  })
+
+  test("once the shared runtime is ready, a workspace without its own Mathlib uses it", async () => {
+    const home = temp(), runtimeRoot = join(temp(), "runtime"), workspace = temp(), { runtime } = fakeRuntime(home)
+    await installLean(() => {}, { runtime, runtimeRoot })
+    writeFormalProject(workspace)
+    const previous = process.env.MATHOS_LEAN_RUNTIME
+    process.env.MATHOS_LEAN_RUNTIME = runtimeRoot
+    try {
+      const env = await new NativeLeanAdapter().detect(workspace)
+      expect(env).toMatchObject({ projectRoot: runtimeRoot, mathlib: true, source: "shared", toolchain: "leanprover/lean4:v4.33.1" })
+      process.env.MATHOS_LEAN_RUNTIME = join(temp(), "missing")
+      // Without a runtime, Lean runs bare instead of fetching Mathlib into the workspace mid-check.
+      expect(await new NativeLeanAdapter().detect(workspace)).toMatchObject({ projectRoot: null, mathlib: false, source: null })
+    } finally { process.env.MATHOS_LEAN_RUNTIME = previous }
   })
 
   test("a second run only does what is missing", async () => {
-    const home = temp(), workspace = temp(), { runtime } = fakeRuntime(home)
-    await installLean(workspace, () => {}, { runtime })
+    const home = temp(), runtimeRoot = temp(), { runtime } = fakeRuntime(home)
+    await installLean(() => {}, { runtime, runtimeRoot })
     const events: LeanInstallEvent[] = []
     const again = fakeRuntime(home)
-    await installLean(workspace, (event) => events.push(event), { runtime: again.runtime })
+    await installLean((event) => events.push(event), { runtime: again.runtime, runtimeRoot })
     const skipped = events.filter((event) => event.type === "step" && event.state === "skipped").map((event) => event.step)
     expect(skipped).toEqual(["elan", "toolchain", "mathlib"])
     expect(again.calls.some((argv) => argv[0] === "sh")).toBe(false)
   })
 
   test("missing git stops before downloading anything", async () => {
-    const home = temp(), workspace = temp(), { runtime, calls } = fakeRuntime(home, { git: false }), events: LeanInstallEvent[] = []
-    await expect(installLean(workspace, (event) => events.push(event), { runtime })).rejects.toThrow("LEAN_INSTALL_GIT_MISSING")
+    const home = temp(), runtimeRoot = temp(), { runtime, calls } = fakeRuntime(home, { git: false }), events: LeanInstallEvent[] = []
+    await expect(installLean((event) => events.push(event), { runtime, runtimeRoot })).rejects.toThrow("LEAN_INSTALL_GIT_MISSING")
     expect(calls).toEqual([])
     expect(events.at(-1)).toMatchObject({ type: "step", step: "git", state: "failed", code: "LEAN_INSTALL_GIT_MISSING" })
   })
 
   test("too little disk space is refused up front", async () => {
-    const home = temp(), workspace = temp(), { runtime, calls } = fakeRuntime(home, { free: 2 * 1024 ** 3 })
-    await expect(installLean(workspace, () => {}, { runtime })).rejects.toThrow("LEAN_INSTALL_DISK_FULL")
+    const home = temp(), runtimeRoot = join(temp(), "not", "yet", "there"), { runtime, calls } = fakeRuntime(home, { free: 2 * 1024 ** 3 })
+    await expect(installLean(() => {}, { runtime, runtimeRoot })).rejects.toThrow("LEAN_INSTALL_DISK_FULL")
     expect(calls).toEqual([])
   })
 
   test("network failures are named as such, with the tool's backtrace left out", async () => {
-    const home = temp(), workspace = temp(), events: LeanInstallEvent[] = []
+    const home = temp(), runtimeRoot = temp(), events: LeanInstallEvent[] = []
     const { runtime } = fakeRuntime(home, { fail: { "elan toolchain install": { code: 1, lines: ["error: error during download", "info: caused by: [56] Failure when receiving data from the peer", "info: backtrace:", "   0: elan_utils::fetch"] } } })
-    await expect(installLean(workspace, (event) => events.push(event), { runtime })).rejects.toThrow("LEAN_INSTALL_NETWORK")
+    await expect(installLean((event) => events.push(event), { runtime, runtimeRoot })).rejects.toThrow("LEAN_INSTALL_NETWORK")
     expect(events.some((event) => event.type === "log" && /elan_utils/.test(event.line))).toBe(false)
   })
 
   test("an unreachable Mathlib cache fails fast instead of trying every file", async () => {
-    const home = temp(), workspace = temp()
+    const home = temp(), runtimeRoot = temp()
     const lines = Array.from({ length: 120 }, (_, index) => `Downloaded: 0 file(s) [attempted ${index + 1}/8690 = 0%], Decompressed: 0, ${index + 1} download failed`)
     const { runtime } = fakeRuntime(home, { fail: { "lake exe cache": { code: 0, lines } } })
-    await expect(installLean(workspace, () => {}, { runtime })).rejects.toThrow("LEAN_INSTALL_NETWORK")
+    await expect(installLean(() => {}, { runtime, runtimeRoot })).rejects.toThrow("LEAN_INSTALL_NETWORK")
   })
 
   test("older MathOS lakefiles that used Reservoir are migrated to git", () => {
@@ -103,11 +151,12 @@ describe("Lean install", () => {
     expect(readFileSync(join(project, "lakefile.toml"), "utf8")).toBe("custom\n")
   })
 
-  test("status reports what is present", () => {
-    const home = temp(), workspace = temp(), { runtime } = fakeRuntime(home)
-    const status = leanInstallStatus(workspace, runtime)
-    expect(status).toMatchObject({ git: true, elan: null, project: false, mathlibFetched: false, ready: false })
-    expect(existsSync(join(workspace, "formal"))).toBe(false)
+  test("status reports what is present without creating anything", () => {
+    const home = temp(), runtimeRoot = join(temp(), "runtime"), { runtime } = fakeRuntime(home)
+    const status = leanInstallStatus(runtimeRoot, runtime)
+    expect(status).toMatchObject({ schemaVersion: "mathos.lean-status.v2", git: true, elan: null, project: false, mathlibFetched: false, ready: false, runtimeRoot })
+    expect(status.freeBytes).toBe(100 * 1024 ** 3)
+    expect(existsSync(runtimeRoot)).toBe(false)
   })
 })
 

@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useApp } from "../lib/app.ts"
 import { useT, type MessageKey } from "../lib/i18n.ts"
 import { readPref, writePref } from "../lib/storage.ts"
@@ -9,7 +9,8 @@ import { formatDuration, useElapsed } from "../lib/jobs.ts"
 import { renderMarkdown } from "../lib/markdown.ts"
 import { exportDocument, revealFile, type ExportFormat } from "../lib/exports.ts"
 import { useCatalog, useProfiles, useProviderStatus } from "../lib/providers.ts"
-import { assistantApi, assistantKeys, useAssistantTurn, useConversation, useConversations, type Conversation, type Effort, type LiveTurn, type Message, type Part } from "../lib/assistant.ts"
+import { assistantApi, assistantKeys, resumeTurns, useAssistantTurn, useConversation, useConversations, useRunningConversations, type Conversation, type Effort, type LiveTurn, type Message, type Part } from "../lib/assistant.ts"
+import { buildProcess, contentParts, livePhase, messagePhase, type ContentPart, type ProcessView } from "../lib/assistant-process.ts"
 import { Icon } from "../components/Icon.tsx"
 import { MarkGlyph } from "../components/Brand.tsx"
 import { MathEditor } from "../components/MathEditor.tsx"
@@ -55,7 +56,7 @@ export function Assistant() {
   const { t, lang } = useT()
   const root = app.workspace.root
   const [activeId, setActiveId] = useState<string | null>(() => readPref<string | null>(`assistant.active.${root}`, null))
-  const [draft, setDraft] = useState<{ profile: string | null; effort: Effort; claimId: string | null }>(() => ({ profile: readPref<string | null>("assistant.profile", null), effort: readPref<Effort>("assistant.effort", "auto"), claimId: null }))
+  const [draft, setDraft] = useState<{ profile: string | null; model: string | null; effort: Effort; claimId: string | null }>(() => ({ profile: readPref<string | null>("assistant.profile", null), model: readPref<string | null>("assistant.model", null), effort: readPref<Effort>("assistant.effort", "auto"), claimId: null }))
   const [text, setText] = useState("")
   const [attachments, setAttachments] = useState<Array<{ name: string; text: string }>>([])
   const [showMath, setShowMath] = useState(false)
@@ -63,6 +64,9 @@ export function Assistant() {
   const conversations = useConversations(root)
   const conversation = useConversation(root, activeId)
   const turn = useAssistantTurn(root, activeId)
+  const working = useRunningConversations(root)
+  // Turns started before the window reloaded, or while the chat was closed, keep running in the host: follow them again.
+  useEffect(() => { void resumeTurns(root) }, [root])
   const composerKey = useRef(0)
 
   const select = useCallback((id: string | null) => { setActiveId(id); writePref(`assistant.active.${root}`, id); turn.clearError() }, [root, turn])
@@ -78,9 +82,10 @@ export function Assistant() {
   useEffect(() => { if (activeId && conversation.error) select(null) }, [activeId, conversation.error, select])
 
   const current: Conversation | null = activeId ? conversation.data ?? null : null
-  const settings = current ? { profile: current.profile, effort: current.effort, claimId: current.claimId } : draft
+  const settings = current ? { profile: current.profile, model: current.model ?? null, effort: current.effort, claimId: current.claimId } : draft
   const updateSettings = async (next: Partial<typeof settings>) => {
     if ("profile" in next) writePref("assistant.profile", next.profile ?? null)
+    if ("model" in next) writePref("assistant.model", next.model ?? null)
     if (next.effort) writePref("assistant.effort", next.effort)
     if (!current) { setDraft((value) => ({ ...value, ...next })); return }
     await assistantApi.settings(root, current.id, next)
@@ -99,11 +104,11 @@ export function Assistant() {
     setText(""); setAttachments([]); composerKey.current++
     const optimistic: Message = { id: "pending", role: "user", createdAt: new Date().toISOString(), content: message, attachments: files.map((file) => ({ name: file.name, chars: file.text.length })) }
     const conversationId = id
-    await turn.start(() => assistantApi.send(root, conversationId, message, files), optimistic)
+    await turn.start(conversationId, () => assistantApi.send(root, conversationId, message, files), optimistic)
     invalidate(assistantKeys.list(root))
   }
-  const regenerate = () => { if (activeId) void turn.start(() => assistantApi.regenerate(root, activeId)) }
-  const decide = (partId: string, approved: boolean) => { if (activeId) void turn.start(() => assistantApi.decide(root, activeId, partId, approved)) }
+  const regenerate = () => { if (activeId) void turn.start(activeId, () => assistantApi.regenerate(root, activeId)) }
+  const decide = (partId: string, approved: boolean) => { if (activeId) void turn.start(activeId, () => assistantApi.decide(root, activeId, partId, approved)) }
   const edit = (content: string) => { setText(content); composerKey.current++ }
 
   useEffect(() => {
@@ -127,14 +132,14 @@ export function Assistant() {
 
   return (
     <div className={`chat ${listOpen ? "" : "list-closed"}`}>
-      <ConversationList open={listOpen} activeId={activeId} onToggle={() => { setListOpen((value) => { writePref("assistant.list", !value); return !value }) }} onSelect={select} onNew={() => { select(null); setDraft((value) => ({ ...value, claimId: null })) }} items={conversations.data?.conversations ?? []} root={root} />
+      <ConversationList open={listOpen} activeId={activeId} onToggle={() => { setListOpen((value) => { writePref("assistant.list", !value); return !value }) }} onSelect={select} onNew={() => { select(null); setDraft((value) => ({ ...value, claimId: null })) }} items={conversations.data?.conversations ?? []} working={working} root={root} />
       <section className="chat-main">
         <header className="chat-head" data-tauri-drag-region>
           {!listOpen && <button className="btn btn-ghost btn-icon" onClick={() => { setListOpen(true); writePref("assistant.list", true) }} aria-label={t("chat.conversations")}><Icon name="panel" size={17} /></button>}
           <div className="chat-title" data-tauri-drag-region>{current?.title || t("chat.newTitle")}</div>
           <div className="chat-head-actions">
             <ContextPicker claimId={settings.claimId} onChange={(claimId) => void updateSettings({ claimId })} />
-            <ModelPicker profile={settings.profile} onChange={(profile) => void updateSettings({ profile })} />
+            <ModelPicker profile={settings.profile} model={settings.model} onChange={(profile, model) => void updateSettings({ profile, model })} />
           </div>
         </header>
         <Thread
@@ -176,7 +181,7 @@ export function Assistant() {
   )
 }
 
-function ConversationList({ open, items, activeId, onSelect, onNew, onToggle, root }: { open: boolean; items: Array<{ id: string; title: string; updatedAt: string; messages: number }>; activeId: string | null; onSelect: (id: string) => void; onNew: () => void; onToggle: () => void; root: string }) {
+function ConversationList({ open, items, activeId, working, onSelect, onNew, onToggle, root }: { open: boolean; items: Array<{ id: string; title: string; updatedAt: string; messages: number }>; activeId: string | null; working: Set<string>; onSelect: (id: string) => void; onNew: () => void; onToggle: () => void; root: string }) {
   const { t, lang } = useT()
   const app = useApp()
   const [query, setQuery] = useState("")
@@ -215,7 +220,7 @@ function ConversationList({ open, items, activeId, onSelect, onNew, onToggle, ro
               <input key={item.id} className="input chat-rename" autoFocus value={name} onChange={(event) => setName(event.target.value)} onBlur={() => void rename(item.id)} onKeyDown={(event) => { if (event.key === "Enter") void rename(item.id); if (event.key === "Escape") { event.stopPropagation(); setRenaming(null) } }} />
             ) : (
               <div key={item.id} className={`chat-item ${item.id === activeId ? "active" : ""}`}>
-                <button className="chat-item-main" onClick={() => onSelect(item.id)} title={item.title}>{item.title || t("chat.untitled")}</button>
+                <button className="chat-item-main" onClick={() => onSelect(item.id)} title={item.title}><span className="chat-item-title">{item.title || t("chat.untitled")}</span>{working.has(item.id) && <span className="chat-item-working" role="img" aria-label={t("chat.working")} title={t("chat.working")} />}</button>
                 <span className="chat-item-actions">
                   <button onClick={() => { setRenaming(item.id); setName(item.title) }} aria-label={t("chat.rename")} title={t("chat.rename")}><Icon name="pencil" size={13} /></button>
                   <button onClick={() => void remove(item.id)} aria-label={t("chat.delete")} title={t("chat.delete")}><Icon name="trash" size={13} /></button>
@@ -256,7 +261,7 @@ function Thread({ messages, pending, live, running, error, onRegenerate, onDecid
           ? <UserMessage key={message.id} message={message} onEdit={onEdit} />
           : <AssistantMessage key={message.id} message={message} last={message === lastAssistant && !live} onRegenerate={onRegenerate} onDecide={onDecide} root={root} busy={running} />)}
         {pending && <UserMessage message={pending} onEdit={onEdit} />}
-        {live && <LiveMessage live={live} onDecide={onDecide} root={root} />}
+        {live && <LiveMessage live={live} running={running} onDecide={onDecide} root={root} />}
         {Boolean(error) && !live && <div className="chat-error"><Icon name="info" size={15} /><span>{errorText(error, lang)}</span></div>}
       </div>
       {!atBottom && <button className="chat-to-bottom" onClick={() => { stick.current = true; toBottom(true) }} aria-label={t("chat.toBottom")}><Icon name="down" size={16} /></button>}
@@ -309,22 +314,20 @@ function UserMessage({ message, onEdit }: { message: Message; onEdit: (text: str
   )
 }
 
-function Avatar() { return <span className="msg-avatar"><MarkGlyph size={18} /></span> }
-
-function ModelLine({ model, children }: { model: Message["model"]; children?: ReactNode }) {
-  return <div className="msg-head"><Avatar /><span className="msg-model">{model ? model.model : "MathOS"}</span>{children}</div>
-}
-
 function AssistantMessage({ message, last, onRegenerate, onDecide, root, busy }: { message: Message; last: boolean; onRegenerate: () => void; onDecide: (partId: string, approved: boolean) => void; root: string; busy: boolean }) {
   const { t, lang } = useT()
   const [copied, setCopied] = useState(false)
   const parts = message.parts ?? (message.content ? [{ type: "text", text: message.content } as Part] : [])
   const tokens = (message.usage?.inputTokens ?? 0) + (message.usage?.outputTokens ?? 0)
+  const waiting = message.state === "awaiting_approval" && !busy
+  const process = buildProcess(parts, { phase: messagePhase(message, waiting), durationMs: message.durationMs ?? null })
+  const [fold] = useState(() => justAnswered.has(message.id))
+  useEffect(() => { justAnswered.delete(message.id) }, [message.id])
   return (
     <div className="msg assistant">
-      <ModelLine model={message.model ?? null} />
       <div className="msg-body">
-        {parts.map((part, index) => <PartView key={part.type === "tool" || part.type === "document" ? part.id : `${part.type}-${index}`} part={part} onDecide={onDecide} root={root} waiting={message.state === "awaiting_approval" && !busy} />)}
+        {(process.entries.length > 0 || process.durationMs) && <TurnProcess view={process} onDecide={onDecide} waiting={waiting} fold={fold} />}
+        <ContentParts parts={contentParts(parts)} root={root} />
         {message.state === "stopped" && <p className="msg-note">{t("chat.stopped")}</p>}
         {message.state === "error" && (
           <div className="chat-error"><Icon name="info" size={15} /><div><strong>{t("chat.failed")}</strong><div className="selectable">{errorText({ code: message.error?.code, message: message.error?.message }, lang)}</div></div>
@@ -335,57 +338,99 @@ function AssistantMessage({ message, last, onRegenerate, onDecide, root, busy }:
         <div className="msg-actions left">
           <button onClick={() => { void navigator.clipboard.writeText(message.content); setCopied(true); window.setTimeout(() => setCopied(false), 1_200) }} title={t("common.copy")}><Icon name={copied ? "check" : "copy"} size={14} /></button>
           {last && <button onClick={onRegenerate} title={t("chat.regenerate")} disabled={busy}><Icon name="refresh" size={14} /></button>}
-          {(message.durationMs || tokens) ? <span className="msg-meta">{message.durationMs ? formatDuration(Math.max(1, Math.round(message.durationMs / 1000)), lang) : ""}{tokens ? ` · ${tokens >= 1000 ? `${(tokens / 1000).toFixed(1)}k` : tokens} ${t("chat.tokens")}` : ""}</span> : null}
+          {tokens > 0 && <span className="msg-meta">{tokens >= 1000 ? `${(tokens / 1000).toFixed(1)}k` : tokens} {t("chat.tokens")}</span>}
         </div>
       )}
     </div>
   )
 }
 
-function LiveMessage({ live, onDecide, root }: { live: LiveTurn; onDecide: (partId: string, approved: boolean) => void; root: string }) {
-  const { t, lang } = useT()
-  const thinking = !live.text && !live.parts.some((part) => part.type === "text")
-  const elapsed = useElapsed(live.startedAt, true)
+/** Messages whose turn just ran on screen: their saved copy opens with the process shown, then folds it. */
+const justAnswered = new Set<string>()
+
+function LiveMessage({ live, running, onDecide, root }: { live: LiveTurn; running: boolean; onDecide: (partId: string, approved: boolean) => void; root: string }) {
+  const elapsed = useElapsed(live.startedAt, running)
   const text = visibleStream(live.text)
-  const runningTool = live.parts.some((part) => part.type === "tool" && part.status === "running")
+  const process = buildProcess(live.parts, { phase: livePhase(live, running, text), durationMs: elapsed * 1000, streamingReasoning: live.reasoning })
+  useEffect(() => () => { if (live.messageId) justAnswered.add(live.messageId) }, [live.messageId])
   return (
     <div className="msg assistant live">
-      <ModelLine model={live.model} />
       <div className="msg-body">
-        {live.parts.map((part, index) => <PartView key={part.type === "tool" || part.type === "document" ? part.id : `${part.type}-${index}`} part={part} onDecide={onDecide} root={root} waiting={false} />)}
-        {(thinking || live.reasoning) && !text && !runningTool && <Thinking seconds={elapsed} reasoning={live.reasoning} active />}
+        <TurnProcess view={process} onDecide={onDecide} waiting={false} />
+        <ContentParts parts={contentParts(live.parts)} root={root} />
         {text && <Markdown text={text} streaming />}
-        {!thinking && !text && !runningTool && !live.reasoning && <span className="typing" aria-label={t("chat.writing")}><i /><i /><i /></span>}
-        <span className="sr-only" aria-live="polite">{thinking ? `${t("chat.thinking")} ${formatDuration(elapsed, lang)}` : ""}</span>
       </div>
     </div>
   )
 }
 
-/** "Thinking · 12 s", with the model's own reasoning when the provider shares it. */
-function Thinking({ seconds, reasoning, active, ms }: { seconds?: number; reasoning: string; active?: boolean; ms?: number }) {
+function ContentParts({ parts, root }: { parts: ContentPart[]; root: string }) {
+  return parts.map((part, index) => part.type === "text" ? <Markdown key={`text-${index}`} text={part.text} /> : <DocumentCard key={part.id} part={part} root={root} />)
+}
+
+const FOLD_DELAY_MS = 1_000
+
+/**
+ * The turn's process under one header, as in ImperaOS (AI Elements Reasoning and Chain of Thought): a pulsing
+ * orb and shimmering label while it runs, the provider's reasoning as it streams, each tool as a step. Open
+ * while running or waiting for approval, folded a second after the turn ends. Nothing here invents reasoning.
+ */
+function TurnProcess({ view, onDecide, waiting, fold = false }: { view: ProcessView; onDecide: (partId: string, approved: boolean) => void; waiting: boolean; fold?: boolean }) {
   const { t, lang } = useT()
-  const [open, setOpen] = useState(false)
-  const body = useRef<HTMLDivElement>(null)
-  useLayoutEffect(() => { if (active && body.current) body.current.scrollTop = body.current.scrollHeight })
-  const label = active ? `${t("chat.thinking")} · ${formatDuration(seconds ?? 0, lang)}` : t("chat.thought").replace("{time}", formatDuration(Math.max(1, Math.round((ms ?? 0) / 1000)), lang))
+  const { phase, running, entries } = view
+  const expandable = entries.length > 0
+  const [open, setOpen] = useState(running || fold || phase === "approval")
+  useEffect(() => { if (running || phase === "approval") setOpen(true) }, [running, phase])
+  useEffect(() => {
+    if (!fold) return
+    const timer = window.setTimeout(() => setOpen(false), FOLD_DELAY_MS)
+    return () => window.clearTimeout(timer)
+  }, [fold])
+  const seconds = (ms: number | null) => ms === null ? null : Math.max(1, Math.round(ms / 1000))
+  const total = seconds(view.durationMs)
+  const duration = total === null ? "" : formatDuration(running ? Math.max(0, Math.floor((view.durationMs ?? 0) / 1000)) : total, lang)
+  const thought = seconds(view.reasoningMs)
+  const label = {
+    thinking: t("chat.thinking"),
+    writing: t("chat.writingAnswer"),
+    approval: t("chat.tool.waiting"),
+    done: thought !== null ? t("chat.thought").replace("{time}", formatDuration(thought, lang)) : duration ? t("chat.ran").replace("{time}", duration) : t("chat.finished"),
+    failed: t("chat.runFailed"),
+    stopped: t("chat.stopped"),
+  }[phase]
+  const meta = [running ? duration : "", view.steps ? `${view.steps} ${t(view.steps === 1 ? "chat.step" : "chat.steps")}` : ""].filter(Boolean).join(" · ")
+  const header = <>
+    <span className="turn-orb" aria-hidden />
+    {thought !== null && !running && <Icon name="brain" size={14} />}
+    <span className={`turn-label ${running ? "shimmer" : ""}`}>{label}</span>
+    {meta && <span className="turn-meta">{meta}</span>}
+    {expandable && <Icon name="chevron" size={13} />}
+  </>
   return (
-    <div className={`thinking ${active ? "active" : ""} ${open ? "open" : ""}`}>
-      <button className="thinking-head" onClick={() => reasoning && setOpen((value) => !value)} aria-expanded={open} disabled={!reasoning}>
-        <span className="thinking-orb" aria-hidden><Icon name="brain" size={14} /></span>
-        <span className="thinking-label">{label}</span>
-        {reasoning && <Icon name="chevron" size={13} />}
-      </button>
-      {reasoning && (open || active) && <div className={`thinking-body ${active && !open ? "peek" : ""}`} ref={body}><MathText text={reasoning} /></div>}
+    <div className={`turn-process is-${phase} ${running ? "is-running" : ""} ${open && expandable ? "is-open" : ""}`} aria-live={running ? "polite" : undefined}>
+      {expandable
+        ? <button className="turn-head" onClick={() => setOpen((value) => !value)} aria-expanded={open}>{header}</button>
+        : <div className="turn-head static">{header}</div>}
+      {open && expandable && <div className="turn-body">
+        {entries.map((entry, index) => entry.kind === "reasoning"
+          ? <ReasoningText key={`r-${index}`} text={entry.text} streaming={entry.streaming} />
+          : <ol key={`s-${index}`} className="turn-steps" aria-label={t("chat.process")}>
+            {entry.tools.map((part) => <li key={part.id} className={`turn-step ${part.status}`}>
+              <span className="turn-step-icon" aria-hidden>{part.status === "running" ? <span className="step-spinner" /> : <Icon name={part.status === "failed" || part.status === "rejected" ? "x" : part.status === "proposed" ? "info" : "check"} size={13} stroke={2} />}</span>
+              {part.kind === "action" ? <ActionCard part={part} onDecide={onDecide} waiting={waiting} /> : <ToolRow part={part} />}
+            </li>)}
+          </ol>)}
+      </div>}
     </div>
   )
 }
 
-function PartView({ part, onDecide, root, waiting }: { part: Part; onDecide: (partId: string, approved: boolean) => void; root: string; waiting: boolean }) {
-  if (part.type === "text") return <Markdown text={part.text} />
-  if (part.type === "reasoning") return <Thinking reasoning={part.text} ms={part.ms} />
-  if (part.type === "document") return <DocumentCard part={part} root={root} />
-  return part.kind === "action" ? <ActionCard part={part} onDecide={onDecide} waiting={waiting} /> : <ToolRow part={part} />
+/** The provider's own reasoning; follows the newest line while it streams. */
+function ReasoningText({ text, streaming }: { text: string; streaming: boolean }) {
+  const { t } = useT()
+  const body = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => { if (streaming && body.current) body.current.scrollTop = body.current.scrollHeight }, [streaming, text])
+  return <div className={`turn-reasoning ${streaming ? "streaming" : ""}`} ref={body} aria-label={t("chat.reasoningStep")}><Markdown text={text} /></div>
 }
 
 function ToolRow({ part }: { part: Extract<Part, { type: "tool" }> }) {
@@ -394,9 +439,8 @@ function ToolRow({ part }: { part: Extract<Part, { type: "tool" }> }) {
   return (
     <div className={`tool-row ${part.status}`}>
       <button className="tool-row-head" onClick={() => setOpen((value) => !value)} aria-expanded={open} disabled={part.status === "running"}>
-        <span className="tool-icon">{part.status === "running" ? <span className="spinner" /> : part.status === "failed" ? <Icon name="x" size={12} stroke={2.4} /> : <Icon name="check" size={12} stroke={2.4} />}</span>
         <span>{toolLabel(part, lang)}</span>
-        {part.status === "failed" && <span className="tool-state">{t("chat.tool.failed")}</span>}
+        <span className="tool-state">{t(`chat.tool.${part.status}` as MessageKey)}</span>
         {part.status !== "running" && <Icon name="chevron" size={12} />}
       </button>
       {open && <pre className="tool-output selectable">{part.error ?? part.summary ?? ""}</pre>}
@@ -414,7 +458,6 @@ function ActionCard({ part, onDecide, waiting }: { part: Extract<Part, { type: "
   return (
     <div className={`action-card ${part.status}`}>
       <div className="action-head">
-        <span className="action-icon">{part.status === "running" ? <span className="spinner" /> : <Icon name={part.status === "done" ? "check" : part.status === "failed" || part.status === "rejected" ? "x" : "sparkles"} size={14} stroke={2} />}</span>
         <div className="action-text"><strong>{toolLabel(part, lang)}</strong><span>{t(state as MessageKey)}</span></div>
         {part.status !== "proposed" && part.status !== "running" && (part.summary || part.error) && <button className="link-btn" onClick={() => setOpen((value) => !value)}>{open ? t("chat.hideDetails") : t("chat.details")}</button>}
       </div>
@@ -468,24 +511,47 @@ function DocumentCard({ part, root }: { part: Extract<Part, { type: "document" }
 }
 
 /** One menu for choosing among the models connected in Model Providers. */
-function ModelPicker({ profile, onChange }: { profile: string | null; onChange: (profile: string | null) => void }) {
+/**
+ * Every model the connected providers offer, not only each profile's own: a gateway such as OpenCode Go serves dozens
+ * with one key. Grouped by provider and searchable; a model picked here is used for this conversation only.
+ */
+function ModelPicker({ profile, model, onChange }: { profile: string | null; model: string | null; onChange: (profile: string | null, model: string | null) => void }) {
   const app = useApp()
   const { t } = useT()
   const status = useProviderStatus(app.workspace.root)
   const profiles = useProfiles(app.workspace.root)
   const catalog = useCatalog(app.workspace.root)
   const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState("")
   const box = useRef<HTMLDivElement>(null)
   useDismiss(box, open, () => setOpen(false))
+  useEffect(() => { if (!open) setQuery("") }, [open])
   const rows = status.data?.profiles ?? []
   const remoteAllowed = status.data?.remoteModelsAllowed !== false
-  const defaultProfile = profiles.data?.defaultProfile ?? null
+  // The assistant answers through the researcher route when one is set, not necessarily the default profile.
+  const defaultProfile = profiles.data?.assistantProfile ?? profiles.data?.defaultProfile ?? null
   const describe = (id: string) => catalog.data?.providers.find((entry) => entry.descriptor.id === id)?.descriptor
   const usable = (row: (typeof rows)[number]) => (row.connection === "CONFIGURED" || row.connection === "LOCAL_OFFLINE") && !(row.remote && !remoteAllowed)
   const reason = (row: (typeof rows)[number]) => row.remote && !remoteAllowed ? t("chat.model.privacy") : row.connection === "SECRET_REQUIRED" ? t("chat.model.key") : row.connection === "LOGIN_REQUIRED" ? t("chat.model.login") : row.connection === "CLIENT_MISSING" ? t("chat.model.client") : row.connection
   const activeId = profile ?? defaultProfile
   const active = rows.find((row) => row.profile === activeId)
-  const label = active ? (active.model === "auto" ? describe(active.descriptor)?.displayName ?? active.profile : active.model) : t("chat.model.none")
+  const activeModel = model ?? active?.model ?? null
+  const modelName = (value: string, descriptor: string) => value === "auto" ? describe(descriptor)?.displayName ?? t("chat.model.auto") : value
+  const label = active && activeModel ? modelName(activeModel, active.descriptor) : t("chat.model.none")
+  const needle = query.trim().toLocaleLowerCase()
+  const groups = rows.map((row) => {
+    const descriptor = describe(row.descriptor), name = descriptor?.displayName ?? row.descriptor, ok = usable(row)
+    // The profile's own model first, then the rest its provider offers (a provider that cannot switch models lists none).
+    const offered = ok ? [row.model, ...(descriptor?.defaultModels ?? []).filter((item) => item !== row.model)] : [row.model]
+    const models = needle && !name.toLocaleLowerCase().includes(needle) ? offered.filter((item) => item.toLocaleLowerCase().includes(needle)) : offered
+    return { row, name, ok, models }
+  }).filter((group) => group.models.length)
+  const pick = (row: (typeof rows)[number], value: string) => {
+    // Always the explicit profile: the picked model must reach the provider that offers it.
+    onChange(row.profile, value === row.model ? null : value)
+    setOpen(false)
+  }
+  const first = groups.find((group) => group.ok)
   return (
     <div className="picker" ref={box}>
       <button className="picker-btn" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-haspopup="menu">
@@ -493,19 +559,36 @@ function ModelPicker({ profile, onChange }: { profile: string | null; onChange: 
         <span>{label}</span><Icon name="down" size={13} />
       </button>
       {open && (
-        <div className="menu picker-menu" role="menu">
-          <div className="picker-title">{t("chat.model.title")}</div>
-          {rows.map((row) => {
-            const descriptor = describe(row.descriptor), ok = usable(row)
-            return (
-              <button key={row.profile} role="menuitemradio" aria-checked={row.profile === activeId} className={`menu-item picker-item ${row.profile === activeId ? "on" : ""}`} disabled={!ok} onClick={() => { onChange(row.profile === defaultProfile ? null : row.profile); setOpen(false) }}>
-                <ProviderLogo descriptor={{ id: row.descriptor, displayName: descriptor?.displayName ?? row.descriptor }} size={24} />
-                <span className="picker-item-text"><strong>{row.model === "auto" ? t("chat.model.auto") : row.model}</strong><span>{descriptor?.displayName ?? row.descriptor}{row.profile === defaultProfile ? ` · ${t("chat.model.default")}` : ""}{ok ? "" : ` · ${reason(row)}`}</span></span>
-                {row.profile === activeId && <Icon name="check" size={14} stroke={2.4} />}
-              </button>
-            )
-          })}
-          {!rows.length && <p className="picker-empty">{t("chat.model.empty")}</p>}
+        <div className="menu picker-menu model-menu" role="menu">
+          {rows.length > 0 && <div className="model-search">
+            <Icon name="search" size={14} />
+            <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t("chat.model.search")} aria-label={t("chat.model.search")}
+              onKeyDown={(event) => { if (event.key === "Enter" && first) pick(first.row, first.models[0]!); if (event.key === "Escape") { event.stopPropagation(); setOpen(false) } }} />
+          </div>}
+          <div className="model-groups">
+            {groups.map(({ row, name, ok, models }) => (
+              <div key={row.profile} className="model-group" role="group" aria-label={name}>
+                <div className="model-group-head">
+                  <ProviderLogo descriptor={{ id: row.descriptor, displayName: name }} size={16} />
+                  <span>{name}</span>
+                  {row.profile === defaultProfile && <em>{t("chat.model.default")}</em>}
+                  {!ok && <em>{reason(row)}</em>}
+                  {ok && models.length > 1 && <small>{models.length}</small>}
+                </div>
+                {models.map((item) => {
+                  const on = row.profile === activeId && item === activeModel
+                  return (
+                    <button key={item} role="menuitemradio" aria-checked={on} className={`menu-item model-item ${on ? "on" : ""}`} disabled={!ok} onClick={() => pick(row, item)}>
+                      <span>{modelName(item, row.descriptor)}</span>
+                      {on && <Icon name="check" size={14} stroke={2.4} />}
+                    </button>
+                  )
+                })}
+              </div>
+            ))}
+            {!rows.length && <p className="picker-empty">{t("chat.model.empty")}</p>}
+            {rows.length > 0 && !groups.length && <p className="picker-empty">{t("chat.model.noMatch")}</p>}
+          </div>
           <button className="menu-item picker-link" onClick={() => { setOpen(false); app.navigate("providers") }}><Icon name="plug" size={14} />{t("chat.model.manage")}</button>
         </div>
       )}

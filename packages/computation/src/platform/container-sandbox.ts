@@ -6,7 +6,9 @@ import { spawn } from "node:child_process"
 import { evaluateExperimentPolicy } from "../policy"
 import { blockedResult, type SandboxRuntime, type SandboxedExecutionRequest } from "../sandbox"
 
-const IMAGE = "python:3.12-alpine"
+/** The pinned image experiments run in on macOS and Windows. */
+export const SANDBOX_IMAGE = "python:3.12-alpine"
+const IMAGE = SANDBOX_IMAGE
 const BACKEND = "docker-container"
 const CLEANUP_COMMAND_TIMEOUT_MS = 1_000
 

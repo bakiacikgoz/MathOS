@@ -8,6 +8,7 @@ import { Sidebar } from "./components/Sidebar.tsx"
 import { Palette } from "./components/Palette.tsx"
 import { Toasts, useToasts } from "./components/Overlay.tsx"
 import { Welcome } from "./views/Welcome.tsx"
+import { Setup } from "./views/Setup.tsx"
 import { Overview } from "./views/Overview.tsx"
 import { NewClaimSheet } from "./views/NewClaim.tsx"
 import { ErrorBoundary } from "./components/ErrorBoundary.tsx"
@@ -33,6 +34,9 @@ export function App() {
   const theme = useTheme()
   const [lang, setLangState] = useState<Lang>(() => readPref<Lang>("lang", detectLang()))
   // Stored preferences are untrusted input: a stale or hand-edited value must not crash the first render.
+  // The first launch installs and checks what the computer needs before anything else is shown.
+  const [setupDone, setSetupDone] = useState<boolean>(() => readPref<unknown>("setupDone", false) === true)
+  const finishSetup = useCallback(() => { setSetupDone(true); writePref("setupDone", true) }, [])
   const [workspace, setWorkspace] = useState<Workspace | null>(() => validWorkspace(readPref<unknown>("workspace", null)))
   const [recent, setRecent] = useState<RecentWorkspace[]>(() => { const rows = readPref<unknown>("recent", []); return Array.isArray(rows) ? rows.filter((row): row is RecentWorkspace => validWorkspace(row) !== null && typeof (row as RecentWorkspace).at === "number") : [] })
   const [route, setRoute] = useState<Route>(() => { const value = readPref<unknown>("route", "overview"); return ROUTES.includes(value as Route) ? value as Route : "overview" })
@@ -86,7 +90,9 @@ export function App() {
   return (
     <LangContext.Provider value={lang}>
       <TourProvider lang={lang}>
-      {!api ? (
+      {!setupDone ? (
+        <Setup onDone={finishSetup} lang={lang} setLang={setLang} />
+      ) : !api ? (
         <Welcome setLang={setLang} recent={recent} onOpen={openWorkspace} onForget={forget} toast={push} theme={{ pref: theme.pref, set: theme.set }} />
       ) : (
         <AppContext.Provider value={api}>

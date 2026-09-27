@@ -26,7 +26,9 @@ import { PersistentPluginRegistry } from "@mathos/plugins"
 import { applyAtomicUpdate, checkUpdate, rollbackUpdate, verifyUpdateArtifact, type UpdateManifest } from "@mathos/update"
 import { runProviderLiveSmoke } from "../../../scripts/providers/live-smoke.ts"
 import { configuredModelProviders, configuredModelRoleAssignments } from "./model-runtime.ts"
-import { installLean, leanInstallStatus, type LeanInstallEvent } from "@mathos/lean"
+import { installLean, type LeanInstallEvent } from "@mathos/lean"
+import { leanRuntimeState, leanSelfTest, startLeanInstall } from "./lean-runtime.ts"
+import { autoPullSandboxImage, sandboxState } from "./sandbox-runtime.ts"
 import { cancelJob, jobsCanRunInBackground, listJobs, pollJob, startJob } from "./jobs.ts"
 import { assistantCommand } from "./assistant-cli.ts"
 
@@ -63,7 +65,7 @@ export const CLI_COMMAND_CATEGORIES = {
   formal: ["formalize", "formal", "prove", "verify", "search-theorem", "premises", "index", "lean"],
   research: ["research", "graph", "ledger", "why", "report", "assistant"],
   literature: ["literature", "source", "citation", "external", "ingest"],
-  experiments: ["experiment", "solver"],
+  experiments: ["experiment", "solver", "sandbox"],
   team: ["branch", "team", "review", "agenda", "conjecture"],
   notebook: ["notebook", "context", "align", "portfolio", "failures"],
   atlas: ["atlas"],
@@ -128,21 +130,31 @@ export async function runHeadless(argv: string[]): Promise<number> {
 
     if (command === "assistant") return await assistantCommand(rest)
 
-    // Lean and Mathlib for this workspace. The desktop starts the install as a job; in a terminal it runs in place.
+    // Lean and Mathlib, installed once for every workspace. The desktop host installs them on its own at start;
+    // `lean install` starts it by hand (as a job in the desktop, in place in a terminal).
     if (command === "lean") {
-      const root = MathOS.tryLocate(process.cwd()) ?? process.cwd(), action = rest[0] ?? "status"
-      if (action === "status") { const running = listJobs("lean-install").find((job) => job.state === "running" && job.key === `lean-install:${root}`); process.stdout.write(`${JSON.stringify({ ...leanInstallStatus(root), job: running?.id ?? null }, null, 2)}\n`); return 0 }
+      const action = rest[0] ?? "status"
+      if (action === "status") { process.stdout.write(`${JSON.stringify(leanRuntimeState(), null, 2)}\n`); return 0 }
+      if (action === "check") { const result = await leanSelfTest(); process.stdout.write(`${JSON.stringify(result, null, 2)}\n`); return result.ok ? 0 : 2 }
       if (action === "install") {
-        const accepted = (flag(rest, "--accept-downloads") ?? rest.find((value) => value.startsWith("--accept-downloads="))?.slice(19))?.split(",") ?? []
-        if (!accepted.includes("lean") || !accepted.includes("mathlib")) throw new Error("SETUP_CONSENT_REQUIRED: use --accept-downloads=lean,mathlib")
         if (rest.includes("--background") && jobsCanRunInBackground()) {
-          const started = startJob("lean-install", `lean-install:${root}`, (emit, signal) => installLean(root, (event) => emit(event as unknown as Record<string, unknown>), { signal }))
+          const started = startLeanInstall({ retryOnNetwork: true })
           process.stdout.write(`${JSON.stringify({ job: started.id, reused: started.reused })}\n`); return 0
         }
+        const accepted = (flag(rest, "--accept-downloads") ?? rest.find((value) => value.startsWith("--accept-downloads="))?.slice(19))?.split(",") ?? []
+        if (!accepted.includes("lean") || !accepted.includes("mathlib")) throw new Error("SETUP_CONSENT_REQUIRED: use --accept-downloads=lean,mathlib")
         const print = (event: LeanInstallEvent) => { if (event.type === "step") process.stdout.write(`${event.state === "failed" ? "✗" : event.state === "done" ? "✓" : event.state === "skipped" ? "·" : "→"} ${event.step}${event.detail ? `  ${event.detail}` : ""}\n`); else if (event.type === "log" && !rest.includes("--quiet")) process.stdout.write(`    ${event.line}\n`) }
-        const status = await installLean(root, print); process.stdout.write(`${JSON.stringify(status, null, 2)}\n`); return status.ready ? 0 : 2
+        const status = await installLean(print); process.stdout.write(`${JSON.stringify(status, null, 2)}\n`); return status.ready ? 0 : 2
       }
       throw new Error(`Unknown lean action: ${action}`)
+    }
+
+    // The experiment sandbox: its state, and (with Docker running) fetching its image in the background.
+    if (command === "sandbox") {
+      const action = rest[0] ?? "status"
+      if (action === "status") { process.stdout.write(`${JSON.stringify(await sandboxState(), null, 2)}\n`); return 0 }
+      if (action === "prepare") { process.stdout.write(`${JSON.stringify({ job: await autoPullSandboxImage({}) })}\n`); return 0 }
+      throw new Error(`Unknown sandbox action: ${action}`)
     }
 
     if (command === "setup") {
@@ -176,7 +188,7 @@ export async function runHeadless(argv: string[]): Promise<number> {
       const remoteModelsAllowed = () => loadConfigFiles({ userPath: join(layout.userConfigRoot, "config.toml"), workspaceRoot: MathOS.tryLocate(process.cwd()) ?? undefined }).config.privacy.allow_remote_models
       if (action === "catalog") { const providers = providerCatalog.list().map(descriptor => ({ descriptor, policy: evaluateProviderPolicy(descriptor.id) })); process.stdout.write(`${json ? JSON.stringify({ schemaVersion: "mathos.providers.catalog.v1", providers }, null, 2) : formatProviderCatalog(providers)}\n`); return 0 }
       if (action === "discover") { const local = await discoverLocalEngines(); process.stdout.write(`${JSON.stringify({ schemaVersion: "mathos.providers.discovery.v1", local }, null, 2)}\n`); return 0 }
-      if (action === "list") { const configPath = join(layout.userConfigRoot, "config.toml"), config = existsSync(configPath) ? parseMathOSConfig(readFileSync(configPath, "utf8")) as Record<string, unknown> : {}, defaultProfile = typeof config["model.default_profile"] === "string" ? config["model.default_profile"] : null; process.stdout.write(`${JSON.stringify({ schemaVersion: "mathos.providers.list.v1", defaultProfile, profiles: registry.list() }, null, 2)}\n`); return 0 }
+      if (action === "list") { const configPath = join(layout.userConfigRoot, "config.toml"), config = existsSync(configPath) ? parseMathOSConfig(readFileSync(configPath, "utf8")) as Record<string, unknown> : {}, defaultProfile = typeof config["model.default_profile"] === "string" ? config["model.default_profile"] : null, researcher = config["model.roles.researcher"]; process.stdout.write(`${JSON.stringify({ schemaVersion: "mathos.providers.list.v1", defaultProfile, assistantProfile: typeof researcher === "string" && researcher ? researcher : defaultProfile, profiles: registry.list() }, null, 2)}\n`); return 0 }
       if (action === "status") { const profiles = id ? [registry.get(id)].filter(Boolean) as ModelProfileV2[] : registry.list(); const secretStore = createSecretStore(), hasSecret = async (ref: string) => { try { return Boolean(await secretStore.get(ref)) } catch { return false } }; let clients: ReturnType<typeof bunClientRuntime> | null = null; const clientState = async (descriptor: Parameters<typeof clientLoginFor>[0]) => { const spec = clientLoginFor(descriptor); if (!spec) return "LOGIN_REQUIRED"; clients ??= bunClientRuntime(); if (!clients.which(spec.executable)) return "CLIENT_MISSING"; return await clientSignedIn(clients, spec) ? "CONFIGURED" : "LOGIN_REQUIRED" }; const rows = await Promise.all(profiles.map(async profile => { const descriptor = providerCatalog.get(profile.descriptorId); if (!descriptor) throw new Error(`PROVIDER_DESCRIPTOR_NOT_FOUND: ${profile.descriptorId}`); const policy = evaluateProviderPolicy(descriptor.id); return { profile: profile.id, descriptor: descriptor.id, connection: !profile.enabled ? "BLOCKED" : !policy.allowed ? policy.code : profile.auth.kind === "secret-ref" ? (await hasSecret(profile.auth.secretRef) ? "CONFIGURED" : "SECRET_REQUIRED") : profile.auth.kind === "upstream-client" || profile.auth.kind === "copilot-logged-in-user" ? await clientState(descriptor) : descriptor.remote ? "CONFIGURED" : "LOCAL_OFFLINE", model: profile.model, billing: descriptor.billingClass, terms: policy.code, auth: profile.auth.kind, remote: descriptor.remote } })); if (id && !rows.length) throw new Error(`MODEL_PROFILE_NOT_FOUND: ${id}`); process.stdout.write(`${json ? JSON.stringify({ schemaVersion: "mathos.providers.status.v1", remoteModelsAllowed: remoteModelsAllowed(), profiles: rows }, null, 2) : rows.map(formatProviderStatus).join("\n\n")}\n`); return 0 }
       if (action === "models") { if (!id) throw new Error("MODEL_PROFILE_ID_REQUIRED"); const profile = registry.get(id); if (!profile) throw new Error(`MODEL_PROFILE_NOT_FOUND: ${id}`); const descriptor = providerCatalog.get(profile.descriptorId); if (!descriptor) throw new Error(`PROVIDER_DESCRIPTOR_NOT_FOUND: ${profile.descriptorId}`); const models = descriptor.defaultModels.map(model => ({ id: model, selected: profile.model === model })); process.stdout.write(`${JSON.stringify({ schemaVersion: "mathos.providers.models.v1", profile: id, source: "official-static", models }, null, 2)}\n`); return 0 }
       if (action === "quota") { if (!id || !registry.get(id)) throw new Error(`MODEL_PROFILE_NOT_FOUND: ${id ?? ""}`); process.stdout.write(`${JSON.stringify({ schemaVersion: "mathos.providers.quota.v1", profile: id, quota: { state: "unknown", remaining: null, limit: null, unit: null, resetsAt: null, source: "unknown" } }, null, 2)}\n`); return 0 }
