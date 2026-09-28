@@ -76,7 +76,7 @@ describe("streamed answers", () => {
 
   test("responses leave reasoning options alone for an unknown model", async () => {
     const seen: Array<Record<string, unknown>> = []
-    const transport = new OpenAIResponsesTransport(config(() => sse([{ type: "response.output_text.delta", delta: "Done" }]), seen))
+    const transport = new OpenAIResponsesTransport(config(() => sse([{ type: "response.output_text.delta", delta: "Done" }, { type: "response.completed", response: {} }]), seen))
     await transport.generate({ messages: [{ role: "user", content: "x" }], onDelta: () => {} })
     expect(seen[0]!.reasoning).toBeUndefined()
   })
@@ -86,6 +86,7 @@ describe("streamed answers", () => {
     const transport = new OpenAIResponsesTransport(config(() => sse([
       { type: "response.output_text.delta", delta: "Done" },
       { type: "response.reasoning_summary_text.done", text: "Checked the result." },
+      { type: "response.completed", response: {} },
     ])))
     const result = await transport.generate({ messages: [{ role: "user", content: "x" }], onDelta: (delta) => deltas.push(delta) })
     expect(result.reasoning).toBe("Checked the result.")

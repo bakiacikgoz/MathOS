@@ -14,6 +14,7 @@ export interface ModelMessage {
 }
 
 export interface ModelRequest {
+  tools?: Array<{ name: string; description: string; parameters: Record<string, unknown> }>
   messages: ModelMessage[]
   role?: ModelRole
   researchRunId?: string
@@ -30,6 +31,7 @@ export interface ModelRequest {
 export interface ModelDelta { text?: string; reasoning?: string }
 
 export interface ModelResponse {
+  toolCalls?: ModelToolCall[]
   text: string
   provider: string
   model: string
@@ -37,6 +39,8 @@ export interface ModelResponse {
   /** The model's visible reasoning, when the provider returns it. */
   reasoning?: string
 }
+
+export interface ModelToolCall { id: string; name: string; arguments: string }
 
 export interface StructuredModelRequest<T> extends ModelRequest {
   schemaName: string

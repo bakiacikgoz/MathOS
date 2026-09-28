@@ -1,6 +1,6 @@
-import type { ModelRequest } from "../types.ts"
+import type { ModelRequest, ModelToolCall } from "../types.ts"
 
 export interface NormalizedTransportUsage { inputTokens?: number; outputTokens?: number }
-export interface NormalizedTransportResponse { text: string; usage: NormalizedTransportUsage; rawResponseId?: string; reasoning?: string }
+export interface NormalizedTransportResponse { text: string; usage: NormalizedTransportUsage; rawResponseId?: string; reasoning?: string; toolCalls?: ModelToolCall[] }
 export interface NormalizedTransport { readonly protocol: "openai-chat" | "openai-responses" | "anthropic-messages"; generate(request: ModelRequest): Promise<NormalizedTransportResponse> }
 export interface HttpTransportConfig { provider: string; model: string; baseUrl: string; apiKey: string; timeoutMs?: number; maxResponseBytes?: number; fetch?: typeof fetch; headers?:Record<string,string>; requestHeaders?:(request:ModelRequest)=>Record<string,string>; supportedReasoningEfforts?:Array<"none"|"low"|"medium"|"high"|"max"> }
