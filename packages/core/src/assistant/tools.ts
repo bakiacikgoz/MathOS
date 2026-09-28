@@ -1,7 +1,8 @@
 // What the assistant may do in a workspace. Every tool is an existing MathOS command, so privacy, consent, model
 // routing and the trust rules apply exactly as they do everywhere else. Reading runs at once; anything that changes
-// the workspace or reaches outside it waits for the user's approval. Nothing here can approve a meaning (a human
-// decision) or mark a claim verified (only the Lean kernel through VerificationGate can).
+// the workspace or reaches outside it waits for the user's approval. The model can ask for a meaning approval, but only
+// the user's click on the card that shows both statements grants it (a human decision), and nothing here can mark a
+// claim verified (only the Lean kernel through VerificationGate can).
 
 export type AssistantToolKind = "read" | "action" | "document"
 export interface AssistantTool {
@@ -14,6 +15,8 @@ export interface AssistantTool {
   summarize?(stdout: string): string
   /** Runs Lean with Mathlib, so it is offered only once they are installed. */
   needsLean?: boolean
+  /** A human decision: always waits for its own click, even when the user let the rest of the turn run. */
+  human?: boolean
 }
 
 const CLAIM_ID = /^[A-Z]{1,4}-\d{1,6}$/
@@ -38,6 +41,19 @@ export function leanSummary(stdout: string): string {
   return `Lean and Mathlib: not installed${value.lastError ? ` (last attempt failed: ${value.lastError.message ?? value.lastError.code})` : ""}. The user can start it from Settings › System status.`
 }
 
+/** A proof search or check in words the model can act on: accepted and verified, or the Lean errors to fix. */
+export function proofSummary(stdout: string): string {
+  const value = json(stdout)
+  if (!value || !Array.isArray(value.attempts)) return clip(stdout)
+  if (value.accepted) return `The Lean kernel accepted the proof (${value.accepted}). Verified: ${value.verificationPassed ? "yes" : "no"}. Claim status: ${value.claimStatus}.`
+  const last = value.lastAttempt
+  return clip([
+    `No proof accepted after ${value.attempts.length} attempt${value.attempts.length === 1 ? "" : "s"}. Claim status: ${value.claimStatus}.`,
+    last?.proof ? `Last proof tried:\n${last.proof}` : "",
+    last?.diagnostics?.length ? `Lean errors:\n${last.diagnostics.join("\n")}` : "",
+  ].filter(Boolean).join("\n\n"))
+}
+
 export const ASSISTANT_TOOLS: AssistantTool[] = [
   { name: "workspace_status", kind: "read", description: "Objective, claim counts, blockers, branch and environment of this workspace.", args: "{}", argv: () => ["status", "--json"], title: () => "Workspace status", summarize: (out) => clip(json(out)?.text ?? out) },
   {
@@ -56,7 +72,9 @@ export const ASSISTANT_TOOLS: AssistantTool[] = [
   { name: "create_claim", kind: "action", description: "Create a claim. kind is conjecture, lemma, theorem, corollary or definition; statement uses $…$ for math.", args: '{"kind":"conjecture","title":"…","statement":"…","objective":false}', argv: (args) => { const kind = String(args.kind ?? "conjecture"); if (!KINDS.includes(kind)) throw new AssistantToolError(`kind must be one of ${KINDS.join(", ")}`); return ["claim", "create", "--type", kind, "--title", text(args, "title", 200), "--statement", text(args, "statement", 8_000), ...(args.objective === true ? ["--objective"] : []), "--json"] }, title: (args) => `Create claim “${String(args.title ?? "")}”`, summarize: (out) => { const value = json(out); return value?.id ? `Created ${value.id}: ${value.title}` : clip(out) } },
   { name: "formalize", kind: "action", needsLean: true, description: "Translate a claim into a Lean 4 statement with the formalizer model, checked by Lean. Pass lean to use a statement you wrote instead (checked by Lean, no model).", args: '{"id":"C-001","lean":"optional Lean statement"}', argv: (args) => { const lean = text(args, "lean", 8_000, false); return ["formalize", claimId(args), ...(lean ? ["--lean", lean] : []), "--json"] }, title: (args) => args.lean ? `Set the Lean statement of ${String(args.id ?? "")}` : `Formalize ${String(args.id ?? "")}`, summarize: (out) => clip(out) },
   { name: "compare_meaning", kind: "action", description: "Compare the claim's natural statement with its Lean statement using the alignment model. Only the user can then approve that the meanings match.", args: '{"id":"C-001"}', argv: (args) => ["align", "run", claimId(args), "--json"], title: (args) => `Compare meanings of ${String(args.id ?? "")}`, summarize: (out) => clip(out) },
-  { name: "prove", kind: "action", needsLean: true, description: "Search for a Lean proof with the prover model (needs the user's meaning approval first).", args: '{"id":"C-001"}', argv: (args) => ["prove", claimId(args), "--json"], title: (args) => `Prove ${String(args.id ?? "")}`, summarize: (out) => clip(out) },
+  { name: "approve_meaning", kind: "action", human: true, description: "Ask the user to approve that the claim's Lean statement means the same as its natural statement. The user sees both statements and the comparison on a card and decides; you cannot approve it yourself. Needs a Lean statement; run compare_meaning first when there is no review yet.", args: '{"id":"C-001"}', argv: (args) => ["formal", "approve", claimId(args), "--actor", "assistant-card-reviewer"], title: (args) => `Approve the meaning of ${String(args.id ?? "")}`, summarize: () => "The user approved the meaning. prove can run now." },
+  { name: "prove", kind: "action", needsLean: true, description: "Search for a Lean proof with the prover model (needs the user's meaning approval first). If it fails, read the Lean errors and try check_proof with a proof you write.", args: '{"id":"C-001"}', argv: (args) => ["prove", claimId(args), "--json"], title: (args) => `Prove ${String(args.id ?? "")}`, summarize: (out) => proofSummary(out) },
+  { name: "check_proof", kind: "action", needsLean: true, description: "Have the Lean kernel check a proof you wrote for the claim's approved Lean statement. proof is only the body after :=, starting with by. If Lean accepts it, the claim is verified; if not, you get Lean's errors to fix.", args: '{"id":"C-001","proof":"by\\n  simp"}', argv: (args) => ["prove", claimId(args), "--proof", text(args, "proof", 20_000), "--json"], title: (args) => `Check a proof of ${String(args.id ?? "")}`, summarize: (out) => proofSummary(out) },
   { name: "verify", kind: "action", needsLean: true, description: "Run VerificationGate: the Lean kernel checks the accepted proof. The only way a claim becomes verified.", args: '{"id":"C-001"}', argv: (args) => ["verify", claimId(args), "--json"], title: (args) => `Verify ${String(args.id ?? "")}`, summarize: (out) => clip(out) },
   { name: "link_claims", kind: "action", description: "Record how two claims relate, which builds the research graph: from depends on to (relation depends_on), uses the definition to (uses_definition), follows from to (derived_from), or blocks to (blocks).", args: '{"from":"T-001","to":"L-002","relation":"depends_on"}', argv: (args) => { const relation = String(args.relation ?? "depends_on"); if (!["depends_on", "uses_definition", "derived_from", "blocks"].includes(relation)) throw new AssistantToolError("relation must be depends_on, uses_definition, derived_from or blocks"); const from = claimId(args, "from"), to = claimId(args, "to"); if (from === to) throw new AssistantToolError("a claim cannot depend on itself"); return ["claim", "depend", from, "--on", to, "--relation", relation, "--json"] }, title: (args) => `Link ${String(args.from ?? "")} → ${String(args.to ?? "")}`, summarize: (out) => clip(out) },
   { name: "set_objective", kind: "action", description: "Make a claim the workspace's main objective.", args: '{"id":"C-001"}', argv: (args) => ["objective", "set", claimId(args)], title: (args) => `Make ${String(args.id ?? "")} the objective`, summarize: (out) => clip(out) },

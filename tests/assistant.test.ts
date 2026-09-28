@@ -45,6 +45,35 @@ function setup(answers: Array<string | Error>, lean: Record<string, unknown> | n
 }
 
 describe("assistant turns", () => {
+  test("editing an earlier user message replaces it and regenerates from that point with attachments preserved", async () => {
+    const { store, conversation, turn, seen } = setup([`${tool("list_claims", {})}`, "Old answer", "Later answer", "Edited answer"])
+    await turn({ input: { text: "Original question", attachments: [{ name: "notes.txt", text: "attached context" }] } })
+    await turn({ input: { text: "Later question" } })
+    const before = store.get(conversation.id), original = before.messages[0]!
+    expect(before.scratch.length).toBeGreaterThan(0)
+    await turn({ edit: { messageId: original.id, text: "Corrected question" } })
+    const saved = store.get(conversation.id)
+    expect(saved.messages).toHaveLength(2)
+    expect(saved.messages[0]).toMatchObject({ id: original.id, content: "Corrected question", attachments: original.attachments, hidden: original.hidden })
+    expect(saved.messages[1]?.content).toBe("Edited answer")
+    expect(saved.scratch).toHaveLength(0)
+    const context = seen.at(-1)!.messages.map(m => m.content).join("\n")
+    expect(context).toContain("Corrected question")
+    expect(context).toContain("attached context")
+    expect(context).not.toContain("Later question")
+    expect(context).not.toContain("Old answer")
+  })
+
+  test("invalid edits leave the saved conversation intact", async () => {
+    const { store, conversation, turn } = setup(["Answer"])
+    await turn({ input: { text: "Question" } })
+    const before = store.get(conversation.id)
+    for (const edit of [{ messageId: before.messages[0]!.id, text: " " }, { messageId: before.messages[1]!.id, text: "Bad target" }, { messageId: "missing", text: "Bad target" }]) {
+      await expect(turn({ edit })).rejects.toThrow()
+      expect(store.get(conversation.id)).toEqual(before)
+    }
+  })
+
   test("a plain answer streams, is saved with its model, usage and thinking time, and titles the conversation", async () => {
     const { store, conversation, events, turn, seen } = setup(["Sum of the first $n$ odd numbers is $n^2$."])
     const message = await turn({ input: { text: "What is the sum of the first n odd numbers?" } })
@@ -93,6 +122,55 @@ describe("assistant turns", () => {
     expect(seen[1]!.messages.at(-1)!.content).toContain("declined")
   })
 
+  test("the meaning is decided on a card that shows both statements, never by the model, and still asks when the rest of the turn runs on", async () => {
+    const { turn, events } = setup([
+      `${tool("set_objective", { id: "C-001" })}`,
+      `${tool("create_branch", { name: "alt" })}`,
+      `${tool("approve_meaning", { id: "C-001" })}`,
+      "Approved; searching a proof next.",
+    ])
+    const commands: string[][] = []
+    let lean = "theorem odd_sum (n : ℕ) : ∑ i in Finset.range n, (2 * i + 1) = n ^ 2"
+    const runner = async (args: string[]) => {
+      commands.push(args)
+      if (args[0] === "claim" && args[1] === "show") return { code: 0, stdout: JSON.stringify({ claim: { id: "C-001", naturalStatement: "$\\sum$ odd = $n^2$" }, workflow: { formal: { statement: lean }, approved: false, alignment: { verdict: "MATCH", backTranslation: "The first n odd numbers sum to n squared.", findings: [] } } }), stderr: "" }
+      return { code: 0, stdout: "{}", stderr: "" }
+    }
+    const first = await turn({ input: { text: "check it with Lean" }, runner })
+    const objective = first.parts!.find((item) => item.type === "tool") as { id: string }
+    // "Approve, don't ask again" runs the next ordinary action at once …
+    const card = await turn({ resume: { partId: objective.id, approved: true, all: true }, runner })
+    expect(commands).toContainEqual(["objective", "set", "C-001"])
+    expect(commands).toContainEqual(["branch", "create", "alt"])
+    // … but the meaning still waits for its own decision, with what the user decides on.
+    expect(card.state).toBe("awaiting_approval")
+    const meaning = card.parts!.filter((item) => item.type === "tool").at(-1)!
+    expect(meaning).toMatchObject({ tool: "approve_meaning", status: "proposed", review: { claimId: "C-001", lean, verdict: "MATCH", reading: "The first n odd numbers sum to n squared." } })
+    expect(commands.some((args) => args[0] === "formal")).toBe(false)
+    // A statement that changed after the card was shown is not approved.
+    lean = `${lean} -- edited`
+    const stale = await turn({ resume: { partId: (meaning as { id: string }).id, approved: true }, runner })
+    expect(commands.some((args) => args[0] === "formal")).toBe(false)
+    expect(stale.parts!.find((item) => item.type === "tool" && item.tool === "approve_meaning")).toMatchObject({ status: "failed" })
+    expect(events.length).toBeGreaterThan(0)
+  })
+
+  test("an approved meaning card records the user's approval", async () => {
+    const { turn } = setup([`${tool("approve_meaning", { id: "C-001" })}`, "Approved."])
+    const commands: string[][] = []
+    const runner = async (args: string[]) => {
+      commands.push(args)
+      if (args[0] === "claim" && args[1] === "show") return { code: 0, stdout: JSON.stringify({ claim: { id: "C-001", naturalStatement: "x" }, workflow: { formal: { statement: "theorem t : True" }, approved: false, alignment: null } }), stderr: "" }
+      return { code: 0, stdout: "{}", stderr: "" }
+    }
+    const waiting = await turn({ input: { text: "approve?" }, runner })
+    const part = waiting.parts!.find((item) => item.type === "tool") as { id: string; review: unknown }
+    expect(part.review).toMatchObject({ reading: null, verdict: null })
+    const done = await turn({ resume: { partId: part.id, approved: true }, runner })
+    expect(commands).toContainEqual(["formal", "approve", "C-001", "--actor", "assistant-card-reviewer"])
+    expect(done.state).toBe("done")
+  })
+
   test("documents become download cards; unknown tools and bad arguments are reported back to the model", async () => {
     const { turn, seen } = setup([
       `${tool("delete_everything", {})}`,
@@ -127,7 +205,7 @@ describe("assistant turns", () => {
     expect(splitToolCall("Checking.\n```mathos-tool\n{\"tool\":\"lean_status\",\"args\":{}}\n```")).toEqual({ visible: "Checking.", call: { tool: "lean_status", args: {} }, invalid: null })
     expect(splitToolCall("Checking.\n```mathos-tool\n{\"tool\":")).toMatchObject({ visible: "Checking.", call: null })
     expect(splitToolCall("no tools")).toEqual({ visible: "no tools", call: null, invalid: null })
-    expect(assistantSystemPrompt("w", "snap")).toContain("never say the meaning is approved")
+    expect(assistantSystemPrompt("w", "snap")).toContain("Never say the meaning is approved")
   })
 })
 

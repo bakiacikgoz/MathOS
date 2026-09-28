@@ -45,18 +45,21 @@ export async function assistantCommand(rest: string[]): Promise<number> {
     store.save(conversation); write(conversation); return 0
   }
 
-  if (!["send", "approve", "reject", "regenerate"].includes(action)) throw new Error(`Unknown assistant action: ${action}`)
+  if (!["send", "edit", "approve", "reject", "regenerate"].includes(action)) throw new Error(`Unknown assistant action: ${action}`)
   const conversation = store.get(id)
   const input = action === "send" ? { text: flag(rest, "--text") ?? "", attachments: parseAttachments(flag(rest, "--attachments-json")) } : undefined
   if (input && !input.text.trim()) throw new Error("ASSISTANT_MESSAGE_EMPTY")
-  const resume = action === "approve" || action === "reject" ? { partId: rest[2] ?? "", approved: action === "approve" } : undefined
+  const resume = action === "approve" || action === "reject" ? { partId: rest[2] ?? "", approved: action === "approve", all: rest.includes("--all") } : undefined
+  const edit = action === "edit" ? { messageId: rest[2] ?? "", text: flag(rest, "--text") ?? "" } : undefined
+  if (edit && !edit.text.trim()) throw new Error("ASSISTANT_MESSAGE_EMPTY")
+  if (edit && !conversation.messages.some(message => message.id === edit.messageId && message.role === "user")) throw new Error("ASSISTANT_MESSAGE_NOT_FOUND")
 
   const turn = async (emit: (event: AssistantEvent) => void, signal?: AbortSignal) => {
     const routes = await configuredModelProviders(root, ["researcher"], { ...(conversation.profile ? { profile: conversation.profile } : {}), ...(conversation.model ? { model: conversation.model } : {}) }).catch((error: unknown) => { throw error instanceof Error ? error : new Error(String(error)) })
     const provider = routes?.providers.researcher
     if (!provider) throw new Error("MODEL_ROUTE_UNAVAILABLE: connect a model in Model Providers first")
     try {
-      return await runAssistantTurn({ store, conversationId: id, input, resume, regenerate: action === "regenerate", provider, profile: conversation.profile, workspaceName: basename(root), runner: (args) => runCommand(root, args), emit, signal })
+      return await runAssistantTurn({ store, conversationId: id, input, resume, edit, regenerate: action === "regenerate", provider, profile: conversation.profile, workspaceName: basename(root), runner: (args) => runCommand(root, args), emit, signal })
     } finally { await routes?.close() }
   }
 
@@ -74,7 +77,7 @@ export async function assistantCommand(rest: string[]): Promise<number> {
   })
   if (printed) process.stdout.write("\n")
   else if (message.content) process.stdout.write(`${message.content}\n`)
-  if (message.state === "awaiting_approval") { const part = [...(message.parts ?? [])].reverse().find((item) => item.type === "tool" && item.status === "proposed"); if (part && part.type === "tool") process.stderr.write(`Waiting for approval: ${part.title}\n  mathos assistant approve ${id} ${part.id}\n  mathos assistant reject ${id} ${part.id}\n`) }
+  if (message.state === "awaiting_approval") { const part = [...(message.parts ?? [])].reverse().find((item) => item.type === "tool" && item.status === "proposed"); if (part && part.type === "tool") process.stderr.write(`Waiting for approval: ${part.title}\n  mathos assistant approve ${id} ${part.id} [--all]\n  mathos assistant reject ${id} ${part.id}\n`) }
   if (message.state === "error") { process.stderr.write(`${message.error?.code}: ${message.error?.message}\n`); return 1 }
   return 0
 }

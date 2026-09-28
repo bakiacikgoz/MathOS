@@ -9,7 +9,8 @@ import { formatDuration, useElapsed } from "../lib/jobs.ts"
 import { renderMarkdown } from "../lib/markdown.ts"
 import { exportDocument, revealFile, type ExportFormat } from "../lib/exports.ts"
 import { useCatalog, useProfiles, useProviderStatus } from "../lib/providers.ts"
-import { assistantApi, assistantKeys, resumeTurns, useAssistantTurn, useConversation, useConversations, useRunningConversations, type Conversation, type Effort, type LiveTurn, type Message, type Part } from "../lib/assistant.ts"
+import { assistantApi, assistantKeys, messagesBeforeEdit, resumeTurns, useAssistantTurn, useConversation, useConversations, useRunningConversations, type Conversation, type Effort, type Decision, type LiveTurn, type MeaningReview, type Message, type Part } from "../lib/assistant.ts"
+import { formatConversationTranscript } from "../lib/assistant-transcript.ts"
 import { buildProcess, contentParts, livePhase, messagePhase, type ContentPart, type ProcessView } from "../lib/assistant-process.ts"
 import { Icon } from "../components/Icon.tsx"
 import { MarkGlyph } from "../components/Brand.tsx"
@@ -26,7 +27,7 @@ const TOOL_LABEL: Record<string, [string, string]> = {
   workspace_status: ["Çalışma alanı durumu", "Workspace status"], list_claims: ["Önermeler listesi", "List of claims"], show_claim: ["{id} önermesi", "Claim {id}"],
   lean_status: ["Lean durumu", "Lean status"], search_mathlib: ["Mathlib'de arama: {query}", "Mathlib search: {query}"], research_graph: ["Araştırma grafiği", "Research graph"],
   list_branches: ["Araştırma dalları", "Research branches"], create_claim: ["Yeni önerme: {title}", "New claim: {title}"], formalize: ["{id} Lean'e çevrilsin", "Formalize {id}"],
-  compare_meaning: ["{id} için anlam karşılaştırması", "Compare the meanings of {id}"], prove: ["{id} için ispat aransın", "Search a proof of {id}"], verify: ["{id} Lean çekirdeğinde doğrulansın", "Verify {id} in the Lean kernel"],
+  compare_meaning: ["{id} için anlam karşılaştırması", "Compare the meanings of {id}"], approve_meaning: ["{id}: Lean ifadesi aynı anlamı taşıyor mu?", "{id}: does the Lean statement mean the same?"], prove: ["{id} için ispat aransın", "Search a proof of {id}"], check_proof: ["{id} için yazılan ispat Lean çekirdeğinde denetlensin", "Check a written proof of {id} in the Lean kernel"], verify: ["{id} Lean çekirdeğinde doğrulansın", "Verify {id} in the Lean kernel"],
   link_claims: ["{from} → {to} bağlantısı", "Link {from} → {to}"], set_objective: ["{id} ana hedef olsun", "Make {id} the objective"], create_branch: ["Yeni araştırma dalı: {name}", "New research branch: {name}"], search_literature: ["Literatür araması: {query}", "Literature search: {query}"],
 }
 function toolLabel(part: Extract<Part, { type: "tool" }>, lang: Lang): string {
@@ -61,6 +62,7 @@ export function Assistant() {
   const [attachments, setAttachments] = useState<Array<{ name: string; text: string }>>([])
   const [showMath, setShowMath] = useState(false)
   const [listOpen, setListOpen] = useState(() => readPref<boolean>("assistant.list", true))
+  const [copiedAll, setCopiedAll] = useState(false)
   const conversations = useConversations(root)
   const conversation = useConversation(root, activeId)
   const turn = useAssistantTurn(root, activeId)
@@ -108,8 +110,12 @@ export function Assistant() {
     invalidate(assistantKeys.list(root))
   }
   const regenerate = () => { if (activeId) void turn.start(activeId, () => assistantApi.regenerate(root, activeId)) }
-  const decide = (partId: string, approved: boolean) => { if (activeId) void turn.start(activeId, () => assistantApi.decide(root, activeId, partId, approved)) }
-  const edit = (content: string) => { setText(content); composerKey.current++ }
+  const decide = (partId: string, decision: Decision) => { if (activeId) void turn.start(activeId, () => assistantApi.decide(root, activeId, partId, decision)) }
+  const edit = (message: Message, content: string) => {
+    if (!activeId || turn.running || !content.trim()) return
+    const id = activeId
+    void turn.start(id, () => assistantApi.edit(root, id, message.id, content.trim()), { ...message, content: content.trim() })
+  }
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => { if (event.key === "Escape" && turn.running && !(event.target as Element | null)?.closest?.(".mchip, .math-search, .sheet, .menu")) void turn.stop() }
@@ -128,7 +134,25 @@ export function Assistant() {
   }
 
   const messages = current?.messages ?? []
-  const showPending = turn.pending && !messages.some((message) => message.role === "user" && message.content === turn.pending!.content && message.createdAt >= turn.pending!.createdAt.slice(0, 16))
+  const showPending = turn.pending && (Boolean(turn.live) || !messages.some((message) => message.role === "user" && message.content === turn.pending!.content && message.createdAt >= turn.pending!.createdAt.slice(0, 16)))
+  useEffect(() => setCopiedAll(false), [activeId])
+  const copyAll = async () => {
+    if (!current) return
+    const shown = messagesBeforeEdit(messages, turn.pending).filter((message) => !(turn.live?.messageId && message.id === turn.live.messageId))
+    if (showPending && turn.pending) shown.push(turn.pending)
+    if (turn.live) {
+      const text = visibleStream(turn.live.text).trim()
+      const parts: Part[] = [...turn.live.parts, ...(text ? [{ type: "text" as const, text }] : [])]
+      if (contentParts(parts).length) shown.push({ id: turn.live.messageId ?? "live", role: "assistant", createdAt: new Date(turn.live.startedAt).toISOString(), content: "", parts })
+    }
+    try {
+      await navigator.clipboard.writeText(formatConversationTranscript({ title: current.title, messages: shown }, {
+        user: t("chat.you"), assistant: "MathOS", attachment: t("chat.attachment"), document: t("chat.document"),
+      }))
+      setCopiedAll(true)
+      window.setTimeout(() => setCopiedAll(false), 1_800)
+    } catch { app.toast(t("chat.copyFailed"), "error") }
+  }
 
   return (
     <div className={`chat ${listOpen ? "" : "list-closed"}`}>
@@ -138,6 +162,7 @@ export function Assistant() {
           {!listOpen && <button className="btn btn-ghost btn-icon" onClick={() => { setListOpen(true); writePref("assistant.list", true) }} aria-label={t("chat.conversations")}><Icon name="panel" size={17} /></button>}
           <div className="chat-title" data-tauri-drag-region>{current?.title || t("chat.newTitle")}</div>
           <div className="chat-head-actions">
+            <button className="btn btn-ghost chat-copy-all" onClick={() => void copyAll()} disabled={!current || (!messages.length && !showPending)} aria-label={t("chat.copyAll")} title={t("chat.copyAll")}><Icon name={copiedAll ? "check" : "copy"} size={15} /><span>{copiedAll ? t("chat.copied") : t("chat.copyAll")}</span></button>
             <ContextPicker claimId={settings.claimId} onChange={(claimId) => void updateSettings({ claimId })} />
             <ModelPicker profile={settings.profile} model={settings.model} onChange={(profile, model) => void updateSettings({ profile, model })} />
           </div>
@@ -236,7 +261,7 @@ function ConversationList({ open, items, activeId, working, onSelect, onNew, onT
 }
 
 function Thread({ messages, pending, live, running, error, onRegenerate, onDecide, onEdit, onSuggestion, root, hasConversation, claimId }: {
-  messages: Message[]; pending: Message | null; live: LiveTurn | null; running: boolean; error: unknown; onRegenerate: () => void; onDecide: (partId: string, approved: boolean) => void; onEdit: (text: string) => void; onSuggestion: (text: string) => void; root: string; hasConversation: boolean; claimId: string | null
+  messages: Message[]; pending: Message | null; live: LiveTurn | null; running: boolean; error: unknown; onRegenerate: () => void; onDecide: (partId: string, decision: Decision) => void; onEdit: (message: Message, text: string) => void; onSuggestion: (text: string) => void; root: string; hasConversation: boolean; claimId: string | null
 }) {
   const { t, lang } = useT()
   const scroller = useRef<HTMLDivElement>(null)
@@ -249,7 +274,7 @@ function Thread({ messages, pending, live, running, error, onRegenerate, onDecid
 
   // While a turn runs, the last assistant message is shown from the live stream instead of the saved copy.
   const liveId = live?.messageId
-  const shown = messages.filter((message) => !(live && message.id === liveId))
+  const shown = messagesBeforeEdit(messages, pending).filter((message) => !(live && message.id === liveId))
   const lastAssistant = [...shown].reverse().find((message) => message.role === "assistant")
   const empty = !shown.length && !pending && !live
 
@@ -258,9 +283,9 @@ function Thread({ messages, pending, live, running, error, onRegenerate, onDecid
       <div className="chat-column">
         {empty && <EmptyState onPick={onSuggestion} claimId={claimId} />}
         {shown.map((message) => message.role === "user"
-          ? <UserMessage key={message.id} message={message} onEdit={onEdit} />
+          ? <UserMessage key={message.id} message={message} onEdit={onEdit} busy={running} />
           : <AssistantMessage key={message.id} message={message} last={message === lastAssistant && !live} onRegenerate={onRegenerate} onDecide={onDecide} root={root} busy={running} />)}
-        {pending && <UserMessage message={pending} onEdit={onEdit} />}
+        {pending && <UserMessage message={pending} onEdit={onEdit} busy />}
         {live && <LiveMessage live={live} running={running} onDecide={onDecide} root={root} />}
         {Boolean(error) && !live && <div className="chat-error"><Icon name="info" size={15} /><span>{errorText(error, lang)}</span></div>}
       </div>
@@ -297,9 +322,24 @@ function EmptyState({ onPick, claimId }: { onPick: (text: string) => void; claim
   )
 }
 
-function UserMessage({ message, onEdit }: { message: Message; onEdit: (text: string) => void }) {
+function UserMessage({ message, onEdit, busy }: { message: Message; onEdit: (message: Message, text: string) => void; busy: boolean }) {
   const { t } = useT()
   const [copied, setCopied] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(message.content)
+  const save = () => { if (!draft.trim() || busy) return; setEditing(false); onEdit(message, draft) }
+  if (editing) return (
+    <div className="msg user">
+      <div className="msg-edit" onKeyDown={(event) => { if (event.key === "Escape" && !(event.target as Element)?.closest(".mchip, .math-search")) { event.stopPropagation(); setEditing(false) } }}>
+        <MathEditor value={draft} onChange={setDraft} label={t("chat.edit")} autoFocus onSubmit={save} minHeight={60} maxHeight={260} />
+        <p className="muted">{t("chat.editNote")}</p>
+        <div className="msg-edit-actions">
+          <button className="btn btn-ghost" onClick={() => setEditing(false)}>{t("common.cancel")}</button>
+          <button className="btn btn-primary" onClick={save} disabled={busy || !draft.trim()}>{t("chat.saveEdit")}</button>
+        </div>
+      </div>
+    </div>
+  )
   return (
     <div className="msg user">
       <div className="msg-bubble">
@@ -308,13 +348,13 @@ function UserMessage({ message, onEdit }: { message: Message; onEdit: (text: str
       </div>
       <div className="msg-actions">
         <button onClick={() => { void navigator.clipboard.writeText(message.content); setCopied(true); window.setTimeout(() => setCopied(false), 1_200) }} title={t("common.copy")}><Icon name={copied ? "check" : "copy"} size={14} /></button>
-        <button onClick={() => onEdit(message.content)} title={t("chat.edit")}><Icon name="pencil" size={14} /></button>
+        <button onClick={() => { setDraft(message.content); setEditing(true) }} title={t("chat.edit")} disabled={busy}><Icon name="pencil" size={14} /></button>
       </div>
     </div>
   )
 }
 
-function AssistantMessage({ message, last, onRegenerate, onDecide, root, busy }: { message: Message; last: boolean; onRegenerate: () => void; onDecide: (partId: string, approved: boolean) => void; root: string; busy: boolean }) {
+function AssistantMessage({ message, last, onRegenerate, onDecide, root, busy }: { message: Message; last: boolean; onRegenerate: () => void; onDecide: (partId: string, decision: Decision) => void; root: string; busy: boolean }) {
   const { t, lang } = useT()
   const [copied, setCopied] = useState(false)
   const parts = message.parts ?? (message.content ? [{ type: "text", text: message.content } as Part] : [])
@@ -348,7 +388,7 @@ function AssistantMessage({ message, last, onRegenerate, onDecide, root, busy }:
 /** Messages whose turn just ran on screen: their saved copy opens with the process shown, then folds it. */
 const justAnswered = new Set<string>()
 
-function LiveMessage({ live, running, onDecide, root }: { live: LiveTurn; running: boolean; onDecide: (partId: string, approved: boolean) => void; root: string }) {
+function LiveMessage({ live, running, onDecide, root }: { live: LiveTurn; running: boolean; onDecide: (partId: string, decision: Decision) => void; root: string }) {
   const elapsed = useElapsed(live.startedAt, running)
   const text = visibleStream(live.text)
   const process = buildProcess(live.parts, { phase: livePhase(live, running, text), durationMs: elapsed * 1000, streamingReasoning: live.reasoning })
@@ -375,7 +415,7 @@ const FOLD_DELAY_MS = 1_000
  * orb and shimmering label while it runs, the provider's reasoning as it streams, each tool as a step. Open
  * while running or waiting for approval, folded a second after the turn ends. Nothing here invents reasoning.
  */
-function TurnProcess({ view, onDecide, waiting, fold = false }: { view: ProcessView; onDecide: (partId: string, approved: boolean) => void; waiting: boolean; fold?: boolean }) {
+function TurnProcess({ view, onDecide, waiting, fold = false }: { view: ProcessView; onDecide: (partId: string, decision: Decision) => void; waiting: boolean; fold?: boolean }) {
   const { t, lang } = useT()
   const { phase, running, entries } = view
   const expandable = entries.length > 0
@@ -448,12 +488,14 @@ function ToolRow({ part }: { part: Extract<Part, { type: "tool" }> }) {
   )
 }
 
-function ActionCard({ part, onDecide, waiting }: { part: Extract<Part, { type: "tool" }>; onDecide: (partId: string, approved: boolean) => void; waiting: boolean }) {
+function ActionCard({ part, onDecide, waiting }: { part: Extract<Part, { type: "tool" }>; onDecide: (partId: string, decision: Decision) => void; waiting: boolean }) {
   const { t, lang } = useT()
   const [open, setOpen] = useState(false)
+  if (part.review) return <MeaningCard part={part} review={part.review} onDecide={onDecide} waiting={waiting} />
   const detail = part.tool === "create_claim" ? <><div className="k">{String(part.args.title ?? "")}</div><MathText text={String(part.args.statement ?? "")} /></>
     : part.tool === "formalize" && part.args.lean ? <pre className="wf-code">{String(part.args.lean)}</pre>
-    : part.tool === "search_literature" || part.tool === "create_branch" ? null : null
+    : part.tool === "check_proof" && part.args.proof ? <pre className="wf-code">{String(part.args.proof)}</pre>
+    : null
   const state = part.status === "proposed" ? (waiting ? "chat.tool.waiting" : "chat.tool.proposed") : `chat.tool.${part.status}`
   return (
     <div className={`action-card ${part.status}`}>
@@ -464,11 +506,44 @@ function ActionCard({ part, onDecide, waiting }: { part: Extract<Part, { type: "
       {detail && <div className="action-detail">{detail}</div>}
       {part.status === "proposed" && waiting && (
         <div className="action-buttons">
-          <button className="btn btn-primary btn-sm" onClick={() => onDecide(part.id, true)}><Icon name="check" size={14} stroke={2.4} />{t("chat.approve")}</button>
-          <button className="btn btn-secondary btn-sm" onClick={() => onDecide(part.id, false)}>{t("chat.decline")}</button>
+          <button className="btn btn-primary btn-sm" onClick={() => onDecide(part.id, "approve")}><Icon name="check" size={14} stroke={2.4} />{t("chat.approve")}</button>
+          <button className="btn btn-secondary btn-sm" onClick={() => onDecide(part.id, "all")} title={t("chat.approveAllHint")}>{t("chat.approveAll")}</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => onDecide(part.id, "reject")}>{t("chat.decline")}</button>
         </div>
       )}
       {open && <pre className="tool-output selectable">{part.error ?? part.summary}</pre>}
+    </div>
+  )
+}
+
+/** The meaning decision itself, in the chat: both statements and the model comparison, and the user's two answers. */
+function MeaningCard({ part, review, onDecide, waiting }: { part: Extract<Part, { type: "tool" }>; review: MeaningReview; onDecide: (partId: string, decision: Decision) => void; waiting: boolean }) {
+  const { t } = useT()
+  const match = review.verdict === null ? null : review.verdict === "MATCH"
+  const outcome = part.status === "done" ? "chat.meaning.approved" : part.status === "rejected" ? "chat.meaning.rejected" : part.status === "failed" ? "chat.tool.failed" : part.status === "running" ? "chat.tool.running" : waiting ? "chat.meaning.waiting" : "chat.tool.proposed"
+  return (
+    <div className={`action-card meaning-card ${part.status}`}>
+      <div className="action-head">
+        <div className="action-text"><strong>{t("chat.meaning.title").replace("{id}", review.claimId)}</strong><span>{t(outcome as MessageKey)}</span></div>
+      </div>
+      <div className="meaning-grid">
+        <div className="meaning-side"><div className="k">{t("chat.meaning.natural")}</div><MathText text={review.natural} /></div>
+        <div className="meaning-side"><div className="k">{t("chat.meaning.lean")}</div><pre className="wf-code selectable">{review.lean}</pre></div>
+      </div>
+      {review.reading && <div className="meaning-reading"><div className="k">{t("chat.meaning.reading")}</div><MathText text={review.reading} /></div>}
+      <p className={`meaning-verdict ${match === null ? "none" : match ? "match" : "mismatch"}`}>
+        <Icon name={match ? "check" : "info"} size={13} stroke={2.2} />
+        {match === null ? t("chat.meaning.noReview") : match ? t("chat.meaning.match") : t("chat.meaning.mismatch")}
+      </p>
+      {review.findings.length > 0 && <ul className="meaning-findings">{review.findings.map((item, index) => <li key={index}><MathText text={item} /></li>)}</ul>}
+      {part.error && <p className="field-hint">{part.error}</p>}
+      {part.status === "proposed" && waiting && <>
+        <div className="action-buttons">
+          <button className="btn btn-primary btn-sm" onClick={() => onDecide(part.id, "approve")}><Icon name="check" size={14} stroke={2.4} />{t("chat.meaning.approve")}</button>
+          <button className="btn btn-secondary btn-sm" onClick={() => onDecide(part.id, "reject")}>{t("chat.meaning.reject")}</button>
+        </div>
+        <p className="disclaimer">{t("chat.meaning.note")}</p>
+      </>}
     </div>
   )
 }

@@ -5,8 +5,19 @@ export type AssistantEffort = "auto" | "low" | "medium" | "high" | "max"
 export type AssistantPart =
   | { type: "text"; text: string }
   | { type: "reasoning"; text: string; ms: number }
-  | { type: "tool"; id: string; tool: string; args: Record<string, unknown>; kind: "read" | "action"; status: "running" | "done" | "failed" | "proposed" | "rejected"; title: string; summary?: string; error?: string }
+  | { type: "tool"; id: string; tool: string; args: Record<string, unknown>; kind: "read" | "action"; status: "running" | "done" | "failed" | "proposed" | "rejected"; title: string; summary?: string; error?: string; review?: MeaningReview }
   | { type: "document"; id: string; title: string; format: "markdown" | "latex" | "table"; content: string; rows?: string[][] }
+
+/** What the user decides on when asked to approve a meaning: both statements and the model comparison, if any. */
+export interface MeaningReview {
+  claimId: string
+  natural: string
+  lean: string
+  /** The comparison model's reading of the Lean statement, its verdict and findings; null when it has not run. */
+  reading: string | null
+  verdict: string | null
+  findings: string[]
+}
 
 export interface AssistantMessage {
   id: string
@@ -24,6 +35,8 @@ export interface AssistantMessage {
   thinkingMs?: number
   durationMs?: number
   state?: "streaming" | "done" | "error" | "stopped" | "awaiting_approval"
+  /** The user let this turn's remaining actions run without asking; meaning approvals still ask. */
+  autoApprove?: boolean
   error?: { code: string; message: string } | null
 }
 

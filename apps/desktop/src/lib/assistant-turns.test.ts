@@ -23,7 +23,17 @@ const invalidated: string[] = []
 mock.module("./query.ts", () => ({ ...realQuery, invalidate: (key: string) => { invalidated.push(key); realQuery.invalidate(key) } }))
 // Other test files share this process: hand the real modules back when these tests are done.
 afterAll(() => { mock.module("./bridge.ts", () => realBridge); mock.module("./query.ts", () => realQuery) })
-const { readTurn, resumeTurns, startTurn } = await import("./assistant.ts")
+const { readTurn, resumeTurns, startTurn, messagesBeforeEdit } = await import("./assistant.ts")
+
+test("an edited message replaces its old bubble and hides later replies during regeneration", () => {
+  const first = { id: "u1", role: "user" as const, createdAt: "", content: "First" }
+  const answer = { ...first, id: "a1", role: "assistant" as const, content: "Answer" }
+  const later = { ...first, id: "u2", content: "Later" }
+  expect(messagesBeforeEdit([first, answer, later], { ...first, content: "Edited" })).toEqual([])
+  expect(messagesBeforeEdit([first, answer, later], { ...later, content: "Edited later" })).toEqual([first, answer])
+  expect(messagesBeforeEdit([first, answer], { ...later, id: "pending" })).toEqual([first, answer])
+  expect(messagesBeforeEdit([first, answer], null)).toEqual([first, answer])
+})
 
 const settle = (ms = 30) => new Promise((resolve) => setTimeout(resolve, ms))
 const assistantMessage = { id: "msg-a", role: "assistant", createdAt: "", content: "", parts: [] }

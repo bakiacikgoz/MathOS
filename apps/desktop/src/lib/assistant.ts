@@ -8,8 +8,11 @@ export type Effort = "auto" | "low" | "medium" | "high" | "max"
 export type Part =
   | { type: "text"; text: string }
   | { type: "reasoning"; text: string; ms: number }
-  | { type: "tool"; id: string; tool: string; args: Record<string, unknown>; kind: "read" | "action"; status: "running" | "done" | "failed" | "proposed" | "rejected"; title: string; summary?: string; error?: string }
+  | { type: "tool"; id: string; tool: string; args: Record<string, unknown>; kind: "read" | "action"; status: "running" | "done" | "failed" | "proposed" | "rejected"; title: string; summary?: string; error?: string; review?: MeaningReview }
   | { type: "document"; id: string; title: string; format: "markdown" | "latex" | "table"; content: string; rows?: string[][] }
+export interface MeaningReview { claimId: string; natural: string; lean: string; reading: string | null; verdict: string | null; findings: string[] }
+/** Approve one action, approve it and let the rest of the turn run (meaning approvals still ask), or decline. */
+export type Decision = "approve" | "all" | "reject"
 export interface Message {
   id: string; role: "user" | "assistant"; createdAt: string; content: string; parts?: Part[]
   attachments?: Array<{ name: string; chars: number }>
@@ -32,8 +35,15 @@ export const assistantApi = {
   rename: (root: string, id: string, title: string) => runJson<Conversation>(root, ["assistant", "rename", id, title]),
   remove: (root: string, id: string) => runJson<{ deleted: string }>(root, ["assistant", "delete", id]),
   send: (root: string, id: string, text: string, attachments: Array<{ name: string; text: string }>) => runJson<{ job: string }>(root, ["assistant", "send", id, "--text", text, ...(attachments.length ? ["--attachments-json", JSON.stringify(attachments)] : [])]),
-  decide: (root: string, id: string, partId: string, approved: boolean) => runJson<{ job: string }>(root, ["assistant", approved ? "approve" : "reject", id, partId]),
+  decide: (root: string, id: string, partId: string, decision: Decision) => runJson<{ job: string }>(root, ["assistant", decision === "reject" ? "reject" : "approve", id, partId, ...(decision === "all" ? ["--all"] : [])]),
   regenerate: (root: string, id: string) => runJson<{ job: string }>(root, ["assistant", "regenerate", id]),
+  edit: (root: string, id: string, messageId: string, text: string) => runJson<{ job: string }>(root, ["assistant", "edit", id, messageId, "--text", text]),
+}
+
+/** Hide the replaced message and its obsolete replies while an edit is being regenerated. */
+export function messagesBeforeEdit(messages: Message[], pending: Message | null): Message[] {
+  const index = pending ? messages.findIndex(message => message.id === pending.id && message.role === "user") : -1
+  return index < 0 ? messages : messages.slice(0, index)
 }
 
 /** The message being written right now: parts so far plus the text and reasoning of the current step. */
