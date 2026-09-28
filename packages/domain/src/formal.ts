@@ -203,7 +203,9 @@ export function extractDeclaration(source: string): string {
 export function composeProof(declaration: string, proofBody: string): string {
   const decl = extractDeclaration(declaration)
   let body = proofBody.trim()
-  if (body.includes(":=")) body = body.slice(body.search(/:=/) + 2).trim()
+  // A reply may repeat the declaration (or start at its `:=`); cut that off, but never a `:=` inside the tactics,
+  // such as `obtain ⟨a, ha⟩ := h`.
+  if (/^(theorem|lemma|example|def)\b/.test(body) || body.startsWith(":=")) body = body.slice(body.search(/:=/) + 2).trim()
   if (!body.startsWith("by") && !body.startsWith("sorry")) body = `by\n  ${body}`
   return `${decl} :=\n${body}`
 }

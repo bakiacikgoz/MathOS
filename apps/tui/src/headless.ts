@@ -508,19 +508,24 @@ export async function runHeadless(argv: string[]): Promise<number> {
       }
 
       if (command === "prove") {
-        const id = rest.find((item) => !item.startsWith("--"))
-        if (!id) {
-          process.stderr.write("Usage: mathos prove C-001 [--json]\n")
+        // --proof checks a proof body someone wrote (the user, or the assistant) instead of asking the prover model;
+        // the Lean kernel decides either way.
+        const proofBody = flag(rest, "--proof")
+        const id = rest.find((item, index) => !item.startsWith("--") && rest[index - 1] !== "--proof")
+        if (!id || proofBody === "") {
+          process.stderr.write("Usage: mathos prove C-001 [--proof <lean proof body>] [--json]\n")
           return 1
         }
-        const session = await app.prove(id)
+        const session = await app.prove(id, undefined, proofBody === undefined ? undefined : { proofBody, maxAttempts: 1 })
         if (rest.includes("--json")) {
+          const last = session.accepted ? null : session.attempts.at(-1)
           process.stdout.write(`${JSON.stringify({
             claimId: session.claimId,
             accepted: session.accepted?.id ?? null,
             attempts: session.attempts.map((item) => ({ id: item.id, status: item.status })),
             verificationPassed: session.verification?.passed ?? false,
             claimStatus: app.getClaim(session.claimId).status,
+            ...(last ? { lastAttempt: { proof: last.proofSource, diagnostics: last.diagnostics.map((item) => item.message).slice(0, 12) } } : {}),
           }, null, 2)}\n`)
           return session.accepted ? 0 : 1
         }

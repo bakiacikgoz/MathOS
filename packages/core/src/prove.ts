@@ -23,8 +23,13 @@ JSON shape:
 }
 `
 
+/**
+ * The proof body from the prover's JSON. Models name the field in several ways (the request is called proof_body);
+ * a reply without a usable body is an error, so the one repair round runs instead of sending Lean an empty proof.
+ */
 export function parseProofBody(value: unknown): string {
-  if (!value || typeof value !== "object") return ""
-  const raw = value as Record<string, unknown>
-  return String(raw.proofBody ?? raw.proof ?? "").trim()
+  const raw = typeof value === "string" ? value : value && typeof value === "object" ? ["proofBody", "proof_body", "proof", "body", "tactics"].map((key) => (value as Record<string, unknown>)[key]).find((item) => typeof item === "string") : undefined
+  const body = typeof raw === "string" ? raw.trim() : ""
+  if (!body || body === "by") throw new Error("proofBody is missing or empty; return {\"proofBody\": \"by\n  …\"}")
+  return body
 }
