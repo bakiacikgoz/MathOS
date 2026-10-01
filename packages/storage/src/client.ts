@@ -1,5 +1,5 @@
 import { Database } from "bun:sqlite"
-import { copyFileSync, mkdirSync } from "node:fs"
+import { copyFileSync, existsSync, mkdirSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { StorageUnavailable, WorkspaceOperationLock, WorkspaceSchemaTooNew, nowIso } from "@mathos/shared"
 import { MIGRATIONS, SCHEMA_EPOCH } from "./migrations.ts"
@@ -10,12 +10,30 @@ export class DatabaseClient {
 
   constructor(private readonly filePath: string) {
     try {
+      if (existsSync(filePath)) {
+        // A writable connection's close may checkpoint recoverable WAL even
+        // when no explicit write was made. Inspect compatibility read-only.
+        const inspection = new Database(filePath, { readonly: true })
+        try {
+          const hasMetadata = inspection.query("SELECT name FROM sqlite_master WHERE type='table' AND name='mathos_meta'").get()
+          const epoch = hasMetadata ? Number(inspection.query<{ value: string }, []>("SELECT value FROM mathos_meta WHERE key='schema_epoch'").get()?.value ?? 0) : 0
+          if (epoch > SCHEMA_EPOCH) throw new WorkspaceSchemaTooNew(epoch, SCHEMA_EPOCH)
+        } finally { inspection.close() }
+      }
       mkdirSync(dirname(filePath), { recursive: true })
       this.db = new Database(filePath, { create: true })
+      // Check compatibility before changing the journal mode or schema. A newer
+      // product's database must remain usable after this version refuses it.
+      const epoch = this.schemaEpoch()
+      if (epoch > SCHEMA_EPOCH) {
+        this.db.close()
+        throw new WorkspaceSchemaTooNew(epoch, SCHEMA_EPOCH)
+      }
       this.db.exec("PRAGMA foreign_keys = ON;")
       this.db.exec("PRAGMA journal_mode = WAL;")
       this.db.exec("PRAGMA busy_timeout = 5000;")
     } catch (error) {
+      if (error instanceof WorkspaceSchemaTooNew) throw error
       const reason = error instanceof Error ? error.message : String(error)
       throw new StorageUnavailable(reason, { path: filePath })
     }
@@ -43,6 +61,7 @@ export class DatabaseClient {
     const lock = WorkspaceOperationLock.acquire(dirname(dirname(this.filePath)), "migration")
     try {
     const previousEpoch = this.schemaEpoch()
+    if (previousEpoch > SCHEMA_EPOCH) throw new WorkspaceSchemaTooNew(previousEpoch, SCHEMA_EPOCH)
     if (previousEpoch > 0 && previousEpoch < SCHEMA_EPOCH) this.createPreMigrationBackup(previousEpoch)
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -86,7 +105,10 @@ export class DatabaseClient {
   }
 
   private createPreMigrationBackup(previousEpoch: number): void {
-    this.db.exec("PRAGMA wal_checkpoint(FULL)")
+    const checkpoint = this.db.query<{ busy: number; log: number; checkpointed: number }, []>("PRAGMA wal_checkpoint(FULL)").get()
+    if (!checkpoint || checkpoint.busy !== 0 || checkpoint.log !== checkpoint.checkpointed) {
+      throw new StorageUnavailable("pre-migration checkpoint incomplete; close other workspace readers and retry", { path: this.filePath })
+    }
     const directory = join(dirname(this.filePath), "backups"); mkdirSync(directory, { recursive: true })
     const stamp = new Date().toISOString().replace(/[:.]/g, "")
     copyFileSync(this.filePath, join(directory, `pre-migration-${previousEpoch}-${stamp}.db`))
