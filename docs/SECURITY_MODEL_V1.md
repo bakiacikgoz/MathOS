@@ -1,6 +1,13 @@
 # Security model v1
 
-MathOS is local-first. Secrets remain in environment-backed provider configuration and are excluded from databases, events, logs, reports, backups, notebooks, capsules, and diagnostics. Model code, solvers, and plugins run out of process with explicit capabilities, temporary write roots, bounded resources, and network disabled by default.
+MathOS is local-first. Saved provider profiles hold secret references; provider
+credentials use Windows Credential Manager or macOS Keychain. Environment-backed
+credentials remain available for explicit CLI configuration. Secret values are
+excluded from workspace databases, events, logs, reports, backups, notebooks,
+capsules and diagnostics. See [Provider security](PROVIDER_SECURITY.md) for the
+provider boundary and its checks. Model code, solvers and plugins run out of
+process with explicit capabilities, temporary write roots, bounded resources and
+network disabled by default.
 
 Paths are canonicalized; traversal, symlinks, implicit home mounts, private network targets, malformed protocols, unknown permissions, and unavailable isolation fail-closed. Plugins cannot wildcard capabilities and repeated security/protocol failures quarantine them.
 

@@ -1,0 +1,13 @@
+{
+  "gitRevision": "deee9603ed54e1c04c8c859179e28069ab7ac423",
+  "evidenceClass": "CODE_TESTED",
+  "command": "bun artifacts/public-readiness-20261001/probe.ts",
+  "exitCode": 0,
+  "source": { "approved": false, "alignmentStatus": null, "fidelityStatus": "AI_REVIEWED" },
+  "clone": { "approved": false, "alignmentStatus": "HUMAN_APPROVED", "fidelityStatus": "AI_REVIEWED" },
+  "downgrade": {
+    "currentVersion": "1.0.0", "latestVersion": "0.9.0",
+    "available": true, "compatible": true, "channel": "stable"
+  },
+  "scope": "Ayrı geçici workspace; fake model, Lean ve VCS. İnsan onayı çağrılmadı, ispat denenmedi. Sahte insan alignment kaydı gözlendi; tam workflow onayı ve kernel yetki aşımı gösterilmedi. Eski sürümün uygulanması denenmedi."
+}

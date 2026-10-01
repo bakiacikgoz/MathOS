@@ -1,6 +1,6 @@
 # MathOS Windows doğrulaması — 1 Ekim 2026
 
-28 Eylül devrindeki grafik ve anlam onayı/ispat akışı, gerçek Tauri/WebView2 penceresinde kontrol edildi. Ayrı `C:/Users/duzey/Desktop/mathos-qa-20261001` çalışma alanı kullanıldı; kullanıcının araştırma kayıtları değiştirilmedi.
+28 Eylül devrindeki grafik ve anlam onayı/ispat akışı, gerçek Tauri/WebView2 penceresinde kontrol edildi. Ayrı `mathos-qa-20261001` çalışma alanı kullanıldı; kullanıcının araştırma kayıtları değiştirilmedi.
 
 ## Düzeltmeler
 
