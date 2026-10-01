@@ -32,3 +32,23 @@ test("public build verification covers Windows and native Apple Silicon without 
   expect(source).not.toContain("--write-skeleton")
   expect(source).not.toContain("gh release create")
 })
+
+test("clean public runners install preload dependencies before executing the architecture probe", () => {
+  const workflow = Bun.YAML.parse(readFileSync(new URL("../.github/workflows/public-build-verification.yml", import.meta.url), "utf8")) as {
+    jobs: { verify: { steps: Array<{ name?: string; run?: string; shell?: string }> } }
+  }
+  const steps = workflow.jobs.verify.steps
+  const install = steps.findIndex(step => step.run?.includes("bun install --frozen-lockfile"))
+  const probe = steps.findIndex(step => step.run?.includes("validateQualificationHost"))
+  expect(install).toBeGreaterThanOrEqual(0)
+  expect(probe).toBeGreaterThan(install)
+})
+
+test("Windows VSIX ZIP verification runs outside the GNU tar Git Bash environment", () => {
+  const workflow = Bun.YAML.parse(readFileSync(new URL("../.github/workflows/public-build-verification.yml", import.meta.url), "utf8")) as {
+    jobs: { verify: { steps: Array<{ run?: string; shell?: string }> } }
+  }
+  const step = workflow.jobs.verify.steps.find(step => step.run?.trim() === "bun run vscode:verify")
+  expect(step?.shell).toContain("Windows")
+  expect(step?.shell).toContain("pwsh")
+})
