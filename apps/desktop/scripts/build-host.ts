@@ -4,6 +4,7 @@
 import { mkdirSync } from "node:fs"
 import { resolve } from "node:path"
 import solidPlugin from "@opentui/solid/bun-plugin"
+import { currentBuildIdentity } from "../../../packages/shared/src/version.ts"
 
 const root = resolve(import.meta.dir, "..")
 const rustTriple = (() => {
@@ -23,14 +24,21 @@ const bunTargets: Record<string, string> = {
 }
 const target = bunTargets[rustTriple]
 if (!target) throw new Error(`DESKTOP_HOST_BUILD: unsupported target ${rustTriple}`)
-const outDir = resolve(root, "src-tauri/binaries")
+const outputDirArg = process.argv.find((arg) => arg.startsWith("--output-dir="))
+if (outputDirArg === "--output-dir=") throw new Error("DESKTOP_HOST_BUILD: --output-dir requires a path")
+const outDir = outputDirArg ? resolve(outputDirArg.slice("--output-dir=".length)) : resolve(root, "src-tauri/binaries")
 mkdirSync(outDir, { recursive: true })
 const outfile = resolve(outDir, `mathos-host-${rustTriple}${rustTriple.includes("windows") ? ".exe" : ""}`)
+const identity = currentBuildIdentity()
 const result = await Bun.build({
   entrypoints: [resolve(root, "host/host.ts")],
   plugins: [solidPlugin],
   compile: { target: target as never, outfile, autoloadBunfig: false },
   minify: true,
+  define: {
+    "process.env.MATHOS_BUILD_REVISION": JSON.stringify(identity.gitRevision),
+    "process.env.MATHOS_BUILD_ID": JSON.stringify(identity.buildId),
+  },
   // Precompiled bytecode starts the host several times faster than parsing the bundle on every launch.
   bytecode: true,
   format: "esm",

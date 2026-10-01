@@ -3,7 +3,7 @@ import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSyn
 import { basename, dirname, extname, join, resolve } from "node:path"
 import { homedir, tmpdir } from "node:os"
 import { exportBlueprintLatex, importBlueprintLatex, parseMathosMarkdown } from "@mathos/notebook"
-import { MATHOS_PRODUCT_VERSION, MathOSError, cliExitCode, formatCliError, resolveRuntimeLayout, withWorkspaceOperationLock } from "@mathos/shared"
+import { MATHOS_PRODUCT_VERSION, MathOSError, cliExitCode, currentBuildIdentity, formatCliError, resolveRuntimeLayout, withWorkspaceOperationLock } from "@mathos/shared"
 import { repairWorkspaceRuntimeState } from "@mathos/workspace"
 import { DEPENDENCY_RELATIONS, type DependencyRelation } from "@mathos/domain"
 import { SCHEMA_EPOCH } from "@mathos/storage"
@@ -71,7 +71,7 @@ export const CLI_COMMAND_CATEGORIES = {
   atlas: ["atlas"],
   distribution: ["plugin", "capsule", "publication"],
   setup: ["setup", "config", "provider", "secrets", "usage", "job"],
-  diagnostics: ["doctor", "diagnostics", "update", "version", "--version", "help", "--help", "-h"],
+  diagnostics: ["doctor", "diagnostics", "update", "version", "--version", "about", "help", "--help", "-h"],
 } as const
 
 const CLI_COMMANDS = new Set<string>(Object.values(CLI_COMMAND_CATEGORIES).flat())
@@ -244,6 +244,11 @@ export async function runHeadless(argv: string[]): Promise<number> {
       }
       const restored = MathOS.restore(archive, dest)
       process.stdout.write(`Restored ${restored.root}\n`)
+      return 0
+    }
+
+    if (command === "about" && rest.includes("--json")) {
+      process.stdout.write(`${JSON.stringify(currentBuildIdentity())}\n`)
       return 0
     }
 
