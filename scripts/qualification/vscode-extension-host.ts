@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
+import { MATHOS_PRODUCT_VERSION } from "@mathos/shared"
 import { collectKnownSecrets } from "../../packages/models/src/redact.ts"
 import { inspectGitHead, inspectProcessTable, revisionsMatch } from "./vscode-extension-host-inspection.ts"
 
@@ -13,8 +14,8 @@ const evidenceRoot = resolve(positional[1] ?? join(root, "artifacts/qualificatio
 const executableOption = arguments_.find((value) => value.startsWith("--executable="))?.slice("--executable=".length)
 const vscodeCli = "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
 const vscodeExecutable = "/Applications/Visual Studio Code.app/Contents/MacOS/Code"
-const vsix = join(root, "dist/mathos-1.0.0-rc.1.vsix")
-const mathosExecutable = resolve(executableOption ?? join(root, "artifacts/releases/1.0.0-rc.1/darwin-arm64/root/bin/mathos"))
+const vsix = join(root, `dist/mathos-${MATHOS_PRODUCT_VERSION}.vsix`)
+const mathosExecutable = resolve(executableOption ?? join(root, `artifacts/releases/${MATHOS_PRODUCT_VERSION}/darwin-arm64/root/bin/mathos`))
 const testRunner = join(root, "scripts/qualification/vscode-extension-host-runner.cjs")
 const sourceRevisionInspection = inspectGitHead(root)
 
@@ -137,7 +138,7 @@ const summary = {
   },
   secretLeakCount: literalSecretLeaks + shapedSecretLeaks,
   runtime,
-  ready: exitCode === 0 && runtime?.ready === true && standaloneIdentity?.productVersion === "1.0.0-rc.1" && sourceRevisionInspection.ok === true && revisionsMatch(standaloneIdentity?.gitRevision, sourceRevisionInspection.revision) && /Mach-O 64-bit executable arm64/u.test(standaloneFile) && runtime?.invocationEvents?.filter((event: any) => event.event === "start").every((event: any) => event.executable === mathosExecutable) === true && baselineProcessInspection.ok === true && teardownProcessInspection.ok === true && baselineBridgeProcesses.length === 0 && remainingBridgeProcesses.length === 0 && remainingCommandProcesses.length === 0 && literalSecretLeaks + shapedSecretLeaks === 0,
+  ready: exitCode === 0 && runtime?.ready === true && standaloneIdentity?.productVersion === MATHOS_PRODUCT_VERSION && sourceRevisionInspection.ok === true && revisionsMatch(standaloneIdentity?.gitRevision, sourceRevisionInspection.revision) && /Mach-O 64-bit executable arm64/u.test(standaloneFile) && runtime?.invocationEvents?.filter((event: any) => event.event === "start").every((event: any) => event.executable === mathosExecutable) === true && baselineProcessInspection.ok === true && teardownProcessInspection.ok === true && baselineBridgeProcesses.length === 0 && remainingBridgeProcesses.length === 0 && remainingCommandProcesses.length === 0 && literalSecretLeaks + shapedSecretLeaks === 0,
 }
 writeFileSync(join(evidenceRoot, "vscode-host-summary.json"), `${JSON.stringify(summary, null, 2)}\n`)
 rmSync(sessionRoot, { recursive: true, force: true })

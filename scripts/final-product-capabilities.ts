@@ -2,6 +2,8 @@ import { existsSync, readFileSync } from "node:fs"
 import { resolve } from "node:path"
 import { inspectSandbox } from "@mathos/computation"
 import { mandatoryPlatformGates } from "./qualification/platform-qualification.ts"
+import { MATHOS_PRODUCT_VERSION } from "@mathos/shared"
+import { verifyRelease } from "./distribution/verify-release.ts"
 
 type PlatformEvidence = {
   schemaVersion: "mathos.platform-qualification.v1"
@@ -45,11 +47,34 @@ export function evaluateEvidence(options: {
   const qualifiedModel = windows?.gates?.providerLive === "PASS" || macos?.gates?.providerLive === "PASS"
   const target = releaseTarget(options.platform, options.arch)
   const host = options.platform === "darwin" ? macos : options.platform === "win32" ? windows : null
+  const releaseRoot = resolve(options.root, "artifacts", "releases", MATHOS_PRODUCT_VERSION, target, "root")
+  const executable = `bin/${options.platform === "win32" ? "mathos.exe" : "mathos"}`
+  let standaloneArtifact = false
+  let releaseLicenses = false
+  try {
+    const artifact = verifyRelease(releaseRoot, { gitRevision: options.gitRevision, target, productVersion: MATHOS_PRODUCT_VERSION })
+    standaloneArtifact = artifact.ok && artifact.manifest.files.some(file => file.path === executable) && existsSync(resolve(releaseRoot, executable))
+    const metadataFiles = ["SBOM.json", "THIRD_PARTY_LICENSES.json", "THIRD_PARTY_NOTICES.txt"]
+    if (standaloneArtifact && metadataFiles.every(path => artifact.manifest.files.some(file => file.path === path))) {
+      const inventory = JSON.parse(readFileSync(resolve(releaseRoot, "THIRD_PARTY_LICENSES.json"), "utf8"))
+      const sbom = JSON.parse(readFileSync(resolve(releaseRoot, "SBOM.json"), "utf8"))
+      releaseLicenses = inventory.schemaVersion === "mathos.third-party-licenses.v1"
+        && inventory.gitRevision === options.gitRevision && inventory.productVersion === MATHOS_PRODUCT_VERSION
+        && inventory.complete === true && inventory.releaseBlocked === false
+        && inventory.unresolvedCount === 0 && inventory.missingNoticeCount === 0
+        && Array.isArray(inventory.packages) && inventory.packages.length > 0
+        && inventory.packages.every((row: { license?: unknown; licenseSource?: unknown }) => typeof row.license === "string" && row.license !== "NOASSERTION" && typeof row.licenseSource === "string")
+        && sbom.spdxVersion === "SPDX-2.3" && sbom.dataLicense === "CC0-1.0" && sbom.SPDXID === "SPDXRef-DOCUMENT"
+        && typeof sbom.documentNamespace === "string" && Array.isArray(sbom.creationInfo?.creators)
+        && readFileSync(resolve(releaseRoot, "THIRD_PARTY_NOTICES.txt"), "utf8").trim().length > 0
+    }
+  } catch { /* incomplete or invalid packages cannot qualify this candidate */ }
   const checks = {
     realModel: Boolean(qualifiedModel),
     sandbox: options.sandbox && host?.gates?.sandbox === "PASS" && host.gates.networkIsolation === "PASS" && host.gates.filesystemIsolation === "PASS",
     vscodeHost: options.vscodeHost && host?.gates?.vscodeHost === "PASS",
-    standaloneArtifact: existsSync(resolve(options.root, "artifacts", "releases", "1.0.0-rc.1", target, "root", "bin", options.platform === "win32" ? "mathos.exe" : "mathos")),
+    standaloneArtifact,
+    releaseLicenses,
     windowsRuntimeEvidence: Boolean(windows),
     macosRuntimeEvidence: Boolean(macos),
   }

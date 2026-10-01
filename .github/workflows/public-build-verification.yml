@@ -1,0 +1,82 @@
+name: Public build verification
+
+# Builds and fixture tests do not certify GUI, human meaning, Docker isolation,
+# signing, or a public release. Those remain separate source-bound acceptance gates.
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+    paths:
+      - "apps/**"
+      - "packages/**"
+      - "scripts/**"
+      - "tests/**"
+      - "package.json"
+      - "bun.lock"
+      - "bunfig.toml"
+      - "tsconfig.json"
+      - ".github/workflows/public-build-verification.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-2025
+            platform: windows-11-x64
+          - runner: macos-15
+            platform: macos-arm64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    env:
+      MATHOS_LEAN_AUTO_INSTALL: "0"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.2
+      - name: Verify native runner architecture
+        env:
+          QUALIFICATION_PLATFORM: ${{ matrix.platform }}
+        run: bun -e 'import {validateQualificationHost} from "./scripts/qualification/platform-qualification.ts"; validateQualificationHost(process.env.QUALIFICATION_PLATFORM)'
+      - name: Frozen installs
+        run: |
+          bun install --frozen-lockfile
+          bun install --cwd apps/desktop --frozen-lockfile
+      - name: Root typecheck and tests
+        run: |
+          bun run typecheck
+          bun test
+      - name: Desktop typecheck and tests
+        working-directory: apps/desktop
+        run: |
+          bun run typecheck
+          bun test
+      - name: Build and verify native CLI distribution
+        run: |
+          bun run release:build
+          bun run release:verify
+          bun run vscode:verify
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: MathOS-${{ matrix.platform }}-build-verification
+          path: |
+            artifacts/releases/**/*.tar.gz
+            artifacts/releases/**/SHA256SUMS
+            dist/*.vsix
+          if-no-files-found: error
+          retention-days: 14

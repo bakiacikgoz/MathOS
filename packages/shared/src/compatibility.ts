@@ -45,7 +45,13 @@ export function assertProductVersionAlignment(packages:Array<{name:string;versio
 }
 
 export function readProductSurfaceVersions(root:string):Array<{name:string;version:string}>{
-  return["package.json","apps/tui/package.json","apps/atlas/package.json","apps/vscode-extension/package.json"].map(path=>{
+  const versions = ["package.json","apps/tui/package.json","apps/atlas/package.json","apps/vscode-extension/package.json","apps/desktop/package.json"].map(path=>{
     const value=JSON.parse(readFileSync(join(root,path),"utf8"))as{name:string;version:string};return{name:value.name,version:value.version}
   })
+  const config = JSON.parse(readFileSync(join(root, "apps/desktop/src-tauri/tauri.conf.json"), "utf8")) as { productName: string; version: string }
+  const cargo = readFileSync(join(root, "apps/desktop/src-tauri/Cargo.toml"), "utf8")
+  const packageSection = cargo.split(/^\[package\]\s*$/m)[1]?.split(/^\[/m)[0]
+  const version = packageSection?.match(/^version\s*=\s*"([^"]+)"\s*$/m)?.[1]
+  if (!version || typeof config.version !== "string") throw new Error("PRODUCT_VERSION_MISSING: desktop Cargo/Tauri configuration")
+  return [...versions, { name: `${config.productName} (Tauri)`, version: config.version }, { name: "mathos-desktop (Cargo)", version }]
 }

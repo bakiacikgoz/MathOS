@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import { mkdirSync, writeFileSync } from "node:fs"
 import { dirname, resolve } from "node:path"
+import { MATHOS_PRODUCT_VERSION } from "@mathos/shared"
 
 export type QualificationTarget = "macos-arm64" | "windows-11-x64"
 export type GateStatus = "PASS" | "FAIL" | "NOT_VERIFIED"
@@ -34,9 +35,9 @@ export function createPlatformEvidence(target: QualificationTarget, gitRevision:
   }
 }
 
-export function platformQualificationCommands(target: QualificationTarget) {
+export function platformQualificationCommands(target: QualificationTarget, version = MATHOS_PRODUCT_VERSION) {
   const artifactTarget = target === "macos-arm64" ? "darwin-arm64" : "windows-x64"
-  const executable = target === "macos-arm64" ? "./artifacts/releases/1.0.0-rc.1/darwin-arm64/root/bin/mathos" : ".\\artifacts\\releases\\1.0.0-rc.1\\windows-x64\\root\\bin\\mathos.exe"
+  const executable = target === "macos-arm64" ? `./artifacts/releases/${version}/darwin-arm64/root/bin/mathos` : `.\\artifacts\\releases\\${version}\\windows-x64\\root\\bin\\mathos.exe`
   return {
     target,
     nonInteractive: [
@@ -48,7 +49,7 @@ export function platformQualificationCommands(target: QualificationTarget) {
       "bun run providers:qualification",
       "bun run vscode:verify",
       `bun scripts/distribution/build-release.ts --target=${artifactTarget}`,
-      `bun scripts/distribution/verify-release.ts artifacts/releases/1.0.0-rc.1/${artifactTarget}/root`,
+      `bun scripts/distribution/verify-release.ts artifacts/releases/${version}/${artifactTarget}/root`,
       "bun run qualification:v1",
       "bun run software-completion-v2",
       "bun scripts/final-product-capabilities.ts",
@@ -60,7 +61,7 @@ export function platformQualificationCommands(target: QualificationTarget) {
       { gate: "tui", command: executable, expected: "real PTY session exercises workspace, C-001, palette, provider selection, role assignment, and clean quit" },
       { gate: "sandbox", command: "bun scripts/security-sandbox-smoke.ts", expected: "real production OCI attack matrix passes, including network and filesystem isolation" },
       { gate: "atlas", command: `${executable} atlas snapshot --json`, expected: "C-001 is KERNEL_VERIFIED without exposing the session token" },
-      { gate: "vscodeHost", command: "code --install-extension dist/mathos-1.0.0-rc.1.vsix --force", expected: "real Extension Host activation, command exercise, bridge teardown, and zero orphan processes" },
+      { gate: "vscodeHost", command: `code --install-extension dist/mathos-${version}.vsix --force`, expected: "real Extension Host activation, command exercise, bridge teardown, and zero orphan processes" },
     ],
   }
 }
