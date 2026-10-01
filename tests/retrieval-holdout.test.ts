@@ -8,12 +8,13 @@ import { RETRIEVAL_VALIDATION_FIXTURES } from "../packages/retrieval/src/validat
 import { RETRIEVAL_HOLDOUT_FIXTURES, RETRIEVAL_HOLDOUT_METADATA } from "../packages/retrieval/src/holdout-fixtures.ts"
 import { bootstrapPaired, classifyPairedRanks } from "../scripts/retrieval-holdout.ts"
 import { validateRetrievalHoldout } from "../scripts/validate-retrieval-holdout.ts"
+import { withNativeMathlib } from "./helpers/native-lean.ts"
 
 const ROOT = resolve(import.meta.dir, "..")
 const SPEC = `${ROOT}/benchmarks/retrieval-experiments/semantic-operator-profile-v1.json`
 const INDEX = `${ROOT}/demo/.mathos/index/declarations.json`
 const indexedTest = existsSync(INDEX) ? test : test.skip
-const leanTest = existsSync(INDEX) && Boolean(Bun.which("lake")) ? test : test.skip
+const leanTest = Bun.which("lake") ? test : test.skip
 const hash = (path: string) => createHash("sha256").update(readFileSync(path)).digest("hex")
 
 describe("semantic operator profile v1", () => {
@@ -82,13 +83,13 @@ describe("retrieval holdout v1", () => {
     }
   })
 
-  leanTest("all expected declarations pass real Lean check", async () => {
+  leanTest("all expected declarations pass real Lean check", () => withNativeMathlib(async () => {
     const report = await validateRetrievalHoldout()
     expect(report.failed).toBe(false)
     expect(report.missing).toEqual([])
     expect(report.developmentOverlap).toEqual([])
     expect(report.validationOverlap).toEqual([])
-  }, 240_000)
+  }), 1_200_000)
 
   test("paired classification and deterministic seeded bootstrap", () => {
     expect(classifyPairedRanks(null, 10)).toBe("IMPROVED")

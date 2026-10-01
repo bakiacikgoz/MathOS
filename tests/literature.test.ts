@@ -7,18 +7,25 @@ import { FakeVcs } from "@mathos/vcs"
 import { FakeLiteratureProvider, isPublicHttpUrl } from "@mathos/literature"
 
 const dirs: string[] = []
+const apps: MathOS[] = []
 function temp() {
   const dir = mkdtempSync(join(tmpdir(), "mathos-lit-"))
   dirs.push(dir)
   return dir
 }
 afterEach(() => {
+  for (const app of apps.splice(0)) app.close()
   for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
 })
 
+function track(app: MathOS): MathOS {
+  apps.push(app)
+  return app
+}
+
 async function boot() {
   const created = await MathOS.init(temp(), "lit")
-  const app = MathOS.open(created.root, { vcs: new FakeVcs(), literatureProvider: new FakeLiteratureProvider() })
+  const app = track(MathOS.open(created.root, { vcs: new FakeVcs(), literatureProvider: new FakeLiteratureProvider() }))
   const claim = app.createClaim({ kind: "conjecture", title: "T", statement: "Every contraction on a complete metric space has a unique fixed point.", asMainObjective: true })
   return { app, claim }
 }
@@ -42,7 +49,6 @@ describe("literature provenance", () => {
     expect(graph.nodes.some((node) => node.id === source.id && node.kind === "SOURCE")).toBe(true)
     expect(graph.edges.some((edge) => edge.kind === "EXTRACTED_FROM" && edge.fromNodeId === ext.id)).toBe(true)
     expect(app.researchContext().text).toContain("NOT KERNEL VERIFIED")
-    app.close()
   })
 
   test("external known requires review and is not kernel verified", async () => {
@@ -55,7 +61,6 @@ describe("literature provenance", () => {
     const linked = app.linkExternalKnown(claim.id, ext.id)
     expect(linked.status).toBe("EXTERNAL_KNOWN")
     expect(linked.status).not.toBe("KERNEL_VERIFIED")
-    app.close()
   })
 
   test("unsupported extraction and locator mismatch", async () => {
@@ -64,7 +69,6 @@ describe("literature provenance", () => {
     expect(() => app.extractExternalResult({ sourceId: source.id, statementSummary: "invented theorem" })).toThrow("UNSUPPORTED_EXTRACTION")
     const excerpt = app.addExcerpt(source.id, "compactness of closed bounded sets", { kind: "PAGE", pageStart: 12 })
     expect(() => app.extractExternalResult({ sourceId: source.id, excerptId: excerpt.id, statementSummary: "totally unrelated invented result", locator: { kind: "THEOREM", theorem: "9" } })).toThrow()
-    app.close()
   })
 
   test("branch citation isolation and search repetition", async () => {
@@ -82,7 +86,6 @@ describe("literature provenance", () => {
     expect(app.listCitations(child.id).length).toBe(1)
     expect(app.listExternal("B-000").some((item) => item.id === ext.id)).toBe(false)
     expect(app.listSources().some((item) => item.id === source.id)).toBe(true)
-    app.close()
   })
 
   test("a person searching again gets the earlier results; an empty earlier search runs again", async () => {
@@ -94,7 +97,7 @@ describe("literature provenance", () => {
     expect(app.literatureHits(again.id).length).toBe(first.resultCount)
     await expect(app.searchLiterature("fixed point")).rejects.toThrow("LITERATURE_SEARCH_REPETITION")
     const created = await MathOS.init(temp(), "offline")
-    const offline = MathOS.open(created.root, { vcs: new FakeVcs(), literatureProvider: { name: new FakeLiteratureProvider().name, search: async () => [] } as unknown as FakeLiteratureProvider })
+    const offline = track(MathOS.open(created.root, { vcs: new FakeVcs(), literatureProvider: { name: new FakeLiteratureProvider().name, search: async () => [] } as unknown as FakeLiteratureProvider }))
     const nothing = await offline.searchLiterature("fixed point", { reuse: true })
     expect(nothing.resultCount).toBe(0)
     const retried = await offline.searchLiterature("fixed point", { reuse: true })
@@ -114,13 +117,11 @@ describe("literature provenance", () => {
       { action: "STOP", rationaleSummary: "done", parameters: {}, researchDecisionVersion: "v1", stop: { shouldStop: true, reason: "NO_PRODUCTIVE_ACTION" } },
     ])
     const created = await MathOS.init(temp(), "loop")
-    const loop = MathOS.open(created.root, { vcs: new FakeVcs(), researchPlanner: planner, literatureProvider: new FakeLiteratureProvider() })
+    const loop = track(MathOS.open(created.root, { vcs: new FakeVcs(), researchPlanner: planner, literatureProvider: new FakeLiteratureProvider() }))
     const objective = loop.createClaim({ kind: "conjecture", title: "Obj", statement: "FTA", asMainObjective: true })
     const run = loop.startResearch()
     await loop.runResearch(run.id)
     expect(loop.getClaim(objective.id).status).not.toBe("KERNEL_VERIFIED")
     expect(loop.getResearch(run.id).usage.literatureSearches).toBeGreaterThan(0)
-    loop.close()
-    app.close()
   })
 })

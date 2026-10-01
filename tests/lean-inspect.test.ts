@@ -1,12 +1,13 @@
 import { resolve } from "node:path"
 import { describe, expect, test } from "bun:test"
 import { NativeLeanAdapter, parseCheckOutput } from "@mathos/lean"
+import { withNativeMathlib } from "./helpers/native-lean.ts"
 
 const DEMO = resolve(resolve(import.meta.dir, ".."), "demo")
 const nativeTest = Bun.which("lake") ? test : test.skip
 
 describe("real lean declaration inspect", () => {
-  nativeTest("batch inspect Eq.refl Finset.card_union_le Nat.add_le_add", async () => {
+  nativeTest("batch inspect Eq.refl Finset.card_union_le Nat.add_le_add", () => withNativeMathlib(async () => {
     const adapter = new NativeLeanAdapter()
     const result = await adapter.inspectDeclarations(
       ["Eq.refl", "Finset.card_union_le", "Nat.add_le_add"],
@@ -21,7 +22,7 @@ describe("real lean declaration inspect", () => {
     expect(byName.get("Finset.card_union_le")?.exists).toBe(true)
     expect(byName.get("Finset.card_union_le")?.type ?? "").toMatch(/#|card|Finset/i)
     expect(byName.get("Nat.add_le_add")?.exists).toBe(true)
-  }, 180_000)
+  }), 180_000)
 
   test("parseCheckOutput does not mark regex guesses as elaborated", () => {
     const parsed = parseCheckOutput(["ghost"], "warning: unused variable\n")

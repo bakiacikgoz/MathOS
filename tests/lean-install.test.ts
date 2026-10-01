@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { basename, join } from "node:path"
 import { installLean, leanInstallHolder, leanInstallProgress, leanInstallStatus, NativeLeanAdapter, progressFromLine, writeFormalProject, type LeanInstallEvent, type LeanInstallRuntime } from "@mathos/lean"
 import { cancelJob, pollJob, resetJobs, startJob } from "../apps/tui/src/jobs.ts"
 import { blockedCommandReason } from "../apps/desktop/host/protocol.ts"
@@ -20,7 +20,7 @@ function fakeRuntime(home: string, options: { git?: boolean; fail?: Record<strin
     async download(_url, destination) { writeFileSync(destination, "#!/bin/sh\n") },
     async spawn(argv, { cwd, onLine }) {
       calls.push(argv)
-      const key = argv.map((part) => part.replace(/^.*\//, "")).slice(0, 4).join(" ")
+      const key = argv.map((part) => basename(part)).slice(0, 4).join(" ")
       for (const [pattern, failure] of Object.entries(options.fail ?? {})) if (key.startsWith(pattern)) { failure.lines.forEach(onLine); return failure.code }
       if (argv[0] === "sh") { mkdirSync(join(home, ".elan", "bin"), { recursive: true }); writeFileSync(join(home, ".elan", "bin", "elan"), ""); writeFileSync(join(home, ".elan", "bin", "lake"), "") }
       if (key.includes("toolchain install")) { mkdirSync(join(home, ".elan", "toolchains", "leanprover--lean4---v4.33.1"), { recursive: true }); onLine("downloading 50%\r") }

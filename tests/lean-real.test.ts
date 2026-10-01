@@ -3,6 +3,7 @@ import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { NativeLeanAdapter, parseAxioms } from "@mathos/lean"
+import { withNativeMathlib } from "./helpers/native-lean.ts"
 
 const adapter = new NativeLeanAdapter()
 const nativeTest = Bun.which("lean") ? test : test.skip
@@ -36,15 +37,15 @@ describe("real lean", () => {
     } finally {
       rmSync(dir, { recursive: true, force: true })
     }
-  })
+  }, 30_000)
 
-  mathlibTest("demo formal project is pinned with Mathlib", async () => {
+  mathlibTest("native checks use the pinned built Mathlib project", () => withNativeMathlib(async (projectRoot) => {
     const env = await adapter.detect(resolve(import.meta.dir, "../demo"))
     expect(env.leanAvailable).toBe(true)
     expect(env.mathlib).toBe(true)
     expect(env.toolchain).toBe("leanprover/lean4:v4.33.1")
-    expect(env.projectRoot).toBe(resolve(import.meta.dir, "../demo/formal"))
-  })
+    expect(env.projectRoot).toBe(projectRoot)
+  }))
 
   test("axiom printer parses lean output", () => {
     expect(parseAxioms("'id_nat' does not depend on any axioms")).toEqual([])

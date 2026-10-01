@@ -1,0 +1,125 @@
+{
+  "claim": {
+    "id": "L-003",
+    "workspaceId": "ws_37110696f1c94439b85a7c81724ce45c",
+    "kind": "lemma",
+    "title": "Doğal sayı özdeşliği",
+    "naturalStatement": "Her doğal sayı kendisine eşittir.",
+    "originalInput": null,
+    "status": "KERNEL_VERIFIED",
+    "branchId": "B-000",
+    "createdBy": "user",
+    "provider": null,
+    "modelName": null,
+    "createdAt": "2026-10-01T11:21:47.208Z",
+    "updatedAt": "2026-10-01T11:28:52.416Z"
+  },
+  "page": "CLAIM · L-003\n\nStatement\nHer doğal sayı kendisine eşittir.\n\nStatus\nKERNEL_VERIFIED\n\nOrigin\nLOCAL · B-000\n\nFormal statement\nFS-001\n\nFidelity\nHUMAN_APPROVED\n\nDependencies\nnone\n\nProof attempts\n1\n\nLast failure\nnone\n\nVerification\nvr_eff1dae1a80a4db78b45d9d402114f77 ELABORATES\n\nEvidence\n0 computational\n0 literature\n\nWHY VERIFIED\n\n✓ current revision · FS-001\n✓ fidelity · HUMAN_APPROVED\n✓ proof compiles · KERNEL_ACCEPTED\n✓ forbidden constructs · none\n✓ custom axioms · none\n✓ Lean version · Lean (version 4.33.1, x86_64-w64-windows-gnu, commit 819816b2e0a3bf405af45ae5c7af2491d8f5bee6, Release)\n✓ toolchain pinned · leanprover/lean4:v4.33.1\n✓ VerificationGate KERNEL_ACCEPTED\n✓ Fidelity HUMAN_APPROVED\n✓ Forbidden constructs none\n✓ Axiom audit none\n\nProvenance vr_9ba10674420544699e575ead28ea5c4f\nThis is deterministic provenance. No generated reasoning.",
+  "workflow": {
+    "claimId": "L-003",
+    "claimStatus": "KERNEL_VERIFIED",
+    "next": "done",
+    "formal": {
+      "id": "FS-001",
+      "declarationName": "naturalNumberEqualsSelf",
+      "statement": "theorem naturalNumberEqualsSelf (n : ℕ) : n = n",
+      "createdBy": "model",
+      "provider": "opencode-go-main",
+      "model": "gpt-6-luna",
+      "elaborates": true,
+      "fidelityStatus": "HUMAN_APPROVED"
+    },
+    "fidelity": {
+      "id": "fr_3aa27e573d17447baed9c8706d2dabcb",
+      "workspaceId": "ws_37110696f1c94439b85a7c81724ce45c",
+      "claimId": "L-003",
+      "formalStatementId": "FS-001",
+      "verdict": "MATCH",
+      "findings": [],
+      "naturalSummary": "Her doğal sayının kendisine eşit olduğunu belirtir.",
+      "formalBackTranslation": "Her doğal sayı n için n = n.",
+      "reviewerType": "model",
+      "provider": "opencode-go-main",
+      "model": "gpt-6-luna",
+      "createdAt": "2026-10-01T11:26:29.418Z"
+    },
+    "alignment": {
+      "id": "AL-20261001112636593-1",
+      "status": "HUMAN_APPROVED",
+      "verdict": "MATCH",
+      "backTranslation": "For every natural number n, n is equal to itself.",
+      "symbolMapping": [
+        {
+          "natural": "Her doğal sayı",
+          "formal": "(n : ℕ)",
+          "status": "MATCH"
+        },
+        {
+          "natural": "kendisine eşittir",
+          "formal": "n = n",
+          "status": "MATCH"
+        }
+      ],
+      "auditorProvider": "opencode-go-main",
+      "auditorModel": "gpt-6-luna",
+      "findings": []
+    },
+    "approved": true,
+    "proofs": [
+      {
+        "id": "PA-001",
+        "status": "KERNEL_ACCEPTED",
+        "attemptNumber": 1,
+        "provider": "opencode-go-main",
+        "model": "gpt-6-luna"
+      }
+    ],
+    "acceptedProof": {
+      "id": "PA-001",
+      "source": "theorem naturalNumberEqualsSelf (n : ℕ) : n = n :=\nby\n  rfl"
+    },
+    "verification": {
+      "result": "KERNEL_ACCEPTED",
+      "checks": [
+        {
+          "name": "current revision",
+          "status": "PASS",
+          "detail": "FS-001"
+        },
+        {
+          "name": "fidelity",
+          "status": "PASS",
+          "detail": "HUMAN_APPROVED"
+        },
+        {
+          "name": "proof compiles",
+          "status": "PASS",
+          "detail": "KERNEL_ACCEPTED"
+        },
+        {
+          "name": "forbidden constructs",
+          "status": "PASS",
+          "detail": "none"
+        },
+        {
+          "name": "custom axioms",
+          "status": "PASS",
+          "detail": "none"
+        },
+        {
+          "name": "Lean version",
+          "status": "PASS",
+          "detail": "Lean (version 4.33.1, x86_64-w64-windows-gnu, commit 819816b2e0a3bf405af45ae5c7af2491d8f5bee6, Release)"
+        },
+        {
+          "name": "toolchain pinned",
+          "status": "PASS",
+          "detail": "leanprover/lean4:v4.33.1"
+        }
+      ],
+      "axioms": [],
+      "at": "2026-10-01T11:28:52.413Z"
+    },
+    "verified": true
+  }
+}

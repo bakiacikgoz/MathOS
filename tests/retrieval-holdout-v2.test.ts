@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test"
 import { createHash } from "node:crypto"
 import { readFileSync } from "node:fs"
 import { NativeLeanAdapter } from "@mathos/lean"
+import { withNativeMathlib } from "./helpers/native-lean.ts"
 import { MATHLIB_FIXTURES } from "@mathos/retrieval"
 import { RETRIEVAL_VALIDATION_FIXTURES } from "../packages/retrieval/src/validation-fixtures.ts"
 import { RETRIEVAL_HOLDOUT_FIXTURES } from "../packages/retrieval/src/holdout-fixtures.ts"
@@ -65,7 +66,7 @@ describe("retrieval holdout-v2 frozen unseen dataset", () => {
     expect(assertFrozenManifest()).toBe(true)
   })
 
-  ;(Bun.which("lake") ? test : test.skip)("all expected declarations pass real Lean #check in batches of at most 30", async () => {
+  ;(Bun.which("lake") ? test : test.skip)("all expected declarations pass real Lean #check in batches of at most 30", () => withNativeMathlib(async () => {
     const adapter = new NativeLeanAdapter()
     for (const batch of chunk(RETRIEVAL_HOLDOUT_V2_FIXTURES.flatMap((item) => item.expectedAnyOf), 30)) {
       expect(batch.length).toBeLessThanOrEqual(30)
@@ -74,7 +75,7 @@ describe("retrieval holdout-v2 frozen unseen dataset", () => {
       expect(checked.inspections).toHaveLength(batch.length)
       expect(checked.inspections.every((item) => item.exists && item.elaborated)).toBe(true)
     }
-  }, 1_800_000)
+  }), 1_800_000)
 
   test("paired classification, failure taxonomy, aggregation, traces and decision are canonical", () => {
     const result = JSON.parse(readFileSync(`${ROOT}/benchmarks/retrieval-holdout-v2-results.json`, "utf8"))

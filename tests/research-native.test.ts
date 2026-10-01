@@ -1,14 +1,14 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join, resolve } from "node:path"
+import { join } from "node:path"
 import { MathOS, FakeResearchPlanner } from "@mathos/core"
 import { FakeModelProvider } from "@mathos/models"
 import { NativeLeanAdapter } from "@mathos/lean"
 import { FakeVcs } from "@mathos/vcs"
 import { InMemoryPremiseRetriever } from "@mathos/retrieval"
+import { nativeLeanPath, withNativeMathlib } from "./helpers/native-lean.ts"
 
-const DEMO_FORMAL = resolve(resolve(import.meta.dir, ".."), "demo/formal")
 const nativeTest = Bun.which("lake") ? test : test.skip
 const temps: string[] = []
 function tempDir() {
@@ -23,16 +23,16 @@ afterEach(() => {
   }
 })
 
-const lakeEnv = (file: string) =>
+const lakeEnv = (file: string, projectRoot: string) =>
   Bun.spawnSync(["lake", "env", "lean", file], {
-    cwd: DEMO_FORMAL,
+    cwd: projectRoot,
     stdout: "pipe",
     stderr: "pipe",
-    env: { ...process.env, PATH: `${process.env.HOME}/.elan/bin:${process.env.PATH}` },
+    env: { ...process.env, PATH: nativeLeanPath() },
   })
 
 describe("native research loop", () => {
-  nativeTest("real Lean smoke KERNEL_VERIFIED", async () => {
+  nativeTest("real Lean smoke KERNEL_VERIFIED", () => withNativeMathlib(async (mathlibProject) => {
     const created = await MathOS.init(tempDir(), "native-smoke")
     const model = new FakeModelProvider()
     model.enqueue({
@@ -56,20 +56,21 @@ describe("native research loop", () => {
       researchPlanner: planner,
       vcs: new FakeVcs(),
       premiseRetriever: new InMemoryPremiseRetriever(),
-      formalProjectRoot: DEMO_FORMAL,
+      formalProjectRoot: mathlibProject,
     })
-    const claim = app.createClaim({ kind: "conjecture", title: "Smoke", statement: "1 + 1 = 2", asMainObjective: true })
-    const session = await app.formalize(claim.id)
-    app.approveFormal(session.formalStatement.id)
-    const run = app.startResearch()
-    await app.runResearch(run.id)
-    expect(app.getClaim(claim.id).status).toBe("KERNEL_VERIFIED")
-    expect(app.getResearch(run.id).status).toBe("COMPLETED")
-    expect(app.getResearch(run.id).stopReason).toBe("OBJECTIVE_KERNEL_VERIFIED")
-    app.close()
-  }, 180000)
+    try {
+      const claim = app.createClaim({ kind: "conjecture", title: "Smoke", statement: "1 + 1 = 2", asMainObjective: true })
+      const session = await app.formalize(claim.id)
+      app.approveFormal(session.formalStatement.id)
+      const run = app.startResearch()
+      await app.runResearch(run.id)
+      expect(app.getClaim(claim.id).status).toBe("KERNEL_VERIFIED")
+      expect(app.getResearch(run.id).status).toBe("COMPLETED")
+      expect(app.getResearch(run.id).stopReason).toBe("OBJECTIVE_KERNEL_VERIFIED")
+    } finally { app.close() }
+  }), 180000)
 
-  nativeTest("real Lean failure then recovery", async () => {
+  nativeTest("real Lean failure then recovery", () => withNativeMathlib(async (mathlibProject) => {
     const created = await MathOS.init(tempDir(), "native-fail")
     const model = new FakeModelProvider()
     model.enqueue({
@@ -93,35 +94,37 @@ describe("native research loop", () => {
       researchPlanner: planner,
       vcs: new FakeVcs(),
       premiseRetriever: new InMemoryPremiseRetriever(),
-      formalProjectRoot: DEMO_FORMAL,
+      formalProjectRoot: mathlibProject,
     })
-    const claim = app.createClaim({ kind: "conjecture", title: "True", statement: "True", asMainObjective: true })
-    const session = await app.formalize(claim.id)
-    app.approveFormal(session.formalStatement.id)
-    const run = app.startResearch()
-    await app.stepResearch(run.id)
-    expect(app.getResearch(run.id).status).not.toBe("COMPLETED")
-    await app.runResearch(run.id)
-    expect(app.getClaim(claim.id).status).toBe("KERNEL_VERIFIED")
-    app.close()
-  }, 300000)
+    try {
+      const claim = app.createClaim({ kind: "conjecture", title: "True", statement: "True", asMainObjective: true })
+      const session = await app.formalize(claim.id)
+      app.approveFormal(session.formalStatement.id)
+      const run = app.startResearch()
+      await app.stepResearch(run.id)
+      expect(app.getResearch(run.id).status).not.toBe("COMPLETED")
+      await app.runResearch(run.id)
+      expect(app.getClaim(claim.id).status).toBe("KERNEL_VERIFIED")
+    } finally { app.close() }
+  }), 300000)
 
-  nativeTest("dual lake env lean MAIN vs B-001", async () => {
+  nativeTest("dual lake env lean MAIN vs B-001", () => withNativeMathlib(async (mathlibProject) => {
     const created = await MathOS.init(tempDir(), "dual-lake")
-    const app = MathOS.open(created.root, { formalProjectRoot: DEMO_FORMAL })
-    await app.setupResearchVersioning()
-    const mainFile = join(created.root, "formal", "MainCheck.lean")
-    mkdirSync(join(created.root, "formal"), { recursive: true })
-    writeFileSync(mainFile, "theorem main_lake : True := trivial\n", "utf8")
-    const child = await app.createBranch("lake-side")
-    mkdirSync(join(child.worktreePath!, "formal"), { recursive: true })
-    const childFile = join(child.worktreePath!, "formal", "ChildCheck.lean")
-    writeFileSync(childFile, "theorem child_lake : True := trivial\n", "utf8")
-    const main = lakeEnv(mainFile)
-    const side = lakeEnv(childFile)
-    expect(main.exitCode).toBe(0)
-    expect(side.exitCode).toBe(0)
-    expect(readFileSync(mainFile, "utf8")).not.toContain("child_lake")
-    app.close()
-  }, 180000)
+    const app = MathOS.open(created.root, { formalProjectRoot: mathlibProject })
+    try {
+      await app.setupResearchVersioning()
+      const mainFile = join(created.root, "formal", "MainCheck.lean")
+      mkdirSync(join(created.root, "formal"), { recursive: true })
+      writeFileSync(mainFile, "theorem main_lake : True := trivial\n", "utf8")
+      const child = await app.createBranch("lake-side")
+      mkdirSync(join(child.worktreePath!, "formal"), { recursive: true })
+      const childFile = join(child.worktreePath!, "formal", "ChildCheck.lean")
+      writeFileSync(childFile, "theorem child_lake : True := trivial\n", "utf8")
+      const main = lakeEnv(mainFile, mathlibProject)
+      const side = lakeEnv(childFile, mathlibProject)
+      expect(main.exitCode).toBe(0)
+      expect(side.exitCode).toBe(0)
+      expect(readFileSync(mainFile, "utf8")).not.toContain("child_lake")
+    } finally { app.close() }
+  }), 180000)
 })
