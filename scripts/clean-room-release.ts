@@ -20,6 +20,8 @@ try {
     ...process.env,
     HOME: cleanHome,
     USERPROFILE: cleanHome,
+    APPDATA: join(cleanHome, "AppData", "Roaming"),
+    LOCALAPPDATA: join(cleanHome, "AppData", "Local"),
     XDG_CONFIG_HOME: join(cleanHome, "config"),
     XDG_DATA_HOME: join(cleanHome, "data"),
     XDG_CACHE_HOME: join(cleanHome, "cache"),

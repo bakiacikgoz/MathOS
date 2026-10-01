@@ -6,6 +6,8 @@ test("clean-room gate clones committed source and uses isolated HOME with frozen
   expect(source).toContain('"git", "clone", "--no-local", "--no-hardlinks"')
   expect(source).toContain('"install", "--frozen-lockfile"')
   expect(source).toContain("HOME: cleanHome")
+  expect(source).toContain('APPDATA: join(cleanHome, "AppData", "Roaming")')
+  expect(source).toContain('LOCALAPPDATA: join(cleanHome, "AppData", "Local")')
   expect(source).toContain('"release:build"')
   expect(source).toContain('"release:verify"')
 })
