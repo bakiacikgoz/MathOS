@@ -16,6 +16,18 @@ and verification records are current, source and target workers still match thei
 branches with no declaration conflict, and target verification produces a current
 kernel-verified result. Each failure remains non-applied with a specific code.
 
+Cloning an objective or importing an artifact does not transfer human meaning
+approval. Every new declaration requires review of its own natural statement,
+Lean statement and current context. Worker objectives remain `AI_REVIEWED` until
+that review is explicitly approved.
+
+On the first import application, MathOS creates the target and returns
+`REVERIFY_REQUIRED` with `TARGET_HUMAN_APPROVAL_REQUIRED` and `targetClaimId`.
+Review and approve that target through the existing formal approval flow, then
+apply the same import ID again. MathOS reuses the target and verifies it; it also
+checks that both current source and target still represent the same statement.
+Changing either revision invalidates the old import's success.
+
 ## Paired benchmark
 
 The committed single-vs-multi measurement uses fake planners and Fake Lean. It is a

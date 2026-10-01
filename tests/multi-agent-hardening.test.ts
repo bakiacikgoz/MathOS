@@ -59,6 +59,10 @@ async function ready(extra: Record<string, unknown> = {}, lean: FakeLeanAdapter 
   return { app, claim, root: created.root }
 }
 
+function approveWorkers(app: MathOS, sessionId: string) {
+  for (const agent of app.teamAgents(sessionId)) app.approveFormal(app.getFormal(agent.localClaimId).id)
+}
+
 describe("multi-agent hardening", () => {
   test("planner reopen restores script cursor without registerRunPlanner", async () => {
     const { app, root } = await ready()
@@ -89,6 +93,7 @@ describe("multi-agent hardening", () => {
         { maxLeanCalls: 4, maxModelCalls: 10, maxProofAttempts: 4, maxSteps: 8 },
       ],
     })
+    approveWorkers(app, session.id)
     await app.runTeam(session.id)
     const agents = app.teamAgents(session.id)
     const a1 = app.getResearch(agents[0]!.researchRunId)
@@ -105,6 +110,7 @@ describe("multi-agent hardening", () => {
     const session = await app.startTeam({
       planners: [new FakeResearchPlanner(idle()), new FakeResearchPlanner(prove()), new FakeResearchPlanner(idle())],
     })
+    approveWorkers(app, session.id)
     await app.runTeam(session.id)
     const agents = app.teamAgents(session.id)
     const source = agents[1]!
@@ -112,6 +118,10 @@ describe("multi-agent hardening", () => {
     expect(app.teamImports(session.id).every((item) => item.status !== "APPLIED")).toBe(true)
     const proposed = app.proposeImport(session.id, source.id, agents[0]!.id, source.localClaimId)
     expect(proposed.status).toBe("PROPOSED")
+    const pending = await app.applyImport(proposed.id)
+    expect(pending.status).toBe("REVERIFY_REQUIRED")
+    expect(pending.failureCode).toBe("TARGET_HUMAN_APPROVAL_REQUIRED")
+    app.approveFormal(app.getFormal(pending.targetClaimId!).id)
     const applied = await app.applyImport(proposed.id)
     expect(applied.status).toBe("APPLIED")
     expect(applied.targetClaimId).toBeTruthy()
@@ -142,6 +152,7 @@ describe("multi-agent hardening", () => {
     const session = await app.startTeam({
       planners: [new FakeResearchPlanner(idle()), new FakeResearchPlanner(prove()), new FakeResearchPlanner(idle())],
     })
+    approveWorkers(app, session.id)
     await app.runTeam(session.id)
     const agents = app.teamAgents(session.id)
     const source = agents[1]!
@@ -156,6 +167,7 @@ describe("multi-agent hardening", () => {
   test("incompatible target is rejected", async () => {
     const { app } = await ready()
     const session = await app.startTeam({ planners: [new FakeResearchPlanner(idle()), new FakeResearchPlanner(prove()), new FakeResearchPlanner(idle())] })
+    approveWorkers(app, session.id)
     await app.runTeam(session.id)
     const agents = app.teamAgents(session.id), source = agents[1]!, target = agents[0]!
     const proposed = app.proposeImport(session.id, source.id, target.id, source.localClaimId)
@@ -170,9 +182,13 @@ describe("multi-agent hardening", () => {
     const lean = new FakeLeanAdapter()
     const { app } = await ready({}, lean)
     const session = await app.startTeam({ planners: [new FakeResearchPlanner(idle()), new FakeResearchPlanner(prove()), new FakeResearchPlanner(idle())] })
+    approveWorkers(app, session.id)
     await app.runTeam(session.id)
     const agents = app.teamAgents(session.id), source = agents[1]!
     const proposed = app.proposeImport(session.id, source.id, agents[0]!.id, source.localClaimId)
+    const pending = await app.applyImport(proposed.id)
+    expect(pending.status).toBe("REVERIFY_REQUIRED")
+    app.approveFormal(app.getFormal(pending.targetClaimId!).id)
     lean.axioms = ["untrusted.custom"]
     const applied = await app.applyImport(proposed.id)
     expect(applied.status).toBe("FAILED")
@@ -184,9 +200,13 @@ describe("multi-agent hardening", () => {
     const lean = new MutatingVerifyLean()
     const { app } = await ready({}, lean)
     const session = await app.startTeam({ planners: [new FakeResearchPlanner(idle()), new FakeResearchPlanner(prove()), new FakeResearchPlanner(idle())] })
+    approveWorkers(app, session.id)
     await app.runTeam(session.id)
     const agents = app.teamAgents(session.id), source = agents[1]!, target = agents[0]!
     const proposed = app.proposeImport(session.id, source.id, target.id, source.localClaimId)
+    const pending = await app.applyImport(proposed.id)
+    expect(pending.status).toBe("REVERIFY_REQUIRED")
+    app.approveFormal(app.getFormal(pending.targetClaimId!).id)
     lean.mutateDuringDetect = () => app["client"].db.query("UPDATE research_agents SET branch_id = ? WHERE id = ?").run(source.branchId, target.id)
     const applied = await app.applyImport(proposed.id)
     expect(applied.status).toBe("FAILED")

@@ -51,6 +51,10 @@ async function ready(dir: string, extra: Record<string, unknown> = {}) {
   return { app, claim, root: created.root }
 }
 
+function approveWorkers(app: MathOS, sessionId: string) {
+  for (const agent of app.teamAgents(sessionId)) app.approveFormal(app.getFormal(agent.localClaimId).id)
+}
+
 describe("multi-agent orchestration", () => {
   test("IDs, isolation, diversity fallback, round-robin, solution, MAIN unchanged", async () => {
     const { app, claim } = await ready(tempDir())
@@ -63,6 +67,7 @@ describe("multi-agent orchestration", () => {
     expect(new Set(agents.map((item) => item.branchId)).size).toBe(3)
     expect(new Set(agents.map((item) => item.role)).size).toBe(3)
     expect(new Set(agents.map((item) => item.researchRunId)).size).toBe(3)
+    approveWorkers(app, session.id)
     await app.runTeam(session.id)
     const done = app.getTeam(session.id)
     expect(done.status).toBe("SOLUTION_FOUND")
@@ -107,6 +112,7 @@ describe("multi-agent orchestration", () => {
       planners: [new FakeResearchPlanner([...prove]), new FakeResearchPlanner([...prove]), new FakeResearchPlanner([...prove])],
       limits: { maxAgents: 3, maxRounds: 8, maxTotalSteps: 24, maxTotalModelCalls: 30, maxTotalLeanCalls: 1, maxTotalProofAttempts: 12 },
     })
+    approveWorkers(app, session.id)
     await app.runTeam(session.id)
     expect(app.getTeam(session.id).usage.leanCalls).toBeLessThanOrEqual(1)
     expect(["GLOBAL_BUDGET_EXHAUSTED", "SOLUTION_FOUND", "BLOCKED"]).toContain(app.getTeam(session.id).status)
@@ -118,6 +124,7 @@ describe("multi-agent orchestration", () => {
     const session = await app.startTeam({
       planners: [new FakeResearchPlanner([...prove]), new FakeResearchPlanner([...prove]), new FakeResearchPlanner([...idle])],
     })
+    approveWorkers(app, session.id)
     await app.runTeam(session.id)
     expect(app.teamSolutions(session.id).length).toBeGreaterThanOrEqual(2)
     expect(app.getClaim(claim.id).status).not.toBe("KERNEL_VERIFIED")

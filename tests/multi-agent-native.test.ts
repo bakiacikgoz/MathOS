@@ -53,6 +53,7 @@ describe("native multi-agent + hybrid retrieval", () => {
           new FakeResearchPlanner([d("ATTEMPT_PROOF", { parameters: { proofBody: "by\n  exact (0 : Nat)" } }), d("STOP", { stop: { shouldStop: true, reason: "NO_PRODUCTIVE_ACTION" } })]),
         ],
       })
+      for (const agent of app.teamAgents(session.id)) app.approveFormal(app.getFormal(agent.localClaimId).id)
       await app.runTeam(session.id)
       expect(app.getTeam(session.id).status).toBe("SOLUTION_FOUND")
       expect(app.getClaim(claim.id).status).not.toBe("KERNEL_VERIFIED")
@@ -91,11 +92,15 @@ describe("native multi-agent + hybrid retrieval", () => {
           new FakeResearchPlanner([d("ANALYZE_GOAL"), d("STOP", { stop: { shouldStop: true, reason: "NO_PRODUCTIVE_ACTION" } })]),
         ],
       })
+      for (const agent of app.teamAgents(session.id)) app.approveFormal(app.getFormal(agent.localClaimId).id)
       await app.runTeam(session.id)
       const agents = app.teamAgents(session.id)
       const source = agents[1]!
       expect(app.getClaim(source.localClaimId).status).toBe("KERNEL_VERIFIED")
       const proposed = app.proposeImport(session.id, source.id, agents[0]!.id, source.localClaimId)
+      const pending = await app.applyImport(proposed.id)
+      expect(pending.status).toBe("REVERIFY_REQUIRED")
+      app.approveFormal(app.getFormal(pending.targetClaimId!).id)
       const applied = await app.applyImport(proposed.id)
       expect(applied.status).toBe("APPLIED")
       expect(app.getClaim(applied.targetClaimId!).status).toBe("KERNEL_VERIFIED")

@@ -41,6 +41,12 @@ async function boot(mode: "fake" | "native", extra: Record<string, unknown> = {}
   return { app, claim, lean, root: created.root, cleanup: () => { app.close(); rmSync(root, { recursive: true, force: true }) } }
 }
 
+// The evaluation harness supplies an explicit synthetic reviewer action after seeing each cloned formal.
+// Production startTeam never grants this approval.
+function approveWorkerFormalsForEval(app: MathOS, sessionId: string) {
+  for (const agent of app.teamAgents(sessionId)) app.approveFormal(app.getFormal(agent.localClaimId).id)
+}
+
 export const MULTI_AGENT_SCENARIOS = [
   "branch-isolation",
   "assignment-diversity",
@@ -150,6 +156,7 @@ export async function runMultiAgentScenario(id: string, mode: "fake" | "native" 
       }
       if (id === "parallel-global-proof-budget-race") {
         const session = await app.startTeam({ ...parallelStart, limits: { maxAgents: 3, maxRounds: 3, maxTotalSteps: 24, maxTotalModelCalls: 30, maxTotalLeanCalls: 20, maxTotalProofAttempts: 1 } })
+        approveWorkerFormalsForEval(app, session.id)
         await app.runTeam(session.id)
         const pass = app.getTeam(session.id).usage.proofAttempts <= 1
         bootstrapped.cleanup()
@@ -165,12 +172,14 @@ export async function runMultiAgentScenario(id: string, mode: "fake" | "native" 
       }
       if (id === "sequential-parallel-random-order-equivalence") {
         const seq = await app.startTeam({ executionMode: "SEQUENTIAL", planners: [new FakeResearchPlanner(prove()), new FakeResearchPlanner(prove()), new FakeResearchPlanner(idle())] })
+        approveWorkerFormalsForEval(app, seq.id)
         await app.runTeam(seq.id)
         const seqStatus = app.getTeam(seq.id).status
         const seqN = app.teamSolutions(seq.id).length
         bootstrapped.cleanup()
         const b2 = await boot("fake")
         const par = await b2.app.startTeam({ executionMode: "BOUNDED_PARALLEL", maxParallelWorkers: 2, planners: [new FakeResearchPlanner(prove()), new FakeResearchPlanner(prove()), new FakeResearchPlanner(idle())] })
+        approveWorkerFormalsForEval(b2.app, par.id)
         await b2.app.runTeam(par.id)
         const pass = b2.app.getTeam(par.id).status === seqStatus && b2.app.teamSolutions(par.id).length === seqN
         b2.cleanup()
@@ -215,12 +224,14 @@ export async function runMultiAgentScenario(id: string, mode: "fake" | "native" 
       }
       if (id === "sequential-equivalence") {
         const seq = await app.startTeam({ executionMode: "SEQUENTIAL", planners: [new FakeResearchPlanner(prove()), new FakeResearchPlanner(prove()), new FakeResearchPlanner(idle())] })
+        approveWorkerFormalsForEval(app, seq.id)
         await app.runTeam(seq.id)
         const seqN = app.teamSolutions(seq.id).length
         const seqStatus = app.getTeam(seq.id).status
         bootstrapped.cleanup()
         const b2 = await boot("fake")
         const par = await b2.app.startTeam({ executionMode: "BOUNDED_PARALLEL", maxParallelWorkers: 2, planners: [new FakeResearchPlanner(prove()), new FakeResearchPlanner(prove()), new FakeResearchPlanner(idle())] })
+        approveWorkerFormalsForEval(b2.app, par.id)
         await b2.app.runTeam(par.id)
         const pass = b2.app.getTeam(par.id).status === seqStatus && b2.app.teamSolutions(par.id).length === seqN
         b2.cleanup()
@@ -239,6 +250,7 @@ export async function runMultiAgentScenario(id: string, mode: "fake" | "native" 
         workerLimits: id === "parallel-local-budget" ? [{ maxLeanCalls: 1, maxModelCalls: 10, maxProofAttempts: 4, maxSteps: 8 }, { maxLeanCalls: 4, maxModelCalls: 10, maxProofAttempts: 4, maxSteps: 8 }, { maxLeanCalls: 4, maxModelCalls: 10, maxProofAttempts: 4, maxSteps: 8 }] : undefined,
         maxParallelWorkers: 2,
       })
+      approveWorkerFormalsForEval(app, session.id)
       if (id === "parallel-crash-one-complete" || id === "parallel-crash-multi-running" || id === "parallel-budget-reservation-recovery" || id === "parallel-crash-two-running" || id === "parallel-crash-after-reservation" || id === "parallel-crash-after-tool-start" || id === "parallel-crash-after-result" || id === "parallel-crash-after-step") {
         await app.stepTeam(session.id).catch(() => undefined)
         const leases = app["client"].db.query<{ n: number }, []>("SELECT COUNT(*) as n FROM execution_leases").get()
@@ -316,6 +328,7 @@ export async function runMultiAgentScenario(id: string, mode: "fake" | "native" 
         limits: { maxAgents: 3, maxRounds: 6, maxTotalSteps: 24, maxTotalModelCalls: 40, maxTotalLeanCalls: 20, maxTotalProofAttempts: 12 },
         workerLimits,
       })
+      approveWorkerFormalsForEval(app, session.id)
       await app.runTeam(session.id)
       const a1 = app.getResearch(app.teamAgents(session.id)[0]!.researchRunId)
       const a2 = app.getResearch(app.teamAgents(session.id)[1]!.researchRunId)
@@ -348,6 +361,7 @@ export async function runMultiAgentScenario(id: string, mode: "fake" | "native" 
           ? [new FakeResearchPlanner(idle()), new FakeResearchPlanner(idle()), new FakeResearchPlanner(idle())]
           : [new FakeResearchPlanner(idle()), new FakeResearchPlanner(prove()), new FakeResearchPlanner(idle())],
       })
+      approveWorkerFormalsForEval(app, session.id)
       await app.runTeam(session.id)
       const agents = app.teamAgents(session.id)
       if (id === "no-auto-import") {
@@ -378,16 +392,19 @@ export async function runMultiAgentScenario(id: string, mode: "fake" | "native" 
       }
       const proposed = app.proposeImport(session.id, source.id, agents[0]!.id, source.localClaimId)
       if (id === "import-stale") {
-        const formal = app["formalStatements"].currentForClaim(source.localClaimId)
-        if (formal) {
-          app["formalStatements"].markOthersNotCurrent(source.localClaimId)
-          app["formalStatements"].insert({ ...formal, id: formal.id + "x", isCurrent: true })
-        }
+        const natural = app.services.repositories.statementRevisions.latest(source.localClaimId, "NATURAL")!
+        app.services.statementRevisions.capture({ claimId: source.localClaimId, kind: "NATURAL", sourceEntityId: source.localClaimId, text: "Changed natural meaning", contextRevisionId: natural.contextRevisionId, createdBy: "synthetic-reviewer" })
         const applied = await app.applyImport(proposed.id)
         bootstrapped.cleanup()
-        return { id, result: applied.status === "REVERIFY_REQUIRED" ? "PASS" : "FAIL" }
+        return { id, result: applied.status === "REVERIFY_REQUIRED" && applied.failureCode === "SOURCE_APPROVAL_STALE" ? "PASS" : "FAIL" }
       }
       if (id === "verified-import" || id === "verified-import-reverify") {
+        const pending = await app.applyImport(proposed.id)
+        if (pending.status !== "REVERIFY_REQUIRED" || pending.failureCode !== "TARGET_HUMAN_APPROVAL_REQUIRED" || !pending.targetClaimId) {
+          bootstrapped.cleanup()
+          return { id, result: "FAIL", detail: `${pending.status}/${pending.failureCode}` }
+        }
+        app.approveFormal(app.getFormal(pending.targetClaimId).id)
         const applied = await app.applyImport(proposed.id)
         const target = applied.targetClaimId ? app.getClaim(applied.targetClaimId) : null
         const pass = applied.status === "APPLIED" && target?.status === "KERNEL_VERIFIED" && app.getClaim(claim.id).status !== "KERNEL_VERIFIED"
@@ -413,6 +430,10 @@ export async function runMultiAgentScenario(id: string, mode: "fake" | "native" 
         }
         if (id === "import-rollback" && "nextProof" in bootstrapped.lean) {
           bootstrapped.lean.nextProof = { result: "ERROR", diagnostics: [{ severity: "error", message: "fail" }], leanVersion: "fake-4.33.1", toolchain: "leanprover/lean4:v4.33.1" }
+        }
+        if (id === "import-rollback") {
+          const pending = await app.applyImport(proposed.id)
+          if (pending.targetClaimId) app.approveFormal(app.getFormal(pending.targetClaimId).id)
         }
         const applied = await app.applyImport(proposed.id)
         const targetStatus = applied.targetClaimId ? app.getClaim(applied.targetClaimId).status : null
@@ -454,6 +475,7 @@ export async function runMultiAgentScenario(id: string, mode: "fake" | "native" 
         ? { maxAgents: 3, maxRounds: 8, maxTotalSteps: 24, maxTotalModelCalls: 30, maxTotalLeanCalls: 1, maxTotalProofAttempts: 12 }
         : undefined,
     })
+    approveWorkerFormalsForEval(app, session.id)
     const agents = app.teamAgents(session.id)
     if (id === "branch-isolation") {
       const ok = new Set(agents.map((item) => item.branchId)).size === 3
@@ -513,6 +535,7 @@ async function runRealParallel(): Promise<MultiAgentEvalRow> {
     maxParallelWorkers: 2,
     planners: [new FakeResearchPlanner(prove()), new FakeResearchPlanner(prove()), new FakeResearchPlanner(idle())],
   })
+  approveWorkerFormalsForEval(app, session.id)
   await app.runTeam(session.id)
   const overlap = starts.length >= 2 && starts[1]! < ends[0]!
   const main = app.getClaim(claim.id).status !== "KERNEL_VERIFIED"

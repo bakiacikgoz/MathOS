@@ -17,6 +17,7 @@ import {
   type ResearchAgentWorker,
   type SharedResearchDigest,
   type Claim,
+  type FormalStatement,
   type MultiAgentRound,
   type SolutionCandidate,
   type VerifiedArtifactImport,
@@ -40,6 +41,7 @@ import {
   ClaimRepository,
   DependencyRepository,
   FormalStatementRepository,
+  StatementRevisionRepository,
   VerificationRunRepository,
   ProofAttemptRepository,
   ResearchBlockerRepository,
@@ -66,6 +68,7 @@ export interface TeamResearchCoordinatorDependencies {
   claims: ClaimRepository
   dependencies: DependencyRepository
   formalStatements: FormalStatementRepository
+  statementRevisions: StatementRevisionRepository
   verificationRuns: VerificationRunRepository
   proofs: ProofAttemptRepository
   researchEngine: ResearchEngine
@@ -80,6 +83,7 @@ export interface TeamResearchCoordinatorDependencies {
   createBranch: (name: string, goal?: string) => Promise<ResearchBranch>
   createClaim: (input: { kind: string; title: string; naturalStatement?: string; statement?: string; status?: string; asMainObjective?: boolean }) => Claim
   authorizeClonedFormal: (claimId:string,formalId:string,sourceText:string,createdBy:string) => void
+  hasCurrentHumanApproval: (claimId:string) => boolean
   getBranch: (id: string) => ResearchBranch
   getClaim: (id: string) => Claim
   getResearch: (id: string) => ResearchRun
@@ -354,7 +358,7 @@ export class TeamResearchCoordinator {
           declarationName,
           sourceText: formal.sourceText.replace(formal.declarationName, declarationName),
           isCurrent: true,
-          fidelityStatus: formal.fidelityStatus === "REJECTED" ? "AI_REVIEWED" : formal.fidelityStatus,
+          fidelityStatus: "AI_REVIEWED",
         })
       })
       const cloned=this.d.formalStatements.currentForClaim(clone.id)!
@@ -700,6 +704,12 @@ export class TeamResearchCoordinator {
       this.d.recorder.mutate("artifact_import_failed", { target: item.id, metadata: { sessionId: item.sessionId, code: item.failureCode } }, () => this.teamStores().imports.update(item))
       return item
     }
+    if (!this.d.hasCurrentHumanApproval(source.id)) {
+      item.status = "REVERIFY_REQUIRED"
+      item.failureCode = "SOURCE_APPROVAL_STALE"
+      this.d.recorder.mutate("artifact_import_failed", { target: item.id, metadata: { sessionId: item.sessionId, code: item.failureCode } }, () => this.teamStores().imports.update(item))
+      return item
+    }
     let deps: string[]
     try {
       deps = this.dependencyClosure(source.id)
@@ -731,28 +741,43 @@ export class TeamResearchCoordinator {
     const previous = this.d.requireCurrentBranch()
     try {
       this.d.switchBranch(item.targetBranchId)
-      const clone = this.d.createClaim({ kind: "conjecture", title: `${source.title} (imported)`, statement: source.naturalStatement })
-      const declarationName = formal.declarationName
-      const proof = this.d.proofs.latestAccepted(source.id)
-      this.d.recorder.mutate("artifact_import_reverify_started", { target: item.id, metadata: { sessionId: item.sessionId, targetClaimId: clone.id } }, () => {
-        this.d.claims.updateStatus(clone.id, "FORMALIZED_UNVERIFIED", nowIso())
-        this.d.formalStatements.insert({
-          ...formal,
-          id: nextSequentialId(this.d.formalStatements.ids(this.d.requireWorkspace().id), "FS"),
-          claimId: clone.id,
-          declarationName,
-          isCurrent: true,
-          fidelityStatus: "HUMAN_APPROVED",
-          verificationStatus: "ELABORATES",
+      if (!item.targetClaimId) {
+        const clone = this.d.createClaim({ kind: "conjecture", title: `${source.title} (imported)`, statement: source.naturalStatement })
+        const proof = this.d.proofs.latestAccepted(source.id)
+        this.d.recorder.mutate("artifact_import_reverify_started", { target: item.id, metadata: { sessionId: item.sessionId, targetClaimId: clone.id } }, () => {
+          this.d.claims.updateStatus(clone.id, "FORMALIZED_UNVERIFIED", nowIso())
+          this.d.formalStatements.insert({
+            ...formal,
+            id: nextSequentialId(this.d.formalStatements.ids(this.d.requireWorkspace().id), "FS"),
+            claimId: clone.id,
+            isCurrent: true,
+            fidelityStatus: "AI_REVIEWED",
+            verificationStatus: "ELABORATES",
+          })
+          item.targetClaimId = clone.id
+          this.teamStores().imports.update(item)
         })
-      })
-      if (proof) this.d.storeAttempt(this.d.requireWorkspace().id, clone.id, this.d.formalStatements.currentForClaim(clone.id)!.id, 1, proof.proofSource, "KERNEL_ACCEPTED", proof.leanVersion, [])
-      const targetFormal = this.d.formalStatements.currentForClaim(clone.id)!
-      this.d.authorizeClonedFormal(clone.id,targetFormal.id,targetFormal.sourceText,targetFormal.createdBy)
-      const worktree = this.d.getBranch(item.targetBranchId).worktreePath
-      if (worktree) writeFileSync(join(worktree, `${clone.id}.lean`), `${targetFormal.sourceText}\n`, "utf8")
-      const report = await this.d.verify(clone.id)
-      item.targetClaimId = clone.id
+        const clonedFormal = this.d.formalStatements.currentForClaim(clone.id)!
+        this.d.authorizeClonedFormal(clone.id,clonedFormal.id,clonedFormal.sourceText,clonedFormal.createdBy)
+        if (proof) this.d.storeAttempt(this.d.requireWorkspace().id, clone.id, clonedFormal.id, 1, proof.proofSource, "KERNEL_ACCEPTED", proof.leanVersion, [])
+        const worktree = this.d.getBranch(item.targetBranchId).worktreePath
+        if (worktree) writeFileSync(join(worktree, `${clone.id}.lean`), `${clonedFormal.sourceText}\n`, "utf8")
+      }
+      const target = this.d.getClaim(item.targetClaimId!)
+      const targetFormal = this.d.formalStatements.currentForClaim(target.id)
+      if (target.branchId !== item.targetBranchId || !this.importTargetMatchesSource(source, formal, target, targetFormal)) {
+        item.status = "FAILED"
+        item.failureCode = "TARGET_NOT_COMPATIBLE"
+        this.d.recorder.mutate("artifact_import_failed", { target: item.id, metadata: { sessionId: item.sessionId, code: item.failureCode } }, () => this.teamStores().imports.update(item))
+        return item
+      }
+      if (!targetFormal || targetFormal.fidelityStatus !== "HUMAN_APPROVED" || !this.d.hasCurrentHumanApproval(target.id)) {
+        item.status = "REVERIFY_REQUIRED"
+        item.failureCode = "TARGET_HUMAN_APPROVAL_REQUIRED"
+        this.d.recorder.mutate("artifact_import_approval_required", { target: item.id, metadata: { sessionId: item.sessionId, targetClaimId: target.id } }, () => this.teamStores().imports.update(item))
+        return item
+      }
+      const report = await this.d.verify(target.id)
       this.d.recorder.mutate("artifact_import_finalized", { target: item.id, metadata: { sessionId: item.sessionId, agentId: item.targetAgentId, branchId: item.targetBranchId } }, () => {
         const failure = !report.passed ? "TARGET_VERIFICATION_FAILED" : this.importInvariantFailure(item, true)
         if (failure) { item.status = "FAILED"; item.failureCode = failure; item.appliedAt = null }
@@ -774,14 +799,35 @@ export class TeamResearchCoordinator {
     if (source.status !== "KERNEL_VERIFIED") return "SOURCE_NOT_KERNEL_VERIFIED"
     const sourceFormal = this.d.formalStatements.currentForClaim(source.id), sourceVerification = sourceFormal ? this.d.verificationRuns.latestForFormal(sourceFormal.id) : null
     if (!sourceFormal || sourceFormal.id !== item.sourceFormalRevision || !sourceVerification || sourceVerification.id !== item.sourceVerificationRunId || sourceVerification.result !== "KERNEL_ACCEPTED") return "SOURCE_NOT_CURRENT"
+    if (!this.d.hasCurrentHumanApproval(source.id)) return "SOURCE_APPROVAL_STALE"
     if (this.dependencyClosure(source.id).some((dep) => this.d.getClaim(dep).status !== "KERNEL_VERIFIED")) return "DEPENDENCY_IMPORT_REQUIRED"
     if (this.declarationConflicts(item.targetBranchId, source.id).length) return "DECLARATION_CONFLICT"
     if (requireTarget) {
       if (!item.targetClaimId) return "TARGET_VERIFICATION_FAILED"
       const target = this.d.getClaim(item.targetClaimId), targetFormal = this.d.formalStatements.currentForClaim(target.id), targetVerification = targetFormal ? this.d.verificationRuns.latestForFormal(targetFormal.id) : null
-      if (target.branchId !== item.targetBranchId || target.status !== "KERNEL_VERIFIED" || !targetFormal || targetVerification?.result !== "KERNEL_ACCEPTED") return "TARGET_VERIFICATION_FAILED"
+      if (target.branchId !== item.targetBranchId || !this.importTargetMatchesSource(source, sourceFormal, target, targetFormal)) return "TARGET_NOT_COMPATIBLE"
+      if (target.status !== "KERNEL_VERIFIED" || !this.d.hasCurrentHumanApproval(target.id) || targetVerification?.result !== "KERNEL_ACCEPTED") return "TARGET_VERIFICATION_FAILED"
     }
     return null
+  }
+
+  private importTargetMatchesSource(source: Claim, sourceFormal: FormalStatement, target: Claim, targetFormal: FormalStatement | null): boolean {
+    if (!targetFormal || source.naturalStatement !== target.naturalStatement || sourceFormal.sourceText !== targetFormal.sourceText || sourceFormal.declarationName !== targetFormal.declarationName) return false
+    const sourceNatural = this.d.statementRevisions.latest(source.id, "NATURAL")
+    const targetNatural = this.d.statementRevisions.latest(target.id, "NATURAL")
+    const sourceFormalRevision = this.d.statementRevisions.latest(source.id, "FORMAL")
+    const targetFormalRevision = this.d.statementRevisions.latest(target.id, "FORMAL")
+    return Boolean(
+      sourceNatural && targetNatural && sourceFormalRevision && targetFormalRevision
+      && sourceNatural.text === source.naturalStatement
+      && targetNatural.text === target.naturalStatement
+      && sourceNatural.text === targetNatural.text
+      && sourceNatural.contextRevisionId === targetNatural.contextRevisionId
+      && sourceFormalRevision.sourceEntityId === sourceFormal.id
+      && targetFormalRevision.sourceEntityId === targetFormal.id
+      && sourceFormalRevision.text === sourceFormal.sourceText
+      && targetFormalRevision.text === targetFormal.sourceText,
+    )
   }
 
   private dependencyClosure(claimId: string): string[] {

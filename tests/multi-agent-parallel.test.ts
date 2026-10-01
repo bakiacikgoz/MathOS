@@ -47,6 +47,10 @@ async function ready() {
   return { app, claim }
 }
 
+function approveWorkers(app: MathOS, sessionId: string) {
+  for (const agent of app.teamAgents(sessionId)) app.approveFormal(app.getFormal(agent.localClaimId).id)
+}
+
 describe("bounded parallel multi-agent", () => {
   test("default execution is sequential", async () => {
     const { app } = await ready()
@@ -69,6 +73,7 @@ describe("bounded parallel multi-agent", () => {
       maxParallelWorkers: 2,
       planners: [new FakeResearchPlanner(prove()), new FakeResearchPlanner(idle()), new FakeResearchPlanner(idle())],
     })
+    approveWorkers(app, session.id)
     await app.runTeam(session.id)
     expect(app.getTeam(session.id).status).toBe("SOLUTION_FOUND")
     expect(app.getClaim(claim.id).status).not.toBe("KERNEL_VERIFIED")
@@ -84,6 +89,7 @@ describe("bounded parallel multi-agent", () => {
       planners: [new FakeResearchPlanner(prove()), new FakeResearchPlanner(prove()), new FakeResearchPlanner(idle())],
       limits: { maxAgents: 3, maxRounds: 4, maxTotalSteps: 24, maxTotalModelCalls: 30, maxTotalLeanCalls: 1, maxTotalProofAttempts: 12 },
     })
+    approveWorkers(app, session.id)
     await app.runTeam(session.id)
     expect(app.getTeam(session.id).usage.leanCalls).toBeLessThanOrEqual(1)
     app.close()
@@ -104,6 +110,7 @@ describe("bounded parallel multi-agent", () => {
         maxParallelWorkers: 2,
         planners: [new FakeResearchPlanner(prove()), new FakeResearchPlanner(prove()), new FakeResearchPlanner(idle())],
       })
+      approveWorkers(app, session.id)
       await app.runTeam(session.id)
       const out = { status: app.getTeam(session.id).status, n: app.teamSolutions(session.id).length }
       app.close()

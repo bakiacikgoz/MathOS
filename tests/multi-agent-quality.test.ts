@@ -31,10 +31,15 @@ async function ready(assignmentPlan: AgentAssignmentPlan = plan) {
   return { app, root }
 }
 
+function approveWorkers(app: MathOS, sessionId: string) {
+  for (const agent of app.teamAgents(sessionId)) app.approveFormal(app.getFormal(agent.localClaimId).id)
+}
+
 describe("multi-agent research quality", () => {
   test("independent checker critiques candidates without producing proofs and its verdict gates success", async () => {
     const { app, root } = await ready()
     const session = await app.startTeam({ planners: [new FakeResearchPlanner(prove()), new FakeResearchPlanner(prove()), new FakeResearchPlanner(idle())] })
+    approveWorkers(app, session.id)
     const checkerBefore = app.teamAgents(session.id).find((agent) => agent.role === "INDEPENDENT_CHECKER")!
     await expect(app.stepResearch(checkerBefore.researchRunId)).rejects.toThrow("INDEPENDENT_CHECKER_CANNOT_EXECUTE_RESEARCH")
     await expect(app.runResearch(checkerBefore.researchRunId)).rejects.toThrow("INDEPENDENT_CHECKER_CANNOT_EXECUTE_RESEARCH")
