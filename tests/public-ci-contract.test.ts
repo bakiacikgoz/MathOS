@@ -24,7 +24,8 @@ test("Windows packaging covers root changes, uses immutable actions and locked R
 test("public build verification covers Windows and native Apple Silicon without pretending to sign or qualify", () => {
   const source = readFileSync(new URL("../.github/workflows/public-build-verification.yml", import.meta.url), "utf8")
   for (const runner of ["windows-2025", "macos-15"]) expect(source).toContain(runner)
-  for (const command of ["bun test", "bun run typecheck", "bun run release:build", "bun run release:verify"]) expect(source).toContain(command)
+  for (const command of ["bun test", "bun run typecheck", "bun run release:build", "bun run release:verify", "bun run vscode:package"]) expect(source).toContain(command)
+  expect(source.indexOf("bun run vscode:package")).toBeLessThan(source.indexOf("bun run vscode:verify"))
   for (const match of source.matchAll(/uses:\s+([^\s#]+)/g)) expect(match[1]).toMatch(/@[a-f0-9]{40}$/)
   expect(source).toContain("permissions:\n  contents: read")
   expect(source).not.toContain("secrets.")
