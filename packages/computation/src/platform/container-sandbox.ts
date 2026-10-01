@@ -7,7 +7,7 @@ import { evaluateExperimentPolicy } from "../policy"
 import { blockedResult, type SandboxRuntime, type SandboxedExecutionRequest } from "../sandbox"
 
 /** The pinned image experiments run in on macOS and Windows. */
-export const SANDBOX_IMAGE = "python:3.12-alpine"
+export const SANDBOX_IMAGE = "python:3.12-alpine@sha256:4c47124a8391cb7a9f571164147d154777cf012a4ece5f86097130d7a4478111"
 const IMAGE = SANDBOX_IMAGE
 const BACKEND = "docker-container"
 const CLEANUP_COMMAND_TIMEOUT_MS = 1_000

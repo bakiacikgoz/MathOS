@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { basename, join, resolve, sep } from "node:path"
 import { MathOS, FakeResearchPlanner } from "@mathos/core"
 import { FakeVcs } from "@mathos/vcs"
-import { allowedEnv, inspectSandbox } from "@mathos/computation"
+import { PythonRuntime, allowedEnv, createSandboxRuntime, inspectSandbox, type ComputationalRuntime } from "@mathos/computation"
 
 const dirs: string[] = []
 function temp() {
@@ -13,12 +13,16 @@ function temp() {
   return dir
 }
 afterEach(() => {
-  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
+  for (const dir of dirs.splice(0)) {
+    const target = resolve(dir), tempRoot = resolve(tmpdir())
+    if (!target.startsWith(`${tempRoot}${sep}`) || !basename(target).startsWith("mathos-exp-")) throw new Error(`Unsafe test cleanup: ${target}`)
+    rmSync(target, { recursive: true, force: true })
+  }
 })
 
-async function boot() {
+async function boot(computationRuntime?: ComputationalRuntime) {
   const created = await MathOS.init(temp(), "exp")
-  const app = MathOS.open(created.root, { vcs: new FakeVcs() })
+  const app = MathOS.open(created.root, { vcs: new FakeVcs(), computationRuntime })
   const claim = app.createClaim({ kind: "conjecture", title: "T", statement: "P", asMainObjective: true })
   return { app, claim }
 }
@@ -28,15 +32,18 @@ async function boot() {
 const sandbox = await inspectSandbox()
 const runSandboxed = process.platform !== "win32" && (sandbox.available || process.env.MATHOS_REQUIRE_SANDBOX === "1")
 
-describe.skipIf(runSandboxed)("computational experiments without a sandbox", () => {
+describe("computational experiments without a sandbox", () => {
   test("fail closed as inconclusive and never run unsandboxed", async () => {
-    const { app, claim } = await boot()
-    const exp = await app.createExperiment({ claimId: claim.id, kind: "COUNTEREXAMPLE_SEARCH", parameters: { property: "n > 0", domainStart: -2, domainEnd: 2 } })
-    const result = await app.runExperiment(exp.id, { allowUserAuthored: true })
-    expect(result.outcome).toBe("INCONCLUSIVE")
-    expect(result.summary).toContain("SANDBOX_UNAVAILABLE")
-    expect(app.getClaim(claim.id).status).not.toBe("DISPROVED")
-    app.close()
+    const { app, claim } = await boot(new PythonRuntime("python3", createSandboxRuntime("freebsd")))
+    try {
+      const exp = await app.createExperiment({ claimId: claim.id, kind: "COUNTEREXAMPLE_SEARCH", parameters: { property: "n > 0", domainStart: -2, domainEnd: 2 } })
+      const result = await app.runExperiment(exp.id, { allowUserAuthored: true })
+      expect(result.outcome).toBe("INCONCLUSIVE")
+      expect(result.summary).toContain("SANDBOX_UNAVAILABLE")
+      expect(app.getClaim(claim.id).status).not.toBe("DISPROVED")
+    } finally {
+      app.close()
+    }
   })
 })
 

@@ -3,6 +3,7 @@ import { mkdtemp, readFile, rm, writeFile, access } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { PythonRuntime, type SandboxRuntime, type SandboxedExecutionRequest } from "@mathos/computation"
+import { SANDBOX_IMAGE } from "../packages/computation/src/platform/container-sandbox.ts"
 const test = (name: string, body: () => void | Promise<unknown>) => bunTest(name, body, 15_000)
 const dirs:string[]=[]
 afterEach(async()=>{for(const d of dirs.splice(0)) await rm(d,{recursive:true,force:true})})
@@ -10,7 +11,7 @@ async function run(code:string, options:Partial<SandboxedExecutionRequest>={}) {
  const d=await mkdtemp(join(tmpdir(),"mathos-sec-"));dirs.push(d);const scriptPath=join(d,"main.py");await writeFile(scriptPath,code)
  return new PythonRuntime().execute({executable:"python3",origin:"MODEL_GENERATED",scriptPath,cwd:d,timeoutMs:10_000,maxOutputBytes:4096,...options})
 }
-function runningPythonContainerIds():string[]{const docker=Bun.which("docker");if(!docker)return[];const result=Bun.spawnSync([docker,"ps","--filter","ancestor=python:3.12-alpine","--format","{{.ID}}"],{stdout:"pipe",stderr:"ignore"});if(result.exitCode!==0)return[];return result.stdout.toString().trim().split("\n").filter(Boolean).sort()}
+function runningPythonContainerIds():string[]{const docker=Bun.which("docker");if(!docker)return[];const result=Bun.spawnSync([docker,"ps","--filter",`ancestor=${SANDBOX_IMAGE}`,"--format","{{.ID}}"],{stdout:"pipe",stderr:"ignore"});if(result.exitCode!==0)return[];return result.stdout.toString().trim().split("\n").filter(Boolean).sort()}
 const unavailable:SandboxRuntime={async inspect(){return {available:false,backend:null,reason:"EXPERIMENT_BLOCKED_SANDBOX_UNAVAILABLE",networkIsolation:false}},async execute(req){return {...await new PythonRuntime("python3",unavailable).execute(req)}}}
 test("model code cannot read a host secret",async()=>{const secret=join(await mkdtemp(join(tmpdir(),"mathos-host-")),"secret");dirs.push(secret.slice(0,-7));await writeFile(secret,"HOST_SECRET");const r=await run(`print(open(${JSON.stringify(secret)}).read())`);expect(r.stdout).not.toContain("HOST_SECRET");expect(r.exitCode).not.toBe(0)})
 test("model code receives only a private HOME and no API secrets",async()=>{const r=await run("import os, json; print(json.dumps(dict(os.environ)))",{extraEnv:{HOME:"/private",OPENAI_API_KEY:"SECRET",INNOCENT:"SECRET"}});expect(r.stdout).not.toContain("SECRET");if(!r.blockedReason)expect(JSON.parse(r.stdout).HOME).toBe("/work")})
