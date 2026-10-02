@@ -69,7 +69,7 @@ export function normalizePilotText(value: string, temporaryRoot: string, repo: s
   output = output
     .replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z/g, "<timestamp>")
     .replace(/ws_[a-f0-9]{16,}/g, "ws_<id>")
-    .replace(/(mathos-backup-)[0-9TZ-]+(?=\.tgz)/g, "$1<timestamp>")
+    .replace(/(mathos-backup-)\d{4}-\d{2}-\d{2}T\d{6}(?:-[a-f0-9]{8})?(?=\.tgz)/g, "$1<timestamp>")
     .replace(/(research-report-)[0-9TZ:.-]+(?=\.json|\.md)/g, "$1<timestamp>")
   return output
 }
@@ -315,7 +315,8 @@ export async function runPilotValidation(options: { output?: string; keepWorkspa
     const backup = run("backup", ["backup", "--out", backups])
     const archive = backup.rawStdout.trim().split("\n").at(-1) ?? ""
     if (backup.step.status === "PASS" && existsSync(archive)) {
-      const manifestResult = Bun.spawnSync(["tar", "-xOzf", archive, "./backup-manifest.json"], { env: environment, stdout: "pipe", stderr: "pipe" })
+      const tarExecutable = process.platform === "win32" ? join(process.env.SystemRoot ?? "C:\\Windows", "System32", "tar.exe") : "tar"
+      const manifestResult = Bun.spawnSync([tarExecutable, "-xOzf", archive, "./backup-manifest.json"], { env: environment, stdout: "pipe", stderr: "pipe" })
       const manifest = manifestResult.stdout.toString()
       if (manifestResult.exitCode !== 0 || !manifest.trim() || hasSecret(manifest)) {
         backup.step.status = "FAIL"; backup.step.reason = "Backup manifest could not be read or contained credential-shaped material."

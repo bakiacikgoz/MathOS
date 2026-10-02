@@ -1,5 +1,6 @@
 /** @internal Runtime composition and migration tooling only; application code must use repositories. */
 export { DatabaseClient } from "./client.ts"
+export { writeDatabaseSnapshot } from "./snapshot.ts"
 export { MIGRATIONS, SCHEMA_EPOCH } from "./migrations.ts"
 export {
   WorkspaceRepository,

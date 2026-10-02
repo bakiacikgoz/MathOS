@@ -9,6 +9,10 @@ $architecture = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 
 $archiveName = "mathos-$version-windows-$architecture.tar.gz"
 $installationRoot = if ($env:MATHOS_INSTALL_ROOT) { $env:MATHOS_INSTALL_ROOT } else { Join-Path $env:LOCALAPPDATA 'Programs\MathOS' }
 $temporaryRoot = Join-Path ([IO.Path]::GetTempPath()) ("mathos-install-" + [guid]::NewGuid().ToString('N'))
+$tarExecutable = if ($env:SystemRoot) { Join-Path $env:SystemRoot 'System32\tar.exe' } else { '' }
+if ([string]::IsNullOrWhiteSpace($tarExecutable) -or !(Test-Path -LiteralPath $tarExecutable -PathType Leaf)) {
+  throw "Windows built-in tar.exe is unavailable: $tarExecutable"
+}
 
 function Copy-ReleaseAsset([string]$name, [string]$destination) {
   $uri = [uri]("$($baseUrl.TrimEnd('/'))/$name")
@@ -38,19 +42,19 @@ try {
   } finally { $stream.Dispose() }
   if ($actual -ine $expected) { throw "Checksum mismatch: $archiveName" }
 
-  $entries = @(& tar.exe -tzf $archivePath)
+  $entries = @(& $tarExecutable -tzf $archivePath)
   if ($LASTEXITCODE -ne 0) { throw "Archive listing failed: $archiveName" }
   foreach ($entry in $entries) {
     if ($entry -notmatch '^root(?:/|$)' -or $entry -match '(^|/)\.{1,2}(/|$)' -or $entry.Contains('\')) {
       throw "Unsafe archive path: $entry"
     }
   }
-  $details = @(& tar.exe -tvzf $archivePath)
+  $details = @(& $tarExecutable -tvzf $archivePath)
   if ($LASTEXITCODE -ne 0) { throw "Archive listing failed: $archiveName" }
   foreach ($line in $details) {
     if ($line.Length -eq 0 -or ($line[0] -ne '-' -and $line[0] -ne 'd')) { throw 'Unsafe archive entry type.' }
   }
-  & tar.exe -xzf $archivePath -C $temporaryRoot
+  & $tarExecutable -xzf $archivePath -C $temporaryRoot
   if ($LASTEXITCODE -ne 0) { throw "Archive extraction failed: $archiveName" }
   $sourceRoot = Join-Path $temporaryRoot 'root'
   $sourceBinary = Join-Path $sourceRoot 'bin\mathos.exe'

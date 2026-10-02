@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
 import { createHash } from "node:crypto"
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync, existsSync, linkSync } from "node:fs"
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync, existsSync, linkSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { pathToFileURL } from "node:url"
@@ -121,10 +121,13 @@ for (const failure of ["backup", "activate"] as const) {
       mkdirSync(join(f.installed, "share", "mathos", "atlas"), { recursive: true })
       writeFileSync(oldBinary, "old binary bytes")
       writeFileSync(oldAsset, "old asset bytes")
-      const canonicalDest = toPosix(realpathSync(join(f.installed, "bin")))
       const alias = join(f.root, "install-alias")
       if (process.platform !== "win32") symlinkSync(f.installed, alias, "dir")
-      const installDir = process.platform === "win32" ? canonicalDest : `${toPosix(alias)}/bin`
+      const installDir = process.platform === "win32" ? `${toPosix(f.installed)}/bin` : `${toPosix(alias)}/bin`
+      const physicalPath = Bun.spawnSync([shell, "-c", 'cd "$1" && pwd -P', "--", installDir], { stdout: "pipe", stderr: "pipe" })
+      if (physicalPath.exitCode !== 0) throw new Error(physicalPath.stderr.toString())
+      const canonicalDest = physicalPath.stdout.toString().trim()
+      expect(canonicalDest.length).toBeGreaterThan(0)
       if (process.platform !== "win32") expect(installDir).not.toBe(canonicalDest)
       const failureMarker = join(f.root, "injected-mv-failure")
       const mv = join(f.toolDir, "mv")

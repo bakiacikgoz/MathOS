@@ -1,18 +1,48 @@
 import { createHash } from "node:crypto"
-import { closeSync, cpSync, existsSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from "node:fs"
+import { closeSync, copyFileSync, cpSync, existsSync, fsyncSync, lstatSync, mkdirSync, mkdtempSync, openSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from "node:fs"
 import { join, resolve } from "node:path"
 import { parsePluginManifest } from "./manifest.ts"
 
 export interface InstalledPluginRecord { id:string;version:string;apiVersion:number;installPath:string;checksum:string;enabled:boolean;state:"ENABLED"|"DISABLED"|"QUARANTINED"|"INCOMPATIBLE";capabilities:string[] }
 function files(root:string,current=root):string[]{const rows:string[]=[];for(const name of readdirSync(current).sort()){const path=join(current,name),stat=lstatSync(path);if(stat.isSymbolicLink())throw new Error("PLUGIN_SYMLINK_REJECTED");if(stat.isDirectory())rows.push(...files(root,path));else if(stat.isFile())rows.push(path)}return rows}
 function checksum(root:string){const hash=createHash("sha256");for(const path of files(root)){hash.update(path.slice(root.length+1).replaceAll("\\","/"));hash.update(readFileSync(path))}return hash.digest("hex")}
+function archiveTar():string{if(process.platform!=="win32")return"tar";const systemRoot=process.env.SystemRoot??process.env.WINDIR;const binary=systemRoot?join(systemRoot,"System32","tar.exe"):"";if(!binary||!existsSync(binary))throw new Error("PLUGIN_ARCHIVE_TAR_UNAVAILABLE");return binary}
+function archiveEntries(tar:string,archive:string):void{
+  const listing=Bun.spawnSync([tar,"-tf",archive],{stdout:"pipe",stderr:"pipe"})
+  if(listing.exitCode!==0)throw new Error("PLUGIN_ARCHIVE_INVALID")
+  const names=listing.stdout.toString().split(/\r?\n/).filter(Boolean)
+  for(const path of names)if(path.startsWith("/")||path.includes("\\")||/[\x00-\x1f\x7f]/.test(path)||/^[A-Za-z]:/.test(path)||path.split("/").includes(".."))throw new Error("PLUGIN_ARCHIVE_TRAVERSAL")
+  const verbose=Bun.spawnSync([tar,"-tvf",archive],{stdout:"pipe",stderr:"pipe"})
+  if(verbose.exitCode!==0)throw new Error("PLUGIN_ARCHIVE_INVALID")
+  const entries=verbose.stdout.toString().split(/\r?\n/).filter(Boolean)
+  if(entries.length!==names.length)throw new Error("PLUGIN_ARCHIVE_INVALID")
+  for(const entry of entries)if(entry[0]!=="-"&&entry[0]!=="d")throw new Error("PLUGIN_ARCHIVE_ENTRY_TYPE_UNSAFE")
+}
 
 export class PersistentPluginRegistry {
   private readonly registryPath:string;private rows:InstalledPluginRecord[]
   constructor(private readonly dataRoot:string){mkdirSync(join(dataRoot,"plugins"),{recursive:true});this.registryPath=join(dataRoot,"plugins","registry.json");if(existsSync(this.registryPath)){const value=JSON.parse(readFileSync(this.registryPath,"utf8"));this.rows=Array.isArray(value)?value:value.plugins??[]}else this.rows=[]}
   list(){return this.rows.map(row=>({...row,capabilities:[...row.capabilities]})).sort((a,b)=>a.id.localeCompare(b.id))}
   info(id:string){const row=this.rows.find(item=>item.id===id);if(!row)throw new Error("PLUGIN_NOT_FOUND");return {...row,capabilities:[...row.capabilities]}}
-  installDirectory(source:string){return this.activate(source,null)}install(source:string){const absolute=resolve(source);if(lstatSync(absolute).isDirectory())return this.installDirectory(absolute);const staging=join(this.dataRoot,"plugins",`.archive-${process.pid}-${Date.now()}`),listing=Bun.spawnSync(["tar","-tf",absolute],{stdout:"pipe",stderr:"pipe"});if(listing.exitCode!==0)throw new Error("PLUGIN_ARCHIVE_INVALID");for(const path of listing.stdout.toString().split(/\r?\n/).filter(Boolean))if(path.startsWith("/")||path.startsWith("\\")||/^[A-Za-z]:/.test(path)||path.split(/[\\/]/).includes(".."))throw new Error("PLUGIN_ARCHIVE_TRAVERSAL");mkdirSync(staging,{recursive:true});try{const extraction=Bun.spawnSync(["tar","-xf",absolute,"-C",staging],{stdout:"pipe",stderr:"pipe"});if(extraction.exitCode!==0)throw new Error("PLUGIN_ARCHIVE_EXTRACTION_FAILED");const entries=readdirSync(staging);const root=entries.length===1&&lstatSync(join(staging,entries[0]!)).isDirectory()?join(staging,entries[0]!):staging;return this.activate(root,null)}finally{rmSync(staging,{recursive:true,force:true})}}update(id:string,source:string){this.info(id);return this.activate(source,id)}
+  installDirectory(source:string){return this.activate(source,null)}
+  install(source:string){
+    const absolute=resolve(source)
+    if(lstatSync(absolute).isDirectory())return this.installDirectory(absolute)
+    const staging=mkdtempSync(join(this.dataRoot,"plugins",".archive-"))
+    const archive=join(staging,"plugin.tar"),extracted=join(staging,"extracted")
+    try{
+      copyFileSync(absolute,archive)
+      const tar=archiveTar()
+      archiveEntries(tar,archive)
+      mkdirSync(extracted)
+      const extraction=Bun.spawnSync([tar,"-xf",archive,"-C",extracted],{stdout:"pipe",stderr:"pipe"})
+      if(extraction.exitCode!==0)throw new Error("PLUGIN_ARCHIVE_EXTRACTION_FAILED")
+      const entries=readdirSync(extracted)
+      const root=entries.length===1&&lstatSync(join(extracted,entries[0]!)).isDirectory()?join(extracted,entries[0]!):extracted
+      return this.activate(root,null)
+    }finally{rmSync(staging,{recursive:true,force:true})}
+  }
+  update(id:string,source:string){this.info(id);return this.activate(source,id)}
   enable(id:string,actor:string){if(!actor)throw new Error("PLUGIN_APPROVAL_ACTOR_REQUIRED");return this.change(id,{enabled:true,state:"ENABLED"})}disable(id:string,actor:string){if(!actor)throw new Error("PLUGIN_APPROVAL_ACTOR_REQUIRED");return this.change(id,{enabled:false,state:"DISABLED"})}quarantine(id:string){return this.change(id,{enabled:false,state:"QUARANTINED"})}
   remove(id:string){const row=this.info(id);rmSync(row.installPath,{recursive:true,force:true});this.rows=this.rows.filter(item=>item.id!==id);this.save()}
   doctor(){return{schemaVersion:"mathos.plugin-doctor.v1",ready:this.rows.every(row=>existsSync(row.installPath)&&checksum(row.installPath)===row.checksum),plugins:this.list()}}

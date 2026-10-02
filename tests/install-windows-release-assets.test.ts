@@ -2,7 +2,7 @@ import { expect, test } from "bun:test"
 import { createHash } from "node:crypto"
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, linkSync, unlinkSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join, resolve } from "node:path"
+import { dirname, join, resolve } from "node:path"
 import { pathToFileURL } from "node:url"
 
 test.skipIf(process.platform !== "win32")("PowerShell installer verifies archive and retains assets next to installed CLI", () => {
@@ -22,7 +22,9 @@ test.skipIf(process.platform !== "win32")("PowerShell installer verifies archive
     writeFileSync(join(bundle, "root", "THIRD_PARTY_LICENSES.json"), '{"releaseBlocked":true}')
     writeFileSync(join(bundle, "root", "THIRD_PARTY_NOTICES.txt"), "Third party notices")
     const archivePath = join(release, archive)
-    const tar = Bun.spawnSync(["tar", "-czf", archivePath, "-C", bundle, "root"], { stdout: "pipe", stderr: "pipe" })
+    const windowsTar = join(process.env.SystemRoot!, "System32", "tar.exe")
+    const tar = Bun.spawnSync([windowsTar, "-czf", archivePath, "-C", bundle, "root"], { stdout: "pipe", stderr: "pipe" })
+    if (tar.exitCode !== 0) throw new Error(`Archive fixture creation failed (${tar.exitCode}): ${tar.stderr.toString()}`)
     expect(tar.exitCode).toBe(0)
     const hash = createHash("sha256").update(readFileSync(archivePath)).digest("hex")
     writeFileSync(join(release, "SHA256SUMS"), `${hash}  ${archive}\n`)
@@ -37,14 +39,29 @@ test.skipIf(process.platform !== "win32")("PowerShell installer verifies archive
     expect(readFileSync(join(installed, "share", "mathos", "THIRD_PARTY_LICENSES.json"), "utf8")).toContain("releaseBlocked")
     expect(readFileSync(join(installed, "share", "mathos", "THIRD_PARTY_NOTICES.txt"), "utf8")).toBe("Third party notices")
 
+    const gitTar = join(process.env.ProgramFiles ?? "C:\\Program Files", "Git", "usr", "bin", "tar.exe")
+    expect(existsSync(gitTar)).toBe(true)
+    const pathKey = Object.keys(process.env).find(key => key.toLowerCase() === "path") ?? "Path"
+    const gitFirstRoot = join(root, "kurulu Git PATH")
+    const gitFirstEnv = { ...env, [pathKey]: `${dirname(gitTar)};${process.env[pathKey] ?? ""}`, MATHOS_INSTALL_ROOT: gitFirstRoot }
+    const selectedTar = Bun.spawnSync(["powershell.exe", "-NoProfile", "-Command", "(Get-Command tar.exe).Source"], { env: gitFirstEnv, stdout: "pipe", stderr: "pipe" })
+    if (selectedTar.exitCode !== 0) throw new Error(`Git-first PATH probe failed: ${selectedTar.stderr.toString()}`)
+    expect(resolve(selectedTar.stdout.toString().trim()).toLowerCase()).toBe(resolve(gitTar).toLowerCase())
+    const gitFirst = Bun.spawnSync(["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script], { env: gitFirstEnv, stdout: "pipe", stderr: "pipe" })
+    if (gitFirst.exitCode !== 0) throw new Error(`Git-first installer failed: ${gitFirst.stderr.toString() || gitFirst.stdout.toString()}`)
+    expect(existsSync(join(gitFirstRoot, "bin", "mathos.exe"))).toBe(true)
+    expect(readFileSync(join(gitFirstRoot, "share", "mathos", "atlas", "index.html"), "utf8")).toBe("Atlas installed asset")
+
     writeFileSync(archivePath, "corrupted archive")
     const corruptRoot = join(root, "must-not-install")
-    const corrupt = Bun.spawnSync(["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script], { env: { ...env, MATHOS_INSTALL_ROOT: corruptRoot }, stdout: "pipe", stderr: "pipe" })
+    const corrupt = Bun.spawnSync(["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script], { env: { ...gitFirstEnv, MATHOS_INSTALL_ROOT: corruptRoot }, stdout: "pipe", stderr: "pipe" })
     expect(corrupt.exitCode).not.toBe(0)
+    expect(corrupt.stderr.toString()).toContain("Checksum mismatch")
     expect(existsSync(join(corruptRoot, "bin", "mathos.exe"))).toBe(false)
 
     linkSync(join(bundle, "root", "share", "mathos", "atlas", "index.html"), join(bundle, "root", "share", "mathos", "atlas", "linked.html"))
-    const malicious = Bun.spawnSync(["tar", "-czf", archivePath, "-C", bundle, "root"], { stdout: "pipe", stderr: "pipe" })
+    const malicious = Bun.spawnSync([windowsTar, "-czf", archivePath, "-C", bundle, "root"], { stdout: "pipe", stderr: "pipe" })
+    if (malicious.exitCode !== 0) throw new Error(`Hardlink fixture creation failed (${malicious.exitCode}): ${malicious.stderr.toString()}`)
     expect(malicious.exitCode).toBe(0)
     const maliciousHash = createHash("sha256").update(readFileSync(archivePath)).digest("hex")
     writeFileSync(join(release, "SHA256SUMS"), `${maliciousHash}  ${archive}\n`)
@@ -56,6 +73,7 @@ test.skipIf(process.platform !== "win32")("PowerShell installer verifies archive
     unlinkSync(join(bundle, "root", "share", "mathos", "atlas", "linked.html"))
     const toPosix = (path: string) => path.replace(/^([A-Za-z]):/, (_, drive: string) => `/${drive.toLowerCase()}`).replaceAll("\\", "/")
     const transformed = Bun.spawnSync(["C:\\Program Files\\Git\\bin\\bash.exe", "-c", 'tar -czf "$1" --transform="s|^root/share/mathos/atlas/index.html$|root/../outside.txt|" -C "$2" root', "--", toPosix(archivePath), toPosix(bundle)], { stdout: "pipe", stderr: "pipe" })
+    if (transformed.exitCode !== 0) throw new Error(`Traversal fixture creation failed (${transformed.exitCode}): ${transformed.stderr.toString()}`)
     expect(transformed.exitCode).toBe(0)
     const traversalHash = createHash("sha256").update(readFileSync(archivePath)).digest("hex")
     writeFileSync(join(release, "SHA256SUMS"), `${traversalHash}  ${archive}\n`)

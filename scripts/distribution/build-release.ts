@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { copyFileSync,mkdirSync,readFileSync,readdirSync,rmSync,writeFileSync } from "node:fs"
+import { copyFileSync,existsSync,mkdirSync,readFileSync,readdirSync,rmSync,writeFileSync } from "node:fs"
 import { createHash } from "node:crypto"
 import { dirname,join,resolve } from "node:path"
 import { MATHOS_PRODUCT_VERSION,assertProductVersionAlignment,createReleaseManifest,currentBuildIdentity,readProductSurfaceVersions } from "@mathos/shared"
@@ -29,6 +29,12 @@ export function packageReleaseLegalMetadata(sourceRoot:string,releaseRoot:string
   writeFileSync(join(releaseRoot,"SOURCE.json"),JSON.stringify({gitRevision,sourceUrl:`https://github.com/bakiacikgoz/MathOS/tree/${gitRevision}`},null,2)+"\n")
   return["LICENSE","NOTICE","SOURCE.json"]
 }
+export function createReleaseArchive(releaseRoot:string,archivePath:string):void{
+  const tarTool=process.platform==="win32"?join(process.env.SystemRoot??"C:\\Windows","System32","tar.exe"):"tar"
+  if(process.platform==="win32"&&!existsSync(tarTool))throw new Error(`WINDOWS_TAR_MISSING:${tarTool}`)
+  const tar=Bun.spawnSync([tarTool,"-czf",archivePath,"-C",dirname(releaseRoot),"root"],{stdout:"pipe",stderr:"pipe"})
+  if(tar.exitCode!==0)throw new Error(`RELEASE_ARCHIVE_FAILED:${new TextDecoder().decode(tar.stderr)}`)
+}
 export async function buildRelease(target=hostReleaseTarget(),outputRoot=join(ROOT,"artifacts","releases")){assertSupportedBun();
   const bunTarget=targetNames[target];if(!bunTarget)throw new Error(`RELEASE_TARGET_UNSUPPORTED:${target}`)
   assertProductVersionAlignment(readProductSurfaceVersions(ROOT));await runBuildScript("build:atlas");await runBuildScript("build:vscode")
@@ -40,7 +46,7 @@ export async function buildRelease(target=hostReleaseTarget(),outputRoot=join(RO
   paths.push(...packageReleaseLegalMetadata(ROOT,releaseRoot,identity.gitRevision))
   const inventory=createReleaseDependencyInventory({sourceRoot:ROOT,gitRevision:identity.gitRevision,productVersion:MATHOS_PRODUCT_VERSION,target});if(process.env.MATHOS_RELEASE_ENRICH_LICENSES==="1")await enrichReleaseDependencyInventory(inventory);writeFileSync(join(releaseRoot,"SBOM.json"),JSON.stringify(inventory.sbom,null,2)+"\n");writeFileSync(join(releaseRoot,"THIRD_PARTY_LICENSES.json"),JSON.stringify(inventory.licenses,null,2)+"\n");writeFileSync(join(releaseRoot,"THIRD_PARTY_NOTICES.txt"),inventory.notices);paths.push("SBOM.json","THIRD_PARTY_LICENSES.json","THIRD_PARTY_NOTICES.txt")
   const manifest=createReleaseManifest({root:releaseRoot,target,productVersion:MATHOS_PRODUCT_VERSION,gitRevision:identity.gitRevision,buildId:identity.buildId,paths});writeFileSync(join(releaseRoot,"RELEASE-MANIFEST.json"),JSON.stringify(manifest,null,2)+"\n");writeFileSync(join(releaseRoot,"SHA256SUMS"),manifest.files.map(file=>`${file.sha256}  ${file.path}`).join("\n")+"\n")
-  const archiveName=`mathos-${MATHOS_PRODUCT_VERSION}-${target}.tar.gz`,archivePath=join(outputRoot,MATHOS_PRODUCT_VERSION,archiveName),tar=Bun.spawnSync(["tar","-czf",archivePath,"-C",dirname(releaseRoot),"root"],{stdout:"pipe",stderr:"pipe"});if(tar.exitCode!==0)throw new Error(`RELEASE_ARCHIVE_FAILED:${new TextDecoder().decode(tar.stderr)}`)
+  const archiveName=`mathos-${MATHOS_PRODUCT_VERSION}-${target}.tar.gz`,archivePath=join(outputRoot,MATHOS_PRODUCT_VERSION,archiveName);createReleaseArchive(releaseRoot,archivePath)
   const archiveChecksumPath=writeReleaseArchiveChecksums(outputRoot,MATHOS_PRODUCT_VERSION)
   return{releaseRoot,executable,manifest,archiveName,archivePath,archiveChecksumPath}
 }

@@ -21,6 +21,11 @@ describe("fresh-user pilot validation", () => {
   test("normalizes volatile workspace paths and timestamped artifacts", () => {
     const normalized = normalizePilotText("/tmp/root/pilot/reports/research-report-2026-09-01T1949.json", "/tmp/root", "/repo")
     expect(normalized).toBe("<pilot-root>/pilot/reports/research-report-<timestamp>.json")
+    const oldName = "mathos-backup-2026-10-02T080918.tgz"
+    const uniqueName = "mathos-backup-2026-10-02T080928-a916fabc.tgz"
+    expect(normalizePilotText(oldName, "", "")).toBe("mathos-backup-<timestamp>.tgz")
+    expect(normalizePilotText(uniqueName, "", "")).toBe("mathos-backup-<timestamp>.tgz")
+    expect(normalizePilotText("mathos-backup-unsupported.tgz", "", "")).toBe("mathos-backup-unsupported.tgz")
   })
 
   test("canonical hash excludes only declared volatile generation time", () => {
@@ -60,6 +65,24 @@ describe("fresh-user pilot validation", () => {
     const dir = mkdtempSync(join(tmpdir(), "pilot-determinism-")); dirs.push(dir)
     const first = await runPilotValidation({ output: join(dir, "one.json") })
     const second = await runPilotValidation({ output: join(dir, "two.json") })
-    expect(first.canonicalSha256).toBe(second.canonicalSha256)
+    if (first.canonicalSha256 !== second.canonicalSha256) {
+      const differences: string[] = []
+      const inspect = (a: unknown, b: unknown, path: string): void => {
+        if (JSON.stringify(a) === JSON.stringify(b)) return
+        if (a && b && typeof a === "object" && typeof b === "object") {
+          for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) inspect((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key], `${path}.${key}`)
+          return
+        }
+        if (path === "evidence.generatedAt" || path === "evidence.canonicalSha256") return
+        const left = redactPilotText(JSON.stringify(a) ?? "undefined")
+        const right = redactPilotText(JSON.stringify(b) ?? "undefined")
+        let offset = 0
+        while (offset < Math.min(left.length, right.length) && left[offset] === right[offset]) offset++
+        const start = Math.max(0, offset - 60)
+        differences.push(`${path} at ${offset}: ${left.slice(start, start + 240)} => ${right.slice(start, start + 240)}`)
+      }
+      inspect(first, second, "evidence")
+      throw new Error(`Canonical pilot evidence differs: ${differences.slice(0, 20).join(" | ")}`)
+    }
   }, 90_000)
 })

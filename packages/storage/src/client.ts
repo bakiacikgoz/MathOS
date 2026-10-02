@@ -1,8 +1,9 @@
 import { Database } from "bun:sqlite"
-import { copyFileSync, existsSync, mkdirSync } from "node:fs"
+import { existsSync, mkdirSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { StorageUnavailable, WorkspaceOperationLock, WorkspaceSchemaTooNew, nowIso } from "@mathos/shared"
 import { MIGRATIONS, SCHEMA_EPOCH } from "./migrations.ts"
+import { writeDatabaseSnapshot } from "./snapshot.ts"
 
 /** @internal Low-level database lifecycle API. It is not a supported domain mutation surface. */
 export class DatabaseClient {
@@ -111,7 +112,7 @@ export class DatabaseClient {
     }
     const directory = join(dirname(this.filePath), "backups"); mkdirSync(directory, { recursive: true })
     const stamp = new Date().toISOString().replace(/[:.]/g, "")
-    copyFileSync(this.filePath, join(directory, `pre-migration-${previousEpoch}-${stamp}.db`))
+    writeDatabaseSnapshot(this.db, join(directory, `pre-migration-${previousEpoch}-${stamp}.db`))
   }
 
   private normalizeMainBranch(): void {
