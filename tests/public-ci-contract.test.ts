@@ -46,9 +46,10 @@ test("clean public runners install preload dependencies before executing the arc
 
 test("Windows VSIX ZIP verification runs outside the GNU tar Git Bash environment", () => {
   const workflow = Bun.YAML.parse(readFileSync(new URL("../.github/workflows/public-build-verification.yml", import.meta.url), "utf8")) as {
-    jobs: { verify: { steps: Array<{ run?: string; shell?: string }> } }
+    jobs: { verify: { steps: Array<{ run?: string; shell?: string; if?: string }> } }
   }
-  const step = workflow.jobs.verify.steps.find(step => step.run?.trim() === "bun run vscode:verify")
-  expect(step?.shell).toContain("Windows")
-  expect(step?.shell).toContain("pwsh")
+  const steps = workflow.jobs.verify.steps.filter(step => step.run?.trim() === "bun run vscode:verify")
+  expect(steps).toHaveLength(2)
+  expect(steps).toContainEqual(expect.objectContaining({ if: "runner.os == 'Windows'", shell: "pwsh" }))
+  expect(steps).toContainEqual(expect.objectContaining({ if: "runner.os == 'macOS'", shell: "bash" }))
 })

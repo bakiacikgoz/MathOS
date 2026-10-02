@@ -71,8 +71,13 @@ jobs:
           bun run release:build
           bun run release:verify
           bun run vscode:package
-      - name: Verify VSIX with the native archive tools
-        shell: ${{ runner.os == 'Windows' && 'pwsh' || 'bash' }}
+      - name: Verify VSIX with Windows native archive tools
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: bun run vscode:verify
+      - name: Verify VSIX with macOS native archive tools
+        if: runner.os == 'macOS'
+        shell: bash
         run: bun run vscode:verify
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
