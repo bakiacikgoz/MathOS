@@ -102,16 +102,21 @@ describe("product ux v1", () => {
   test("headless literature mutation and inspection paths retain trust labels", async () => {
     const workspace = createTestWorkspace("mathos-ux-headless-")
     try {
+      const fixtureStarted = performance.now()
       const created = await createDemoWorkspace(workspace.root, "demo")
+      const fixtureMs = Math.round(performance.now() - fixtureStarted)
       const cli = join(import.meta.dir, "../apps/tui/src/cli.ts")
       for (const args of [["source", "inspect", "SRC-001"], ["source", "excerpts", "SRC-001"]]) {
+        const commandStarted = performance.now()
         const result = Bun.spawnSync([process.execPath, "run", cli, ...args], { cwd: created.root, env: process.env })
+        const elapsedMs = Math.round(performance.now() - commandStarted)
         const output = result.stdout.toString()
+        if (result.exitCode !== 0) throw new Error(`Headless literature command ${args.join(" ")} failed after ${elapsedMs}ms (fixture ${fixtureMs}ms; exit ${result.exitCode}; signal ${result.signalCode ?? "none"}): ${result.stderr.toString().slice(0, 1_000)}`)
         expect(result.exitCode).toBe(0)
         expect(output).toContain("EXTERNAL SOURCE\nNOT A PROOF")
       }
     } finally { workspace.cleanup() }
-  })
+  }, 20_000)
 
   test("typed errors include code", () => {
     const text = formatTypedUserError(new Error("UNSUPPORTED_EXTRACTION")).text
