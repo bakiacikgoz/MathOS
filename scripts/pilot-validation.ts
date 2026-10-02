@@ -228,6 +228,7 @@ export async function runPilotValidation(options: { output?: string; keepWorkspa
     const init = run("init", ["init", "pilot"], temporaryRoot)
     if (init.step.status === "PASS" && existsSync(join(workspace, ".mathos", "mathos.db"))) init.step.evidence = "fresh workspace database and layout created"
     else if (init.step.status === "PASS") { init.step.status = "FAIL"; init.step.reason = "CLI exited successfully without creating the workspace layout." }
+    if (init.step.status !== "PASS") throw new Error(`Pilot workspace initialization failed: ${init.step.reason} ${init.step.stderr ?? ""}`.trim())
 
     const doctor = run("doctor", ["doctor", "--json"])
     let doctorChecks: DoctorCheck[] = []

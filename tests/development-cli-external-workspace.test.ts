@@ -11,6 +11,7 @@ test("development CLI bundle renders in an external workspace and accepts the qu
     expect(build.exitCode).toBe(0)
 
     const init = Bun.spawnSync([process.execPath, cli, "init"], { cwd: workspace.root, stdout: "pipe", stderr: "pipe" })
+    if (init.exitCode !== 0) throw new Error(`Built CLI init failed: ${init.stderr.toString() || init.stdout.toString()}`)
     expect(init.exitCode).toBe(0)
 
     let output = ""

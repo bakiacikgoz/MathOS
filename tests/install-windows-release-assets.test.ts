@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
 import { createHash } from "node:crypto"
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, linkSync, unlinkSync } from "node:fs"
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync, linkSync, unlinkSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join, resolve } from "node:path"
 import { pathToFileURL } from "node:url"
@@ -35,7 +35,7 @@ test.skipIf(process.platform !== "win32")("PowerShell installer verifies archive
     const tempProbe = Bun.spawnSync(["powershell.exe", "-NoProfile", "-Command", "[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes([IO.Path]::GetTempPath()))"], { env, stdout: "pipe", stderr: "pipe" })
     if (tempProbe.exitCode !== 0) throw new Error(`TEMP probe failed: ${tempProbe.stderr.toString()}`)
     const actualTemp = Buffer.from(tempProbe.stdout.toString().trim(), "base64").toString("utf16le")
-    expect(resolve(actualTemp).toLowerCase()).toBe(resolve(tempFolder).toLowerCase())
+    expect(realpathSync.native(actualTemp).toLowerCase()).toBe(realpathSync.native(tempFolder).toLowerCase())
     const result = Bun.spawnSync(["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script], { env, stdout: "pipe", stderr: "pipe" })
     if (result.exitCode !== 0) throw new Error(result.stderr.toString() || result.stdout.toString())
     expect(existsSync(join(installed, "bin", "mathos.exe"))).toBe(true)
@@ -52,7 +52,7 @@ test.skipIf(process.platform !== "win32")("PowerShell installer verifies archive
     const gitFirstEnv = { ...env, [pathKey]: `${dirname(gitTar)};${process.env[pathKey] ?? ""}`, MATHOS_INSTALL_ROOT: gitFirstRoot }
     const selectedTar = Bun.spawnSync(["powershell.exe", "-NoProfile", "-Command", "(Get-Command tar.exe).Source"], { env: gitFirstEnv, stdout: "pipe", stderr: "pipe" })
     if (selectedTar.exitCode !== 0) throw new Error(`Git-first PATH probe failed: ${selectedTar.stderr.toString()}`)
-    expect(resolve(selectedTar.stdout.toString().trim()).toLowerCase()).toBe(resolve(gitTar).toLowerCase())
+    expect(realpathSync.native(selectedTar.stdout.toString().trim()).toLowerCase()).toBe(realpathSync.native(gitTar).toLowerCase())
     const gitFirst = Bun.spawnSync(["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script], { env: gitFirstEnv, stdout: "pipe", stderr: "pipe" })
     if (gitFirst.exitCode !== 0) throw new Error(`Git-first installer failed: ${gitFirst.stderr.toString() || gitFirst.stdout.toString()}`)
     expect(existsSync(join(gitFirstRoot, "bin", "mathos.exe"))).toBe(true)
