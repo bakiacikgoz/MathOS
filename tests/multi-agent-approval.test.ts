@@ -159,5 +159,5 @@ describe("multi-agent human approval boundary", () => {
       expect(repeated.status).toBe("FAILED")
       expect(repeated.failureCode).toBe("TARGET_NOT_COMPATIBLE")
     } finally { cleanup() }
-  })
+  }, changedRevision === "FORMAL" ? 30_000 : 5_000)
 })

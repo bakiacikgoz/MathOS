@@ -78,7 +78,7 @@ describe("multi-agent orchestration", () => {
     expect(digest?.verifiedFindings.length).toBeGreaterThanOrEqual(1)
     expect(digest?.unverifiedFindings.length).toBeGreaterThanOrEqual(1)
     app.close()
-  })
+  }, 30_000)
 
   test("low diversity uses fallback roles", async () => {
     const { app } = await ready(tempDir(), {

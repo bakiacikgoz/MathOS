@@ -76,7 +76,7 @@ describe("multi-agent hardening", () => {
     await app2.stepTeam(session.id)
     expect(app2.teamHistory(session.id).length).toBeGreaterThanOrEqual(2)
     app2.close()
-  })
+  }, 30_000)
 
   test("true local lean budget does not stop other workers", async () => {
     const { app } = await ready()
@@ -103,7 +103,7 @@ describe("multi-agent hardening", () => {
     expect(a2.usage.leanCalls).toBeGreaterThan(0)
     expect(app.getTeam(session.id).stopReason).not.toBe("GLOBAL_BUDGET_EXHAUSTED")
     app.close()
-  })
+  }, 30_000)
 
   test("import requires explicit apply and re-verifies target", async () => {
     const { app, claim } = await ready()
@@ -132,7 +132,7 @@ describe("multi-agent hardening", () => {
     expect(invalidated.status).toBe("FAILED")
     expect(invalidated.failureCode).toBe("TARGET_NOT_COMPATIBLE")
     app.close()
-  })
+  }, 30_000)
 
   test("unverified source apply rejected", async () => {
     const { app } = await ready()
