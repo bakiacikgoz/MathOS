@@ -17,6 +17,7 @@
     "jsxImportSource": "@opentui/solid",
     "paths": {
       "@mathos/shared": ["./packages/shared/src/index.ts"],
+      "@mathos/shared/archive": ["./packages/shared/src/archive.ts"],
       "@mathos/domain": ["./packages/domain/src/index.ts"],
       "@mathos/events": ["./packages/events/src/index.ts"],
       "@mathos/storage": ["./packages/storage/src/index.ts"],

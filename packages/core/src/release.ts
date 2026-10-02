@@ -1,23 +1,15 @@
 import { createHash, randomUUID } from "node:crypto"
 import { copyFileSync, existsSync, linkSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, rmdirSync, statSync, writeFileSync } from "node:fs"
-import { dirname, isAbsolute, join, relative, resolve, sep, win32 } from "node:path"
-import { spawnSync } from "node:child_process"
+import { basename, dirname, isAbsolute, join, relative, resolve, sep, win32 } from "node:path"
 import { Database } from "bun:sqlite"
 import { BackupIntegrityFailed, mathosVersion, nowIso, withWorkspaceOperationLock } from "@mathos/shared"
+import { extractTarArchive, inspectTarArchive, writeTarGzip } from "@mathos/shared/archive"
 import { SCHEMA_EPOCH, writeDatabaseSnapshot } from "@mathos/storage"
 
 const SKIP = new Set(["debug.log", "node_modules", ".git", ".env", "secrets", "locks"])
 
 function sha256File(path: string): string {
   return createHash("sha256").update(readFileSync(path)).digest("hex")
-}
-
-function tarExecutable(): string {
-  if (process.platform !== "win32") return "tar"
-  const systemRoot = process.env.SystemRoot ?? process.env.WINDIR
-  const binary = systemRoot ? join(systemRoot, "System32", "tar.exe") : ""
-  if (!binary || !existsSync(binary)) throw new BackupIntegrityFailed("Windows built-in tar.exe is unavailable")
-  return binary
 }
 
 function walkFiles(root: string, rel = "", excludeLake = false): string[] {
@@ -68,22 +60,10 @@ function safeArchivePath(raw: string): string {
 }
 
 function preflightArchive(archive: string): void {
-  const path = resolve(archive)
-  const options = { encoding: "utf8" as const, maxBuffer: 64 * 1024 * 1024 }
-  const listing = spawnSync(tarExecutable(), ["-tzf", path], options)
-  const verbose = spawnSync(tarExecutable(), ["-tvzf", path], options)
-  if (listing.status !== 0 || verbose.status !== 0 || listing.error || verbose.error) throw new BackupIntegrityFailed("Backup archive cannot be listed")
-  const entries = listing.stdout.split(/\r?\n/).filter(Boolean)
-  const details = verbose.stdout.split(/\r?\n/).filter(Boolean)
-  if (!entries.length || entries.length !== details.length) throw new BackupIntegrityFailed("Backup archive listing inconsistent")
-  const seen = new Set<string>()
-  for (let i = 0; i < entries.length; i++) {
-    const type = details[i]![0]
-    if (type !== "-" && type !== "d") throw new BackupIntegrityFailed(`Unsupported archive entry type: ${type}`)
-    const normalized = safeArchivePath(entries[i]!)
-    if (!normalized) continue
-    if (seen.has(normalized)) throw new BackupIntegrityFailed(`Duplicate archive entry: ${normalized}`)
-    seen.add(normalized)
+  try {
+    for (const entry of inspectTarArchive(archive)) safeArchivePath(entry.rawPath)
+  } catch (error) {
+    throw new BackupIntegrityFailed(`Backup archive invalid: ${error instanceof Error ? error.message : String(error)}`)
   }
 }
 
@@ -191,8 +171,8 @@ function backupWorkspaceUnlocked(root: string, destDir: string): { archive: stri
   }
   writeFileSync(join(staging, "backup-manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`)
   const archive = join(destination, `mathos-backup-${stamp}.tgz`)
-  const tar = spawnSync(tarExecutable(), ["-czf", partialArchive, "-C", staging, "."], { encoding: "utf8" })
-  if (tar.status !== 0) throw new BackupIntegrityFailed(tar.stderr || "tar failed")
+  try { writeTarGzip(staging, partialArchive) }
+  catch (error) { throw new BackupIntegrityFailed(`Backup archive creation failed: ${error instanceof Error ? error.message : String(error)}`) }
   linkSync(partialArchive, archive)
   return { archive, manifest }
   } finally {
@@ -217,8 +197,8 @@ export function restoreWorkspace(archive: string, destDir: string): { root: stri
   preflightArchive(archiveCopy)
   const payload = join(staging, "payload")
   mkdirSync(payload)
-  const tar = spawnSync(tarExecutable(), ["-xzf", archiveCopy, "-C", payload], { encoding: "utf8" })
-  if (tar.status !== 0) throw new BackupIntegrityFailed(tar.stderr || "tar extract failed")
+  try { extractTarArchive(archiveCopy, payload) }
+  catch (error) { throw new BackupIntegrityFailed(`Backup archive extraction failed: ${error instanceof Error ? error.message : String(error)}`) }
   const manifestPath = join(payload, "backup-manifest.json")
   if (!existsSync(manifestPath)) throw new BackupIntegrityFailed("backup-manifest.json missing")
   let manifest: BackupManifest
@@ -238,16 +218,20 @@ export function restoreWorkspace(archive: string, destDir: string): { root: stri
   if (actual.size) throw new BackupIntegrityFailed("archive contains unlisted files")
   const dbPath = join(payload, ".mathos", "mathos.db")
   if (!existsSync(dbPath)) throw new BackupIntegrityFailed("Workspace database missing from backup")
-  // Earlier backups may have a checkpointed main DB whose header still names
-  // WAL mode. Materialize DELETE mode inside the validated stage before the
-  // read-only compatibility inspection; macOS cannot read that old header
-  // without WAL sidecars even when the main DB holds all committed pages.
-  const normalized = new Database(dbPath)
-  try {
-    const mode = normalized.query<{ journal_mode: string }, []>("PRAGMA journal_mode=DELETE").get()?.journal_mode.toLowerCase()
-    if (mode !== "delete") throw new BackupIntegrityFailed(`Restored database journal mode is ${mode ?? "unknown"}`)
-  } finally { normalized.close() }
-  if ([`${dbPath}-wal`, `${dbPath}-shm`, `${dbPath}-journal`].some(existsSync)) throw new BackupIntegrityFailed("Restored database has SQLite sidecar files")
+  // Earlier archives can contain a self-contained main DB with a WAL header.
+  // On macOS, opening that header may create persistent WAL/SHM files. Move
+  // the already hash-checked file into an owned source folder and create a
+  // separate validated DELETE-mode snapshot at the final payload path. Any
+  // source sidecars remain isolated from the restored database.
+  const normalizationSource = join(staging, "normalization-source")
+  mkdirSync(normalizationSource)
+  const sourceDbPath = join(normalizationSource, "mathos.db")
+  renameSync(dbPath, sourceDbPath)
+  const source = new Database(sourceDbPath)
+  try { writeDatabaseSnapshot(source, dbPath) }
+  finally { source.close() }
+  const normalizedSidecars = ["wal", "shm", "journal"].filter((suffix) => existsSync(`${dbPath}-${suffix}`))
+  if (normalizedSidecars.length) throw new BackupIntegrityFailed(`Restored snapshot has SQLite sidecar files: ${normalizedSidecars.map((suffix) => `${suffix}=${statSync(`${dbPath}-${suffix}`).size}`).join(", ")}`)
   const identity = inspectSnapshot(dbPath)
   if (identity.schemaEpoch > SCHEMA_EPOCH) throw new BackupIntegrityFailed(`Backup schema ${identity.schemaEpoch} is newer than supported ${SCHEMA_EPOCH}`)
   if (identity.schemaEpoch !== manifest.schemaEpoch || identity.workspaceId !== manifest.workspaceId) throw new BackupIntegrityFailed("Backup identity does not match database")

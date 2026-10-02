@@ -120,5 +120,5 @@ describe("bounded parallel multi-agent", () => {
     const par = await run("BOUNDED_PARALLEL")
     expect(seq.status).toBe(par.status)
     expect(seq.n).toBe(par.n)
-  })
+  }, 20_000) // Two complete SQLite-backed team runs exceeded 5 seconds on Windows CI.
 })

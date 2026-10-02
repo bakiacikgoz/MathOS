@@ -1,8 +1,9 @@
 import { createHash } from "node:crypto"
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join, relative, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
+import { readTarTextFile } from "@mathos/shared/archive"
 
 export type PilotStatus = "PASS" | "BLOCKED" | "NOT_RUN" | "FAIL"
 export interface PilotStep {
@@ -61,9 +62,26 @@ export function normalizePilotText(value: string, temporaryRoot: string, repo: s
   let output = value
   for (const [path, replacement] of [[temporaryRoot, "<pilot-root>"], [repo, "<repo>"]] as const) {
     if (!path) continue
-    for (const variant of new Set([path, path.replaceAll("\\", "/"), path.replaceAll("/", "\\"), path.replaceAll("\\", "\\\\")])) {
+    const roots = new Set([path])
+    if (existsSync(path)) {
+      // Windows may give Bun the short (8.3) temporary path while a native
+      // child prints the physical long path. Resolve only these two owned
+      // roots; unrelated absolute paths remain evidence, not normalized away.
+      for (const resolveRoot of [realpathSync, realpathSync.native]) {
+        try { roots.add(resolveRoot(path).replace(/^\\\\\?\\/, "")) }
+        catch { /* retain the caller-provided spelling */ }
+      }
+    }
+    const variants = new Set<string>()
+    for (const root of roots) {
+      variants.add(root)
+      variants.add(root.replaceAll("\\", "/"))
+      variants.add(root.replaceAll("/", "\\"))
+      variants.add(root.replaceAll("\\", "\\\\"))
+    }
+    for (const variant of variants) {
       const escaped = variant.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-      output = output.replace(new RegExp(`${escaped}(?=$|[/\\\\])`, "g"), replacement)
+      output = output.replace(new RegExp(`${escaped}(?=$|[/\\\\])`, process.platform === "win32" ? "gi" : "g"), replacement)
     }
   }
   output = output
@@ -315,10 +333,10 @@ export async function runPilotValidation(options: { output?: string; keepWorkspa
     const backup = run("backup", ["backup", "--out", backups])
     const archive = backup.rawStdout.trim().split("\n").at(-1) ?? ""
     if (backup.step.status === "PASS" && existsSync(archive)) {
-      const tarExecutable = process.platform === "win32" ? join(process.env.SystemRoot ?? "C:\\Windows", "System32", "tar.exe") : "tar"
-      const manifestResult = Bun.spawnSync([tarExecutable, "-xOzf", archive, "./backup-manifest.json"], { env: environment, stdout: "pipe", stderr: "pipe" })
-      const manifest = manifestResult.stdout.toString()
-      if (manifestResult.exitCode !== 0 || !manifest.trim() || hasSecret(manifest)) {
+      let manifest = ""
+      try { manifest = readTarTextFile(archive, "backup-manifest.json") }
+      catch { /* Invalid archive is reported by the backup step below. */ }
+      if (!manifest.trim() || hasSecret(manifest)) {
         backup.step.status = "FAIL"; backup.step.reason = "Backup manifest could not be read or contained credential-shaped material."
       } else backup.step.evidence = "archive exists; manifest parsed and secret scan clean"
     } else if (backup.step.status === "PASS") { backup.step.status = "FAIL"; backup.step.reason = "Backup command did not produce an archive." }

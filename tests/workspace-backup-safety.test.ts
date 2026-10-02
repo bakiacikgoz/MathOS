@@ -10,6 +10,7 @@ import { MathOS, backupWorkspace } from "@mathos/core"
 import { FakeLeanAdapter } from "@mathos/lean"
 import { FakeVcs } from "@mathos/vcs"
 import { BackupIntegrityFailed } from "@mathos/shared"
+import { extractTarArchive, writeTarGzip } from "@mathos/shared/archive"
 import { SCHEMA_EPOCH } from "@mathos/storage"
 
 const roots: string[] = []
@@ -44,27 +45,11 @@ function archive(entries: Array<{ path: string; body?: Buffer | string; type?: "
   return file
 }
 
-function nativeTar(): string {
-  if (process.platform !== "win32") return "tar"
-  const systemRoot = process.env.SystemRoot ?? process.env.WINDIR
-  if (!systemRoot) throw new Error("Windows SystemRoot missing for archive fixture")
-  const binary = join(systemRoot, "System32", "tar.exe")
-  if (!existsSync(binary)) throw new Error(`Windows native tar missing: ${binary}`)
-  return binary
-}
-
-function tar(args: string[]): void {
-  const result = spawnSync(nativeTar(), args, { encoding: "utf8" })
-  if (result.status !== 0) throw new Error(result.stderr || `tar failed: ${args.join(" ")}`)
-}
-
-test("backup and restore choose Windows native tar even when Git tar is first on PATH", async () => {
-  if (process.platform !== "win32") return
+test.skipIf(process.platform !== "win32" || !existsSync(join(process.env.ProgramFiles ?? "C:\\Program Files", "Git", "usr", "bin", "tar.exe")))("backup and restore are independent of which tar is first on PATH", async () => {
   const gitTar = join(process.env.ProgramFiles ?? "C:\\Program Files", "Git", "usr", "bin", "tar.exe")
-  if (!existsSync(gitTar)) return
-  if (process.env.MATHOS_NATIVE_TAR_CHILD !== "1") {
-    const environment = { ...process.env, PATH: `${dirname(gitTar)}${delimiter}${process.env.PATH ?? ""}`, MATHOS_NATIVE_TAR_CHILD: "1" }
-    const result = spawnSync(process.execPath, ["test", join(import.meta.dir, "workspace-backup-safety.test.ts"), "--test-name-pattern", "backup and restore choose Windows native tar"], {
+  if (process.env.MATHOS_TAR_PATH_CHILD !== "1") {
+    const environment = { ...process.env, PATH: `${dirname(gitTar)}${delimiter}${process.env.PATH ?? ""}`, MATHOS_TAR_PATH_CHILD: "1" }
+    const result = spawnSync(process.execPath, ["test", join(import.meta.dir, "workspace-backup-safety.test.ts"), "--test-name-pattern", "backup and restore are independent of which tar is first on PATH"], {
       cwd: join(import.meta.dir, ".."), env: environment, encoding: "utf8", timeout: 60_000,
     })
     expect(result.status).toBe(0)
@@ -74,25 +59,45 @@ test("backup and restore choose Windows native tar even when Git tar is first on
   const selected = spawnSync(join(process.env.SystemRoot!, "System32", "where.exe"), ["tar.exe"], { encoding: "utf8" }).stdout.split(/\r?\n/)[0]?.trim()
   expect(selected?.toLowerCase()).toBe(gitTar.toLowerCase())
   const parent = temp()
-  const created = await MathOS.init(join(parent, "source"), "native-tar")
+  const created = await MathOS.init(join(parent, "source"), "tar-path-independent")
   const app = MathOS.open(created.root)
   let archivePath = ""
   try {
-    const claim = app.createClaim({ kind: "conjecture", title: "native tar", statement: "True", asMainObjective: true })
+    const claim = app.createClaim({ kind: "conjecture", title: "tar independent", statement: "True", asMainObjective: true })
     archivePath = app.backup(join(parent, "backups")).archive
     const restored = MathOS.restore(archivePath, join(parent, "restored"))
     const reopened = MathOS.open(restored.root)
-    try { expect(reopened.getClaim(claim.id).title).toBe("native tar") }
+    try { expect(reopened.getClaim(claim.id).title).toBe("tar independent") }
     finally { reopened.close() }
   } finally { app.close() }
 })
 
+test("backup and restore preserve Turkish paths, filenames and content", async () => {
+  const parent = temp()
+  const created = await MathOS.init(join(parent, "Çalışma alanı"), "ölçüm")
+  const sourceFile = join(created.root, "research", "ölçüm-π.txt")
+  mkdirSync(dirname(sourceFile), { recursive: true })
+  writeFileSync(sourceFile, "İstanbul, ölçüm ve π sabit kalır.\n")
+  const app = MathOS.open(created.root)
+  let claimId: string, archivePath: string
+  try {
+    claimId = app.createClaim({ kind: "conjecture", title: "ölçüm", statement: "π = π", asMainObjective: true }).id
+    archivePath = app.backup(join(parent, "Yedekler Türkçe")).archive
+  } finally { app.close() }
+  const target = join(parent, "Geri Yüklenen")
+  const restored = MathOS.restore(archivePath, target)
+  expect(readFileSync(join(restored.root, "research", "ölçüm-π.txt"), "utf8")).toBe("İstanbul, ölçüm ve π sabit kalır.\n")
+  const copy = MathOS.open(restored.root)
+  try { expect(copy.getClaim(claimId).title).toBe("ölçüm") }
+  finally { copy.close() }
+})
+
 function repack(source: string, edit: (folder: string) => void): string {
   const folder = temp()
-  tar(["-xzf", source, "-C", folder])
+  extractTarArchive(source, folder)
   edit(folder)
   const target = join(temp(), "edited.tgz")
-  tar(["-czf", target, "-C", folder, "."])
+  writeTarGzip(folder, target)
   return target
 }
 
@@ -253,6 +258,13 @@ test("restore accepts an older checkpointed WAL-header backup without sidecars",
   const empty = join(parent, "restored")
   mkdirSync(empty)
   const restored = MathOS.restore(oldFormat, empty)
+  const restoredDbPath = join(restored.root, ".mathos", "mathos.db")
+  const normalized = new Database(restoredDbPath, { readonly: true })
+  try { expect(normalized.query<{ journal_mode: string }, []>("PRAGMA journal_mode").get()?.journal_mode).toBe("delete") }
+  finally { normalized.close() }
+  expect(existsSync(`${restoredDbPath}-wal`)).toBe(false)
+  expect(existsSync(`${restoredDbPath}-shm`)).toBe(false)
+  expect(readdirSync(parent).some((name) => name.startsWith(".mathos-restore-staging-"))).toBe(false)
   const copy = MathOS.open(restored.root)
   try { expect(copy.getClaim(claimId).title).toBe("preserved") }
   finally { copy.close() }

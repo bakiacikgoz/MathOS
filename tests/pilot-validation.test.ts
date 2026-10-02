@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test"
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs"
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { canonicalPilotHash, normalizePilotText, redactPilotText, runPilotValidation } from "../scripts/pilot-validation.ts"
@@ -26,6 +26,18 @@ describe("fresh-user pilot validation", () => {
     expect(normalizePilotText(oldName, "", "")).toBe("mathos-backup-<timestamp>.tgz")
     expect(normalizePilotText(uniqueName, "", "")).toBe("mathos-backup-<timestamp>.tgz")
     expect(normalizePilotText("mathos-backup-unsupported.tgz", "", "")).toBe("mathos-backup-unsupported.tgz")
+  })
+
+  test("normalizes an existing root's physical path when the caller uses an alias", () => {
+    const container = mkdtempSync(join(tmpdir(), "pilot-alias-")); dirs.push(container)
+    const physical = join(container, "physical")
+    const alias = join(container, "alias")
+    mkdirSync(physical)
+    symlinkSync(physical, alias, process.platform === "win32" ? "junction" : "dir")
+    const longPath = realpathSync(physical).replaceAll("\\", "/")
+    expect(normalizePilotText(`${longPath}/pilot`, alias, "")).toBe("<pilot-root>/pilot")
+    expect(normalizePilotText(`${longPath}/scripts`, "", alias)).toBe("<repo>/scripts")
+    expect(normalizePilotText(`${longPath}-unrelated/pilot`, alias, "")).toBe(`${longPath}-unrelated/pilot`)
   })
 
   test("canonical hash excludes only declared volatile generation time", () => {

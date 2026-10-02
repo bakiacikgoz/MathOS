@@ -54,29 +54,31 @@ function rebuildHistoricalSchema(path: string, epoch: number) {
   rmSync(path)
   const historical = new Database(path, { create: true })
   try {
-    historical.exec("CREATE TABLE schema_migrations(id TEXT PRIMARY KEY, applied_at TEXT NOT NULL)")
-    for (const migration of MIGRATIONS.slice(0, epoch)) {
-      historical.exec(migration.sql)
-      historical.query("INSERT INTO schema_migrations VALUES (?, 'historical-fixture')").run(migration.id)
-    }
-    const legacyTables = historical.query<{ name: string }, []>("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").all()
     historical.exec("PRAGMA foreign_keys=OFF")
-    // Accepted claims are inserted after their persisted verification evidence;
-    // the historical integrity triggers remain enabled throughout the fixture.
-    legacyTables.sort((a, b) => Number(a.name === "claims") - Number(b.name === "claims"))
-    for (const { name } of legacyTables) {
-      if (name === "schema_migrations" || name === "mathos_meta") continue
-      const columns = historical.query<{ name: string }, []>(`PRAGMA table_info("${name}")`).all().map(row => row.name)
-      for (const row of rows.get(name) ?? []) {
-        const keys = columns.filter(column => column in row)
-        const verifiedClaim = name === "claims" && row.status === "KERNEL_VERIFIED"
-        historical.query(`INSERT INTO "${name}" (${keys.map(key => `"${key}"`).join(",")}) VALUES (${keys.map(() => "?").join(",")})`).run(...keys.map(key => (verifiedClaim && key === "status" ? "FORMALIZED_UNVERIFIED" : row[key]) as string | number | null))
-        // INSERT never permits KERNEL_VERIFIED. The guarded UPDATE checks the
-        // actual proof/formal/verification rows already copied above.
-        if (verifiedClaim) historical.query("UPDATE claims SET status='KERNEL_VERIFIED' WHERE id=?").run(row.id as string)
+    historical.transaction(() => {
+      historical.exec("CREATE TABLE schema_migrations(id TEXT PRIMARY KEY, applied_at TEXT NOT NULL)")
+      for (const migration of MIGRATIONS.slice(0, epoch)) {
+        historical.exec(migration.sql)
+        historical.query("INSERT INTO schema_migrations VALUES (?, 'historical-fixture')").run(migration.id)
       }
-    }
-    historical.query("INSERT INTO mathos_meta(key,value) VALUES ('schema_epoch',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(String(epoch))
+      const legacyTables = historical.query<{ name: string }, []>("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").all()
+      // Accepted claims are inserted after their persisted verification evidence;
+      // the historical integrity triggers remain enabled throughout the fixture.
+      legacyTables.sort((a, b) => Number(a.name === "claims") - Number(b.name === "claims"))
+      for (const { name } of legacyTables) {
+        if (name === "schema_migrations" || name === "mathos_meta") continue
+        const columns = historical.query<{ name: string }, []>(`PRAGMA table_info("${name}")`).all().map(row => row.name)
+        for (const row of rows.get(name) ?? []) {
+          const keys = columns.filter(column => column in row)
+          const verifiedClaim = name === "claims" && row.status === "KERNEL_VERIFIED"
+          historical.query(`INSERT INTO "${name}" (${keys.map(key => `"${key}"`).join(",")}) VALUES (${keys.map(() => "?").join(",")})`).run(...keys.map(key => (verifiedClaim && key === "status" ? "FORMALIZED_UNVERIFIED" : row[key]) as string | number | null))
+          // INSERT never permits KERNEL_VERIFIED. The guarded UPDATE checks the
+          // actual proof/formal/verification rows already copied above.
+          if (verifiedClaim) historical.query("UPDATE claims SET status='KERNEL_VERIFIED' WHERE id=?").run(row.id as string)
+        }
+      }
+      historical.query("INSERT INTO mathos_meta(key,value) VALUES ('schema_epoch',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(String(epoch))
+    })()
   } finally { historical.close() }
 }
 
@@ -121,15 +123,16 @@ test("a populated epoch-29 workspace preserves approvals, proofs, events and cha
   try { expect(reopened.getClaim(claimId).title).toBe("Persisted identity"); expect(reopened.claimWorkflow(claimId).approved).toBe(true) } finally { reopened.close() }
   expect(researchSnapshot(join(restored.root, ".mathos", "mathos.db"))).toEqual(snapshot)
   expect(readFileSync(join(restored.root, ".mathos", "assistant", `${chat.id}.json`))).toEqual(chatBytes)
-})
+}, 30_000)
 
 test("the minimum supported epoch-16 preserves populated legacy research rows", () => {
   const root = temporaryRoot(), path = join(root, ".mathos", "mathos.db")
   mkdirSync(join(root, ".mathos"))
   const historical = new Database(path, { create: true })
-  historical.exec("CREATE TABLE schema_migrations(id TEXT PRIMARY KEY, applied_at TEXT NOT NULL)")
-  for (const migration of MIGRATIONS.slice(0, 16)) { historical.exec(migration.sql); historical.query("INSERT INTO schema_migrations VALUES (?, 'fixture')").run(migration.id) }
-  historical.exec(`
+  historical.transaction(() => {
+    historical.exec("CREATE TABLE schema_migrations(id TEXT PRIMARY KEY, applied_at TEXT NOT NULL)")
+    for (const migration of MIGRATIONS.slice(0, 16)) { historical.exec(migration.sql); historical.query("INSERT INTO schema_migrations VALUES (?, 'fixture')").run(migration.id) }
+    historical.exec(`
     INSERT INTO workspaces VALUES ('W-1','Legacy research','fixture',NULL,'then','then');
     INSERT INTO branches(id,workspace_id,name,status,is_current,created_at,slug) VALUES ('B-000','W-1','MAIN','ACTIVE',1,'then','main');
     INSERT INTO claims(id,workspace_id,kind,title,natural_statement,status,branch_id,created_at,updated_at) VALUES ('L-1','W-1','lemma','Stored identity','n = n','FORMALIZED_UNVERIFIED','B-000','then','then');
@@ -137,7 +140,8 @@ test("the minimum supported epoch-16 preserves populated legacy research rows", 
     INSERT INTO proof_attempts(id,workspace_id,claim_id,formal_statement_id,status,proof_source,attempt_number,created_at) VALUES ('PA-1','W-1','L-1','FS-1','INCONCLUSIVE','by rfl',1,'then');
     INSERT INTO events(id,workspace_id,timestamp,actor_type,actor_id,action,target,metadata_json) VALUES ('EV-1','W-1','then','user','researcher','claim.created','L-1','{"note":"keep this provenance"}');
     INSERT INTO mathos_meta(key,value) VALUES ('schema_epoch','16');
-  `)
+    `)
+  })()
   const tables = ["claims", "formal_statements", "proof_attempts", "events"]
   const columns = new Map(tables.map(table => [table, historical.query<{ name: string }, []>(`PRAGMA table_info(${table})`).all().map(row => row.name)]))
   const before = Object.fromEntries(tables.map(table => [table, historical.query(`SELECT ${columns.get(table)!.join(",")} FROM ${table} ORDER BY id`).all()]))

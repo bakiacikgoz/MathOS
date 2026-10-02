@@ -1,8 +1,9 @@
 import { afterEach, expect, test } from "bun:test"
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { delimiter, dirname, join, resolve, sep } from "node:path"
 import { PersistentPluginRegistry } from "@mathos/plugins"
+import { writeTarGzip } from "@mathos/shared/archive"
 
 const roots: string[] = []
 function temp(): string { const root = mkdtempSync(join(tmpdir(), "mathos-plugin-archive-")); roots.push(root); return root }
@@ -57,6 +58,18 @@ test("plugin archive installs regular files from a versioned root", () => {
   expect(readFileSync(join(installed.installPath, "main.js"), "utf8")).toBe("process.exit(0)")
 })
 
+test("plugin archive installs a gzip package with Unicode payload names", () => {
+  const root = temp(), packageRoot = join(root, "source", "plugin"), registry = new PersistentPluginRegistry(join(root, "Türkçe Veri"))
+  mkdirSync(packageRoot, { recursive: true })
+  writeFileSync(join(packageRoot, "mathos-plugin.json"), manifest)
+  writeFileSync(join(packageRoot, "main.js"), "process.exit(0)")
+  writeFileSync(join(packageRoot, "Özet.txt"), "Türkçe içerik")
+  const packed = join(root, "package.tar.gz")
+  writeTarGzip(dirname(packageRoot), packed, ["plugin"])
+  const installed = registry.install(packed)
+  expect(readFileSync(join(installed.installPath, "Özet.txt"), "utf8")).toBe("Türkçe içerik")
+})
+
 test("plugin archive rejects traversal before writing outside the extraction root", () => {
   const root = temp(), registry = new PersistentPluginRegistry(join(root, "data"))
   const canary = join(root, "outside.txt")
@@ -64,6 +77,13 @@ test("plugin archive rejects traversal before writing outside the extraction roo
   const crafted = archive(root, [...validEntries, { name: "plugin/../../outside.txt", body: "modified" }])
   expect(() => registry.install(crafted)).toThrow("PLUGIN_ARCHIVE_TRAVERSAL")
   expect(readFileSync(canary, "utf8")).toBe("untouched")
+  expect(registry.list()).toEqual([])
+})
+
+test("plugin archive rejects duplicate member names before activation", () => {
+  const root = temp(), registry = new PersistentPluginRegistry(join(root, "data"))
+  const crafted = archive(root, [...validEntries, { name: "plugin/main.js", body: "process.exit(1)" }])
+  expect(() => registry.install(crafted)).toThrow("DUPLICATE")
   expect(registry.list()).toEqual([])
 })
 
@@ -84,13 +104,13 @@ for (const type of ["2", "1"] as const) {
   })
 }
 
-test.skipIf(process.platform !== "win32" || !existsSync(windowsGitTar))("plugin archive uses native Windows tar even when Git tar is first on PATH", () => {
+test.skipIf(process.platform !== "win32" || !existsSync(windowsGitTar))("plugin archive installs Unicode names when Git tar is first on PATH", () => {
   const gitTar = windowsGitTar
   if (process.env.MATHOS_PLUGIN_ARCHIVE_CHILD !== "1") {
     const environment: Record<string, string | undefined> = { ...process.env, MATHOS_PLUGIN_ARCHIVE_CHILD: "1" }
     for (const key of Object.keys(environment)) if (key.toLowerCase() === "path") delete environment[key]
     environment.Path = `${dirname(gitTar)}${delimiter}${process.env.PATH ?? ""}`
-    const result = Bun.spawnSync([process.execPath, "test", join(import.meta.dir, "plugin-archive-safety.test.ts"), "--test-name-pattern", "plugin archive uses native Windows tar"], {
+    const result = Bun.spawnSync([process.execPath, "test", join(import.meta.dir, "plugin-archive-safety.test.ts"), "--test-name-pattern", "plugin archive installs Unicode names when Git tar"], {
       cwd: join(import.meta.dir, ".."), env: environment,
       stdout: "pipe", stderr: "pipe",
     })
@@ -101,6 +121,19 @@ test.skipIf(process.platform !== "win32" || !existsSync(windowsGitTar))("plugin 
   }
   const selected = Bun.spawnSync([join(process.env.SystemRoot!, "System32", "where.exe"), "tar.exe"], { stdout: "pipe" }).stdout.toString().split(/\r?\n/)[0]?.trim()
   expect(selected?.toLowerCase()).toBe(gitTar.toLowerCase())
-  const root = temp(), registry = new PersistentPluginRegistry(join(root, "data"))
-  expect(registry.install(archive(root, validEntries)).id).toBe("example.solver")
+  const root = temp(), dataRoot = join(root, "Türkçe Veri"), sourceRoot = join(root, "Kaynak Dosyalar")
+  const packageRoot = join(sourceRoot, "plugin")
+  mkdirSync(packageRoot, { recursive: true })
+  writeFileSync(join(packageRoot, "mathos-plugin.json"), manifest)
+  writeFileSync(join(packageRoot, "main.js"), "process.exit(0)")
+  writeFileSync(join(packageRoot, "Özet.txt"), "Türkçe içerik")
+  writeFileSync(join(packageRoot, "measurement-π.txt"), "pi")
+  const packed = join(sourceRoot, "plugin.tar.gz")
+  writeTarGzip(sourceRoot, packed, ["plugin"])
+  const registry = new PersistentPluginRegistry(dataRoot)
+  const installed = registry.install(packed)
+  expect(installed.id).toBe("example.solver")
+  expect(readdirSync(installed.installPath)).toContain("Özet.txt")
+  expect(readFileSync(join(installed.installPath, "Özet.txt"), "utf8")).toBe("Türkçe içerik")
+  expect(readFileSync(join(installed.installPath, "measurement-π.txt"), "utf8")).toBe("pi")
 })

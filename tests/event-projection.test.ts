@@ -5,6 +5,7 @@ import { join, resolve } from "node:path"
 import { MathOS } from "@mathos/core"
 import { DatabaseClient, EventRepository } from "@mathos/storage"
 import { databasePath, eventLogPath } from "@mathos/shared"
+import { runOwnedProcess } from "./helpers/native-case-runner.ts"
 
 const temps: string[] = []
 const repositoryRoot = resolve(import.meta.dir, "..")
@@ -95,8 +96,7 @@ describe("canonical event projection", () => {
   })
 })
 
-test("hard process exits recover deterministically at every transaction/projection boundary", async () => {
-  const boundaries = [
+const crashBoundaries = [
     ["before_domain_mutation", false, false],
     ["after_domain_mutation", false, false],
     ["before_db_event", false, false],
@@ -105,9 +105,24 @@ test("hard process exits recover deterministically at every transaction/projecti
     ["before_jsonl_append", true, false],
     ["after_jsonl_append", true, true],
   ] as const
-  for (const [point, committed, projected] of boundaries) {
-    const created = await MathOS.init(tempDir(), `hard-${point}`)
-    const child = Bun.spawnSync([process.execPath, join(import.meta.dir, "fixtures/event-crash-child.ts"), created.root, point], { cwd: repositoryRoot, stdout: "pipe", stderr: "pipe" })
+for (const [point, committed, projected] of crashBoundaries) {
+  test(`hard process exit at ${point} recovers transaction/projection state`, async () => {
+    const root = tempDir()
+    const created = await MathOS.init(root, `hard-${point}`)
+    let child
+    try {
+      child = await runOwnedProcess([process.execPath, join(import.meta.dir, "fixtures/event-crash-child.ts"), created.root, point], { cwd: repositoryRoot, env: process.env, budgetMs: 10_000 })
+    } catch (error) {
+      // An unconfirmed shutdown retains its fixture instead of deleting files
+      // beneath a possibly live process. The error reports the owned PID.
+      if (error instanceof Error && error.message.includes("shutdown is unconfirmed")) {
+        const index = temps.indexOf(root)
+        if (index >= 0) temps.splice(index, 1)
+        throw new Error(`Crash fixture retained at ${root}: ${error.message}`, { cause: error })
+      }
+      throw error
+    }
+    expect(child.timedOut).toBe(false)
     expect(child.exitCode).toBe(77)
     const db = new DatabaseClient(databasePath(created.root)); const workspace = db.db.query<{id:string},[]>("SELECT id FROM workspaces").get()!
     const claimCount = Number(db.db.query<{n:number},[]>("SELECT COUNT(*) AS n FROM claims").get()!.n)
@@ -122,8 +137,8 @@ test("hard process exits recover deterministically at every transaction/projecti
     recovered.rebuildEventProjection()
     expect(recovered.eventProjectionHealth().status).toBe("HEALTHY")
     recovered.close()
-  }
-})
+  }, 90_000) // Includes the owned process's bounded tree shutdown and close checks.
+}
 
 test("rebuild serializes with a live cross-process writer", async () => {
   const created = await MathOS.init(tempDir(), "concurrent-rebuild")

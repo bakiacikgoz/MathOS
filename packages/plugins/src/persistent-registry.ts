@@ -1,22 +1,18 @@
 import { createHash } from "node:crypto"
 import { closeSync, copyFileSync, cpSync, existsSync, fsyncSync, lstatSync, mkdirSync, mkdtempSync, openSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from "node:fs"
 import { join, resolve } from "node:path"
+import { ArchiveSafetyError, extractTarArchive, inspectTarArchive } from "@mathos/shared/archive"
 import { parsePluginManifest } from "./manifest.ts"
 
 export interface InstalledPluginRecord { id:string;version:string;apiVersion:number;installPath:string;checksum:string;enabled:boolean;state:"ENABLED"|"DISABLED"|"QUARANTINED"|"INCOMPATIBLE";capabilities:string[] }
 function files(root:string,current=root):string[]{const rows:string[]=[];for(const name of readdirSync(current).sort()){const path=join(current,name),stat=lstatSync(path);if(stat.isSymbolicLink())throw new Error("PLUGIN_SYMLINK_REJECTED");if(stat.isDirectory())rows.push(...files(root,path));else if(stat.isFile())rows.push(path)}return rows}
 function checksum(root:string){const hash=createHash("sha256");for(const path of files(root)){hash.update(path.slice(root.length+1).replaceAll("\\","/"));hash.update(readFileSync(path))}return hash.digest("hex")}
-function archiveTar():string{if(process.platform!=="win32")return"tar";const systemRoot=process.env.SystemRoot??process.env.WINDIR;const binary=systemRoot?join(systemRoot,"System32","tar.exe"):"";if(!binary||!existsSync(binary))throw new Error("PLUGIN_ARCHIVE_TAR_UNAVAILABLE");return binary}
-function archiveEntries(tar:string,archive:string):void{
-  const listing=Bun.spawnSync([tar,"-tf",archive],{stdout:"pipe",stderr:"pipe"})
-  if(listing.exitCode!==0)throw new Error("PLUGIN_ARCHIVE_INVALID")
-  const names=listing.stdout.toString().split(/\r?\n/).filter(Boolean)
-  for(const path of names)if(path.startsWith("/")||path.includes("\\")||/[\x00-\x1f\x7f]/.test(path)||/^[A-Za-z]:/.test(path)||path.split("/").includes(".."))throw new Error("PLUGIN_ARCHIVE_TRAVERSAL")
-  const verbose=Bun.spawnSync([tar,"-tvf",archive],{stdout:"pipe",stderr:"pipe"})
-  if(verbose.exitCode!==0)throw new Error("PLUGIN_ARCHIVE_INVALID")
-  const entries=verbose.stdout.toString().split(/\r?\n/).filter(Boolean)
-  if(entries.length!==names.length)throw new Error("PLUGIN_ARCHIVE_INVALID")
-  for(const entry of entries)if(entry[0]!=="-"&&entry[0]!=="d")throw new Error("PLUGIN_ARCHIVE_ENTRY_TYPE_UNSAFE")
+function pluginArchiveFailure(error:unknown,fallback:string):Error{
+  if(error instanceof ArchiveSafetyError){
+    const codes:Record<string,string>={TRAVERSAL:"PLUGIN_ARCHIVE_TRAVERSAL",ENTRY_TYPE_UNSAFE:"PLUGIN_ARCHIVE_ENTRY_TYPE_UNSAFE",DUPLICATE:"PLUGIN_ARCHIVE_DUPLICATE",INVALID:"PLUGIN_ARCHIVE_INVALID"}
+    return new Error(codes[error.code]??fallback,{cause:error})
+  }
+  return new Error(fallback,{cause:error})
 }
 
 export class PersistentPluginRegistry {
@@ -32,11 +28,9 @@ export class PersistentPluginRegistry {
     const archive=join(staging,"plugin.tar"),extracted=join(staging,"extracted")
     try{
       copyFileSync(absolute,archive)
-      const tar=archiveTar()
-      archiveEntries(tar,archive)
+      try{inspectTarArchive(archive)}catch(error){throw pluginArchiveFailure(error,"PLUGIN_ARCHIVE_INVALID")}
       mkdirSync(extracted)
-      const extraction=Bun.spawnSync([tar,"-xf",archive,"-C",extracted],{stdout:"pipe",stderr:"pipe"})
-      if(extraction.exitCode!==0)throw new Error("PLUGIN_ARCHIVE_EXTRACTION_FAILED")
+      try{extractTarArchive(archive,extracted)}catch(error){throw pluginArchiveFailure(error,"PLUGIN_ARCHIVE_EXTRACTION_FAILED")}
       const entries=readdirSync(extracted)
       const root=entries.length===1&&lstatSync(join(extracted,entries[0]!)).isDirectory()?join(extracted,entries[0]!):extracted
       return this.activate(root,null)

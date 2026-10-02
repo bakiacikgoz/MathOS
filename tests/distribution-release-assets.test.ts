@@ -1,8 +1,9 @@
 import { expect, test } from "bun:test"
 import { createHash } from "node:crypto"
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from "node:fs"
+import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { dirname, join, resolve } from "node:path"
+import { basename, dirname, join, resolve } from "node:path"
+import { inspectTarArchive } from "@mathos/shared/archive"
 
 test("release checksum file covers every target archive with hashes of archive bytes", () => {
   const output = mkdtempSync(join(tmpdir(), "mathos-release-sums-"))
@@ -27,12 +28,12 @@ test("release checksum file covers every target archive with hashes of archive b
   } finally { rmSync(output, { recursive: true, force: true }) }
 })
 
-test.skipIf(process.platform !== "win32")("release archive uses Windows tar when Git tar is first on PATH", () => {
+test.skipIf(process.platform !== "win32")("release archive writes usable TAR when Git tar is first on PATH", () => {
   const output = mkdtempSync(join(tmpdir(), "mathos-release-tar-"))
   try {
-    const releaseRoot = join(output, "root"), archivePath = join(output, "sürüm", "release.tar.gz")
-    mkdirSync(releaseRoot)
-    mkdirSync(dirname(archivePath))
+    const releaseRoot = join(output, "Sürüm Kökü", "root"), archivePath = join(output, "Sürüm Kökü", "paketler", "release.tar.gz")
+    mkdirSync(releaseRoot, { recursive: true })
+    mkdirSync(dirname(archivePath), { recursive: true })
     writeFileSync(join(releaseRoot, "NOTICE"), "Windows archive")
     const gitTar = join(process.env.ProgramFiles ?? "C:\\Program Files", "Git", "usr", "bin", "tar.exe")
     expect(existsSync(gitTar)).toBe(true)
@@ -47,9 +48,37 @@ test.skipIf(process.platform !== "win32")("release archive uses Windows tar when
     if (result.exitCode !== 0) throw new Error(`Release archive failed: ${result.stderr.toString()}`)
     expect(existsSync(archivePath)).toBe(true)
     const nativeTar = join(process.env.SystemRoot ?? "C:\\Windows", "System32", "tar.exe")
-    const listing = Bun.spawnSync([nativeTar, "-tzf", archivePath], { stdout: "pipe", stderr: "pipe" })
+    const listing = Bun.spawnSync([nativeTar, "-tzf", basename(archivePath)], { cwd: dirname(archivePath), stdout: "pipe", stderr: "pipe" })
     if (listing.exitCode !== 0) throw new Error(`Release archive unreadable: ${listing.stderr.toString()}`)
     expect(listing.stdout.toString()).toContain("root/NOTICE")
+  } finally { rmSync(output, { recursive: true, force: true }) }
+})
+
+test("release archive rejects non-ASCII member names required by PowerShell bootstrap", () => {
+  const output = mkdtempSync(join(tmpdir(), "mathos-release-ascii-"))
+  try {
+    const releaseRoot = join(output, "root"), archivePath = join(output, "release.tar.gz")
+    mkdirSync(releaseRoot)
+    writeFileSync(join(releaseRoot, "Özet.txt"), "content")
+    const { createReleaseArchive } = require("../scripts/distribution/build-release.ts")
+    expect(() => createReleaseArchive(releaseRoot, archivePath)).toThrow("RELEASE_ARCHIVE_ENTRY_NON_ASCII")
+    expect(existsSync(archivePath)).toBe(false)
+  } finally { rmSync(output, { recursive: true, force: true }) }
+})
+
+test.skipIf(process.platform === "win32")("release archive preserves executable mode in POSIX package", () => {
+  const output = mkdtempSync(join(tmpdir(), "mathos-release-mode-"))
+  try {
+    const releaseRoot = join(output, "root"), archivePath = join(output, "release.tar.gz")
+    mkdirSync(join(releaseRoot, "bin"), { recursive: true })
+    const binary = join(releaseRoot, "bin", "mathos")
+    writeFileSync(binary, "#!/bin/sh\nexit 0\n")
+    chmodSync(binary, 0o755)
+    const { createReleaseArchive } = require("../scripts/distribution/build-release.ts")
+    createReleaseArchive(releaseRoot, archivePath)
+    const entry = inspectTarArchive(archivePath).find(row => row.path === "root/bin/mathos")
+    expect(entry).toBeDefined()
+    expect(entry!.mode & 0o111).toBe(0o111)
   } finally { rmSync(output, { recursive: true, force: true }) }
 })
 

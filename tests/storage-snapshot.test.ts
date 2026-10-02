@@ -15,12 +15,14 @@ afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: 
 
 function historicalDatabase(path: string, epoch: number): Database {
   const database = new Database(path, { create: true })
-  database.exec("CREATE TABLE schema_migrations(id TEXT PRIMARY KEY, applied_at TEXT NOT NULL)")
-  for (const migration of MIGRATIONS.slice(0, epoch)) {
-    database.exec(migration.sql)
-    database.query("INSERT INTO schema_migrations VALUES (?, 'fixture')").run(migration.id)
-  }
-  database.query("INSERT INTO mathos_meta(key,value) VALUES ('schema_epoch',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(String(epoch))
+  database.transaction(() => {
+    database.exec("CREATE TABLE schema_migrations(id TEXT PRIMARY KEY, applied_at TEXT NOT NULL)")
+    for (const migration of MIGRATIONS.slice(0, epoch)) {
+      database.exec(migration.sql)
+      database.query("INSERT INTO schema_migrations VALUES (?, 'fixture')").run(migration.id)
+    }
+    database.query("INSERT INTO mathos_meta(key,value) VALUES ('schema_epoch',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(String(epoch))
+  })()
   database.exec("PRAGMA journal_mode=WAL; PRAGMA wal_autocheckpoint=0")
   return database
 }

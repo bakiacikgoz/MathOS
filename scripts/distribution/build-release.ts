@@ -1,8 +1,9 @@
 #!/usr/bin/env bun
-import { copyFileSync,existsSync,mkdirSync,readFileSync,readdirSync,rmSync,writeFileSync } from "node:fs"
+import { copyFileSync,mkdirSync,readFileSync,readdirSync,rmSync,writeFileSync } from "node:fs"
 import { createHash } from "node:crypto"
-import { dirname,join,resolve } from "node:path"
+import { basename, dirname,join,resolve } from "node:path"
 import { MATHOS_PRODUCT_VERSION,assertProductVersionAlignment,createReleaseManifest,currentBuildIdentity,readProductSurfaceVersions } from "@mathos/shared"
+import { writeTarGzip } from "@mathos/shared/archive"
 import { packageAtlas } from "./package-atlas.ts"
 import { packageVscodeBridge } from "./package-vscode.ts"
 import { createReleaseDependencyInventory } from "./dependency-inventory.ts"
@@ -30,10 +31,16 @@ export function packageReleaseLegalMetadata(sourceRoot:string,releaseRoot:string
   return["LICENSE","NOTICE","SOURCE.json"]
 }
 export function createReleaseArchive(releaseRoot:string,archivePath:string):void{
-  const tarTool=process.platform==="win32"?join(process.env.SystemRoot??"C:\\Windows","System32","tar.exe"):"tar"
-  if(process.platform==="win32"&&!existsSync(tarTool))throw new Error(`WINDOWS_TAR_MISSING:${tarTool}`)
-  const tar=Bun.spawnSync([tarTool,"-czf",archivePath,"-C",dirname(releaseRoot),"root"],{stdout:"pipe",stderr:"pipe"})
-  if(tar.exitCode!==0)throw new Error(`RELEASE_ARCHIVE_FAILED:${new TextDecoder().decode(tar.stderr)}`)
+  function assertAsciiEntries(directory:string):void{
+    for(const entry of readdirSync(directory,{withFileTypes:true})){
+      if(!/^[\x20-\x7e]+$/.test(entry.name))throw new Error(`RELEASE_ARCHIVE_ENTRY_NON_ASCII:${entry.name}`)
+      if(entry.isDirectory())assertAsciiEntries(join(directory,entry.name))
+    }
+  }
+  const rootName=basename(releaseRoot)
+  if(!/^[\x20-\x7e]+$/.test(rootName))throw new Error(`RELEASE_ARCHIVE_ENTRY_NON_ASCII:${rootName}`)
+  assertAsciiEntries(releaseRoot)
+  writeTarGzip(dirname(releaseRoot),archivePath,[rootName])
 }
 export async function buildRelease(target=hostReleaseTarget(),outputRoot=join(ROOT,"artifacts","releases")){assertSupportedBun();
   const bunTarget=targetNames[target];if(!bunTarget)throw new Error(`RELEASE_TARGET_UNSUPPORTED:${target}`)

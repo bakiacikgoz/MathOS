@@ -42,20 +42,25 @@ try {
   } finally { $stream.Dispose() }
   if ($actual -ine $expected) { throw "Checksum mismatch: $archiveName" }
 
-  $entries = @(& $tarExecutable -tzf $archivePath)
-  if ($LASTEXITCODE -ne 0) { throw "Archive listing failed: $archiveName" }
-  foreach ($entry in $entries) {
-    if ($entry -notmatch '^root(?:/|$)' -or $entry -match '(^|/)\.{1,2}(/|$)' -or $entry.Contains('\')) {
-      throw "Unsafe archive path: $entry"
+  Push-Location -LiteralPath $temporaryRoot
+  try {
+    $entries = @(& $tarExecutable -tzf 'release.tar.gz')
+    if ($LASTEXITCODE -ne 0) { throw "Archive listing failed: $archiveName" }
+    foreach ($entry in $entries) {
+      if ($entry -notmatch '^root(?:/|$)' -or $entry -match '(^|/)\.{1,2}(/|$)' -or $entry.Contains('\')) {
+        throw "Unsafe archive path: $entry"
+      }
     }
+    $details = @(& $tarExecutable -tvzf 'release.tar.gz')
+    if ($LASTEXITCODE -ne 0) { throw "Archive listing failed: $archiveName" }
+    foreach ($line in $details) {
+      if ($line.Length -eq 0 -or ($line[0] -ne '-' -and $line[0] -ne 'd')) { throw 'Unsafe archive entry type.' }
+    }
+    & $tarExecutable -xzf 'release.tar.gz' -C .
+    if ($LASTEXITCODE -ne 0) { throw "Archive extraction failed: $archiveName" }
+  } finally {
+    Pop-Location
   }
-  $details = @(& $tarExecutable -tvzf $archivePath)
-  if ($LASTEXITCODE -ne 0) { throw "Archive listing failed: $archiveName" }
-  foreach ($line in $details) {
-    if ($line.Length -eq 0 -or ($line[0] -ne '-' -and $line[0] -ne 'd')) { throw 'Unsafe archive entry type.' }
-  }
-  & $tarExecutable -xzf $archivePath -C $temporaryRoot
-  if ($LASTEXITCODE -ne 0) { throw "Archive extraction failed: $archiveName" }
   $sourceRoot = Join-Path $temporaryRoot 'root'
   $sourceBinary = Join-Path $sourceRoot 'bin\mathos.exe'
   $sourceShare = Join-Path $sourceRoot 'share\mathos'

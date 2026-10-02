@@ -4,15 +4,17 @@ import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync,
 import { tmpdir } from "node:os"
 import { dirname, join, resolve } from "node:path"
 import { pathToFileURL } from "node:url"
+import { writeTarGzip } from "@mathos/shared/archive"
 
 test.skipIf(process.platform !== "win32")("PowerShell installer verifies archive and retains assets next to installed CLI", () => {
   const root = mkdtempSync(join(tmpdir(), "mathos-install-win-"))
   try {
-    const bundle = join(root, "bundle"), release = join(root, "sürüm dosyaları"), installed = join(root, "kurulu MathOS")
+    const bundle = join(root, "bundle"), release = join(root, "sürüm dosyaları"), installed = join(root, "kurulu MathOS"), tempFolder = join(root, "Türkçe geçici dizin")
     const version = "1.0.0-rc.1", archive = `mathos-${version}-windows-x64.tar.gz`
     mkdirSync(join(bundle, "root", "bin"), { recursive: true })
     mkdirSync(join(bundle, "root", "share", "mathos", "atlas"), { recursive: true })
     mkdirSync(release)
+    mkdirSync(tempFolder)
     copyFileSync(join(process.env.SystemRoot!, "System32", "curl.exe"), join(bundle, "root", "bin", "mathos.exe"))
     writeFileSync(join(bundle, "root", "share", "mathos", "atlas", "index.html"), "Atlas installed asset")
     writeFileSync(join(bundle, "root", "LICENSE"), "MathOS license")
@@ -23,13 +25,17 @@ test.skipIf(process.platform !== "win32")("PowerShell installer verifies archive
     writeFileSync(join(bundle, "root", "THIRD_PARTY_NOTICES.txt"), "Third party notices")
     const archivePath = join(release, archive)
     const windowsTar = join(process.env.SystemRoot!, "System32", "tar.exe")
-    const tar = Bun.spawnSync([windowsTar, "-czf", archivePath, "-C", bundle, "root"], { stdout: "pipe", stderr: "pipe" })
-    if (tar.exitCode !== 0) throw new Error(`Archive fixture creation failed (${tar.exitCode}): ${tar.stderr.toString()}`)
-    expect(tar.exitCode).toBe(0)
+    writeTarGzip(bundle, archivePath, ["root"])
     const hash = createHash("sha256").update(readFileSync(archivePath)).digest("hex")
     writeFileSync(join(release, "SHA256SUMS"), `${hash}  ${archive}\n`)
     const script = resolve(import.meta.dir, "../scripts/install/install.ps1")
-    const env = { ...process.env, MATHOS_RELEASE_BASE_URL: pathToFileURL(release).href, MATHOS_VERSION: version, MATHOS_INSTALL_ROOT: installed }
+    const env: Record<string, string | undefined> = { ...process.env, MATHOS_RELEASE_BASE_URL: pathToFileURL(release).href, MATHOS_VERSION: version, MATHOS_INSTALL_ROOT: installed }
+    for (const key of Object.keys(env)) if (key.toLowerCase() === "temp" || key.toLowerCase() === "tmp") delete env[key]
+    env.TEMP = tempFolder; env.TMP = tempFolder
+    const tempProbe = Bun.spawnSync(["powershell.exe", "-NoProfile", "-Command", "[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes([IO.Path]::GetTempPath()))"], { env, stdout: "pipe", stderr: "pipe" })
+    if (tempProbe.exitCode !== 0) throw new Error(`TEMP probe failed: ${tempProbe.stderr.toString()}`)
+    const actualTemp = Buffer.from(tempProbe.stdout.toString().trim(), "base64").toString("utf16le")
+    expect(resolve(actualTemp).toLowerCase()).toBe(resolve(tempFolder).toLowerCase())
     const result = Bun.spawnSync(["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script], { env, stdout: "pipe", stderr: "pipe" })
     if (result.exitCode !== 0) throw new Error(result.stderr.toString() || result.stdout.toString())
     expect(existsSync(join(installed, "bin", "mathos.exe"))).toBe(true)
@@ -60,7 +66,7 @@ test.skipIf(process.platform !== "win32")("PowerShell installer verifies archive
     expect(existsSync(join(corruptRoot, "bin", "mathos.exe"))).toBe(false)
 
     linkSync(join(bundle, "root", "share", "mathos", "atlas", "index.html"), join(bundle, "root", "share", "mathos", "atlas", "linked.html"))
-    const malicious = Bun.spawnSync([windowsTar, "-czf", archivePath, "-C", bundle, "root"], { stdout: "pipe", stderr: "pipe" })
+    const malicious = Bun.spawnSync([windowsTar, "-czf", archive, "-C", bundle, "root"], { cwd: release, stdout: "pipe", stderr: "pipe" })
     if (malicious.exitCode !== 0) throw new Error(`Hardlink fixture creation failed (${malicious.exitCode}): ${malicious.stderr.toString()}`)
     expect(malicious.exitCode).toBe(0)
     const maliciousHash = createHash("sha256").update(readFileSync(archivePath)).digest("hex")
@@ -72,7 +78,7 @@ test.skipIf(process.platform !== "win32")("PowerShell installer verifies archive
 
     unlinkSync(join(bundle, "root", "share", "mathos", "atlas", "linked.html"))
     const toPosix = (path: string) => path.replace(/^([A-Za-z]):/, (_, drive: string) => `/${drive.toLowerCase()}`).replaceAll("\\", "/")
-    const transformed = Bun.spawnSync(["C:\\Program Files\\Git\\bin\\bash.exe", "-c", 'tar -czf "$1" --transform="s|^root/share/mathos/atlas/index.html$|root/../outside.txt|" -C "$2" root', "--", toPosix(archivePath), toPosix(bundle)], { stdout: "pipe", stderr: "pipe" })
+    const transformed = Bun.spawnSync(["C:\\Program Files\\Git\\bin\\bash.exe", "-c", 'tar -czf "$1" --transform="s|^root/share/mathos/atlas/index.html$|root/../outside.txt|" -C "$2" root', "--", archive, toPosix(bundle)], { cwd: release, stdout: "pipe", stderr: "pipe" })
     if (transformed.exitCode !== 0) throw new Error(`Traversal fixture creation failed (${transformed.exitCode}): ${transformed.stderr.toString()}`)
     expect(transformed.exitCode).toBe(0)
     const traversalHash = createHash("sha256").update(readFileSync(archivePath)).digest("hex")
