@@ -170,9 +170,15 @@ test("failure within a pending migration rolls back its schema and the pre-migra
   expect(researchSnapshot(path)).toEqual(snapshot)
   const backupDirectory = join(created.root, ".mathos", "backups"), backupName = readdirSync(backupDirectory).find(name => name.startsWith("pre-migration-29-"))!
   expect(backupName).toBeTruthy()
+  const backupPath = join(backupDirectory, backupName)
   const recoveryPath = join(root, "recovered", ".mathos", "mathos.db")
   mkdirSync(join(root, "recovered", ".mathos"), { recursive: true })
-  copyFileSync(join(backupDirectory, backupName), recoveryPath)
+  copyFileSync(backupPath, recoveryPath)
+  const backupBytes = readFileSync(backupPath), recoveredBytes = readFileSync(recoveryPath)
+  expect(recoveredBytes.length).toBeGreaterThan(0)
+  expect(createHash("sha256").update(recoveredBytes).digest("hex")).toBe(createHash("sha256").update(backupBytes).digest("hex"))
+  const inspection = new Database(recoveryPath, { readonly: true })
+  try { expect(inspection.query<{ value: string }, []>("SELECT value FROM mathos_meta WHERE key='schema_epoch'").get()?.value).toBe("29") } finally { inspection.close() }
   const recovered = new DatabaseClient(recoveryPath)
   try { recovered.db.exec("DROP TRIGGER fixture_migration_failure"); recovered.migrate(); expect(recovered.schemaEpoch()).toBe(SCHEMA_EPOCH) } finally { recovered.close() }
   expect(researchSnapshot(recoveryPath)).toEqual(snapshot)

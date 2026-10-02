@@ -13,7 +13,7 @@ test("Windows PowerShell steps cannot hide an earlier failed native command", ()
 })
 
 test("Windows packaging covers root changes, uses immutable actions and locked Rust dependencies", () => {
-  const source = readFileSync(new URL("../.github/workflows/desktop-windows.yml", import.meta.url), "utf8")
+  const source = readFileSync(new URL("../.github/workflows/desktop-windows.yml", import.meta.url), "utf8").replaceAll("\r\n", "\n")
   for (const path of ['"package.json"', '"scripts/**"', '"tests/**"', '"bunfig.toml"']) expect(source).toContain(path)
   for (const match of source.matchAll(/uses:\s+([^\s#]+)/g)) expect(match[1]).toMatch(/@[a-f0-9]{40}$/)
   expect(source).toContain("permissions:\n  contents: read")
@@ -22,7 +22,7 @@ test("Windows packaging covers root changes, uses immutable actions and locked R
 })
 
 test("public build verification covers Windows and native Apple Silicon without pretending to sign or qualify", () => {
-  const source = readFileSync(new URL("../.github/workflows/public-build-verification.yml", import.meta.url), "utf8")
+  const source = readFileSync(new URL("../.github/workflows/public-build-verification.yml", import.meta.url), "utf8").replaceAll("\r\n", "\n")
   for (const runner of ["windows-2025", "macos-15"]) expect(source).toContain(runner)
   for (const command of ["bun test", "bun run typecheck", "bun run release:build", "bun run release:verify", "bun run vscode:package"]) expect(source).toContain(command)
   expect(source.indexOf("bun run vscode:package")).toBeLessThan(source.indexOf("bun run vscode:verify"))
@@ -31,6 +31,26 @@ test("public build verification covers Windows and native Apple Silicon without 
   expect(source).not.toContain("secrets.")
   expect(source).not.toContain("--write-skeleton")
   expect(source).not.toContain("gh release create")
+})
+
+test("public build uses native shells and exposes every failed Bun command", () => {
+  const workflow = Bun.YAML.parse(readFileSync(new URL("../.github/workflows/public-build-verification.yml", import.meta.url), "utf8")) as {
+    jobs: {
+      verify: {
+        strategy: { matrix: { include: Array<{ runner: string; shell: string }> } }
+        defaults: { run: { shell: string } }
+        steps: Array<{ run?: string }>
+      }
+    }
+  }
+  const verify = workflow.jobs.verify
+  expect(verify.strategy.matrix.include).toContainEqual(expect.objectContaining({ runner: "windows-2025", shell: "pwsh" }))
+  expect(verify.strategy.matrix.include).toContainEqual(expect.objectContaining({ runner: "macos-15", shell: "bash" }))
+  expect(verify.defaults.run.shell).toBe("${{ matrix.shell }}")
+  for (const step of verify.steps) {
+    const nativeCommands = step.run?.split("\n").filter(line => /^\s*bun(?:x)?\s/.test(line)) ?? []
+    expect(nativeCommands.length).toBeLessThanOrEqual(1)
+  }
 })
 
 test("clean public runners install preload dependencies before executing the architecture probe", () => {

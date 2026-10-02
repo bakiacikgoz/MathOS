@@ -33,13 +33,15 @@ jobs:
         include:
           - runner: windows-2025
             platform: windows-11-x64
+            shell: pwsh
           - runner: macos-15
             platform: macos-arm64
+            shell: bash
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
     defaults:
       run:
-        shell: bash
+        shell: ${{ matrix.shell }}
     env:
       MATHOS_LEAN_AUTO_INSTALL: "0"
     steps:
@@ -49,28 +51,30 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: 1.4.2
-      - name: Frozen installs
-        run: |
-          bun install --frozen-lockfile
-          bun install --cwd apps/desktop --frozen-lockfile
+      - name: Frozen root install
+        run: bun install --frozen-lockfile
+      - name: Frozen desktop install
+        run: bun install --cwd apps/desktop --frozen-lockfile
       - name: Verify native runner architecture
         env:
           QUALIFICATION_PLATFORM: ${{ matrix.platform }}
         run: bun -e 'import {validateQualificationHost} from "./scripts/qualification/platform-qualification.ts"; validateQualificationHost(process.env.QUALIFICATION_PLATFORM)'
-      - name: Root typecheck and tests
-        run: |
-          bun run typecheck
-          bun test
-      - name: Desktop typecheck and tests
+      - name: Root typecheck
+        run: bun run typecheck
+      - name: Root tests
+        run: bun test
+      - name: Desktop typecheck
         working-directory: apps/desktop
-        run: |
-          bun run typecheck
-          bun test
-      - name: Build and verify native CLI distribution
-        run: |
-          bun run release:build
-          bun run release:verify
-          bun run vscode:package
+        run: bun run typecheck
+      - name: Desktop tests
+        working-directory: apps/desktop
+        run: bun test
+      - name: Build native CLI distribution
+        run: bun run release:build
+      - name: Verify native CLI distribution
+        run: bun run release:verify
+      - name: Package VSIX
+        run: bun run vscode:package
       - name: Verify VSIX with Windows native archive tools
         if: runner.os == 'Windows'
         shell: pwsh

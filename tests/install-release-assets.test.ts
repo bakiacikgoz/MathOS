@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
 import { createHash } from "node:crypto"
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync, linkSync } from "node:fs"
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync, existsSync, linkSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { pathToFileURL } from "node:url"
@@ -121,15 +121,22 @@ for (const failure of ["backup", "activate"] as const) {
       mkdirSync(join(f.installed, "share", "mathos", "atlas"), { recursive: true })
       writeFileSync(oldBinary, "old binary bytes")
       writeFileSync(oldAsset, "old asset bytes")
+      const canonicalDest = toPosix(realpathSync(join(f.installed, "bin")))
+      const alias = join(f.root, "install-alias")
+      if (process.platform !== "win32") symlinkSync(f.installed, alias, "dir")
+      const installDir = process.platform === "win32" ? canonicalDest : `${toPosix(alias)}/bin`
+      if (process.platform !== "win32") expect(installDir).not.toBe(canonicalDest)
+      const failureMarker = join(f.root, "injected-mv-failure")
       const mv = join(f.toolDir, "mv")
-      writeFileSync(mv, '#!/bin/sh\nif [ "$MATHOS_TEST_FAIL_STEP" = backup ]; then\n  case "$2" in "$MATHOS_INSTALL_DIR"/mathos.old.*) exit 73;; esac\nfi\nif [ "$MATHOS_TEST_FAIL_STEP" = activate ]; then\n  case "$1:$2" in "$MATHOS_INSTALL_DIR"/mathos.new.*:"$MATHOS_INSTALL_DIR"/mathos) exit 73;; esac\nfi\nif [ -x /usr/bin/mv ]; then exec /usr/bin/mv "$@"; else exec /bin/mv "$@"; fi\n')
+      writeFileSync(mv, '#!/bin/sh\nif [ "$MATHOS_TEST_FAIL_STEP" = backup ]; then\n  case "$2" in "$MATHOS_TEST_CANONICAL_DEST"/mathos.old.*) printf "%s\\n" backup > "$MATHOS_TEST_FAIL_MARKER"; exit 73;; esac\nfi\nif [ "$MATHOS_TEST_FAIL_STEP" = activate ]; then\n  case "$1:$2" in "$MATHOS_TEST_CANONICAL_DEST"/mathos.new.*:"$MATHOS_TEST_CANONICAL_DEST"/mathos) printf "%s\\n" activate > "$MATHOS_TEST_FAIL_MARKER"; exit 73;; esac\nfi\nif [ -x /usr/bin/mv ]; then exec /usr/bin/mv "$@"; else exec /bin/mv "$@"; fi\n')
       chmodSync(mv, 0o755)
       const script = resolve(import.meta.dir, "../scripts/install/install.sh")
       const result = Bun.spawnSync([shell, "-c", 'PATH="$1:$PATH" exec sh "$2"', "--", toPosix(f.toolDir), toPosix(script)], {
-        env: { ...process.env, MATHOS_RELEASE_BASE_URL: pathToFileURL(f.release).href, MATHOS_VERSION: "1.0.0-rc.1", MATHOS_INSTALL_DIR: `${toPosix(f.installed)}/bin`, MATHOS_TEST_FAIL_STEP: failure, HOME: `${toPosix(f.root)}/home` },
+        env: { ...process.env, MATHOS_RELEASE_BASE_URL: pathToFileURL(f.release).href, MATHOS_VERSION: "1.0.0-rc.1", MATHOS_INSTALL_DIR: installDir, MATHOS_TEST_CANONICAL_DEST: canonicalDest, MATHOS_TEST_FAIL_MARKER: toPosix(failureMarker), MATHOS_TEST_FAIL_STEP: failure, HOME: `${toPosix(f.root)}/home` },
         stdout: "pipe", stderr: "pipe",
       })
-      expect(result.exitCode).not.toBe(0)
+      expect(result.exitCode).toBe(73)
+      expect(readFileSync(failureMarker, "utf8").trim()).toBe(failure)
       expect(readFileSync(oldBinary, "utf8")).toBe("old binary bytes")
       expect(readFileSync(oldAsset, "utf8")).toBe("old asset bytes")
     } finally { rmSync(f.root, { recursive: true, force: true }) }
