@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs"
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { MathOS, runVerificationGate } from "@mathos/core"
@@ -73,8 +73,12 @@ describe("KERNEL_VERIFIED assignment authority", () => {
   test("production writes are confined to VerificationGate, VerificationService, and the guarded storage sink", () => {
     const repoRoot = join(import.meta.dir, "..")
     const files = [join(repoRoot, "packages"), join(repoRoot, "apps")]
-      .flatMap(walk)
+      .flatMap((dir) => walk(dir))
       .filter((file) => /\.[cm]?[jt]sx?$/.test(file))
+    const sources = files.map((file) => ({
+      path: file.slice(repoRoot.length + 1).replaceAll("\\", "/"),
+      text: readFileSync(file, "utf8"),
+    }))
     const writePatterns = [
       /\b(?:status|claimStatus)\s*:[^\n]*["']KERNEL_VERIFIED["']/g,
       /\.updateStatus\([^\n]*["']KERNEL_VERIFIED["']/g,
@@ -84,9 +88,8 @@ describe("KERNEL_VERIFIED assignment authority", () => {
       /\bUPDATE\b[^\n]{0,300}\bstatus\s*=\s*["']KERNEL_VERIFIED["']/gi,
       /\bINSERT\b[^\n]{0,300}\bVALUES\b[^\n]*["']KERNEL_VERIFIED["']/gi,
     ]
-    const writes = files.flatMap((file) => {
-      const source = readFileSync(file, "utf8")
-      return writePatterns.flatMap((pattern) => [...source.matchAll(pattern)].map(() => file.slice(repoRoot.length + 1).replaceAll("\\", "/")))
+    const writes = sources.flatMap(({ path, text }) => {
+      return writePatterns.flatMap((pattern) => [...text.matchAll(pattern)].map(() => path))
     })
     expect([...new Set(writes)].sort()).toEqual([
       "packages/core/src/services/verification-service.ts",
@@ -94,15 +97,15 @@ describe("KERNEL_VERIFIED assignment authority", () => {
       "packages/storage/src/internal/verification-claim-promoter.ts",
       "packages/storage/src/migrations.ts",
     ])
-    expect(files.some((file) => readFileSync(file, "utf8").includes("verification-authority"))).toBe(false)
-    const promoterAuthorityFiles = files.flatMap((file) => readFileSync(file, "utf8").includes("promoteVerifiedClaim")
-      ? [file.slice(repoRoot.length + 1).replaceAll("\\", "/")] : [])
+    expect(sources.some(({ text }) => text.includes("verification-authority"))).toBe(false)
+    const promoterAuthorityFiles = sources.flatMap(({ path, text }) => text.includes("promoteVerifiedClaim")
+      ? [path] : [])
     expect(promoterAuthorityFiles.sort()).toEqual([
       "packages/core/src/services/verification-service.ts",
       "packages/storage/src/internal/verification-claim-promoter.ts",
     ])
-    const promoterImports = files.flatMap((file) => /import\s*\{[^}]*\bpromoteVerifiedClaim(?:\s+as\s+\w+)?[^}]*\}\s*from/.test(readFileSync(file, "utf8"))
-      ? [file.slice(repoRoot.length + 1).replaceAll("\\", "/")] : [])
+    const promoterImports = sources.flatMap(({ path, text }) => /import\s*\{[^}]*\bpromoteVerifiedClaim(?:\s+as\s+\w+)?[^}]*\}\s*from/.test(text)
+      ? [path] : [])
     expect(promoterImports).toEqual(["packages/core/src/services/verification-service.ts"])
   })
 })
@@ -155,9 +158,28 @@ describe("public claim creation trust boundary", () => {
   })
 })
 
-function walk(dir: string): string[] {
+const GENERATED_OUTPUT_PATHS = new Set([
+  join(import.meta.dir, "../apps/atlas/dist"),
+  join(import.meta.dir, "../apps/desktop/dist"),
+  join(import.meta.dir, "../apps/desktop/src-tauri/target"),
+  join(import.meta.dir, "../apps/desktop/src-tauri/gen"),
+  join(import.meta.dir, "../apps/vscode-extension/dist"),
+])
+
+function walk(dir: string, generatedPaths = GENERATED_OUTPUT_PATHS): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const path = join(dir, entry.name)
-    return entry.isDirectory() ? walk(path) : [path]
+    if (!entry.isDirectory()) return [path]
+    if (entry.name === "node_modules" || generatedPaths.has(path)) return []
+    return walk(path, generatedPaths)
   })
 }
+
+test("authority walk includes new source files while excluding installed and generated trees", () => {
+  const root = mkdtempSync(join(tmpdir(), "mathos-authority-walk-"))
+  try {
+    for (const folder of ["src", "node_modules", "dist", "src/dist"]) mkdirSync(join(root, folder), { recursive: true })
+    for (const folder of ["src", "node_modules", "dist", "src/dist"]) writeFileSync(join(root, folder, "candidate.ts"), "export const value = 1\n")
+    expect(walk(root, new Set([join(root, "dist")])).sort()).toEqual([join(root, "src", "candidate.ts"), join(root, "src", "dist", "candidate.ts")].sort())
+  } finally { rmSync(root, { recursive: true, force: true }) }
+})

@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import { closeSync, mkdtempSync, openSync, readFileSync, rmSync } from "node:fs"
-import { join, resolve } from "node:path"
+import { basename, join, resolve, sep } from "node:path"
+import { spawn, spawnSync } from "node:child_process"
 import { homedir, tmpdir } from "node:os"
 import { mathosVersion } from "@mathos/shared"
 
@@ -41,6 +42,8 @@ interface CommandResult {
   stderr: string
   timedOut: boolean
   durationMs: number
+  diagnosticLogDir?: string
+  shutdownConfirmed?: boolean
 }
 
 export type ReleaseCommandRunner = (command: string[], options: { cwd: string; timeoutMs: number }) => Promise<CommandResult>
@@ -59,6 +62,18 @@ function summary(stdout: string, stderr: string): string {
   return output.split("\n").map((line) => line.trim()).filter(Boolean).slice(-12).join("\n").slice(0, 2_000)
 }
 
+function stopReleaseProcessTree(pid: number): void {
+  if (process.platform === "win32") {
+    const systemRoot = process.env.SystemRoot ?? process.env.WINDIR
+    const taskkill = systemRoot ? join(systemRoot, "System32", "taskkill.exe") : "taskkill"
+    const result = spawnSync(taskkill, ["/PID", String(pid), "/T", "/F"], { windowsHide: true, encoding: "utf8", timeout: 30_000 })
+    if (result.status !== 0 || result.error) throw new Error(`Could not stop release check process tree PID ${pid}: ${result.stderr || result.error?.message || `taskkill exited ${result.status}`}`)
+  } else {
+    try { process.kill(-pid, "SIGKILL") }
+    catch (error) { if ((error as NodeJS.ErrnoException).code !== "ESRCH") throw error }
+  }
+}
+
 export const runReleaseCommand: ReleaseCommandRunner = async (command, options) => {
   const started = Date.now()
   const outputDir = mkdtempSync(join(tmpdir(), "mathos-release-command-"))
@@ -66,32 +81,59 @@ export const runReleaseCommand: ReleaseCommandRunner = async (command, options) 
   const stderrPath = join(outputDir, "stderr.log")
   const stdoutFd = openSync(stdoutPath, "w")
   const stderrFd = openSync(stderrPath, "w")
-  const proc = Bun.spawn(command, {
-    cwd: options.cwd,
-    env: { ...process.env, npm_execpath: process.execPath, NO_COLOR: "1", FORCE_COLOR: "0" },
-    stdin: "ignore",
-    stdout: stdoutFd,
-    stderr: stderrFd,
-  })
   let timedOut = false
-  const timer = setTimeout(() => {
-    timedOut = true
-    proc.kill("SIGKILL")
-  }, options.timeoutMs)
+  let confirmedClose = false
+  let retainLogs = true
+  let deadlineTimer: ReturnType<typeof setTimeout> | undefined
+  let closeTimer: ReturnType<typeof setTimeout> | undefined
   try {
-    const exitCode = await proc.exited
+    const proc = spawn(command[0]!, command.slice(1), {
+      cwd: options.cwd,
+      env: { ...process.env, npm_execpath: process.execPath, NO_COLOR: "1", FORCE_COLOR: "0" },
+      detached: process.platform !== "win32",
+      windowsHide: true,
+      stdio: ["ignore", stdoutFd, stderrFd],
+    })
+    const closed = new Promise<number | null>((resolveClosed, rejectClosed) => {
+      proc.once("error", rejectClosed)
+      proc.once("close", (code) => { confirmedClose = true; resolveClosed(code) })
+    })
+    const deadline = new Promise<"timeout">((resolveDeadline) => {
+      deadlineTimer = setTimeout(() => resolveDeadline("timeout"), options.timeoutMs)
+    })
+    const first = await Promise.race([closed, deadline])
+    let exitCode: number | null
+    if (first === "timeout") {
+      timedOut = true
+      if (!confirmedClose) {
+        if (!proc.pid) throw new Error("Release check deadline expired without an owned PID; shutdown is unconfirmed")
+        stopReleaseProcessTree(proc.pid)
+      }
+      exitCode = await Promise.race([
+        closed,
+        new Promise<never>((_, reject) => { closeTimer = setTimeout(() => reject(new Error(`Release check process tree PID ${proc.pid ?? "unknown"} did not close after termination; shutdown is unconfirmed`)), 30_000) }),
+      ])
+    } else exitCode = first
     closeSync(stdoutFd)
     closeSync(stderrFd)
     const stdout = readFileSync(stdoutPath, "utf8")
     const stderr = readFileSync(stderrPath, "utf8")
-    return { exitCode: timedOut ? null : exitCode, stdout, stderr, timedOut, durationMs: Date.now() - started }
+    retainLogs = timedOut || exitCode !== 0
+    return { exitCode: timedOut ? null : exitCode, stdout, stderr, timedOut, durationMs: Date.now() - started, shutdownConfirmed: confirmedClose, ...(retainLogs ? { diagnosticLogDir: outputDir } : {}) }
   } catch (error) {
-    return { exitCode: null, stdout: "", stderr: String(error), timedOut, durationMs: Date.now() - started }
+    return { exitCode: null, stdout: confirmedClose ? readFileSync(stdoutPath, "utf8") : "", stderr: String(error), timedOut, durationMs: Date.now() - started, diagnosticLogDir: outputDir, shutdownConfirmed: confirmedClose }
   } finally {
-    clearTimeout(timer)
+    if (deadlineTimer) clearTimeout(deadlineTimer)
+    if (closeTimer) clearTimeout(closeTimer)
     try { closeSync(stdoutFd) } catch {}
     try { closeSync(stderrFd) } catch {}
-    rmSync(outputDir, { recursive: true, force: true })
+    if (confirmedClose && !retainLogs) {
+      const absolute = resolve(outputDir)
+      if (!absolute.startsWith(`${resolve(tmpdir())}${sep}`) || !basename(absolute).startsWith("mathos-release-command-")) {
+        throw new Error(`Unsafe release command log cleanup: ${absolute}`)
+      }
+      rmSync(absolute, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 })
+    }
   }
 }
 
@@ -178,7 +220,8 @@ export async function executeReleaseCheck(options: {
     }
     const result = await runner(command, { cwd: repositoryRoot, timeoutMs: options.timeoutMs ?? DEFAULT_TIMEOUT_MS })
     let status: ReleaseCheckStatus = result.exitCode === 0 && !result.timedOut && validatesEvidence(name, result) ? "PASS" : "FAIL"
-    let evidence = result.timedOut ? `timed out after ${options.timeoutMs ?? DEFAULT_TIMEOUT_MS}ms` : summary(result.stdout, result.stderr)
+    let evidence = result.timedOut ? `timed out after ${options.timeoutMs ?? DEFAULT_TIMEOUT_MS}ms; last output: ${summary(result.stdout, result.stderr)}` : summary(result.stdout, result.stderr)
+    if (result.diagnosticLogDir) evidence += `; raw local logs retained at ${result.diagnosticLogDir}`
     if (result.exitCode === 0 && !result.timedOut && !validatesEvidence(name, result)) {
       evidence = `command exited successfully without required evidence; ${evidence}`
     }

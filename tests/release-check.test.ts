@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test"
-import { resolve } from "node:path"
-import { executeReleaseCheck, RELEASE_CHECK_ORDER, type ReleaseCommandRunner } from "../scripts/release-check.ts"
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { basename, join, resolve, sep } from "node:path"
+import { executeReleaseCheck, RELEASE_CHECK_ORDER, runReleaseCommand, type ReleaseCommandRunner } from "../scripts/release-check.ts"
 import { compareResearchBaseline } from "../scripts/research-regression.ts"
 import { runRetrievalRegression } from "../scripts/retrieval-regression.ts"
 
@@ -109,3 +111,69 @@ test("generic pass text cannot substitute for final platform capability evidence
   expect(report.checks.find(check => check.name === "final-product-capabilities")?.status).toBe("FAIL")
   expect(report.ready).toBe(false)
 })
+
+test("release runner confirms owned tree closure and retains raw failure logs", async () => {
+  const root = mkdtempSync(join(tmpdir(), "mathos-release-runner-test-"))
+  const child = join(root, "child.ts"), grandchild = join(root, "grandchild.ts"), childPidPath = join(root, "child.pid"), grandchildPidPath = join(root, "grandchild.pid")
+  writeFileSync(child, `import { spawn } from "node:child_process"; import { writeFileSync } from "node:fs"; writeFileSync(process.argv[4]!, String(process.pid)); spawn(process.execPath, [process.argv[2]!, process.argv[3]!], { stdio: "inherit", windowsHide: true }); console.log("owned release command started"); setInterval(() => {}, 1000)`)
+  writeFileSync(grandchild, `import { writeFileSync } from "node:fs"; writeFileSync(process.argv[2]!, String(process.pid)); setInterval(() => {}, 1000)`)
+  const retained: string[] = []
+  let shutdownConfirmed = false
+  const alive = (pid: number): boolean => {
+    if (!Number.isInteger(pid) || pid <= 0) throw new Error(`Invalid owned release test PID: ${pid}`)
+    try { process.kill(pid, 0); return true }
+    catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ESRCH") return false
+      throw error
+    }
+  }
+  const readPid = (path: string): number | null => existsSync(path) ? Number(readFileSync(path, "utf8")) : null
+  const closedTree = async (childPid: number, grandchildPid: number): Promise<boolean> => {
+    const until = Date.now() + 3_000
+    while (Date.now() < until) {
+      if (!alive(childPid) && !alive(grandchildPid)) return true
+      await Bun.sleep(50)
+    }
+    return !alive(childPid) && !alive(grandchildPid)
+  }
+  const ownedCleanup = async (path: string, prefix: string): Promise<void> => {
+    const absolute = resolve(path)
+    if (!absolute.startsWith(`${resolve(tmpdir())}${sep}`) || !basename(absolute).startsWith(prefix)) throw new Error(`Unsafe release runner test cleanup: ${absolute}`)
+    for (let attempt = 0; attempt < 4; attempt++) {
+      try { rmSync(absolute, { recursive: true, force: true }); return }
+      catch (error) {
+        const code = (error as NodeJS.ErrnoException).code
+        if (attempt === 3 || !["EBUSY", "EPERM", "ENOTEMPTY"].includes(code ?? "")) throw error
+        await Bun.sleep(100)
+      }
+    }
+  }
+  try {
+    const timeout = await runReleaseCommand([process.execPath, child, grandchild, grandchildPidPath, childPidPath], { cwd: root, timeoutMs: 1_500 })
+    shutdownConfirmed = timeout.shutdownConfirmed === true
+    if (timeout.diagnosticLogDir) retained.push(timeout.diagnosticLogDir)
+    expect(timeout.timedOut).toBe(true)
+    expect(timeout.exitCode).toBeNull()
+    expect(shutdownConfirmed).toBe(true)
+    expect(timeout.diagnosticLogDir).toBeTruthy()
+    expect(readFileSync(join(timeout.diagnosticLogDir!, "stdout.log"), "utf8")).toContain("owned release command started")
+    const childPid = readPid(childPidPath), grandchildPid = readPid(grandchildPidPath)
+    expect(childPid).toBeGreaterThan(0)
+    expect(grandchildPid).toBeGreaterThan(0)
+    expect(await closedTree(childPid!, grandchildPid!)).toBe(true)
+    const failed = await runReleaseCommand([process.execPath, "-e", "console.error('release failure'); process.exit(7)"], { cwd: root, timeoutMs: 5_000 })
+    shutdownConfirmed &&= failed.shutdownConfirmed === true
+    if (failed.diagnosticLogDir) retained.push(failed.diagnosticLogDir)
+    expect(failed.exitCode).toBe(7)
+    expect(failed.shutdownConfirmed).toBe(true)
+    expect(failed.diagnosticLogDir).toBeTruthy()
+    expect(readFileSync(join(failed.diagnosticLogDir!, "stderr.log"), "utf8")).toContain("release failure")
+  } finally {
+    const childPid = readPid(childPidPath), grandchildPid = readPid(grandchildPidPath)
+    if (!shutdownConfirmed || childPid === null || grandchildPid === null || !Number.isInteger(childPid) || !Number.isInteger(grandchildPid) || childPid <= 0 || grandchildPid <= 0 || !await closedTree(childPid, grandchildPid)) {
+      throw new Error(`Release runner shutdown unconfirmed; retained owned fixture ${root}, child PID ${childPid ?? "missing"}, grandchild PID ${grandchildPid ?? "missing"}`)
+    }
+    for (const path of retained) await ownedCleanup(path, "mathos-release-command-")
+    await ownedCleanup(root, "mathos-release-runner-test-")
+  }
+}, 15_000)
