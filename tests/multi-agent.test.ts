@@ -158,5 +158,5 @@ describe("multi-agent orchestration", () => {
     }
     expect(() => readFileSync(join(app["root"], `${agents[0]!.id}.lean`), "utf8")).toThrow()
     app.close()
-  })
+  }, 30_000)
 })

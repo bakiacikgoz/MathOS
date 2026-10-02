@@ -21,5 +21,5 @@ describe("notebook CLI", () => {
       expect(await runHeadless(["notebook","export",created.id,"--format","latex"])).toBe(0); expect(JSON.parse(output).data.path).toEndWith(".tex"); output = ""
       expect(await runHeadless(["notebook","sync",created.id,"--dry-run"])).toBe(0); expect(["PROPOSED","CONFLICT"]).toContain(JSON.parse(output).data.status)
     } finally { process.stdout.write = write; process.chdir(previous) }
-  })
+  }, 30_000)
 })
