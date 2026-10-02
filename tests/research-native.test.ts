@@ -1,25 +1,30 @@
-import { afterEach, describe, expect, test } from "bun:test"
+import { afterEach, describe, expect } from "bun:test"
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { join, resolve, sep } from "node:path"
 import { MathOS, FakeResearchPlanner } from "@mathos/core"
 import { FakeModelProvider } from "@mathos/models"
 import { NativeLeanAdapter } from "@mathos/lean"
 import { FakeVcs } from "@mathos/vcs"
 import { InMemoryPremiseRetriever } from "@mathos/retrieval"
 import { nativeLeanPath, withNativeMathlib } from "./helpers/native-lean.ts"
+import { nativeCase, NATIVE_CASE_ROOT } from "./helpers/native-case-runner.ts"
 
-const nativeTest = Bun.which("lake") ? test : test.skip
 const temps: string[] = []
 function tempDir() {
-  const dir = mkdtempSync(join(tmpdir(), "mathos-native-"))
+  const dir = mkdtempSync(join(process.env[NATIVE_CASE_ROOT] ?? tmpdir(), "mathos-native-"))
   temps.push(dir)
   return dir
 }
 afterEach(() => {
   while (temps.length) {
     const dir = temps.pop()
-    if (dir) rmSync(dir, { recursive: true, force: true })
+    if (dir) {
+      if (process.env[NATIVE_CASE_ROOT]) continue
+      const base = resolve(process.env[NATIVE_CASE_ROOT] ?? tmpdir())
+      if (!resolve(dir).startsWith(base + sep)) throw new Error(`Unexpected native fixture path: ${dir}`)
+      rmSync(dir, { recursive: true, force: true })
+    }
   }
 })
 
@@ -32,7 +37,7 @@ const lakeEnv = (file: string, projectRoot: string) =>
   })
 
 describe("native research loop", () => {
-  nativeTest("real Lean smoke KERNEL_VERIFIED", () => withNativeMathlib(async (mathlibProject) => {
+  nativeCase("real Lean smoke KERNEL_VERIFIED", import.meta.path, 450_000, () => withNativeMathlib(async (mathlibProject) => {
     const created = await MathOS.init(tempDir(), "native-smoke")
     const model = new FakeModelProvider()
     model.enqueue({
@@ -68,9 +73,9 @@ describe("native research loop", () => {
       expect(app.getResearch(run.id).status).toBe("COMPLETED")
       expect(app.getResearch(run.id).stopReason).toBe("OBJECTIVE_KERNEL_VERIFIED")
     } finally { app.close() }
-  }), 180000)
+  }))
 
-  nativeTest("real Lean failure then recovery", () => withNativeMathlib(async (mathlibProject) => {
+  nativeCase("real Lean failure then recovery", import.meta.path, 450_000, () => withNativeMathlib(async (mathlibProject) => {
     const created = await MathOS.init(tempDir(), "native-fail")
     const model = new FakeModelProvider()
     model.enqueue({
@@ -106,9 +111,9 @@ describe("native research loop", () => {
       await app.runResearch(run.id)
       expect(app.getClaim(claim.id).status).toBe("KERNEL_VERIFIED")
     } finally { app.close() }
-  }), 300000)
+  }))
 
-  nativeTest("dual lake env lean MAIN vs B-001", () => withNativeMathlib(async (mathlibProject) => {
+  nativeCase("dual lake env lean MAIN vs B-001", import.meta.path, 300_000, () => withNativeMathlib(async (mathlibProject) => {
     const created = await MathOS.init(tempDir(), "dual-lake")
     const app = MathOS.open(created.root, { formalProjectRoot: mathlibProject })
     try {
@@ -126,5 +131,5 @@ describe("native research loop", () => {
       expect(side.exitCode).toBe(0)
       expect(readFileSync(mainFile, "utf8")).not.toContain("child_lake")
     } finally { app.close() }
-  }), 180000)
+  }))
 })

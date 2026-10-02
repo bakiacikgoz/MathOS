@@ -1,7 +1,7 @@
-import { afterEach, describe, expect, test } from "bun:test"
+import { afterEach, describe, expect } from "bun:test"
 import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join, resolve } from "node:path"
+import { join, resolve, sep } from "node:path"
 import { MathOS, FakeResearchPlanner } from "@mathos/core"
 import { FakeModelProvider } from "@mathos/models"
 import { NativeLeanAdapter } from "@mathos/lean"
@@ -9,26 +9,31 @@ import { FakeVcs } from "@mathos/vcs"
 import { HybridPremiseRetriever, InMemoryPremiseRetriever } from "@mathos/retrieval"
 import type { ResearchDecision } from "@mathos/domain"
 import { nativeLeanPath, withNativeMathlib } from "./helpers/native-lean.ts"
+import { nativeCase, NATIVE_CASE_ROOT } from "./helpers/native-case-runner.ts"
 
 const DEMO = resolve(resolve(import.meta.dir, ".."), "demo")
-const nativeTest = Bun.which("lake") ? test : test.skip
 const temps: string[] = []
 function tempDir() {
-  const dir = mkdtempSync(join(tmpdir(), "mathos-man-"))
+  const dir = mkdtempSync(join(process.env[NATIVE_CASE_ROOT] ?? tmpdir(), "mathos-man-"))
   temps.push(dir)
   return dir
 }
 afterEach(() => {
   while (temps.length) {
     const dir = temps.pop()
-    if (dir) rmSync(dir, { recursive: true, force: true })
+    if (dir) {
+      if (process.env[NATIVE_CASE_ROOT]) continue
+      const base = resolve(process.env[NATIVE_CASE_ROOT] ?? tmpdir())
+      if (!resolve(dir).startsWith(base + sep)) throw new Error(`Unexpected native fixture path: ${dir}`)
+      rmSync(dir, { recursive: true, force: true })
+    }
   }
 })
 
 const d = (action: ResearchDecision["action"], extra: Partial<ResearchDecision> = {}): ResearchDecision => ({ action, rationaleSummary: action, parameters: {}, researchDecisionVersion: "v1", ...extra })
 
 describe("native multi-agent + hybrid retrieval", () => {
-  nativeTest("real team smoke SOLUTION_FOUND and MAIN unverified", () => withNativeMathlib(async (mathlibProject) => {
+  nativeCase("real team smoke SOLUTION_FOUND and MAIN unverified", import.meta.path, 600_000, () => withNativeMathlib(async (mathlibProject) => {
     const created = await MathOS.init(tempDir(), "nat")
     const model = new FakeModelProvider()
     model.enqueue({ declarationName: "multi_agent_smoke", leanStatement: "theorem multi_agent_smoke : 1 + 1 = 2", variableMapping: [], assumptionMapping: [], uncertainties: [] })
@@ -65,9 +70,9 @@ describe("native multi-agent + hybrid retrieval", () => {
         expect(lake(file).exitCode).toBe(0)
       }
     } finally { app.close() }
-  }), 180000)
+  }))
 
-  nativeTest("real cross-agent verified import", () => withNativeMathlib(async (mathlibProject) => {
+  nativeCase("real cross-agent verified import", import.meta.path, 600_000, () => withNativeMathlib(async (mathlibProject) => {
     const created = await MathOS.init(tempDir(), "imp")
     const model = new FakeModelProvider()
     model.enqueue({ declarationName: "imported_helper", leanStatement: "theorem imported_helper : True", variableMapping: [], assumptionMapping: [], uncertainties: [] })
@@ -106,9 +111,9 @@ describe("native multi-agent + hybrid retrieval", () => {
       expect(app.getClaim(applied.targetClaimId!).status).toBe("KERNEL_VERIFIED")
       expect(app.getClaim(claim.id).status).not.toBe("KERNEL_VERIFIED")
     } finally { app.close() }
-  }), 180000)
+  }))
 
-  nativeTest("full-stack single-agent HybridPremiseRetriever", () => withNativeMathlib(async (mathlibProject) => {
+  nativeCase("full-stack single-agent HybridPremiseRetriever", import.meta.path, 450_000, () => withNativeMathlib(async (mathlibProject) => {
     const created = await MathOS.init(tempDir(), "hyb")
     const model = new FakeModelProvider()
     model.enqueue({ declarationName: "research_id", leanStatement: "theorem research_id (n : Nat) : n = n", variableMapping: [], assumptionMapping: [], uncertainties: [] })
@@ -141,5 +146,5 @@ describe("native multi-agent + hybrid retrieval", () => {
       expect(app.getClaim(claim.id).status).toBe("KERNEL_VERIFIED")
       expect(retrieved.mode).toBeTruthy()
     } finally { app.close() }
-  }), 180000)
+  }))
 })
