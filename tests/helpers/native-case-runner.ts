@@ -19,6 +19,8 @@ type OwnedProcessOptions = {
   budgetMs: number
   /** Injected only by the termination-failure regression test. */
   stopTree?: (pid: number) => void
+  /** Lets the termination-failure test confirm close after its own SIGKILL. */
+  onChildClose?: (pid: number | undefined, closed: Promise<number | null>) => void
 }
 
 function stopProcessTree(pid: number): void {
@@ -61,6 +63,7 @@ export async function runOwnedProcess(
     child.once("error", rejectClosed)
     child.once("close", (exitCode) => { settled = true; resolveClosed(exitCode) })
   })
+  options.onChildClose?.(child.pid, closed)
   let timer: ReturnType<typeof setTimeout> | undefined
   const deadline = new Promise<"timeout">((resolveDeadline) => {
     timer = setTimeout(() => resolveDeadline("timeout"), options.budgetMs)
@@ -99,7 +102,7 @@ function removeCaseRoot(root: string): void {
   if (!absolute.startsWith(systemTemp + sep) || !basename(absolute).startsWith("mathos-native-case-")) {
     throw new Error(`Refusing to remove unexpected native test root: ${absolute}`)
   }
-  rmSync(absolute, { recursive: true, force: true })
+  rmSync(absolute, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 })
 }
 
 export function nativeCase(name: string, file: string, budgetMs: number, body: () => Promise<void>): void {

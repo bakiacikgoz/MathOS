@@ -9,7 +9,7 @@ function removeOwnedFixture(root: string, prefix: string): void {
   if (!absolute.startsWith(resolve(tmpdir()) + sep) || !basename(absolute).startsWith(prefix)) {
     throw new Error(`Unexpected owned-process fixture path: ${absolute}`)
   }
-  rmSync(absolute, { recursive: true, force: true })
+  rmSync(absolute, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 })
 }
 
 describe("native test process deadline", () => {
@@ -56,28 +56,41 @@ describe("native test process deadline", () => {
     const child = join(root, "child.ts")
     writeFileSync(child, `import { writeFileSync } from "node:fs"\nwriteFileSync(process.argv[2]!, String(process.pid))\nsetInterval(() => {}, 1000)\n`)
     let pid = 0
-    let stopped = false
+    let childPid: number | undefined
+    let childClosed: Promise<number | null> | undefined
+    let closed = false
     try {
       await expect(runOwnedProcess([process.execPath, child, marker], {
         cwd: root,
         env: process.env,
         budgetMs: 2_000,
         stopTree: () => { throw new Error("injected termination failure") },
+        onChildClose: (ownedPid, close) => { childPid = ownedPid; childClosed = close },
       })).rejects.toThrow(/Could not stop owned process tree PID \d+; shutdown is unconfirmed/)
       pid = Number(readFileSync(marker, "utf8"))
+      expect(childPid).toBe(pid)
       expect(() => process.kill(pid, 0)).not.toThrow()
       expect(existsSync(root)).toBe(true)
     } finally {
-      if (pid > 0) {
-        process.kill(pid, "SIGKILL")
-        for (let attempt = 0; attempt < 40; attempt++) {
-          try { process.kill(pid, 0) }
-          catch { stopped = true; break }
-          await Bun.sleep(50)
+      const ownedPid = childPid ?? pid
+      if (ownedPid > 0) {
+        try { process.kill(ownedPid, "SIGKILL") }
+        catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== "ESRCH") throw new Error(`Owned fixture retained at ${root}; PID ${ownedPid} could not be killed`, { cause: error })
         }
       }
-      if (stopped) removeOwnedFixture(root, "mathos-owned-process-")
+      if (childClosed) {
+        let closeTimer: ReturnType<typeof setTimeout> | undefined
+        try {
+          closed = await Promise.race([
+            childClosed.then(() => true, () => false),
+            new Promise<boolean>((resolveTimeout) => { closeTimer = setTimeout(() => resolveTimeout(false), 3_000) }),
+          ])
+        } finally { if (closeTimer) clearTimeout(closeTimer) }
+      }
+      if (!closed) throw new Error(`Owned fixture retained at ${root}; PID ${ownedPid || "unknown"} shutdown is unconfirmed`)
+      removeOwnedFixture(root, "mathos-owned-process-")
     }
-    expect(stopped).toBe(true)
+    expect(closed).toBe(true)
   }, 15_000)
 })
