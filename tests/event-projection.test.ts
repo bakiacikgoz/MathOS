@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join, resolve } from "node:path"
+import { basename, join, resolve, sep } from "node:path"
 import { MathOS } from "@mathos/core"
 import { DatabaseClient, EventRepository } from "@mathos/storage"
 import { databasePath, eventLogPath } from "@mathos/shared"
@@ -9,8 +9,13 @@ import { runOwnedProcess } from "./helpers/native-case-runner.ts"
 
 const temps: string[] = []
 const repositoryRoot = resolve(import.meta.dir, "..")
-const tempDir = () => { const value = mkdtempSync(join(tmpdir(), "mathos-events-")); temps.push(value); return value }
-afterEach(() => { for (const value of temps.splice(0)) rmSync(value, { recursive: true, force: true }) })
+const tempDir = (track = true) => { const value = mkdtempSync(join(tmpdir(), "mathos-events-")); if (track) temps.push(value); return value }
+function removeEventRoot(value: string): void {
+  const target = resolve(value), tempRoot = resolve(tmpdir())
+  if (!target.startsWith(`${tempRoot}${sep}`) || !basename(target).startsWith("mathos-events-")) throw new Error(`Unsafe event fixture cleanup: ${target}`)
+  rmSync(target, { recursive: true, force: true, ...(process.platform === "win32" ? { maxRetries: 3, retryDelay: 100 } : {}) })
+}
+afterEach(() => { for (const value of temps.splice(0)) removeEventRoot(value) })
 
 describe("canonical event projection", () => {
   test("storage unit of work rolls back domain and event writes together", async () => {
@@ -141,18 +146,36 @@ for (const [point, committed, projected] of crashBoundaries) {
 }
 
 test("rebuild serializes with a live cross-process writer", async () => {
-  const created = await MathOS.init(tempDir(), "concurrent-rebuild")
-  const app = MathOS.open(created.root)
-  const child = Bun.spawn([process.execPath, join(import.meta.dir, "fixtures/event-writer-child.ts"), created.root, "20"], { cwd: repositoryRoot, stdout: "pipe", stderr: "pipe" })
-  for (let index = 0; index < 30; index += 1) app.rebuildEventProjection()
-  expect(await child.exited).toBe(0)
-  app.rebuildEventProjection()
-  const ids = readFileSync(eventLogPath(created.root), "utf8").trim().split("\n").map((line) => JSON.parse(line).event_id)
-  expect(new Set(ids).size).toBe(ids.length)
-  expect(app.eventProjectionHealth().status).toBe("HEALTHY")
-  expect(app.listClaims()).toHaveLength(20)
-  app.close()
-})
+  const root = tempDir(false)
+  let app: MathOS | null = null, childClosed = true
+  try {
+    const created = await MathOS.init(root, "concurrent-rebuild")
+    app = MathOS.open(created.root)
+    childClosed = false
+    const writer = runOwnedProcess([process.execPath, join(import.meta.dir, "fixtures/event-writer-child.ts"), created.root, "20"], { cwd: repositoryRoot, env: process.env, budgetMs: 10_000 })
+    let child: Awaited<typeof writer>
+    try {
+      for (let index = 0; index < 30; index += 1) app.rebuildEventProjection()
+    } finally {
+      try {
+        child = await writer
+        childClosed = true
+      } catch (error) {
+        throw new Error(`Event writer fixture retained at ${root}: ${error instanceof Error ? error.message : String(error)}`, { cause: error })
+      }
+    }
+    if (child.timedOut || child.exitCode !== 0) throw new Error(`Event writer failed (exit ${child.exitCode}, timedOut=${child.timedOut}): ${child.output}`)
+    app.rebuildEventProjection()
+    const ids = readFileSync(eventLogPath(created.root), "utf8").trim().split("\n").map((line) => JSON.parse(line).event_id)
+    expect(new Set(ids).size).toBe(ids.length)
+    expect(app.eventProjectionHealth().status).toBe("HEALTHY")
+    expect(app.listClaims()).toHaveLength(20)
+  } finally {
+    try { app?.close() }
+    catch (error) { throw new Error(`Event fixture retained at ${root}: parent database close failed: ${error instanceof Error ? error.message : String(error)}`, { cause: error }) }
+    if (childClosed) removeEventRoot(root)
+  }
+}, 90_000)
 
 test("events rebuild is available through the CLI", async () => {
   const created = await MathOS.init(tempDir(), "cli-rebuild")
