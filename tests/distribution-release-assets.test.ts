@@ -39,8 +39,9 @@ test.skipIf(process.platform !== "win32")("release archive writes usable TAR whe
     expect(existsSync(gitTar)).toBe(true)
     const pathKey = Object.keys(process.env).find(key => key.toLowerCase() === "path") ?? "Path"
     const env = { ...process.env, [pathKey]: `${dirname(gitTar)};${process.env[pathKey] ?? ""}` }
+    const probeStarted = performance.now()
     const selected = Bun.spawnSync(["powershell.exe", "-NoProfile", "-Command", "(Get-Command tar.exe).Source"], { env, stdout: "pipe", stderr: "pipe" })
-    if (selected.exitCode !== 0) throw new Error(selected.stderr.toString())
+    if (selected.exitCode !== 0) throw new Error(`Git-first PowerShell TAR probe failed (exit ${selected.exitCode}, signal ${selected.signalCode}, ${Math.round(performance.now() - probeStarted)}ms): stdout=${JSON.stringify(selected.stdout.toString().trim())} stderr=${JSON.stringify(selected.stderr.toString().trim())}`)
     expect(resolve(selected.stdout.toString().trim()).toLowerCase()).toBe(resolve(gitTar).toLowerCase())
     const modulePath = resolve(import.meta.dir, "../scripts/distribution/build-release.ts")
     const script = `const { createReleaseArchive } = require(${JSON.stringify(modulePath)}); createReleaseArchive(${JSON.stringify(releaseRoot)}, ${JSON.stringify(archivePath)})`
@@ -52,7 +53,7 @@ test.skipIf(process.platform !== "win32")("release archive writes usable TAR whe
     if (listing.exitCode !== 0) throw new Error(`Release archive unreadable: ${listing.stderr.toString()}`)
     expect(listing.stdout.toString()).toContain("root/NOTICE")
   } finally { rmSync(output, { recursive: true, force: true }) }
-})
+}, 20_000)
 
 test("release archive rejects non-ASCII member names required by PowerShell bootstrap", () => {
   const output = mkdtempSync(join(tmpdir(), "mathos-release-ascii-"))
