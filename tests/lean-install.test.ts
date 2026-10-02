@@ -92,14 +92,23 @@ describe("Lean install", () => {
     writeFormalProject(workspace)
     const previous = process.env.MATHOS_LEAN_RUNTIME
     process.env.MATHOS_LEAN_RUNTIME = runtimeRoot
+    let phase: "shared" | "bare" = "shared", phaseStarted = performance.now()
+    let sharedDetectMs: number | null = null, bareDetectMs: number | null = null
     try {
       const env = await new NativeLeanAdapter().detect(workspace)
+      sharedDetectMs = Math.round(performance.now() - phaseStarted)
       expect(env).toMatchObject({ projectRoot: runtimeRoot, mathlib: true, source: "shared", toolchain: "leanprover/lean4:v4.33.1" })
       process.env.MATHOS_LEAN_RUNTIME = join(temp(), "missing")
       // Without a runtime, Lean runs bare instead of fetching Mathlib into the workspace mid-check.
-      expect(await new NativeLeanAdapter().detect(workspace)).toMatchObject({ projectRoot: null, mathlib: false, source: null })
+      phase = "bare"; phaseStarted = performance.now()
+      const bare = await new NativeLeanAdapter().detect(workspace)
+      bareDetectMs = Math.round(performance.now() - phaseStarted)
+      expect(bare).toMatchObject({ projectRoot: null, mathlib: false, source: null })
+    } catch (error) {
+      const phaseElapsedMs = Math.round(performance.now() - phaseStarted)
+      throw new Error(`Lean ${phase} runtime detection failed after ${phaseElapsedMs}ms (shared=${sharedDetectMs ?? "pending"}ms, bare=${bareDetectMs ?? "pending"}ms): ${error instanceof Error ? error.message : String(error)}`, { cause: error })
     } finally { process.env.MATHOS_LEAN_RUNTIME = previous }
-  })
+  }, 20_000)
 
   test("a second run only does what is missing", async () => {
     const home = temp(), runtimeRoot = temp(), { runtime } = fakeRuntime(home)
