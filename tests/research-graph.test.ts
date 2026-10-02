@@ -26,10 +26,12 @@ import {
   toProofGraph,
 } from "@mathos/graph"
 import { MathOS } from "@mathos/core"
+import { FakeComputationalRuntime } from "@mathos/computation"
+import { FakeLeanAdapter } from "@mathos/lean"
 import { FakeVcs } from "@mathos/vcs"
 import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { basename, join, resolve, sep } from "node:path"
 
 describe("research graph projection", () => {
   test("canonical fixture nodes, edges, frontier, blockers, path", () => {
@@ -130,9 +132,14 @@ describe("research graph projection", () => {
 describe("mathos graph integration", () => {
   test("workspace graph, isolation and CLI-shaped queries", async () => {
     const dir = mkdtempSync(join(tmpdir(), "mathos-graph-"))
+    let app: MathOS | undefined
     try {
       const created = await MathOS.init(dir, "g")
-      const app = MathOS.open(created.root, { vcs: new FakeVcs() })
+      app = MathOS.open(created.root, {
+        vcs: new FakeVcs(),
+        leanAdapter: new FakeLeanAdapter(),
+        computationRuntime: new FakeComputationalRuntime(),
+      })
       const t = app.createClaim({ kind: "theorem", title: "T", statement: "P", asMainObjective: true, status: "FORMALIZED_UNVERIFIED" })
       const l1 = app.createClaim({ kind: "lemma", title: "L1", statement: "Q", status: "INDEPENDENTLY_CHECKED" })
       const l2 = app.createClaim({ kind: "lemma", title: "L2", statement: "R", status: "FORMALIZED_UNVERIFIED" })
@@ -156,9 +163,15 @@ describe("mathos graph integration", () => {
       expect(JSON.parse(app.graphShow(t.id, { format: "json" })).schemaVersion).toBe("research-graph-v1")
       const doctor = await app.doctor()
       expect(doctor.checks.some((item) => item.name === "Research graph")).toBe(true)
-      app.close()
     } finally {
-      rmSync(dir, { recursive: true, force: true })
+      try {
+        app?.close()
+      } finally {
+        const target = resolve(dir)
+        const tempRoot = resolve(tmpdir())
+        if (!target.startsWith(`${tempRoot}${sep}`) || !basename(target).startsWith("mathos-graph-")) throw new Error(`Unsafe test cleanup: ${target}`)
+        rmSync(target, { recursive: true, force: true })
+      }
     }
   })
 })
