@@ -5,42 +5,42 @@ import { BridgeClient } from "./bridge-client.ts"
 import { buildClaimTree } from "./claim-tree.ts"
 type Disposable = { dispose(): void }; type ExtensionContext = { subscriptions: Disposable[] }; type Pending = { resolve(value: unknown): void; reject(error: Error): void }
 export class BridgeSession implements Disposable {
-  private process: ChildProcessWithoutNullStreams; private pending = new Map<string, Pending>(); private sequence = 0; private stderr = ""; private closedError: Error | null = null
+  private process: ChildProcessWithoutNullStreams; private pending = new Map<string, Pending>(); private sequence = 0; private stderr = ""; private closedError: Error | null = null; private transportError: Error | null = null; private spawnError: Error | null = null; private transportTimer: ReturnType<typeof setTimeout> | null = null
   constructor(private client: BridgeClient) {
     const spec = client.spawnSpec()
     this.process = spawn(spec.command, spec.args, { cwd: spec.cwd, env: spec.env, stdio: ["pipe", "pipe", "pipe"] })
     const stdout = createInterface({ input: this.process.stdout })
     stdout.on("line", line => this.receive(line))
-    stdout.on("error", error => this.close(new Error(`MathOS bridge stdout failed: ${error.message}`)))
+    stdout.on("error", error => this.deferTransportFailure(new Error(`MathOS bridge stdout failed: ${error.message}`)))
     this.process.stderr.setEncoding("utf8")
     this.process.stderr.on("data", chunk => { this.stderr = `${this.stderr}${String(chunk)}`.slice(-4_000) })
-    this.process.stderr.on("error", error => this.close(new Error(`MathOS bridge stderr failed: ${error.message}`)))
-    this.process.stdin.on("error", error => this.close(new Error(`MathOS bridge stdin failed: ${error.message}`)))
-    this.process.once("error", error => this.close(new Error(`MathOS bridge failed to start: ${error.message}`)))
-    this.process.once("exit", (code, signal) => {
+    this.process.stderr.on("error", error => this.deferTransportFailure(new Error(`MathOS bridge stderr failed: ${error.message}`)))
+    this.process.stdin.on("error", error => this.deferTransportFailure(new Error(`MathOS bridge stdin failed: ${error.message}`)))
+    this.process.once("error", error => { this.spawnError = new Error(`MathOS bridge failed to start: ${error.message}`); this.deferTransportFailure(this.spawnError) })
+    this.process.once("close", (code, signal) => {
       const detail = redactText(this.stderr.trim()).slice(-2_000)
-      this.close(new Error(`MathOS bridge exited${code === null ? "" : ` with code ${code}`}${signal ? ` (${signal})` : ""}${detail ? `: ${detail}` : ""}`))
+      const exited = new Error(`MathOS bridge exited${code === null ? "" : ` with code ${code}`}${signal ? ` (${signal})` : ""}${detail ? `: ${detail}` : ""}`)
+      this.close(detail ? exited : this.spawnError ?? (code !== null || signal ? exited : this.transportError ?? exited))
     })
   }
   async start() { await this.request("hello", this.client.hello()) }
   request(method: string, params: unknown = {}) {
     if (this.closedError) return Promise.reject(this.closedError)
+    if (this.transportError) return Promise.reject(this.transportError)
     const id = `vscode-${++this.sequence}`
     return new Promise<unknown>((resolve, reject) => {
       this.pending.set(id, { resolve, reject })
       this.process.stdin.write(`${JSON.stringify(this.client.request(id, method, params))}\n`, error => {
         if (!error) return
-        const pending = this.pending.get(id)
-        if (!pending) return
-        this.pending.delete(id)
-        pending.reject(new Error(`MathOS bridge stdin write failed: ${error.message}`))
+        if (this.pending.has(id)) this.deferTransportFailure(new Error(`MathOS bridge stdin write failed: ${error.message}`))
       })
     })
   }
   private receive(line: string) { try { const response = JSON.parse(line) as { id: string; ok: boolean; result?: unknown; error?: { message?: string } }; const pending = this.pending.get(response.id); if (!pending) return; this.pending.delete(response.id); response.ok ? pending.resolve(response.result) : pending.reject(new Error(response.error?.message ?? "Bridge request failed")) } catch {} }
   private failAll(error: Error) { for (const pending of this.pending.values()) pending.reject(error); this.pending.clear() }
-  private close(error: Error) { if (this.closedError) return; this.closedError = error; this.failAll(error) }
-  dispose() { try { this.process.stdin.write(`${JSON.stringify(this.client.request(`vscode-${++this.sequence}`, "shutdown", {}))}\n`) } catch {}; setTimeout(() => this.process.kill(), 250).unref() }
+  private deferTransportFailure(error: Error) { if (this.closedError || this.transportError) return; this.transportError = error; this.transportTimer = setTimeout(() => { this.transportTimer = null; this.close(error); this.process.kill() }, 1_000); this.transportTimer.unref() }
+  private close(error: Error) { if (this.closedError) return; if (this.transportTimer) clearTimeout(this.transportTimer); this.transportTimer = null; this.closedError = error; this.failAll(error) }
+  dispose() { if (!this.closedError && !this.transportError) try { this.process.stdin.write(`${JSON.stringify(this.client.request(`vscode-${++this.sequence}`, "shutdown", {}))}\n`) } catch {}; setTimeout(() => this.process.kill(), 250).unref() }
 }
 export async function activate(context: ExtensionContext): Promise<{ authority: "BRIDGE_ONLY"; snapshot?: () => { claims: any[]; objective: any; providers: any[]; status: string } }> {
   const vscode: any = await import("vscode"), folder = vscode.workspace.workspaceFolders?.[0]
