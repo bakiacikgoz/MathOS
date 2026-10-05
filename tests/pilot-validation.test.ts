@@ -55,7 +55,17 @@ describe("fresh-user pilot validation", () => {
     const dir = mkdtempSync(join(tmpdir(), "pilot-evidence-")); dirs.push(dir)
     const output = join(dir, "result.json")
     let workspaceRoot = ""
-    const result = await runPilotValidation({ output, onWorkspaceCreated: (root) => { workspaceRoot = root } })
+    const commands: Array<{ id: string; elapsedMs: number; exitCode: number | null; signalCode: string | null; exitedDueToTimeout: boolean; stderr: string }> = []
+    const result = await runPilotValidation({
+      output,
+      onWorkspaceCreated: (root) => { workspaceRoot = root },
+      onCommandCompleted: (command) => {
+        commands.push(command)
+        console.info(`pilot ${command.id}: ${command.elapsedMs.toFixed(0)}ms exit=${command.exitCode} signal=${command.signalCode} childTimeout=${command.exitedDueToTimeout}${command.exitCode === null ? ` stderr=${command.stderr}` : ""}`)
+      },
+    })
+    expect(commands.map((command) => command.id)).toEqual(result.steps.filter((step) => step.command).map((step) => step.id))
+    expect(commands.every((command) => Number.isFinite(command.elapsedMs) && command.elapsedMs >= 0)).toBe(true)
     const ids = new Set(result.steps.map((step) => step.id))
     for (const id of ["init", "doctor", "tui_launch", "create_conjecture", "set_objective", "formalize", "fidelity_approval", "premise_search", "proof_attempt", "verify", "experiment", "literature", "branch", "team_start", "team_pause", "reopen", "backup", "restore", "report"]) expect(ids.has(id)).toBe(true)
     expect(result.provenance.entrypoint).toBe("dist/cli.js")
@@ -71,12 +81,21 @@ describe("fresh-user pilot validation", () => {
     expect(JSON.stringify(result)).not.toContain(workspaceRoot)
     expect(existsSync(workspaceRoot)).toBe(false)
     expect(JSON.parse(readFileSync(output, "utf8")).canonicalSha256).toBe(canonicalPilotHash(result))
-  }, 60_000)
+  // Windows full-suite CI measured 66.3s after the former 60s deadline
+  // interrupted a real CLI child; leave headroom for the 24 serial commands.
+  }, 120_000)
 
   test("two runs have identical canonical evidence hashes", async () => {
     const dir = mkdtempSync(join(tmpdir(), "pilot-determinism-")); dirs.push(dir)
-    const first = await runPilotValidation({ output: join(dir, "one.json") })
-    const second = await runPilotValidation({ output: join(dir, "two.json") })
+    const logCommand = (run: string) => (command: { id: string; elapsedMs: number; exitCode: number | null; signalCode: string | null; exitedDueToTimeout: boolean; stderr: string }) => {
+      console.info(`pilot ${run}/${command.id}: ${command.elapsedMs.toFixed(0)}ms exit=${command.exitCode} signal=${command.signalCode} childTimeout=${command.exitedDueToTimeout}${command.exitCode === null ? ` stderr=${command.stderr}` : ""}`)
+    }
+    const first = await runPilotValidation({ output: join(dir, "one.json"), onCommandCompleted: logCommand("one") })
+    const second = await runPilotValidation({ output: join(dir, "two.json"), onCommandCompleted: logCommand("two") })
+    expect(first.summary.FAIL).toBe(0)
+    expect(second.summary.FAIL).toBe(0)
+    expect(first.overall).toBe("BLOCKED")
+    expect(second.overall).toBe("BLOCKED")
     if (first.canonicalSha256 !== second.canonicalSha256) {
       const differences: string[] = []
       const inspect = (a: unknown, b: unknown, path: string): void => {
@@ -96,5 +115,7 @@ describe("fresh-user pilot validation", () => {
       inspect(first, second, "evidence")
       throw new Error(`Canonical pilot evidence differs: ${differences.slice(0, 20).join(" | ")}`)
     }
-  }, 90_000)
+  // Windows full-suite CI measured 91.3s after the former 90s deadline
+  // interrupted a CLI child; the resulting run had null exits and a receipt mismatch.
+  }, 180_000)
 })

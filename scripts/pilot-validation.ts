@@ -38,6 +38,17 @@ export interface PilotEvidence {
   canonicalSha256: string
 }
 
+// Runtime diagnostics stay outside PilotEvidence so timings and signals do not
+// change its canonical hash across otherwise identical pilot runs.
+export interface PilotCommandDiagnostic {
+  id: string
+  elapsedMs: number
+  exitCode: number | null
+  signalCode: string | null
+  exitedDueToTimeout: boolean
+  stderr: string
+}
+
 const SECRET_NAME = /(api[_-]?key|token|secret|password|authorization|credential)/i
 const SECRET_VALUE = /(?:sk-[A-Za-z0-9_-]{8,}|gh[pousr]_[A-Za-z0-9_]{12,}|github_pat_[A-Za-z0-9_]{12,}|xox[baprs]-[A-Za-z0-9-]{8,}|AKIA[A-Z0-9]{16}|Bearer\s+\S+)/gi
 const TEXT_EXTENSIONS = new Set([".json", ".jsonl", ".md", ".toml", ".txt", ".lean", ".py", ".log", ".yaml", ".yml"])
@@ -185,7 +196,7 @@ function semanticStatus(raw: string): unknown {
   }
 }
 
-export async function runPilotValidation(options: { output?: string; keepWorkspace?: boolean; onWorkspaceCreated?: (root: string) => void } = {}): Promise<PilotEvidence> {
+export async function runPilotValidation(options: { output?: string; keepWorkspace?: boolean; onWorkspaceCreated?: (root: string) => void; onCommandCompleted?: (diagnostic: PilotCommandDiagnostic) => void } = {}): Promise<PilotEvidence> {
   const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..")
   const runner = fileURLToPath(import.meta.url)
   const cli = ensureBuiltCli(repo)
@@ -201,7 +212,9 @@ export async function runPilotValidation(options: { output?: string; keepWorkspa
   const normalize = (text: string) => normalizePilotText(redactPilotText(text, environment), temporaryRoot, repo)
   const run = (id: string, args: string[], cwd = workspace): RawRun => {
     const command = `mathos ${args.join(" ")}`
+    const startedAt = performance.now()
     const result = Bun.spawnSync([process.execPath, cli, ...args], { cwd, env: environment, stdout: "pipe", stderr: "pipe" })
+    const elapsedMs = performance.now() - startedAt
     const rawStdout = result.stdout.toString()
     const rawStderr = result.stderr.toString()
     const status: PilotStatus = result.exitCode === 0 ? "PASS" : "FAIL"
@@ -211,6 +224,7 @@ export async function runPilotValidation(options: { output?: string; keepWorkspa
       stdout: normalize(rawStdout), stderr: normalize(rawStderr), rerun: normalize(`cd ${workspace} && ${command}`),
     }
     steps.push(step)
+    options.onCommandCompleted?.({ id, elapsedMs, exitCode: result.exitCode, signalCode: result.signalCode ?? null, exitedDueToTimeout: result.exitedDueToTimeout ?? false, stderr: step.stderr ?? "" })
     return { step, rawStdout, rawStderr }
   }
   const manual = (id: string, reason: string, rerun: string, status: PilotStatus = "BLOCKED", evidence?: string) => steps.push({ id, status, reason, evidence, rerun })

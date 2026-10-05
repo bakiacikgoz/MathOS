@@ -60,6 +60,9 @@ export function createServiceContainer(root: string, db: Database, overrides: Pa
   const repositories = createV1Repositories(db)
   let sequence = 0
   const solverRegistry=new SolverAdapterRegistry()
+  // These service units may read before writing; the outer writer reservation
+  // is required even when a repository's nested transaction is immediate.
+  const unitOfWork = <T>(work: () => T): T => db.transaction(work).immediate()
   const statementRevisions=new StatementRevisionService({revisions:repositories.statementRevisions,clock,nextId:()=>`SR-${clock.now().replace(/\D/g,"")}-${++sequence}`,writeEvent:()=>{}})
   const claimRepository=new ClaimRepository(db),formalRepository=new FormalStatementRepository(db)
   for(const {id} of db.query<{id:string},[]>("SELECT id FROM workspaces").all())statementRevisions.backfillLegacy(claimRepository.list(id),formalRepository.list(id),"CR-LEGACY")
@@ -71,14 +74,14 @@ export function createServiceContainer(root: string, db: Database, overrides: Pa
     graph: overrides.graph ?? graphReadAdapter(new DependencyRepository(db)),
     repositories,
     mathematicalContext: new MathematicalContextService({ items: repositories.contextItems, revisions: repositories.contextRevisions, clock, nextId: (prefix) => `${prefix}-${clock.now().replace(/\D/g, "")}-${++sequence}`, writeEvent: () => {} }),
-    researchNotebook: new ResearchNotebookService({ root, documents:repositories.researchDocuments, blocks:repositories.researchBlocks, clock, unitOfWork:(work) => db.transaction(work)(), entityExists:(type,id) => type === "claim" ? Boolean(new ClaimRepository(db).get(id)) : true }),
+    researchNotebook: new ResearchNotebookService({ root, documents:repositories.researchDocuments, blocks:repositories.researchBlocks, clock, unitOfWork, entityExists:(type,id) => type === "claim" ? Boolean(new ClaimRepository(db).get(id)) : true }),
     statementRevisions,
     alignment:new AlignmentService({revisions:repositories.statementRevisions,alignments:repositories.formalAlignments,findings:repositories.alignmentFindings,clock,...(overrides.alignmentAuditor?{auditor:overrides.alignmentAuditor}:{}),nextId:(prefix)=>`${prefix}-${clock.now().replace(/\D/g,"")}-${++sequence}`}),
     impactStaleness:new ImpactStalenessService({markers:repositories.staleMarkers,clock,nextId:()=>`SM-${clock.now().replace(/\D/g,"")}-${++sequence}`}),
-    proofPortfolio:new ProofPortfolioService({root,portfolios:repositories.proofPortfolios,jobs:repositories.proofJobs,candidates:repositories.proofCandidates,budgets:repositories.portfolioBudgets,leases:repositories.portfolioLeases,unitOfWork:(work)=>db.transaction(work)(),now:()=>clock.now(),nextId:(prefix)=>`${prefix}-${clock.now().replace(/\D/g,"")}-${++sequence}`,createWorker:overrides.proofPortfolioRuntime?.createWorker ?? (async()=>{throw new Error("PROOF_PORTFOLIO_VCS_RUNTIME_REQUIRED")}),startProcess:overrides.proofPortfolioRuntime?.startProcess ?? (async()=>{throw new Error("PROOF_PORTFOLIO_PROCESS_RUNTIME_REQUIRED")}),crashHook:overrides.proofPortfolioRuntime?.crashHook}),
-    failureMemory:new FailureMemoryService({failures:repositories.failureFingerprints,occurrences:repositories.failureOccurrences,unitOfWork:(work)=>db.transaction(work)(),now:()=>clock.now(),nextId:(prefix)=>`${prefix}-${clock.now().replace(/\D/g,"")}-${++sequence}`}),
+    proofPortfolio:new ProofPortfolioService({root,portfolios:repositories.proofPortfolios,jobs:repositories.proofJobs,candidates:repositories.proofCandidates,budgets:repositories.portfolioBudgets,leases:repositories.portfolioLeases,unitOfWork,now:()=>clock.now(),nextId:(prefix)=>`${prefix}-${clock.now().replace(/\D/g,"")}-${++sequence}`,createWorker:overrides.proofPortfolioRuntime?.createWorker ?? (async()=>{throw new Error("PROOF_PORTFOLIO_VCS_RUNTIME_REQUIRED")}),startProcess:overrides.proofPortfolioRuntime?.startProcess ?? (async()=>{throw new Error("PROOF_PORTFOLIO_PROCESS_RUNTIME_REQUIRED")}),crashHook:overrides.proofPortfolioRuntime?.crashHook}),
+    failureMemory:new FailureMemoryService({failures:repositories.failureFingerprints,occurrences:repositories.failureOccurrences,unitOfWork,now:()=>clock.now(),nextId:(prefix)=>`${prefix}-${clock.now().replace(/\D/g,"")}-${++sequence}`}),
     solverRegistry,
-    solverLab:new SolverLabService({registry:solverRegistry,jobs:repositories.solverJobs,results:repositories.solverResults,artifacts:overrides.artifacts??new FileArtifactStore(root),unitOfWork:(work)=>db.transaction(work)(),now:()=>clock.now(),nextId:(prefix)=>`${prefix}-${clock.now().replace(/\D/g,"")}-${++sequence}`,validateWitness:()=>false,validateCertificate:()=>false,leanReplay:async()=>({passed:false,inputHash:"",outputHash:""}),createEvidence:()=>""}),
+    solverLab:new SolverLabService({registry:solverRegistry,jobs:repositories.solverJobs,results:repositories.solverResults,artifacts:overrides.artifacts??new FileArtifactStore(root),unitOfWork,now:()=>clock.now(),nextId:(prefix)=>`${prefix}-${clock.now().replace(/\D/g,"")}-${++sequence}`,validateWitness:()=>false,validateCertificate:()=>false,leanReplay:async()=>({passed:false,inputHash:"",outputHash:""}),createEvidence:()=>""}),
   }
   return container
 }

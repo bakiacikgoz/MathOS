@@ -179,22 +179,35 @@ describe("multi-agent hardening", () => {
   })
 
   test("target verification failure cannot become applied", async () => {
+    const started = performance.now()
+    let previous = started
+    const phase = (name: string) => {
+      const current = performance.now()
+      console.info(`[target-verification-failure] ${name}: ${(current - previous).toFixed(2)}ms; total ${(current - started).toFixed(2)}ms`)
+      previous = current
+    }
     const lean = new FakeLeanAdapter()
     const { app } = await ready({}, lean)
+    phase("setup")
+    try {
     const session = await app.startTeam({ planners: [new FakeResearchPlanner(idle()), new FakeResearchPlanner(prove()), new FakeResearchPlanner(idle())] })
     approveWorkers(app, session.id)
     await app.runTeam(session.id)
+    phase("team verification")
     const agents = app.teamAgents(session.id), source = agents[1]!
     const proposed = app.proposeImport(session.id, source.id, agents[0]!.id, source.localClaimId)
     const pending = await app.applyImport(proposed.id)
     expect(pending.status).toBe("REVERIFY_REQUIRED")
     app.approveFormal(app.getFormal(pending.targetClaimId!).id)
+    phase("import approval")
     lean.axioms = ["untrusted.custom"]
     const applied = await app.applyImport(proposed.id)
     expect(applied.status).toBe("FAILED")
     expect(applied.failureCode).toBe("TARGET_VERIFICATION_FAILED")
-    app.close()
-  })
+    phase("untrusted axiom rejection")
+    } finally { app.close(); phase("cleanup") }
+    // Windows b75b6b6 CI measured 5490.54ms against Bun's 5000ms default.
+  }, 20_000)
 
   test("post-verify invariant recheck blocks concurrent target mutation", async () => {
     const lean = new MutatingVerifyLean()

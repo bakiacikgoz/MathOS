@@ -10,7 +10,7 @@ export class ProofPortfolioRepository extends V1Repository<Row> {
       const result = this.db.query("UPDATE proof_portfolios SET winner_candidate_id=?, status='SUCCEEDED', revision=revision+1 WHERE id=? AND revision=?").run(candidateId, portfolioId, expectedRevision)
       if (result.changes !== 1) throw new V1RevisionConflictError(portfolioId)
       return this.get(portfolioId)!
-    })()
+    }).immediate()
   }
   findActive(claimId: string, formalRevisionHash: string): Row | null {
     const row = this.db.query<Record<string, unknown>, [string,string]>("SELECT * FROM proof_portfolios WHERE claim_id=? AND formal_revision_hash=? AND status IN ('PENDING','RUNNING') ORDER BY created_at,id LIMIT 1").get(claimId,formalRevisionHash)

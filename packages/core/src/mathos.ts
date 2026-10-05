@@ -873,6 +873,8 @@ export class MathOS {
   async premisesForClaim(claimId: string, options: { skipInspect?: boolean } = {}): Promise<import("@mathos/retrieval").PremiseRetrievalResult> { return this.retrievalService.premisesForClaim(claimId, options) }
 
   private allocateId(prefix: string): string {
+    // This can be a root transaction before the claim/event unit of work.
+    // Reserve before reading the counter, including its initialization path.
     return this.client.db.transaction(() => {
       const row = this.client.db.query<{ next_value: number }, [string]>("SELECT next_value FROM id_allocators WHERE prefix = ?").get(prefix)
       if (!row) {
@@ -892,7 +894,7 @@ export class MathOS {
       const next = row.next_value
       this.client.db.query("UPDATE id_allocators SET next_value = next_value + 1 WHERE prefix = ?").run(prefix)
       return `${prefix}-${padSeq(next)}`
-    })()
+    }).immediate()
   }
 
   private chargeLean(reason: "PREMISE_INSPECTION" | "PROOF_COMPILE" | "VERIFICATION" | "AXIOM_AUDIT" | "FORMALIZATION_CHECK"): boolean {
@@ -912,7 +914,7 @@ export class MathOS {
           "INSERT INTO budget_reservations (id, session_id, agent_id, resource, amount, round_sequence, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         ).run(createId("rsv"), session.id, worker.id, "LEAN_CALL", 1, session.currentRound + 1, "CONSUMED", nowIso())
         return true
-      })()
+      }).immediate()
       if (!reserved) throw new Error("GLOBAL_LEAN_BUDGET_EXHAUSTED")
     }
     usage.leanCalls += 1
@@ -943,7 +945,7 @@ export class MathOS {
           "INSERT INTO budget_reservations (id, session_id, agent_id, resource, amount, round_sequence, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         ).run(createId("rsv"), session.id, worker.id, "MODEL_CALL", 1, session.currentRound + 1, "CONSUMED", nowIso())
         return true
-      })()
+      }).immediate()
       if (!reserved) throw new Error("GLOBAL_MODEL_BUDGET_EXHAUSTED")
     }
     usage.modelCalls += 1
@@ -970,7 +972,7 @@ export class MathOS {
           "INSERT INTO budget_reservations (id, session_id, agent_id, resource, amount, round_sequence, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         ).run(createId("rsv"), session.id, worker.id, "PROOF_ATTEMPT", 1, session.currentRound + 1, "CONSUMED", nowIso())
         return true
-      })()
+      }).immediate()
       if (!reserved) throw new Error("GLOBAL_PROOF_BUDGET_EXHAUSTED")
       if (this.teamCrashBoundary === "after_reservation") throw new Error("crash")
     }

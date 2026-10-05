@@ -17,7 +17,7 @@ export class ContextItemRepository extends V1Repository<MathematicalContextItem>
       const result = this.db.query(`UPDATE context_items SET status='ACTIVE', revision=revision+1 WHERE id=? AND status='PROPOSED'`).run(id)
       if (result.changes !== 1) throw new Error(`REVISION_CONFLICT: ${id}`)
       return this.get(id)!
-    })()
+    }).immediate()
   }
 }
 

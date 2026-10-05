@@ -55,7 +55,9 @@ export class DatabaseClient {
    * then update external projections only after it returns successfully.
    */
   unitOfWork<T>(work: () => T): T {
-    return this.db.transaction(work)()
+    // Reserve at the root: nested transactions use savepoints and cannot
+    // upgrade a deferred outer read snapshot safely under a WAL writer.
+    return this.db.transaction(work).immediate()
   }
 
   migrate(): void {
