@@ -112,36 +112,59 @@ describe("KERNEL_VERIFIED assignment authority", () => {
 
 describe("ClaimRepository trust boundary", () => {
   test("rejects repository and raw SQL bypasses and downgrades unbacked legacy rows", async () => {
+    const started = performance.now()
+    let checkpoint = started
+    const phases: Record<string, number> = {}
+    const elapsed = (phase: string) => {
+      const now = performance.now()
+      phases[phase] = Math.round(now - checkpoint)
+      checkpoint = now
+    }
     const parent = mkdtempSync(join(tmpdir(), "mathos-storage-trust-"))
     try {
       const created = await MathOS.init(parent, "claims")
+      elapsed("init")
       const app = MathOS.open(created.root)
-      const ordinary = app.createClaim({ kind: "lemma", title: "ordinary", statement: "True" })
-      app.close()
+      elapsed("open")
+      let ordinary: Claim
+      try { ordinary = app.createClaim({ kind: "lemma", title: "ordinary", statement: "True" }); elapsed("createClaim") }
+      finally { app.close(); elapsed("appClose") }
       const client = new DatabaseClient(databasePath(created.root))
-      client.migrate()
-      const repository = new ClaimRepository(client.db)
-      expect(() => repository.insert({ ...ordinary, id: "L-999", status: "KERNEL_VERIFIED" })).toThrow("VerificationGate")
-      const aliasedUpdate = repository.updateStatus.bind(repository)
-      expect(() => aliasedUpdate(ordinary.id, "KERNEL_VERIFIED", timestamp)).toThrow("VerificationGate")
-      expect(() => client.db.query(
-        `INSERT INTO claims (
-          id, workspace_id, kind, title, natural_statement, original_input, status, branch_id,
-          created_by, provider, model_name, created_at, updated_at
-        ) SELECT 'L-998', workspace_id, kind, title, natural_statement, original_input, 'KERNEL_VERIFIED', branch_id,
-          created_by, provider, model_name, created_at, updated_at FROM claims WHERE id = ?`,
-      ).run(ordinary.id)).toThrow("VerificationGate evidence")
-      expect(() => client.db.exec(`UPDATE claims SET status = 'KERNEL_VERIFIED' WHERE id = '${ordinary.id}'`)).toThrow("VerificationGate evidence")
-      expect(() => client.db.query("UPDATE claims SET status = ? WHERE id = ?").run("KERNEL_VERIFIED", ordinary.id)).toThrow("VerificationGate evidence")
-      client.db.exec("DROP TRIGGER claims_kernel_verified_insert_guard; DROP TRIGGER claims_kernel_verified_update_guard;")
-      client.db.query("UPDATE claims SET status = 'KERNEL_VERIFIED' WHERE id = ?").run(ordinary.id)
-      client.db.query("DELETE FROM schema_migrations WHERE id = '018_kernel_verification_integrity'").run()
-      client.close()
+      try {
+        client.migrate()
+        elapsed("clientOpenAndMigrate")
+        const repository = new ClaimRepository(client.db)
+        expect(() => repository.insert({ ...ordinary, id: "L-999", status: "KERNEL_VERIFIED" })).toThrow("VerificationGate")
+        const aliasedUpdate = repository.updateStatus.bind(repository)
+        expect(() => aliasedUpdate(ordinary.id, "KERNEL_VERIFIED", timestamp)).toThrow("VerificationGate")
+        expect(() => client.db.query(
+          `INSERT INTO claims (
+            id, workspace_id, kind, title, natural_statement, original_input, status, branch_id,
+            created_by, provider, model_name, created_at, updated_at
+          ) SELECT 'L-998', workspace_id, kind, title, natural_statement, original_input, 'KERNEL_VERIFIED', branch_id,
+            created_by, provider, model_name, created_at, updated_at FROM claims WHERE id = ?`,
+        ).run(ordinary.id)).toThrow("VerificationGate evidence")
+        expect(() => client.db.exec(`UPDATE claims SET status = 'KERNEL_VERIFIED' WHERE id = '${ordinary.id}'`)).toThrow("VerificationGate evidence")
+        expect(() => client.db.query("UPDATE claims SET status = ? WHERE id = ?").run("KERNEL_VERIFIED", ordinary.id)).toThrow("VerificationGate evidence")
+        elapsed("guardAssertions")
+        client.db.exec("DROP TRIGGER claims_kernel_verified_insert_guard; DROP TRIGGER claims_kernel_verified_update_guard;")
+        client.db.query("UPDATE claims SET status = 'KERNEL_VERIFIED' WHERE id = ?").run(ordinary.id)
+        client.db.query("DELETE FROM schema_migrations WHERE id = '018_kernel_verification_integrity'").run()
+        elapsed("legacyFixture")
+      } finally { client.close(); elapsed("clientClose") }
       const reopened = MathOS.open(created.root)
+      elapsed("legacyReopenAndMigrate")
       try { expect(reopened.getClaim(ordinary.id).status).toBe("FORMALIZED_UNVERIFIED") }
-      finally { reopened.close() }
-    } finally { rmSync(parent, { recursive: true, force: true }) }
-  })
+      finally { reopened.close(); elapsed("legacyAssertAndClose") }
+    } finally {
+      try { rmSync(parent, { recursive: true, force: true }) }
+      finally {
+        elapsed("cleanup")
+        console.info("[storage-trust timing ms]", JSON.stringify({ ...phases, total: Math.round(performance.now() - started) }))
+      }
+    }
+    // Windows CI measured 8583 ms against the default 5000 ms deadline.
+  }, 20_000)
 })
 
 describe("public claim creation trust boundary", () => {

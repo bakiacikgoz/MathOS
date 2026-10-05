@@ -213,24 +213,41 @@ test("restore refuses a validly hashed future-schema database and preserves an e
 })
 
 test("restore rejects archive-listed SQLite sidecars even when manifest hashes match", async () => {
-  const parent = temp()
-  const created = await MathOS.init(join(parent, "source"), "sidecar")
-  const app = MathOS.open(created.root)
-  let archivePath: string
-  try { archivePath = app.backup(join(parent, "backups")).archive }
-  finally { app.close() }
-  const malformed = repack(archivePath, (folder) => {
-    const sidecar = ".mathos/mathos.db-wal"
-    writeFileSync(join(folder, sidecar), "unexpected")
-    const path = join(folder, "backup-manifest.json")
-    const manifest = JSON.parse(readFileSync(path, "utf8"))
-    manifest.files.push({ path: sidecar, sha256: createHash("sha256").update("unexpected").digest("hex"), bytes: 10 })
-    writeFileSync(path, JSON.stringify(manifest))
-  })
-  const dest = join(parent, "restored")
-  expect(() => MathOS.restore(malformed, dest)).toThrow("Backup manifest file invalid")
-  expect(existsSync(dest)).toBe(false)
-})
+  const started = performance.now()
+  let checkpoint = started
+  const phases: Record<string, number> = {}
+  const elapsed = (phase: string) => {
+    const now = performance.now()
+    phases[phase] = Math.round(now - checkpoint)
+    checkpoint = now
+  }
+  try {
+    const parent = temp()
+    const created = await MathOS.init(join(parent, "source"), "sidecar")
+    elapsed("init")
+    const app = MathOS.open(created.root)
+    elapsed("open")
+    let archivePath: string
+    try { archivePath = app.backup(join(parent, "backups")).archive; elapsed("backup") }
+    finally { app.close(); elapsed("close") }
+    const malformed = repack(archivePath, (folder) => {
+      const sidecar = ".mathos/mathos.db-wal"
+      writeFileSync(join(folder, sidecar), "unexpected")
+      const path = join(folder, "backup-manifest.json")
+      const manifest = JSON.parse(readFileSync(path, "utf8"))
+      manifest.files.push({ path: sidecar, sha256: createHash("sha256").update("unexpected").digest("hex"), bytes: 10 })
+      writeFileSync(path, JSON.stringify(manifest))
+    })
+    elapsed("repack")
+    const dest = join(parent, "restored")
+    expect(() => MathOS.restore(malformed, dest)).toThrow("Backup manifest file invalid")
+    expect(existsSync(dest)).toBe(false)
+    elapsed("restoreRejectionAssertions")
+  } finally {
+    console.info("[backup-sidecar timing ms; cleanup in afterEach]", JSON.stringify({ ...phases, total: Math.round(performance.now() - started) }))
+  }
+  // Windows CI measured 7223 ms against the default 5000 ms deadline.
+}, 20_000)
 
 test("restore accepts an older checkpointed WAL-header backup without sidecars", async () => {
   const parent = temp()
