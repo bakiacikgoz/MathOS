@@ -124,7 +124,15 @@ describe("proof layer", () => {
   })
 
   test("sorry proof is rejected before kernel and does not promote", async () => {
+    const started = performance.now()
+    let previous = started
+    const phase = (name: string) => {
+      const current = performance.now()
+      console.info(`[sorry-rejection] ${name}: ${(current - previous).toFixed(2)}ms; total ${(current - started).toFixed(2)}ms`)
+      previous = current
+    }
     const created = await MathOS.init(tempDir(), "sorry")
+    phase("init")
     const model = new FakeModelProvider()
     model.enqueue(formalDraft)
     model.enqueue(fidelityMatch)
@@ -132,16 +140,21 @@ describe("proof layer", () => {
     model.enqueue({ proofBody: "by\n  sorry" })
     model.enqueue({ proofBody: "by\n  sorry" })
     const app = openApp(created.root, model)
+    phase("open")
     try {
       await readyClaim(app)
+      phase("formalization and approval")
       const session = await app.prove("C-001")
       expect(session.accepted).toBeNull()
       expect(session.attempts).toHaveLength(3)
       expect(app.getClaim("C-001").status).toBe("FORMALIZED_UNVERIFIED")
+      phase("three forbidden proof attempts rejected")
     } finally {
       app.close()
+      phase("close")
     }
-  })
+    // Windows 8a15d86 CI measured 6237.25ms against the 5000ms default.
+  }, 20_000)
 
   test("max 3 attempts then stop", async () => {
     const created = await MathOS.init(tempDir(), "loop")

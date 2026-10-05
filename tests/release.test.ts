@@ -20,6 +20,16 @@ afterEach(() => {
   for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
 })
 
+function phaseTimer(label: string): (phase: string) => void {
+  const started = performance.now()
+  let previous = started
+  return (phase) => {
+    const current = performance.now()
+    console.info(`[${label}] ${phase}: ${(current - previous).toFixed(2)}ms; total ${(current - started).toFixed(2)}ms`)
+    previous = current
+  }
+}
+
 describe("release hardening", () => {
   test("version comes from root package.json", () => {
     expect(mathosVersion()).toBe("1.0.0-rc.1")
@@ -38,31 +48,50 @@ describe("release hardening", () => {
   })
 
   test("newer schema guard", async () => {
+    const phase = phaseTimer("newer-schema-guard")
     const created = await MathOS.init(temp(), "new")
+    phase("init")
     const db = new Database(join(created.root, ".mathos", "mathos.db"))
-    db.query("INSERT INTO mathos_meta (key, value) VALUES ('schema_epoch', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run("999")
-    db.close()
+    try {
+      db.query("INSERT INTO mathos_meta (key, value) VALUES ('schema_epoch', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run("999")
+      phase("future epoch write")
+    } finally { db.close(); phase("close") }
     expect(() => MathOS.open(created.root)).toThrow(WorkspaceSchemaTooNew)
-  })
+    phase("future schema refused")
+    // Windows 8a15d86 CI measured 6006.33ms against the 5000ms default.
+  }, 20_000)
 
   test("backup restore semantic equivalence and no overwrite", async () => {
+    const phase = phaseTimer("backup-restore-equivalence")
     const created = await MathOS.init(temp(), "bak")
-    const app = MathOS.open(created.root, { leanAdapter: new FakeLeanAdapter(), vcs: new FakeVcs() })
+    phase("init")
+    let app: MathOS | null = MathOS.open(created.root, { leanAdapter: new FakeLeanAdapter(), vcs: new FakeVcs() })
+    phase("open")
+    try {
     app.createClaim({ kind: "conjecture", title: "P", statement: "True", asMainObjective: true })
     writeFileSync(join(created.root, "formal", "note.lean"), "theorem t : True := by trivial\n")
+    phase("claim and formal artifact")
     const backupDir = temp()
     const { archive, manifest } = app.backup(backupDir)
     expect(existsSync(archive)).toBe(true)
     expect(manifest.files.some((item) => item.path.includes("mathos.db"))).toBe(true)
-    app.close()
+    phase("backup and manifest")
+    app.close(); app = null
+    phase("source close")
     const dest = join(temp(), "restored")
     const restored = MathOS.restore(archive, dest)
+    phase("restore")
     const copy = MathOS.open(restored.root, { leanAdapter: new FakeLeanAdapter(), vcs: new FakeVcs() })
-    expect(copy.listClaims().map((item) => item.id)).toEqual(["C-001"])
-    expect(readFileSync(join(restored.root, "formal", "note.lean"), "utf8")).toContain("True")
-    copy.close()
+    try {
+      expect(copy.listClaims().map((item) => item.id)).toEqual(["C-001"])
+      expect(readFileSync(join(restored.root, "formal", "note.lean"), "utf8")).toContain("True")
+      phase("semantic equivalence")
+    } finally { copy.close(); phase("restored close") }
     expect(() => MathOS.restore(archive, restored.root)).toThrow(BackupIntegrityFailed)
-  })
+    phase("overwrite refused")
+    } finally { app?.close(); phase("source cleanup") }
+    // Windows 8a15d86 CI measured 7421.65ms against the 5000ms default.
+  }, 20_000)
 
   test("secret canary does not leak into diagnostics/report/backup manifest", async () => {
     const canary = "SUPER_SECRET_CANARY_mathos_pilot"
