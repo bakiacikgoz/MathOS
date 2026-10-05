@@ -24,6 +24,8 @@
       "@mathos/storage/internal/verification-claim-promoter": ["./packages/storage/src/internal/verification-claim-promoter.ts"],
       "@mathos/workspace": ["./packages/workspace/src/index.ts"],
       "@mathos/models": ["./packages/models/src/index.ts"],
+      "@mathos/models/redact": ["./packages/models/src/redact.ts"],
+      "@mathos/models/external-client-auth": ["./packages/models/src/auth/external-client-auth.ts"],
       "@mathos/lean": ["./packages/lean/src/index.ts"],
       "@mathos/retrieval": ["./packages/retrieval/src/index.ts"],
       "@mathos/vcs": ["./packages/vcs/src/index.ts"],

@@ -1,5 +1,5 @@
 import { BRIDGE_PROTOCOL } from "./protocol.ts"
-import { buildExternalClientEnvironment } from "@mathos/models"
+import { buildExternalClientEnvironment } from "@mathos/models/external-client-auth"
 const PROTOCOL_VERSION = 1
 export class BridgeClient {
   constructor(private readonly options: { workspaceRoot: string; trusted: boolean; executablePath?: string; environment?: NodeJS.ProcessEnv }) {}

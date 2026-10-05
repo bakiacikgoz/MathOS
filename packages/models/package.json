@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./redact": "./src/redact.ts",
+    "./external-client-auth": "./src/auth/external-client-auth.ts"
   },
   "dependencies": {
     "@mathos/shared": "workspace:*",

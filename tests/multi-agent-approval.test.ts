@@ -128,7 +128,17 @@ describe("multi-agent human approval boundary", () => {
   })
 
   for (const changedRevision of ["NATURAL", "FORMAL"] as const) test(`an applied import loses its provenance when the target ${changedRevision.toLowerCase()} revision is later changed and reverified`, async () => {
+    const started = performance.now()
+    let checkpoint = started
+    const phases: Record<string, number> = {}
+    const elapsed = (phase: string) => {
+      if (changedRevision !== "NATURAL") return
+      const now = performance.now()
+      phases[phase] = Math.round(now - checkpoint)
+      checkpoint = now
+    }
     const { app, formal, cleanup } = await setup()
+    elapsed("setup")
     try {
       app.approveFormal(formal.id)
       const session = await app.startTeam({
@@ -144,10 +154,12 @@ describe("multi-agent human approval boundary", () => {
       const [targetWorker, sourceWorker] = app.teamAgents(session.id)
       app.approveFormal(app.getFormal(sourceWorker!.localClaimId).id)
       await app.runTeam(session.id)
+      elapsed("teamVerification")
       const proposed = app.proposeImport(session.id, sourceWorker!.id, targetWorker!.id, sourceWorker!.localClaimId)
       const pending = await app.applyImport(proposed.id)
       app.approveFormal(app.getFormal(pending.targetClaimId!).id)
       const applied = await app.applyImport(proposed.id)
+      elapsed("importAndTargetApproval")
       expect(applied.status).toBe("APPLIED")
       const targetId = applied.targetClaimId!
       const currentRevision = app.services.repositories.statementRevisions.latest(targetId, changedRevision)!
@@ -155,9 +167,18 @@ describe("multi-agent human approval boundary", () => {
       app.approveFormal(app.getFormal(targetId).id)
       expect((await app.verify(targetId)).passed).toBe(true)
       expect(app.claimWorkflow(targetId).approved).toBe(true)
+      elapsed("revisionAndReverification")
       const repeated = await app.applyImport(proposed.id)
       expect(repeated.status).toBe("FAILED")
       expect(repeated.failureCode).toBe("TARGET_NOT_COMPATIBLE")
-    } finally { cleanup() }
-  }, changedRevision === "FORMAL" ? 30_000 : 5_000)
+      elapsed("provenanceRejection")
+    } finally {
+      try { cleanup() }
+      finally {
+        elapsed("cleanup")
+        if (changedRevision === "NATURAL") console.info("[natural-import timing ms]", JSON.stringify({ ...phases, total: Math.round(performance.now() - started) }))
+      }
+    }
+    // NATURAL measured 5697 ms against the default 5000 ms Windows CI deadline.
+  }, changedRevision === "FORMAL" ? 30_000 : 20_000)
 })

@@ -1,6 +1,6 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process"
 import { createInterface } from "node:readline"
-import { redactText } from "@mathos/models"
+import { redactText } from "@mathos/models/redact"
 import { BridgeClient } from "./bridge-client.ts"
 import { buildClaimTree } from "./claim-tree.ts"
 import { openMathOSTerminal } from "./terminal-command.ts"
