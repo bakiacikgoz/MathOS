@@ -98,7 +98,9 @@ export class DatabaseClient {
       this.db.exec(`CREATE TABLE IF NOT EXISTS mathos_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);`)
       this.db.query("INSERT INTO mathos_meta (key, value) VALUES ('schema_epoch', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(String(SCHEMA_EPOCH))
     })
-    runPendingMigrations()
+    // Reserve the writer before the existing-table schema read establishes a
+    // WAL snapshot; a deferred read-to-write upgrade can bypass busy_timeout.
+    runPendingMigrations.immediate()
     this.normalizeMainBranch()
     const integrity = this.db.query<{ integrity_check: string }, []>("PRAGMA integrity_check").get()?.integrity_check
     if (integrity !== "ok") throw new StorageUnavailable(`post-migration integrity check failed: ${integrity ?? "unknown"}`, { path: this.filePath })
