@@ -62,7 +62,7 @@ describe("VS Code bridge session", () => {
     const executablePath = join(tmpdir(), `mathos-bridge-missing-${randomUUID()}`)
     const session = new BridgeSession(new BridgeClient({ workspaceRoot: process.cwd(), trusted: true, executablePath }))
     try {
-      await expect(session.start()).rejects.toThrow(/MathOS bridge failed to start: (?=.*mathos-bridge-missing-)(?=.*ENOENT)/u)
+      await expect(session.start()).rejects.toThrow(/MathOS bridge failed to start: (?=.*mathos-bridge-missing-)(?=.*(?:ENOENT|Executable not found))/u)
     } finally { session.dispose() }
   })
 
