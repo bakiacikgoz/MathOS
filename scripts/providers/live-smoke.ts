@@ -19,9 +19,12 @@ export async function codexOptions(clients:Pick<ClientLoginRuntime,"which"|"env"
   const output=mkdtempSync(join(tmpdir(),"mathos-codex-schema-"))
   try{const child=Bun.spawn([executable!,...prefix,"app-server","generate-json-schema","--out",output],{stdin:"ignore",stdout:"pipe",stderr:"pipe",env:clients.env});const stderrPromise=new Response(child.stderr).text(),exitCode=await child.exited,stderr=await stderrPromise;if(exitCode!==0)throw new Error(`CODEX_SCHEMA_GENERATION_FAILED${stderr.trim()?`: ${stderr.trim()}`:""}`);const schema=JSON.parse(readFileSync(join(output,"codex_app_server_protocol.v2.schemas.json"),"utf8"));validateCodexSchema(schema);return{executable:executable!,args:[...prefix,"app-server"],env:clients.env,schema,version:version.version}}finally{rmSync(output,{recursive:true,force:true})}
 }
+const OFFICIAL_CLIENT_DESCRIPTORS=new Set(["openai-codex-chatgpt","gemini-cli-enterprise","qwen-code-acp","github-copilot-account"])
 /** Factory options for the official-client providers (Codex, Gemini CLI, Qwen Code, Copilot); empty for direct API providers. */
-export async function clientProviderOptions(profile:Pick<ModelProfileV2,"descriptorId">,clients:Pick<ClientLoginRuntime,"which"|"env">=bunClientRuntime()):Promise<Partial<ProviderFactoryOptions>>{
-  const client=(name:string,missing:string)=>{const executable=clients.which(name);if(!executable)throw new Error(missing);return executable}
+export async function clientProviderOptions(profile:Pick<ModelProfileV2,"descriptorId">,runtime?:Pick<ClientLoginRuntime,"which"|"env">):Promise<Partial<ProviderFactoryOptions>>{
+  // The client search reads the user's PATH (PowerShell on Windows, a login shell on macOS); API-key providers never pay for it.
+  if(!OFFICIAL_CLIENT_DESCRIPTORS.has(profile.descriptorId))return{}
+  const clients=runtime??bunClientRuntime(),client=(name:string,missing:string)=>{const executable=clients.which(name);if(!executable)throw new Error(missing);return executable}
   if(profile.descriptorId==="openai-codex-chatgpt")return{codex:await codexOptions(clients)}
   if(profile.descriptorId==="gemini-cli-enterprise")return{geminiCli:{executable:client("gemini","GEMINI_CLI_MISSING"),env:clients.env}}
   if(profile.descriptorId==="qwen-code-acp")return{qwen:{executable:client("qwen","QWEN_CLIENT_MISSING"),env:clients.env}}

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { createProviderFromProfile, MODEL_PROFILE_V2_SCHEMA, type ClaudeCommandRunner, type ModelProfileV2 } from "@mathos/models"
-import { runProviderLiveSmoke } from "../scripts/providers/live-smoke.ts"
+import { clientProviderOptions, runProviderLiveSmoke } from "../scripts/providers/live-smoke.ts"
 
 // "auto" on an official-client profile means "the client's own default model"; direct API profiles still need a concrete model.
 const profile = (id: string, descriptorId: string, auth: ModelProfileV2["auth"]): ModelProfileV2 => { const now = new Date().toISOString(); return { schemaVersion: MODEL_PROFILE_V2_SCHEMA, id, descriptorId, displayName: id, model: "auto", endpointPresetId: null, baseUrlOverride: null, auth, enabled: true, timeoutMs: 1000, maxResponseBytes: 1000, maxOutputTokens: 8, reasoningEffort: null, allowedRoles: ["planner"], requestConcurrency: 1, metadata: { createdAt: now, updatedAt: now, migratedFromV1: false } } }
@@ -12,6 +12,11 @@ class Runner implements ClaudeCommandRunner {
 }
 
 describe("client default model", () => {
+  test("API-key profiles never search for an official client", async () => {
+    const untouched = { get env(): never { throw new Error("CLIENT_SEARCH_STARTED") }, which: (): never => { throw new Error("CLIENT_SEARCH_STARTED") } }
+    expect(await clientProviderOptions({ descriptorId: "openai-api" }, untouched)).toEqual({})
+    expect(await clientProviderOptions({ descriptorId: "anthropic-api" })).toEqual({})
+  })
   test("an official client profile set to auto lets the client choose its model", async () => {
     const runner = new Runner()
     const provider = await createProviderFromProfile(profile("claude", "claude-code-account", upstream), { secrets: {} as any, claude: { executable: "claude", runner } })
