@@ -3,7 +3,7 @@ import { useApp } from "../lib/app.ts"
 import { MathosError, openExternal, run, runJson, setSecret } from "../lib/bridge.ts"
 import { invalidate } from "../lib/query.ts"
 import { useT, type MessageKey } from "../lib/i18n.ts"
-import { acceptsProtocol, configureArgs, formFromProfile, groupOf, isGeneric, providerKeys, secretEnvName, suggestProfileId, useCatalog, useProfiles, useProviderStatus, usesUpstreamLogin, validProfileId, type CatalogEntry, type ProfileRow, type ProviderDescriptor, type ProviderGroup, type StatusRow, type WireProtocol } from "../lib/providers.ts"
+import { acceptsProtocol, configureArgs, formFromProfile, groupOf, isGeneric, providerKeys, secretEnvName, suggestProfileId, useCatalog, useProfiles, useProviderStatus, usesUpstreamLogin, validBaseUrl, validProfileId, type CatalogEntry, type ProfileRow, type ProviderDescriptor, type ProviderGroup, type StatusRow, type WireProtocol } from "../lib/providers.ts"
 import { FEATURED, keyPage, providerLogo, termsText } from "../lib/provider-meta.ts"
 import { Icon } from "../components/Icon.tsx"
 import { Sheet } from "../components/Overlay.tsx"
@@ -175,7 +175,8 @@ function ConnectWizard({ state, profiles, taken, hasDefault, secretRefOf, onStep
   const generic = isGeneric(descriptor), upstream = usesUpstreamLogin(descriptor), local = descriptor.authKinds.includes("none")
   const steps: Array<{ id: WizardStep; label: MessageKey }> = [{ id: "setup", label: "providers.step.setup" }, ...(local ? [] : [{ id: "key" as const, label: upstream ? "providers.step.login" as const : "providers.step.key" as const }]), { id: "test", label: "providers.step.test" }]
   const profileId = state.profile ?? form.profile.trim()
-  const errors = { profile: !state.profile && (!validProfileId(form.profile) || taken.includes(form.profile.trim())), baseUrl: generic && !/^https?:\/\/\S+$/.test(form.baseUrl.trim()), model: generic && !form.model.trim() }
+  // Only official clients pick their own default model; every API and local provider needs an explicit model id.
+  const errors = { profile: !state.profile && (!validProfileId(form.profile) || taken.includes(form.profile.trim())), baseUrl: generic && !validBaseUrl(form.baseUrl), model: !upstream && !form.model.trim() }
   const set = (key: keyof typeof form) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm((value) => ({ ...value, [key]: event.target.value }))
   const guard = async (work: () => Promise<void>) => { setBusy(true); try { await work() } catch (error) { app.toast(errorText(error, app.lang), "error") } finally { setBusy(false) } }
 
@@ -198,7 +199,7 @@ function ConnectWizard({ state, profiles, taken, hasDefault, secretRefOf, onStep
   const saveKey = () => guard(async () => {
     if (!secret.trim()) { setTouched(true); return }
     try { await setSecret(secretRefOf(profileId), secret.trim()) }
-    catch (error) { if (error instanceof MathosError && error.code === "SECRET_STORE_BLOCKED") { setStoreBlocked(true); return } throw error }
+    catch (error) { if (error instanceof MathosError && (error.code === "SECRET_STORE_BLOCKED" || error.code === "SECRET_STORE_WRITE_FAILED")) { setStoreBlocked(true); return } throw error }
     setSecretValue("")
     invalidate(providerKeys.all)
     app.toast(t("providers.keySaved"))
@@ -209,8 +210,8 @@ function ConnectWizard({ state, profiles, taken, hasDefault, secretRefOf, onStep
   const runTest = () => guard(async () => {
     const args = ["provider", "test", profileId, "--live", ...(descriptor.billingClass === "payg" ? ["--accept-usage"] : [])]
     const report = await runJson<{ connection: string; liveRequest: string }>(app.workspace.root, args, { allowNonZero: true })
-    const ok = report.connection === "CONNECTED"
-    setResult({ ok, text: ok ? t("providers.testOk") : report.liveRequest === "REMOTE_MODELS_DISABLED" ? t("privacy.blockedHint") : `${t("providers.testFail")} (${report.connection} · ${report.liveRequest})` })
+    const ok = report.connection === "CONNECTED" && report.liveRequest === "PASS"
+    setResult({ ok, text: ok ? t("providers.testOk") : report.liveRequest === "REMOTE_MODELS_DISABLED" ? t("privacy.blockedHint") : `${t("providers.testFail")}: ${errorText(new Error(report.liveRequest), lang)}` })
     invalidate(providerKeys.all)
   })
   const protocols: Array<{ value: WireProtocol | ""; label: string }> = [...(!generic ? [{ value: "" as const, label: t("providers.protocolAuto") }] : []), { value: "openai-chat", label: "Chat" }, { value: "openai-responses", label: "Responses" }, { value: "anthropic-messages", label: "Anthropic" }]
@@ -256,7 +257,7 @@ function ConnectWizard({ state, profiles, taken, hasDefault, secretRefOf, onStep
           <input className="input" value={form.baseUrl} onChange={set("baseUrl")} placeholder="https://llm.example.com/v1" spellCheck={false} inputMode="url" />
           {touched && errors.baseUrl && <span className="field-error">{t("providers.baseUrlInvalid")}</span>}</label>}
         <label className="field"><span className="field-label">{t("providers.model")}</span>
-          <input className="input" value={form.model} onChange={set("model")} placeholder={generic ? "model-id" : "auto"} spellCheck={false} />
+          <input className="input" value={form.model} onChange={set("model")} placeholder={upstream ? "auto" : "model-id"} spellCheck={false} />
           {touched && errors.model && <span className="field-error">{t("common.required")}</span>}
           {descriptor.defaultModels.length > 0 && <div className="chips">{descriptor.defaultModels.slice(0, 8).map((model) => <button key={model} type="button" className={`chip ${form.model === model ? "on" : ""}`} onClick={() => setForm((value) => ({ ...value, model }))}>{model}</button>)}</div>}
         </label>

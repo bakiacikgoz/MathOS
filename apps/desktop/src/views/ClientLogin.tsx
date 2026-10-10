@@ -76,11 +76,14 @@ export function ClientLogin({ profile, accountName, onSignedIn }: { profile: str
     let timer = 0
     const tick = async () => {
       try { const reply = await ask("--check"); if (reply.state === "SIGNED_IN") { settle(reply); return } } catch {}
-      if (alive.current && Date.now() - started < POLL_LIMIT_MS) timer = window.setTimeout(tick, POLL_MS)
+      if (!alive.current) return
+      // The background sign-in is stopped after the same limit; show the signed-out screen again so the user can retry.
+      if (Date.now() - started < POLL_LIMIT_MS) timer = window.setTimeout(tick, POLL_MS)
+      else void act("--check")
     }
     timer = window.setTimeout(tick, POLL_MS)
     return () => window.clearTimeout(timer)
-  }, [polling, ask, settle])
+  }, [polling, ask, settle, act])
 
   const name = client || accountName
   if (phase.kind === "checking") return <div className="login-panel"><span className="spinner" /><span className="field-hint">{t("login.checking")}</span></div>

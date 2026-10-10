@@ -16,7 +16,7 @@ import {
   type ModelRole,
   type ProviderFactoryOptions,
 } from "@mathos/models"
-import { codexOptions } from "../../../scripts/providers/live-smoke.ts"
+import { clientProviderOptions, codexOptions } from "../../../scripts/providers/live-smoke.ts"
 
 function runtimePaths(workspaceRoot: string) {
   const layout = resolveRuntimeLayout({ executablePath: process.execPath, platform: process.platform, home: homedir(), env: process.env })
@@ -68,6 +68,7 @@ export async function configuredModelProviders(workspaceRoot: string, roles: rea
   return connectModelRoutes(router, roles, async profile => {
     const profileOptions = { ...options }
     if (profile.descriptorId === "openai-codex-chatgpt") profileOptions.codex = codex ??= await codexOptions()
+    else Object.assign(profileOptions, await clientProviderOptions(profile))
     return await createProviderFromProfile(profile, profileOptions) as ModelProvider & { connect?: () => Promise<unknown>; close?: () => Promise<void> }
   })
 }

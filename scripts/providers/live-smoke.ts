@@ -3,7 +3,7 @@ import { homedir } from "node:os"
 import { join } from "node:path"
 import { mkdtempSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { createProviderFromProfile, createSecretStore, discoverCodexExecutable, evaluateProviderPolicy, loadModelProfileStore, probeCodexVersion, providerCatalog, validateCodexSchema, type ModelProfileV2, type ModelProvider, type ProviderFactoryOptions } from "@mathos/models"
+import { acpCommand, bunClientRuntime, createOfficialCopilotAdapter, createProviderFromProfile, createSecretStore, discoverCodexExecutable, evaluateProviderPolicy, loadModelProfileStore, probeCodexVersion, providerCatalog, validateCodexSchema, type ClientLoginRuntime, type ModelProfileV2, type ModelProvider, type ProviderFactoryOptions } from "@mathos/models"
 import { currentBuildIdentity, resolveRuntimeLayout, type MathOSBuildIdentity } from "@mathos/shared"
 
 export interface ProviderLiveResult { schemaVersion:"mathos.provider-live-smoke.v1";platform:string;mathosRevision:string;providerDescriptor:string;profile:string;clientVersion:string|null;transport:string;authOwner:string;model:string;connection:string;modelList:string;quota:string;liveRequest:string;usage:unknown;termsPolicy:string }
@@ -11,11 +11,22 @@ type LiveProvider = ModelProvider & { connect?:()=>Promise<unknown>;models?:()=>
 type LiveSmokeOptions = { profiles?:ModelProfileV2[];createProvider?:(profile:ModelProfileV2,options:ProviderFactoryOptions)=>Promise<LiveProvider> }
 
 export function providerSmokeRevision(identity: Pick<MathOSBuildIdentity,"gitRevision"> = currentBuildIdentity()){return identity.gitRevision}
-export async function codexOptions():Promise<ProviderFactoryOptions["codex"]>{
-  const executable=discoverCodexExecutable({platform:process.platform});if(!executable)throw new Error("CODEX_CLIENT_MISSING")
-  const version=await probeCodexVersion(executable);if(!version.compatible)throw new Error("CODEX_VERSION_INCOMPATIBLE")
+/** Official clients are found the way their sign-in finds them: a GUI launch has a minimal PATH, so the usual install locations are added. */
+export async function codexOptions(clients:Pick<ClientLoginRuntime,"which"|"env">=bunClientRuntime()):Promise<ProviderFactoryOptions["codex"]>{
+  const found=discoverCodexExecutable({platform:process.platform,runtime:{which:clients.which,run:async(executable,args)=>{const[command,...prefix]=acpCommand(executable);const child=Bun.spawn([command!,...prefix,...args],{stdin:"ignore",stdout:"pipe",stderr:"pipe",env:clients.env});return{exitCode:await child.exited,stdout:await new Response(child.stdout).text()}}}});if(!found)throw new Error("CODEX_CLIENT_MISSING")
+  const[executable,...prefix]=acpCommand(found)
+  const version=await probeCodexVersion(found,{which:clients.which,run:async(_,args)=>{const child=Bun.spawn([executable!,...prefix,...args],{stdin:"ignore",stdout:"pipe",stderr:"pipe",env:clients.env});return{exitCode:await child.exited,stdout:await new Response(child.stdout).text()}}});if(!version.compatible)throw new Error("CODEX_VERSION_INCOMPATIBLE")
   const output=mkdtempSync(join(tmpdir(),"mathos-codex-schema-"))
-  try{const child=Bun.spawn([executable,"app-server","generate-json-schema","--out",output],{stdin:"ignore",stdout:"pipe",stderr:"pipe"});const stderrPromise=new Response(child.stderr).text(),exitCode=await child.exited,stderr=await stderrPromise;if(exitCode!==0)throw new Error(`CODEX_SCHEMA_GENERATION_FAILED${stderr.trim()?`: ${stderr.trim()}`:""}`);const schema=JSON.parse(readFileSync(join(output,"codex_app_server_protocol.v2.schemas.json"),"utf8"));validateCodexSchema(schema);return{executable,schema,version:version.version}}finally{rmSync(output,{recursive:true,force:true})}
+  try{const child=Bun.spawn([executable!,...prefix,"app-server","generate-json-schema","--out",output],{stdin:"ignore",stdout:"pipe",stderr:"pipe",env:clients.env});const stderrPromise=new Response(child.stderr).text(),exitCode=await child.exited,stderr=await stderrPromise;if(exitCode!==0)throw new Error(`CODEX_SCHEMA_GENERATION_FAILED${stderr.trim()?`: ${stderr.trim()}`:""}`);const schema=JSON.parse(readFileSync(join(output,"codex_app_server_protocol.v2.schemas.json"),"utf8"));validateCodexSchema(schema);return{executable:executable!,args:[...prefix,"app-server"],env:clients.env,schema,version:version.version}}finally{rmSync(output,{recursive:true,force:true})}
+}
+/** Factory options for the official-client providers (Codex, Gemini CLI, Qwen Code, Copilot); empty for direct API providers. */
+export async function clientProviderOptions(profile:Pick<ModelProfileV2,"descriptorId">,clients:Pick<ClientLoginRuntime,"which"|"env">=bunClientRuntime()):Promise<Partial<ProviderFactoryOptions>>{
+  const client=(name:string,missing:string)=>{const executable=clients.which(name);if(!executable)throw new Error(missing);return executable}
+  if(profile.descriptorId==="openai-codex-chatgpt")return{codex:await codexOptions(clients)}
+  if(profile.descriptorId==="gemini-cli-enterprise")return{geminiCli:{executable:client("gemini","GEMINI_CLI_MISSING"),env:clients.env}}
+  if(profile.descriptorId==="qwen-code-acp")return{qwen:{executable:client("qwen","QWEN_CLIENT_MISSING"),env:clients.env}}
+  if(profile.descriptorId==="github-copilot-account")return{copilot:{adapter:createOfficialCopilotAdapter({cliPath:clients.which("copilot"),env:clients.env})}}
+  return{}
 }
 function validSmoke(text:string):boolean{try{return JSON.parse(text).mathos_live_provider_smoke===true}catch{return false}}
 
@@ -34,7 +45,7 @@ export async function runProviderLiveSmoke(argv:string[],options:LiveSmokeOption
   let provider:LiveProvider|undefined
   try{
     const factoryOptions:ProviderFactoryOptions={secrets,live:true,acceptUsage:argv.includes("--accept-usage")}
-    if(profile.descriptorId==="openai-codex-chatgpt"&&!options.createProvider)factoryOptions.codex=await codexOptions()
+    if(!options.createProvider)Object.assign(factoryOptions,await clientProviderOptions(profile))
     provider=await (options.createProvider??createProviderFromProfile)(profile,factoryOptions) as LiveProvider
     await provider.connect?.()
     const modelList=provider.models?await provider.models().then(()=>"PASS").catch(()=>"ERROR"):"NOT_SUPPORTED"

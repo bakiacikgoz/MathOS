@@ -138,7 +138,8 @@ export async function startClientLogin(runtime: ClientLoginRuntime, spec: Client
   const argv = terminalArgv(runtime.platform, command, runtime.which)
   if (!argv) return { state: "TERMINAL_UNAVAILABLE", client: spec.client, command }
   const child = runtime.spawn(argv, { env, background: true })
-  if (await child.exited.catch(() => 1) !== 0 && runtime.platform !== "linux") return { state: "TERMINAL_UNAVAILABLE", client: spec.client, command }
+  // Linux terminal emulators run until the user closes them; waiting would block every other host request.
+  if (runtime.platform !== "linux" && await child.exited.catch(() => 1) !== 0) return { state: "TERMINAL_UNAVAILABLE", client: spec.client, command }
   return { state: "LOGIN_WINDOW_OPENED", client: spec.client, hint: spec.windowHint }
 }
 

@@ -67,6 +67,13 @@ describe("official-client sign-in", () => {
     expect(Buffer.from(argv.at(-1)!, "base64").toString("utf16le")).toBe("gemini")
   })
 
+  test("a Linux terminal window does not block sign-in until the user closes it", async () => {
+    const { runtime } = fakeRuntime({ platform: "linux", installed: ["gemini", "xterm"] })
+    runtime.spawn = () => ({ exited: new Promise<number>(() => {}), stdout: Promise.resolve(""), kill: () => {} })
+    const result = await Promise.race([startClientLogin(runtime, CLIENT_LOGIN.gemini), Bun.sleep(1_000).then(() => "BLOCKED")])
+    expect(result).toMatchObject({ state: "LOGIN_WINDOW_OPENED" })
+  })
+
   test("macOS terminal command escapes quotes for AppleScript", () => {
     expect(terminalArgv("darwin", `echo "hi"`, () => null)).toEqual(["osascript", "-e", `tell application "Terminal" to do script "echo \\"hi\\""`, "-e", `tell application "Terminal" to activate`])
     expect(terminalArgv("linux", "gemini", () => null)).toBeNull()

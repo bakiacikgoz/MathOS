@@ -35,7 +35,7 @@ describe("desktop helpers", () => {
   })
 })
 
-import { configureArgs, secretEnvName, suggestProfileId, validProfileId, type ProviderDescriptor } from "./providers.ts"
+import { configureArgs, secretEnvName, suggestProfileId, validBaseUrl, validProfileId, type ProviderDescriptor } from "./providers.ts"
 
 describe("provider helpers", () => {
   const descriptor = (id: string, extra: Partial<ProviderDescriptor> = {}): ProviderDescriptor => ({ id, displayName: id, vendor: "v", category: "api", transport: "openai-chat", authKinds: ["secret-ref"], billingClass: "payg", remote: true, terms: { policy: "STANDARD_API", summary: "", officialSources: [] }, endpointPresets: [], defaultModels: [], ...extra })
@@ -106,5 +106,17 @@ describe("CLI text in the UI language", () => {
     expect(policyReason({ code: "PROVIDER_TERMS_RESTRICTED", remediation: "zai-payg" }, "tr")).toBe("Sağlayıcının koşulları bu kullanıma henüz izin vermiyor. Bunun yerine Z.AI PAYG kullanın.")
     expect(errorText(Object.assign(new Error("x"), { code: "DESKTOP_HOST_TIMEOUT" }), "tr")).toBe("MathOS motoru zamanında yanıt vermedi.")
     expect(errorText(new Error("Something else"), "tr")).toBe("Something else")
+    expect(errorText(new Error("CODEX_USAGE_LIMIT_EXCEEDED: Try again at Oct 15th."), "tr")).toBe("ChatGPT aboneliğinin Codex kullanım limiti doldu. (Try again at Oct 15th.)")
+    expect(errorText(new Error("MODEL_SECRET_MISSING"), "tr")).toBe("Bu profilin API anahtarı kayıtlı değil. Sihirbazın Anahtar adımından ekleyin.")
+  })
+})
+
+describe("generic endpoint validation", () => {
+  test("accepts what the runtime accepts: https anywhere, http only on this machine", () => {
+    expect(validBaseUrl("https://llm.example.com/v1")).toBe(true)
+    expect(validBaseUrl("http://127.0.0.1:8000/v1")).toBe(true)
+    expect(validBaseUrl("http://[::1]:8000/v1")).toBe(true)
+    expect(validBaseUrl("http://192.168.1.5:8000/v1")).toBe(false)
+    expect(validBaseUrl("not a url")).toBe(false)
   })
 })

@@ -11,17 +11,20 @@ export class OpenAIChatTransport implements NormalizedTransport {
     const streaming = Boolean(request.onDelta) && !request.responseSchema
     const deadline = streaming ? streamDeadline(this.config.timeoutMs ?? 60_000, request.signal) : null
     const timeout = AbortSignal.timeout(this.config.timeoutMs ?? 60_000), signal = deadline?.signal ?? (request.signal ? AbortSignal.any([request.signal, timeout]) : timeout)
-    const body: Record<string, unknown> = { model: this.config.model, messages: request.messages, temperature: request.temperature ?? 0 }
+    // Reasoning models (GPT-5, o-series) reject a non-default temperature, so it is only sent without an explicit effort.
+    const reasoning = Boolean(request.reasoningEffort && request.reasoningEffort !== "none")
+    const body: Record<string, unknown> = { model: this.config.model, messages: request.messages, ...(reasoning ? {} : { temperature: request.temperature ?? 0 }) }
     if (request.maxOutputTokens !== undefined) body.max_completion_tokens = request.maxOutputTokens
     if(request.reasoningEffort&&this.config.supportedReasoningEfforts&&!this.config.supportedReasoningEfforts.includes(request.reasoningEffort))throw new Error(`REASONING_EFFORT_UNSUPPORTED: ${request.reasoningEffort}`)
-    if (request.reasoningEffort && request.reasoningEffort !== "none") body.reasoning_effort = request.reasoningEffort
+    // "max" is MathOS' top level; endpoints that do not declare it get their own highest common level.
+    if (request.reasoningEffort && request.reasoningEffort !== "none") body.reasoning_effort = request.reasoningEffort === "max" && !this.config.supportedReasoningEfforts?.includes("max") ? this.config.maxReasoningEffort ?? "high" : request.reasoningEffort
     if (request.responseSchema) body.response_format = { type: "json_schema", json_schema: { name: request.responseSchema.name, strict: true, schema: request.responseSchema.jsonSchema } }
     if (streaming) { body.stream = true; body.stream_options = { include_usage: true } }
     try {
       const response = await (this.config.fetch ?? fetch)(`${this.config.baseUrl.replace(/\/$/, "")}/chat/completions`, { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${this.config.apiKey}`, ...this.config.headers,...this.config.requestHeaders?.(request) }, body: JSON.stringify(body), signal })
       if (response.status === 401 || response.status === 403) throw new ModelAuthenticationFailed()
       if(response.status===402)throw new ProviderQuotaExhausted("PROVIDER_MEMBERSHIP_UNAVAILABLE")
-      if(response.status===429)throw new ProviderRateLimited()
+      if(response.status===429)throw Object.assign(new ProviderRateLimited(), { retryAfterMs: retryAfter(response) })
       if (!response.ok) throw Object.assign(new Error(`Model endpoint returned ${response.status}.`), { status: response.status, retryAfterMs: retryAfter(response) })
       if (streaming && /event-stream/.test(response.headers.get("content-type") ?? "")) return await this.readStream(response, request, deadline!)
       const payload = await readJsonBody(response, this.config.maxResponseBytes)
@@ -54,4 +57,4 @@ export class OpenAIChatTransport implements NormalizedTransport {
   }
 }
 const finite = (value: unknown) => typeof value === "number" && Number.isFinite(value) ? value : undefined
-const retryAfter = (response: Response) => { const value = response.headers.get("retry-after"); return value ? Math.max(0, Number(value) * 1_000) : undefined }
+const retryAfter = (response: Response) => { const value = Number(response.headers.get("retry-after")); return Number.isFinite(value) && value >= 0 ? value * 1_000 : undefined }

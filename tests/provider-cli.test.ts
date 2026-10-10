@@ -48,4 +48,14 @@ describe("provider center CLI", () => {
     output = ""; expect(await runHeadless(["provider", "test", id])).toBe(0)
     expect(JSON.parse(output)).toMatchObject({ schemaVersion:"mathos.provider-live-smoke.v1", connection:"NOT_CONFIGURED", liveRequest:"NOT_REQUESTED" })
   })
+  test("removing the default profile clears the default and role routes that named it", async () => {
+    const id = `cli-default-${Date.now()}`
+    expect(await runHeadless(["provider", "configure", "openai-api", "--profile", id, "--model", "gpt-5"])).toBe(0)
+    expect(await runHeadless(["provider", "use", id])).toBe(0)
+    expect(await runHeadless(["provider", "use", id, "--role", "researcher"])).toBe(0)
+    output = ""; expect(await runHeadless(["provider", "remove", id])).toBe(0)
+    expect(JSON.parse(output)).toEqual({ removed: id, unrouted: ["model.default_profile", "model.roles.researcher"] })
+    output = ""; expect(await runHeadless(["provider", "list", "--json"])).toBe(0)
+    expect(JSON.parse(output)).toMatchObject({ defaultProfile: null, assistantProfile: null })
+  })
 })

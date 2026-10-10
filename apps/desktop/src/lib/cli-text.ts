@@ -107,11 +107,30 @@ const ERRORS: Record<string, Pair> = {
   STATEMENT_REVISIONS_REQUIRED: ["Karşılaştırma için önce Lean ifadesi gerekiyor.", "A Lean statement is needed before comparing."],
   PROVIDER_LOGIN_NOT_SUPPORTED: ["Bu sağlayıcı uygulama içinden giriş desteklemiyor.", "This provider does not support signing in from the app."],
   LIVE_USAGE_ACCEPTANCE_REQUIRED: ["Ücretli deneme isteği için onay gerekiyor.", "Consent is required for a paid test request."],
+  PROFILE_MODEL_AUTO_UNRESOLVED: ["Bu sağlayıcı için bir model adı girin; \"auto\" yalnız resmi istemcilerde geçerlidir.", "Enter a model id for this provider; \"auto\" only works with official clients."],
+  MODEL_SECRET_MISSING: ["Bu profilin API anahtarı kayıtlı değil. Sihirbazın Anahtar adımından ekleyin.", "This profile has no saved API key. Add it in the wizard's Key step."],
+  PROVIDER_ENDPOINT_UNSAFE: ["Uç nokta https olmalı; düz http yalnız bu bilgisayardaki (localhost) sunucular için kullanılabilir.", "The endpoint must use https; plain http only works for servers on this computer (localhost)."],
+  CODEX_CLIENT_MISSING: ["Codex istemcisi bulunamadı. Codex'i kurup bu sayfadan yeniden giriş yapın.", "The Codex client was not found. Install Codex and sign in again from this page."],
+  CODEX_LOGIN_REQUIRED: ["ChatGPT oturumu yok ya da süresi doldu. Bu profil için yeniden giriş yapın.", "ChatGPT sign-in is missing or expired. Sign in again for this profile."],
+  CODEX_USAGE_LIMIT_EXCEEDED: ["ChatGPT aboneliğinin Codex kullanım limiti doldu.", "The ChatGPT plan's Codex usage limit is reached."],
+  CODEX_RATE_LIMITED: ["Codex şu an çok fazla istek alıyor; biraz sonra tekrar deneyin.", "Codex is rate limiting requests; try again shortly."],
+  CODEX_CONTEXT_WINDOW_EXCEEDED: ["Konuşma modelin bağlam penceresini aştı; yeni bir sohbet başlatın.", "The conversation exceeds the model's context window; start a new chat."],
+  CODEX_TURN_FAILED: ["Codex yanıtı tamamlayamadı.", "Codex could not finish the answer."],
+  CODEX_TURN_TIMEOUT: ["Codex zamanında yanıt vermedi.", "Codex did not answer in time."],
+  ACP_AUTH_REQUIRED: ["İstemcide oturum açık değil. Gemini CLI ya da Qwen Code'u kendi penceresinde açıp giriş yapın.", "The client is not signed in. Open Gemini CLI or Qwen Code in its own window and sign in."],
+  GEMINI_CLI_MISSING: ["Gemini CLI bulunamadı. Kurup yeniden deneyin.", "Gemini CLI was not found. Install it and try again."],
+  QWEN_CLIENT_MISSING: ["Qwen Code bulunamadı. Kurup yeniden deneyin.", "Qwen Code was not found. Install it and try again."],
+  COPILOT_LOGIN_REQUIRED: ["GitHub Copilot CLI'de oturum açık değil. Copilot penceresinde /login ile giriş yapın.", "GitHub Copilot CLI is not signed in. Sign in with /login in the Copilot window."],
+  COPILOT_SUBSCRIPTION_REQUIRED: ["Bu GitHub hesabında Copilot aboneliği bulunamadı.", "No Copilot subscription was found for this GitHub account."],
+  SECRET_STORE_WRITE_FAILED: ["Anahtar sistemin güvenli deposuna yazılamadı.", "The key could not be written to the system's secure store."],
 }
+/** Codes whose text after the colon is the vendor's own explanation (e.g. when a usage limit resets); it is kept. */
+const DETAILED = new Set(["CODEX_USAGE_LIMIT_EXCEEDED", "CODEX_RATE_LIMITED", "CODEX_TURN_FAILED", "ACP_AUTH_REQUIRED"])
 /** A readable message for a CLI or bridge error, falling back to the original text. */
 export function errorText(error: unknown, lang: Lang): string {
   const typed = error as { code?: string; message?: string }
   const code = typed?.code ?? /^([A-Z][A-Z0-9_]{3,})(?::|$)/.exec(typed?.message ?? "")?.[1]
   const known = code ? ERRORS[code] : undefined
-  return known ? pick(known, lang, "") : typed?.message ?? String(error)
+  const detail = code && DETAILED.has(code) ? /^[A-Z][A-Z0-9_]{3,}:\s*(.+)$/s.exec(typed?.message ?? "")?.[1]?.trim() : undefined
+  return known ? `${pick(known, lang, "")}${detail ? ` (${detail})` : ""}` : typed?.message ?? String(error)
 }

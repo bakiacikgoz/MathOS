@@ -9,7 +9,8 @@ export async function retryModelCall<T>(operation: () => Promise<T>, options: Mo
       if (options.signal?.aborted || attempt >= maxAttempts || !retryable(error)) throw error
       const explicit = typeof error === "object" && error !== null && "retryAfterMs" in error ? Number((error as {retryAfterMs:unknown}).retryAfterMs) : NaN
       const exponential = Math.min(100 * 2 ** (attempt - 1), 2_000), requested = Number.isFinite(explicit) && explicit >= 0 ? explicit : exponential + Math.floor(random() * 100), remaining = maxTotal - delayed, delay = Math.min(requested, remaining)
-      if (remaining <= 0 && requested > 0) throw error
+      // A server-requested wait longer than the remaining budget would only hit the limit again.
+      if ((remaining <= 0 && requested > 0) || (Number.isFinite(explicit) && requested > remaining)) throw error
       await sleep(delay); delayed += delay
     }
   }

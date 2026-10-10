@@ -20,8 +20,10 @@ export class OpenAIResponsesTransport implements NormalizedTransport {
     }
     if (request.maxOutputTokens !== undefined) body.max_output_tokens = request.maxOutputTokens
     const explicitEffort = request.reasoningEffort && request.reasoningEffort !== "none"
-    if (streaming && (explicitEffort || /^(?:openai\/)?(?:gpt-|o\d)/i.test(this.config.model))) body.reasoning = { ...(explicitEffort ? { effort: request.reasoningEffort } : {}), summary: "auto" }
-    else if (explicitEffort) body.reasoning = { effort: request.reasoningEffort }
+    // OpenAI's highest Responses effort is "xhigh"; "max" is rejected.
+    const effort = request.reasoningEffort === "max" ? this.config.maxReasoningEffort ?? "xhigh" : request.reasoningEffort
+    if (streaming && (explicitEffort || /^(?:openai\/)?(?:gpt-|o\d)/i.test(this.config.model))) body.reasoning = { ...(explicitEffort ? { effort } : {}), summary: "auto" }
+    else if (explicitEffort) body.reasoning = { effort }
     if (streaming) body.stream = true
     if (request.responseSchema) body.text = { format: { type: "json_schema", name: request.responseSchema.name, strict: true, schema: request.responseSchema.jsonSchema } }
     try {
@@ -29,7 +31,7 @@ export class OpenAIResponsesTransport implements NormalizedTransport {
         method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${this.config.apiKey}`, ...this.config.headers, ...this.config.requestHeaders?.(request) }, body: JSON.stringify(body), signal,
       })
       if (response.status === 401 || response.status === 403) throw new ModelAuthenticationFailed()
-      if (!response.ok) throw Object.assign(new Error(`Model endpoint returned ${response.status}.`), { status: response.status })
+      if (!response.ok) { const retryAfter = Number(response.headers.get("retry-after")); throw Object.assign(new Error(`Model endpoint returned ${response.status}.`), { status: response.status, ...(Number.isFinite(retryAfter) && retryAfter >= 0 && response.headers.has("retry-after") ? { retryAfterMs: retryAfter * 1_000 } : {}) }) }
       if (streaming && /event-stream/.test(response.headers.get("content-type") ?? "")) return await this.readStream(response, request, deadline!)
       const payload = await readJsonBody(response, this.config.maxResponseBytes)
       assertComplete(payload)

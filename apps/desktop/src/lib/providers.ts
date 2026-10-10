@@ -25,6 +25,11 @@ export const acceptsProtocol = (descriptor: ProviderDescriptor) => isGeneric(des
 /** Official-client providers (Codex, Claude Code, Copilot, Gemini/Qwen CLI) sign in through their own client. */
 export const usesUpstreamLogin = (descriptor: ProviderDescriptor) => descriptor.authKinds.includes("upstream-client") || descriptor.authKinds.includes("copilot-logged-in-user")
 
+/** The endpoint rule the runtime enforces: https, or plain http only on this machine. */
+export function validBaseUrl(raw: string): boolean {
+  try { const url = new URL(raw.trim()); return url.protocol === "https:" || (url.protocol === "http:" && ["localhost", "127.0.0.1", "::1"].includes(url.hostname.replace(/^\[|\]$/g, ""))) } catch { return false }
+}
+
 export interface ConfigureInput { descriptor: ProviderDescriptor; profile: string; model: string; baseUrl?: string; protocol?: WireProtocol | ""; headers?: string }
 
 /** Builds `provider configure` arguments. Secrets are never part of them; headers are validated again by the CLI. */
