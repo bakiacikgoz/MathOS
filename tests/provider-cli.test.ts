@@ -1,4 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test"
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { homedir } from "node:os"
+import { join } from "node:path"
+import { resolveRuntimeLayout } from "@mathos/shared"
 import { runHeadless } from "../apps/tui/src/headless.ts"
 
 let output = "", errors = ""
@@ -47,15 +51,23 @@ describe("provider center CLI", () => {
     expect(await runHeadless(["provider", "configure", "openai-codex-chatgpt", "--profile", id, "--model", "codex-test"])).toBe(0)
     output = ""; expect(await runHeadless(["provider", "test", id])).toBe(0)
     expect(JSON.parse(output)).toMatchObject({ schemaVersion:"mathos.provider-live-smoke.v1", connection:"NOT_CONFIGURED", liveRequest:"NOT_REQUESTED" })
-  })
+    // Finding the client on Windows reads the machine and user PATH through PowerShell (up to 4s on a cold runner).
+  }, 20_000)
   test("removing the default profile clears the default and role routes that named it", async () => {
-    const id = `cli-default-${Date.now()}`
-    expect(await runHeadless(["provider", "configure", "openai-api", "--profile", id, "--model", "gpt-5"])).toBe(0)
-    expect(await runHeadless(["provider", "use", id])).toBe(0)
-    expect(await runHeadless(["provider", "use", id, "--role", "researcher"])).toBe(0)
-    output = ""; expect(await runHeadless(["provider", "remove", id])).toBe(0)
-    expect(JSON.parse(output)).toEqual({ removed: id, unrouted: ["model.default_profile", "model.roles.researcher"] })
-    output = ""; expect(await runHeadless(["provider", "list", "--json"])).toBe(0)
-    expect(JSON.parse(output)).toMatchObject({ defaultProfile: null, assistantProfile: null })
-  })
+    // `provider use` writes the real user config; the developer's own default and role routes come back afterwards.
+    const configPath = join(resolveRuntimeLayout({ executablePath: process.execPath, platform: process.platform, home: homedir(), env: process.env }).userConfigRoot, "config.toml")
+    const saved = existsSync(configPath) ? readFileSync(configPath) : null
+    const id = `cli-default-${process.pid}`; ids.push(id)
+    try {
+      expect(await runHeadless(["provider", "configure", "openai-api", "--profile", id, "--model", "gpt-5"])).toBe(0)
+      expect(await runHeadless(["provider", "use", id])).toBe(0)
+      expect(await runHeadless(["provider", "use", id, "--role", "researcher"])).toBe(0)
+      output = ""; expect(await runHeadless(["provider", "remove", id])).toBe(0)
+      expect(JSON.parse(output)).toEqual({ removed: id, unrouted: ["model.default_profile", "model.roles.researcher"] })
+      output = ""; expect(await runHeadless(["provider", "list", "--json"])).toBe(0)
+      expect(JSON.parse(output)).toMatchObject({ defaultProfile: null, assistantProfile: null })
+    } finally {
+      if (saved) writeFileSync(configPath, saved); else rmSync(configPath, { force: true })
+    }
+  }, 20_000)
 })
