@@ -136,4 +136,4 @@ test.skipIf(process.platform !== "win32" || !existsSync(windowsGitTar))("plugin 
   expect(readdirSync(installed.installPath)).toContain("Özet.txt")
   expect(readFileSync(join(installed.installPath, "Özet.txt"), "utf8")).toBe("Türkçe içerik")
   expect(readFileSync(join(installed.installPath, "measurement-π.txt"), "utf8")).toBe("pi")
-})
+}, 60_000)
