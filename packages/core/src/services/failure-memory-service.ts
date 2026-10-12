@@ -21,6 +21,8 @@ export class FailureMemoryService{
     return{failure:failure as unknown as FailureFingerprint,occurrence,duplicate}
   }
   occurrences(failureId:string):Row[]{return this.d.occurrences.listForFailure(failureId)}
+  /** What was already tried on one goal, most recent first. */
+  forGoal(domain:FailureFingerprint["domain"],goalHash:string,limit=20):FailureFingerprint[]{return this.d.failures.listForGoal(domain,goalHash,limit) as unknown as FailureFingerprint[]}
   changedSince(before:FailureOccurrenceDraft,after:FailureOccurrenceDraft):string[]{const fields:Array<keyof FailureOccurrenceDraft>=["domain","goalHash","contextHash","failureClass","diagnostic","attemptedApproach","premiseSetHash"];return fields.filter(key=>(key==="diagnostic"?normalizeFailureDiagnostic(String(before[key]??"")):before[key]??null)!==(key==="diagnostic"?normalizeFailureDiagnostic(String(after[key]??"")):after[key]??null))}
   private safeEnvironment(value:Record<string,unknown>):Record<string,unknown>{return Object.fromEntries(Object.entries(value).filter(([key])=>!/key|token|secret|password|authorization/i.test(key)).map(([key,item])=>[key,typeof item==="string"&&/^(?:[A-Za-z]:\\|\/)/.test(item)?`path:${item.replace(/.*[\\/]/,"")}`:item]))}
 }

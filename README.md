@@ -125,6 +125,32 @@ Reports and assistant answers export to **PDF, Word, Markdown, LaTeX, Excel or C
 | **Terminal UI** | A complete TUI and a scriptable CLI with `--json` everywhere. |
 | **Bilingual** | The desktop interface is available in English and Turkish, with guided tours on every screen. |
 
+## Memory: MathOS remembers your research
+
+A long research project needs more than a chat history. MathOS keeps four kinds of memory. Each one is labelled with where it came from, and none of it is evidence. Only the Lean kernel verifies.
+
+| Layer | What it keeps | Where it is used |
+|---|---|---|
+| **Conventions** | Notation, conventions and assumptions you approved, such as "ℕ starts at 0" or "log is the natural log". They are scoped to the workspace, a branch, a document or a single claim, and the nearest scope wins. | Sent to the formalizer, the fidelity review, the alignment auditor and the prover, so every Lean translation reads the statement the way you meant it. |
+| **Research notes** | Decisions, dead ends, open questions, ideas and insights. Each is tied to a branch or to the whole workspace, and optionally to a claim. Every note shows its basis: *your note*, *model suggestion*, *backed by a Lean-verified claim*, or *refuted* with the reason. | The assistant reads the relevant notes before it answers. A note tied to a claim that is no longer verified is flagged as such. A note on a branch stays on that branch and the branches started from it. |
+| **Failure memory** | Every failed proof attempt (Lean rejected it, the statement was changed, or a forbidden construct was used), fingerprinted by the Lean statement. | Later proof sessions on the same statement see the earlier failed routes and are told to take a different one. |
+| **Personal memory** | Your preferences (for example "answer in Turkish, keep proofs short") and a library of results the Lean kernel verified, carried across workspaces. | Preferences go to the assistant in every workspace. A library entry is a starting point: in a new workspace it is not verified until Lean checks it there. |
+
+A model can propose a note or a convention, but it is saved only after you approve its card. A model note added with `--propose` waits on the **Memory** page until you keep or reject it. The desktop **Memory** page shows pending items, notes with filters, conventions, failed attempts, your preferences and the library.
+
+```sh
+mathos memory add --kind DEAD_END --claim C-003 --text "Induction on n alone does not close the odd case"
+mathos memory list                     # or: memory search <words>, show, accept, reject, archive, restore
+mathos memory refute MEM-002 --reason "Counterexample at n = 9"
+mathos context propose --kind CONVENTION --name nat_start --value "ℕ starts at 0" --scope workspace --apply
+mathos failures list --claim C-003     # failed proof routes for the claim's current Lean statement
+mathos profile add "Answer in Turkish; keep proofs short"
+mathos library add C-003               # only a KERNEL_VERIFIED claim with an accepted proof
+mathos library search parity
+```
+
+The assistant uses the read tools `recall`, `failed_attempts` and `search_library`. Its action tools `remember` and `set_convention` wait for your approval. The workspace memory lives in the workspace database. Personal memory is a single file, `personal-memory.json`, in your user configuration folder (`mathos profile show` prints the path). Conventions, relevant notes and preferences are sent to the model provider you chose, along with the rest of the prompt, so use a local model if they must not leave your machine.
+
 ## Get started
 
 ### Desktop app
@@ -185,6 +211,7 @@ Keys go to the operating system's secret store. They are never passed on the com
 | Your approval of a formalization | Meaning is faithful | No, but it is required first |
 | Model output (assistant, prover, planner) | Proposal | No |
 | Computation and experiments | `COMPUTATIONAL_EVIDENCE` | No |
+| Memory: notes, conventions, failure memory, personal library | Record and context | No |
 | Literature and citations | `EXTERNAL_SOURCE` | No |
 | Plugins | Out-of-process tool | No |
 

@@ -18,6 +18,8 @@ import { ClaimNotFound, FormalStatementNotFound, ProofAttemptFailed, ProofPrereq
 import { parseProofBody, PROVE_SYSTEM_PROMPT } from "../prove.ts"
 import type { MutationEvent, MutationRecorder } from "../mutation-recorder.ts"
 import { RetrievalService } from "./retrieval-service.ts"
+import type { FailureMemoryService } from "./failure-memory-service.ts"
+import { proofGoalHash, renderPriorFailures } from "../memory-prompts.ts"
 
 export interface ProveOptions {
   maxAttempts?: number
@@ -41,6 +43,10 @@ export interface ProofServiceDependencies {
   allocateId: (prefix: string) => string
   verify: (claimId: string) => Promise<VerificationReport>
   recorder: MutationRecorder
+  /** The user's approved conventions for the claim, as prompt text. */
+  contextPrompt?: (claimId: string) => string
+  /** Remembers failed proofs per statement, so a later session does not repeat them. */
+  failureMemory?: Pick<FailureMemoryService, "record" | "forGoal">
 }
 
 export class ProofService {
@@ -62,6 +68,14 @@ export class ProofService {
     }
 
     this.d.recorder.record("proof_attempt_started", { target: claim.id, metadata: { formal_id: formal.id } })
+    const goalHash = proofGoalHash(formal.sourceText)
+    // Read once, before this session adds its own: the model already sees this session's previous proof below.
+    const context = this.d.contextPrompt?.(claim.id) ?? ""
+    const earlier = renderPriorFailures(this.memory(() => this.d.failureMemory?.forGoal("PROOF", goalHash, 4) ?? [], []))
+    const remember = (attempt: ProofAttempt, failureClass: string, approach: string) => this.memory(() => this.d.failureMemory?.record(
+      { domain: "PROOF", failureClass, diagnostic: attempt.diagnostics.map((item) => item.message).join("\n").slice(0, 4_000) || failureClass, attemptedApproach: approach.slice(0, 8_000), goalHash },
+      { candidateId: attempt.id },
+    ), undefined)
     const attempts: ProofAttempt[] = []
     let previous = ""
     let lastDiagnostics = ""
@@ -90,7 +104,9 @@ export class ProofService {
               `Claim ${claim.id}: ${claim.title}`,
               `NATURAL:\n${claim.naturalStatement}`,
               `FORMAL:\n${formal.sourceText}`,
+              context,
               retrieval.context,
+              earlier,
               previous ? `PREVIOUS PROOF:\n${previous}` : "",
               lastDiagnostics ? `LEAN DIAGNOSTICS:\n${lastDiagnostics}` : "",
               "Return only a proof body. Do not change the statement.",
@@ -114,6 +130,7 @@ export class ProofService {
           { severity: "error", message: "Proof mutated the formal statement." },
         ], retrieved.query, names, retrieved.indexRevision, retrieved.mode, provenance)
         attempts.push(failed)
+        remember(failed, "STATEMENT_MUTATED", body)
         continue
       }
       const forbidden = scanForbidden(source)
@@ -122,6 +139,7 @@ export class ProofService {
           { severity: "error", message: `Forbidden constructs: ${forbidden.join(", ")}` },
         ], retrieved.query, names, retrieved.indexRevision, retrieved.mode, provenance)
         attempts.push(failed)
+        remember(failed, "FORBIDDEN_CONSTRUCT", body)
         previous = source
         lastDiagnostics = forbidden.join(", ")
         continue
@@ -147,6 +165,7 @@ export class ProofService {
 
       const failed = this.persistAttempt("proof_attempt_failed", { metadata: { n } }, workspace.id, claim.id, formal.id, n, source, "FAILED", checked.leanVersion, checked.diagnostics, retrieved.query, names, retrieved.indexRevision, retrieved.mode, provenance)
       attempts.push(failed)
+      remember(failed, "LEAN_REJECTED", body)
       previous = source
       lastDiagnostics = checked.diagnostics.map((item) => item.message).join("\n")
     }
@@ -220,6 +239,11 @@ export class ProofService {
       this.d.proofs.insert(attempt)
       return attempt
     })
+  }
+
+  /** Memory helps the prover; it never stops a proof search when it cannot be read or written. */
+  private memory<T>(work: () => T, fallback: T): T {
+    try { return work() } catch { return fallback }
   }
 
   private getClaim(id: string) {

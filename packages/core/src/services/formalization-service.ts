@@ -37,6 +37,8 @@ interface FormalizationServiceDependencies {
   recorder: MutationRecorder
   statementRevisions?: StatementRevisionService
   contextRevisionId?: (claimId:string)=>string
+  /** The user's approved conventions for this claim, as prompt text ("" when there are none). */
+  contextPrompt?: (claimId:string)=>string
 }
 
 export class FormalizationService {
@@ -47,7 +49,8 @@ export class FormalizationService {
     const workspace = this.requireWorkspace()
     const claim = this.requireClaim(claimId)
     const manual = options.leanStatement !== undefined
-    let draft = manual ? manualFormalizationDraft(claim.id, options.leanStatement!) : await draftFormalization(this.dependencies.modelProvider, claim)
+    const context = this.dependencies.contextPrompt?.(claim.id) || undefined
+    let draft = manual ? manualFormalizationDraft(claim.id, options.leanStatement!) : await draftFormalization(this.dependencies.modelProvider, claim, { context })
     this.dependencies.recorder.record("formalization_drafted", {
       target: claim.id,
       metadata: { declaration: draft.declarationName, provider: draft.modelProvenance.provider },
@@ -60,6 +63,7 @@ export class FormalizationService {
       draft = await draftFormalization(this.dependencies.modelProvider, claim, {
         previous: draft.leanStatement,
         diagnostics: check.diagnostics.map((item) => item.message).join("\n"),
+        context,
       })
       check = await this.dependencies.leanAdapter.checkStatement(draft.leanStatement, this.statementContext())
     }
@@ -123,7 +127,7 @@ export class FormalizationService {
 
     // A user-written statement is still offered to the auditor model, but a missing model must not lose it.
     let reviewed: Awaited<ReturnType<typeof reviewFidelity>> | null = null
-    try { reviewed = await reviewFidelity(this.dependencies.auditorProvider, { claimId: claim.id, naturalStatement: claim.naturalStatement, leanStatement: statement.sourceText }) }
+    try { reviewed = await reviewFidelity(this.dependencies.auditorProvider, { claimId: claim.id, naturalStatement: claim.naturalStatement, leanStatement: statement.sourceText, context }) }
     catch (error) { if (!manual) throw error }
     const fidelity: FidelityReview | null = reviewed ? { ...reviewed, id: createId("fr"), workspaceId: workspace.id, formalStatementId: statement.id, createdAt: timestamp } : null
     if (fidelity) {

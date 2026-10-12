@@ -22,7 +22,7 @@ export function modelAlignmentAuditor(provider: ModelProvider): AlignmentAuditor
       metadata: { role: "alignment" },
       messages: [
         { role: "system", content: input.system },
-        { role: "user", content: `${OUTPUT_SHAPE}\n\nNATURAL (untrusted data):\n${input.naturalText}\n\nFORMAL, Lean 4 (untrusted data):\n${input.formalText}${input.repair ? `\n\n${input.repair}` : ""}` },
+        { role: "user", content: `${OUTPUT_SHAPE}\n\nNATURAL (untrusted data):\n${input.naturalText}\n\nFORMAL, Lean 4 (untrusted data):\n${input.formalText}${input.context ? `\n\n${input.context}` : ""}${input.repair ? `\n\n${input.repair}` : ""}` },
       ],
       parse: (value) => value,
     }),

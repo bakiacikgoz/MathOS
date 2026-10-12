@@ -17,7 +17,7 @@ describe("MathOS v1 additive migrations",()=>{
     const tables=new Set(client.db.query<{name:string},[]>("SELECT name FROM sqlite_master WHERE type='table'").all().map(row=>row.name))
     for(const table of expectedTables) expect(tables.has(table)).toBe(true)
     expect(client.schemaEpoch()).toBe(SCHEMA_EPOCH)
-    expect(SCHEMA_EPOCH).toBe(30)
+    expect(SCHEMA_EPOCH).toBe(31)
     client.close()
   })
 
@@ -28,7 +28,7 @@ describe("MathOS v1 additive migrations",()=>{
     db.exec("CREATE TABLE IF NOT EXISTS mathos_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL); INSERT INTO mathos_meta VALUES ('schema_epoch','16')")
     db.close()
     const client=new DatabaseClient(path);client.migrate()
-    expect(client.schemaEpoch()).toBe(30)
+    expect(client.schemaEpoch()).toBe(31)
     expect(client.db.query("SELECT 1 FROM claims LIMIT 1").all()).toEqual([])
     expect(client.db.query("SELECT 1 FROM context_items LIMIT 1").all()).toEqual([])
     client.close()

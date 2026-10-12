@@ -1254,3 +1254,20 @@ button.turn-head:hover { color: var(--text-2); }
 .research-steps .text { display: flex; flex-direction: column; gap: 2px; min-width: 0; } .research-steps strong { font-size: 13.5px; } .research-steps .text span { font-size: 13px; color: var(--text-2); } .research-steps .fail { color: var(--text); font-weight: 600; }
 .research-trust { display: flex; align-items: center; gap: 6px; }
 @media (max-width: 900px) { .research-split { grid-template-columns: 1fr; } }
+
+/* Memory */
+.memory-list { overflow: hidden; }
+.memory-row { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.memory-row:last-child { border-bottom: 0; }
+.memory-row-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; cursor: default; }
+details.memory-row > summary { cursor: pointer; list-style: none; }
+.memory-scope { margin-left: auto; font: 12px var(--font-mono); color: var(--text-3); }
+.memory-text { font-size: 14px; line-height: 1.55; }
+.memory-text.refuted { color: var(--text-3); text-decoration: line-through; }
+.memory-filters { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
+.memory-filters .chip.active { background: var(--ink); color: var(--ink-text); }
+.memory-form { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; margin-top: 14px; }
+.memory-form-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.memory-form-row .input { flex: 1; min-width: 160px; }
+.memory-section { margin-top: 36px; }
+.memory-section > .section-title:first-child { margin-top: 0; }

@@ -39,7 +39,7 @@ export { StatementRevisionRepository, FormalAlignmentRepository, AlignmentFindin
 export { ProofPortfolioRepository, ProofJobRepository, ProofCandidateRepository, ProofRepairAttemptRepository, PortfolioBudgetRepository, PortfolioLeaseRepository } from "./portfolio-repos.ts"
 export { SolverJobRepository, SolverResultRepository } from "./solver-repos.ts"
 export { ConjectureProposalRepository, ConjectureTriageRepository, AgendaItemRepository } from "./agenda-repos.ts"
-export { FailureFingerprintRepository, FailureOccurrenceRepository } from "./failure-memory-repos.ts"
+export { FailureFingerprintRepository, FailureOccurrenceRepository, MemoryNoteRepository } from "./failure-memory-repos.ts"
 export { ReviewPacketRepository, ReviewFindingRepository, ReviewAttestationRepository } from "./review-repos.ts"
 export { CapsuleRecordRepository, PublicationRecordRepository } from "./capsule-repos.ts"
 export { PluginRecordRepository } from "./plugin-repos.ts"

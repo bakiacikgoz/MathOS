@@ -62,11 +62,12 @@ function asPairs(value: unknown): Array<{ natural: string; lean: string }> {
 export async function draftFormalization(
   provider: ModelProvider,
   claim: { id: string; title: string; naturalStatement: string },
-  extras?: { previous?: string; diagnostics?: string },
+  extras?: { previous?: string; diagnostics?: string; context?: string },
 ): Promise<FormalizationDraft> {
+  const context = extras?.context ? `\n\n${extras.context}` : ""
   const user = extras?.previous
-    ? `Claim ${claim.id}: ${claim.title}\n\nNatural:\n${claim.naturalStatement}\n\nPrevious Lean:\n${extras.previous}\n\nDiagnostics:\n${extras.diagnostics ?? ""}\n\nRepair the statement only. Do not change meaning. Do not add a proof.`
-    : `Claim ${claim.id}: ${claim.title}\n\n${claim.naturalStatement}`
+    ? `Claim ${claim.id}: ${claim.title}\n\nNatural:\n${claim.naturalStatement}${context}\n\nPrevious Lean:\n${extras.previous}\n\nDiagnostics:\n${extras.diagnostics ?? ""}\n\nRepair the statement only. Do not change meaning. Do not add a proof.`
+    : `Claim ${claim.id}: ${claim.title}\n\n${claim.naturalStatement}${context}`
 
   return provider.generateStructured({
     schemaName: "formalization_draft",

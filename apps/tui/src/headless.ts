@@ -1,4 +1,4 @@
-import { MathOS, SetupService, createDemoWorkspace, experimentTrustLabels, formatInitReport, formatTypedUserError, formatConfigShow, inspectHostEnvironment, startAtlasServer, type SetupCapabilityName, type SetupReport } from "@mathos/core"
+import { MathOS, PersonalMemoryStore, SetupService, createDemoWorkspace, experimentTrustLabels, formatInitReport, formatTypedUserError, formatConfigShow, inspectHostEnvironment, startAtlasServer, type SetupCapabilityName, type SetupReport } from "@mathos/core"
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs"
 import { basename, dirname, extname, join, resolve } from "node:path"
 import { homedir, tmpdir } from "node:os"
@@ -11,6 +11,7 @@ import { type ModelProvider, FileModelUsageLedger, ProviderProfileRegistry, bunC
 import { formatBranchDetail, formatBranches, formatClaims, formatDoctor, formatMergePreview, formatProviderCatalog, formatProviderStatus, formatResearchRun, formatStatus, HELP_TEXT } from "./format.ts"
 import { portfolioSnapshot } from "./ui/PortfolioViews.tsx"
 import { failureMemorySnapshot } from "./ui/FailureMemoryViews.tsx"
+import { addClaimToLibrary, personalMemoryPath, runFailureList, runLibraryCommand, runMemoryCommand, runProfileCommand } from "./memory-cli.ts"
 import { solverSnapshot } from "./ui/SolverViews.tsx"
 import { literatureDeskCommand, literatureDeskSnapshot } from "./ui/LiteratureDeskViews.tsx"
 import { atlasTextCommand } from "./ui/AtlasViews.tsx"
@@ -68,6 +69,7 @@ export const CLI_COMMAND_CATEGORIES = {
   experiments: ["experiment", "solver", "sandbox"],
   team: ["branch", "team", "review", "agenda", "conjecture"],
   notebook: ["notebook", "context", "align", "portfolio", "failures"],
+  memory: ["memory", "profile", "library"],
   atlas: ["atlas"],
   distribution: ["plugin", "capsule", "publication"],
   setup: ["setup", "config", "provider", "secrets", "usage", "job"],
@@ -83,7 +85,7 @@ export async function runHeadless(argv: string[]): Promise<number> {
     if (command && !CLI_COMMANDS.has(command)) throw new MathOSError("USAGE_UNKNOWN_COMMAND", `Unknown command: ${command}`)
     if (!command || command === "help" || command === "--help" || command === "-h") {
       process.stdout.write(
-        `${HELP_TEXT}\nAlso:\n  mathos init [name]\n  mathos status\n  mathos doctor\n  mathos events rebuild\n  mathos claim create --type conjecture --title "..." --statement "..."\n  mathos claims\n  mathos objective set C-001\n  mathos ingest --text "..." [--json]\n`,
+        `${HELP_TEXT}\nAlso:\n  mathos init [name]\n  mathos status\n  mathos doctor\n  mathos events rebuild\n  mathos claim create --type conjecture --title "..." --statement "..."\n  mathos claims\n  mathos objective set C-001\n  mathos ingest --text "..." [--json]\n\nMemory:\n  mathos memory list|search <words>|add --kind DECISION --text "..."|accept|reject|archive|refute <MEM-001>|brief [--claim C-001]\n  mathos failures list [--claim C-001]\n  mathos context propose --kind CONVENTION --name naturals --value "ℕ starts at 0" [--scope workspace] then mathos context apply <id>\n  mathos profile show|add "preference"|remove <PREF-001>\n  mathos library list|search <words>|show|remove <LIB-001>|add <C-001>\n`,
       )
       return 0
     }
@@ -270,6 +272,11 @@ export async function runHeadless(argv: string[]): Promise<number> {
       if(action==="rollback"){const current=flag(rest,"--current")??process.execPath;process.stdout.write(`${JSON.stringify(rollbackUpdate(current),null,2)}\n`);return 0}throw new Error(`UPDATE_ACTION_UNKNOWN:${action}`)
     }
 
+    if (command === "profile" || (command === "library" && rest[0] !== "add")) {
+      const layout = resolveRuntimeLayout({ executablePath: process.execPath, platform: process.platform, home: homedir(), env: process.env }), store = new PersonalMemoryStore(personalMemoryPath(layout.userConfigRoot))
+      return command === "profile" ? runProfileCommand(rest, store) : runLibraryCommand(rest, store)
+    }
+
     // Only the model-using subcommands resolve a model, so `align show/approve` work even when no model can be reached.
     // Comparing statements (align run) and checking a statement the user wrote (formalize --lean) only use the
     // auditor, and they still work without one: the review falls back to a person and records why.
@@ -299,6 +306,11 @@ export async function runHeadless(argv: string[]): Promise<number> {
         return 0
       }
 
+      if (command === "memory" || command === "library") {
+        const layout = resolveRuntimeLayout({ executablePath: process.execPath, platform: process.platform, home: homedir(), env: process.env }), store = new PersonalMemoryStore(personalMemoryPath(layout.userConfigRoot))
+        return command === "memory" ? runMemoryCommand(app, rest, store) : addClaimToLibrary(app, rest, store)
+      }
+
       if (command === "context") {
         const action = rest[0] ?? "list"
         const args = rest.slice(1)
@@ -316,8 +328,10 @@ export async function runHeadless(argv: string[]): Promise<number> {
           const kind = flag(args, "--kind") as import("@mathos/domain").ContextItemKind | undefined
           const name = flag(args, "--name"), value = flag(args, "--value")
           if (!kind || !name || value === undefined) throw new Error("Usage: mathos context propose --kind SYMBOL --name x --value value")
-          const proposal = app.services.mathematicalContext.proposeItem({ workspaceId:branch.workspaceId, branchId:branch.id, scopeKind:claimId ? "CLAIM" : "BRANCH", scopeId:claimId ?? branch.id, draft:{ kind, canonicalName:name, displayText:value, normalizedValue:value, origin:"USER" } })
-          process.stdout.write(`${JSON.stringify(envelope(proposal), null, 2)}\n`); return 0
+          const scopeKind = flag(args, "--scope")?.toUpperCase() === "WORKSPACE" ? "WORKSPACE" : claimId ? "CLAIM" : "BRANCH"
+          const proposal = app.services.mathematicalContext.proposeItem({ workspaceId:branch.workspaceId, branchId:branch.id, scopeKind, scopeId:scopeKind === "WORKSPACE" ? branch.workspaceId : claimId ?? branch.id, draft:{ kind, canonicalName:name, displayText:value, normalizedValue:value, origin:args.includes("--origin-model") ? "MODEL" : "USER" } })
+          // --apply: the user approved this convention where it was proposed (the assistant's card), so it applies now.
+          process.stdout.write(`${JSON.stringify(envelope(args.includes("--apply") ? app.services.mathematicalContext.applyProposal(proposal.id, proposal.revision) : proposal), null, 2)}\n`); return 0
         }
         if (action === "conflicts") { process.stdout.write(`${JSON.stringify(envelope(app.services.mathematicalContext.detectConflicts({ workspaceId:branch.workspaceId, branchId:branch.id })), null, 2)}\n`); return 0 }
         const id = args.find((value) => !value.startsWith("--"))
@@ -386,6 +400,7 @@ export async function runHeadless(argv: string[]): Promise<number> {
         throw new Error(`Unknown portfolio action: ${action}`)
       }
       if(command==="failures"){
+        if(rest[0]==="list")return runFailureList(app,rest.slice(1))
         const id=rest.find(value=>!value.startsWith("--"));if(!id)throw new Error("FAILURE_ID_REQUIRED");const failure=app.services.repositories.failureFingerprints.get(id);if(!failure)throw new Error("FAILURE_NOT_FOUND");process.stdout.write(`${JSON.stringify(failureMemorySnapshot(failure,app.services.failureMemory.occurrences(id)),null,2)}\n`);return 0
       }
       if(command==="solver"){

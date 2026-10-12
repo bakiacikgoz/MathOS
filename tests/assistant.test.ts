@@ -237,3 +237,34 @@ describe("assistant and Lean readiness", () => {
     expect(message.parts?.find((part) => part.type === "tool")).toMatchObject({ tool: "formalize", status: "proposed" })
   })
 })
+
+describe("assistant and research memory", () => {
+  test("the model reads the memory brief, and a note or convention it proposes waits for the user's card", async () => {
+    const { turn, commands, seen } = setup([`Worth keeping.${tool("remember", { kind: "dead_end", text: "Strong induction adds nothing here.", claim: "c-001" })}`])
+    const runner = async (args: string[]) => {
+      commands.push(args)
+      if (args[0] === "memory" && args[1] === "brief") return { code: 0, stdout: JSON.stringify({ schemaVersion: "mathos.memory-brief.v1", data: { text: "WORKSPACE CONVENTIONS (approved by the user; …):\n- CONVENTION naturals: ℕ starts at 0" } }), stderr: "" }
+      if (args[0] === "memory" && args[1] === "add") return { code: 0, stdout: JSON.stringify({ data: { id: "MEM-001" } }), stderr: "" }
+      return { code: 0, stdout: "{}", stderr: "" }
+    }
+    const message = await turn({ input: { text: "That approach went nowhere." }, runner })
+    expect(seen[0]!.messages[0]!.content).toContain("Memory:\nWORKSPACE CONVENTIONS")
+    expect(seen[0]!.messages[0]!.content).toContain("Memory is never evidence")
+    expect(message.state).toBe("awaiting_approval")
+    expect(message.parts?.find((part) => part.type === "tool")).toMatchObject({ tool: "remember", status: "proposed" })
+    expect(commands.some((args) => args[0] === "memory" && args[1] === "add")).toBe(false)
+  })
+
+  test("memory tools build the commands that keep a model's note labelled as its suggestion", async () => {
+    const { assistantTool } = await import("@mathos/core")
+    expect(assistantTool("remember")!.argv!({ kind: "dead_end", text: "Strong induction adds nothing.", claim: "c-001" })).toEqual(["memory", "add", "--kind", "DEAD_END", "--text", "Strong induction adds nothing.", "--scope", "branch", "--origin-model", "--claim", "C-001", "--json"])
+    expect(() => assistantTool("remember")!.argv!({ kind: "proof", text: "x" })).toThrow("kind must be one of")
+    expect(() => assistantTool("remember")!.argv!({ kind: "IDEA", text: "x", scope: "everywhere" })).toThrow("scope must be")
+    expect(assistantTool("set_convention")!.argv!({ kind: "convention", name: "naturals", value: "ℕ starts at 0" })).toEqual(["context", "propose", "--kind", "CONVENTION", "--name", "naturals", "--value", "ℕ starts at 0", "--origin-model", "--apply", "--scope", "workspace"])
+    expect(() => assistantTool("set_convention")!.argv!({ kind: "DEFINITION_REF", name: "x", value: "y" })).toThrow("kind must be one of")
+    expect(assistantTool("recall")!.kind).toBe("read")
+    expect(assistantTool("recall")!.argv!({ query: "induction", claim: "c-001" })).toEqual(["memory", "search", "induction", "--claim", "C-001", "--json"])
+    expect(assistantTool("failed_attempts")!.argv!({ id: "c-001" })).toEqual(["failures", "list", "--claim", "C-001", "--json"])
+    expect(assistantTool("search_library")!.summarize!(JSON.stringify({ data: [{ id: "LIB-001", name: "odd_sum", title: "Odd sums", source: { workspace: "w", claimId: "C-001" }, naturalStatement: "…", leanStatement: "theorem odd_sum …", proofBody: "by\n  simp" }] }))).toContain("LIB-001 odd_sum — Odd sums (verified in w as C-001)")
+  })
+})

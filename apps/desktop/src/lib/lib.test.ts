@@ -120,3 +120,14 @@ describe("generic endpoint validation", () => {
     expect(validBaseUrl("not a url")).toBe(false)
   })
 })
+
+describe("memory labels", () => {
+  test("a note says where it comes from, and a model's suggestion never reads as the user's or Lean's", async () => {
+    const { memoryBasisLabel, memoryKindLabel } = await import("./memory.ts")
+    expect(memoryBasisLabel({ basis: "MODEL", status: "PROPOSED", claimVerified: null, claimId: null }, "tr")).toBe("Model önerisi · onay bekliyor")
+    expect(memoryBasisLabel({ basis: "MODEL", status: "ACTIVE", claimVerified: null, claimId: null }, "en")).toBe("Model suggestion (kept)")
+    expect(memoryBasisLabel({ basis: "LEAN", status: "ACTIVE", claimVerified: true, claimId: "C-001" }, "en")).toBe("Lean-verified (C-001)")
+    expect(memoryBasisLabel({ basis: "LEAN", status: "ACTIVE", claimVerified: false, claimId: "C-001" }, "tr")).toBe("C-001 artık doğrulanmış değil")
+    expect(memoryKindLabel("DEAD_END", "tr")).toBe("Çıkmaz yol")
+  })
+})

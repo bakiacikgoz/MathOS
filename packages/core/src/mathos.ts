@@ -148,8 +148,10 @@ import { FakeMultiAgentPlanner, type MultiAgentPlanner } from "./multi-agent-pla
 import { createPlannerFromDescriptor, plannerDescriptorFrom, PersistentScriptedPlanner } from "./planner-factory.ts"
 import { inspectSandbox, PythonRuntime, sha256Text, type ComputationalRuntime } from "@mathos/computation"
 import { createProductionLiteratureProvider, type LiteratureProvider } from "@mathos/literature"
-import { DEFAULT_COMPUTATIONAL_BUDGET, type Experiment, type ExperimentResult, type CitationPurpose, type SourceLocator, type Source, type SourceExcerpt, type ExternalResult } from "@mathos/domain"
+import { DEFAULT_COMPUTATIONAL_BUDGET, type FailureFingerprint, type Experiment, type ExperimentResult, type CitationPurpose, type SourceLocator, type Source, type SourceExcerpt, type ExternalResult } from "@mathos/domain"
 import { createServiceContainer, type ServiceContainer, type ServiceContainerOverrides } from "./composition/service-container.ts"
+import { proofGoalHash, renderContextForPrompt, renderMemoryNotes } from "./memory-prompts.ts"
+import type { MemoryScope } from "./services/research-memory-service.ts"
 
 export interface MathOSOptions {
   logger?: Logger
@@ -339,6 +341,7 @@ export class MathOS {
       recorder: instance.mutationRecorder(),
       statementRevisions:instance.services.statementRevisions,
       contextRevisionId:(claimId)=>instance.services.mathematicalContext.resolveSnapshot({workspaceId:instance.requireWorkspace().id,branchId:instance.currentBranch().id,claimId}).revisionId,
+      contextPrompt:(claimId)=>instance.contextPrompt(claimId),
     })
     instance.verificationService = new VerificationService({
       root: workspaceRoot,
@@ -380,6 +383,8 @@ export class MathOS {
       allocateId: (prefix) => instance.allocateId(prefix),
       verify: (claimId) => instance.verify(claimId),
       recorder: instance.mutationRecorder(),
+      contextPrompt: (claimId) => instance.contextPrompt(claimId),
+      failureMemory: instance.services.failureMemory,
     })
     instance.experimentService = new ExperimentService({
       root: workspaceRoot,
@@ -753,6 +758,32 @@ export class MathOS {
   addBlocker(input: AddBlockerInput): Blocker { return this.claimService.addBlocker(input) }
 
   currentBranch(): ResearchBranch { return this.branchService.current() }
+
+  /** Where research memory is read and written from: this workspace, as the current branch sees it. */
+  memoryScope(): MemoryScope { return { workspaceId: this.requireWorkspace().id, branchId: this.currentBranch().id } }
+
+  /** The conventions the user approved, as the current branch sees them for a claim (or the branch, without one). */
+  contextPrompt(claimId?: string | null): string {
+    const scope = this.memoryScope()
+    return renderContextForPrompt(this.services.mathematicalContext.resolveSnapshot({ ...scope, ...(claimId ? { claimId } : {}) }).items)
+  }
+
+  /** The failed proofs recorded for the claim's current Lean statement, most recent first. */
+  claimFailures(claimId: string, limit = 20): FailureFingerprint[] {
+    const formal = this.formalStatements.currentForClaim(claimId.trim().toUpperCase())
+    return formal ? this.services.failureMemory.forGoal("PROOF", proofGoalHash(formal.sourceText), limit) : []
+  }
+
+  /** What a model should know from this workspace's memory before helping: conventions, notes, earlier failures. */
+  memoryBrief(claimId?: string | null): string {
+    const id = claimId?.trim().toUpperCase() || null
+    const failures = id ? this.claimFailures(id, 4) : []
+    return [
+      this.contextPrompt(id),
+      renderMemoryNotes(this.services.researchMemory.relevant(this.memoryScope(), id)),
+      failures.length ? `${id}: ${failures.length} earlier failed proof approach${failures.length === 1 ? "" : "es"} on its current Lean statement (failed_attempts shows them).` : "",
+    ].filter(Boolean).join("\n\n")
+  }
 
   private requireCurrentBranch(): ResearchBranch { return this.branchService.current() }
 

@@ -892,6 +892,14 @@ export const MIGRATIONS: Migration[] = [
       CREATE TABLE projection_records (id TEXT PRIMARY KEY, kind TEXT NOT NULL, workspace_id TEXT NOT NULL, branch_id TEXT NOT NULL, schema_version TEXT NOT NULL, source_event_sequence INTEGER NOT NULL, content_json TEXT NOT NULL, content_hash TEXT NOT NULL, generated_at TEXT NOT NULL, UNIQUE(kind,workspace_id,branch_id));
     `,
   },
+  {
+    id: "031_research_memory",
+    sql: `
+      CREATE TABLE memory_notes (id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, branch_id TEXT NOT NULL, scope_kind TEXT NOT NULL, kind TEXT NOT NULL, text TEXT NOT NULL, basis TEXT NOT NULL, status TEXT NOT NULL, origin TEXT NOT NULL, claim_id TEXT, source_ref TEXT, reason TEXT, revision INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+      CREATE INDEX idx_memory_notes_scope ON memory_notes(workspace_id, status, branch_id);
+      CREATE INDEX idx_failure_goal ON failure_fingerprints(goal_hash, last_seen_at);
+    `,
+  },
 ]
 
 export const SCHEMA_EPOCH = MIGRATIONS.length

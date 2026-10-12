@@ -123,6 +123,18 @@ const ERRORS: Record<string, Pair> = {
   COPILOT_LOGIN_REQUIRED: ["GitHub Copilot CLI'de oturum açık değil. Copilot penceresinde /login ile giriş yapın.", "GitHub Copilot CLI is not signed in. Sign in with /login in the Copilot window."],
   COPILOT_SUBSCRIPTION_REQUIRED: ["Bu GitHub hesabında Copilot aboneliği bulunamadı.", "No Copilot subscription was found for this GitHub account."],
   SECRET_STORE_WRITE_FAILED: ["Anahtar sistemin güvenli deposuna yazılamadı.", "The key could not be written to the system's secure store."],
+  MEMORY_TEXT_REQUIRED: ["Not boş olamaz.", "A note cannot be empty."],
+  MEMORY_TEXT_TOO_LONG: ["Not en fazla 2000 karakter olabilir.", "A note can be at most 2000 characters."],
+  MEMORY_LEAN_BASIS_NEEDS_VERIFIED_CLAIM: ["Bir not ancak Lean çekirdeğinin doğruladığı bir önermeye dayanıyorsa \"Lean ile doğrulandı\" olabilir.", "A note can be \"Lean-verified\" only when it rests on a claim the Lean kernel verified."],
+  MEMORY_NOTE_STATE_INVALID: ["Bu not bu durumda değiştirilemez.", "This note cannot be changed in its current state."],
+  MEMORY_NOTE_NOT_FOUND: ["Not bulunamadı.", "The note was not found."],
+  MEMORY_REFUTE_REASON_REQUIRED: ["Neden yanlış olduğunu yazın.", "Write why it is false."],
+  PREFERENCE_LIMIT_REACHED: ["En fazla 40 tercih tutulabilir; önce birini silin.", "At most 40 preferences; remove one first."],
+  PREFERENCE_TEXT_TOO_LONG: ["Tercih en fazla 500 karakter olabilir.", "A preference can be at most 500 characters."],
+  PERSONAL_MEMORY_INVALID: ["Kişisel hafıza dosyası okunamadı; düzeltin ya da silin.", "The personal memory file could not be read; fix or remove it."],
+  LIBRARY_CLAIM_NOT_VERIFIED: ["Kitaplığa yalnız Lean çekirdeğinin doğruladığı sonuçlar eklenebilir.", "Only results the Lean kernel verified can go into the library."],
+  LIBRARY_PROOF_NOT_FOUND: ["Bu önermenin güncel Lean ifadesi için kabul edilmiş bir ispat yok.", "This claim has no accepted proof for its current Lean statement."],
+  LIBRARY_ENTRY_NOT_FOUND: ["Kitaplık kaydı bulunamadı.", "The library entry was not found."],
 }
 /** Codes whose text after the colon is the vendor's own explanation (e.g. when a usage limit resets); it is kept. */
 const DETAILED = new Set(["CODEX_USAGE_LIMIT_EXCEEDED", "CODEX_RATE_LIMITED", "CODEX_TURN_FAILED", "ACP_AUTH_REQUIRED"])

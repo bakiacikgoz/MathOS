@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useApp } from "../lib/app.ts"
+import { memoryKindLabel } from "../lib/memory.ts"
 import { useT, type MessageKey } from "../lib/i18n.ts"
 import { readPref, writePref } from "../lib/storage.ts"
 import { invalidate } from "../lib/query.ts"
@@ -29,6 +30,8 @@ const TOOL_LABEL: Record<string, [string, string]> = {
   list_branches: ["Araştırma dalları", "Research branches"], create_claim: ["Yeni önerme: {title}", "New claim: {title}"], formalize: ["{id} Lean'e çevrilsin", "Formalize {id}"],
   compare_meaning: ["{id} için anlam karşılaştırması", "Compare the meanings of {id}"], approve_meaning: ["{id}: Lean ifadesi aynı anlamı taşıyor mu?", "{id}: does the Lean statement mean the same?"], prove: ["{id} için ispat aransın", "Search a proof of {id}"], check_proof: ["{id} için yazılan ispat Lean çekirdeğinde denetlensin", "Check a written proof of {id} in the Lean kernel"], verify: ["{id} Lean çekirdeğinde doğrulansın", "Verify {id} in the Lean kernel"],
   link_claims: ["{from} → {to} bağlantısı", "Link {from} → {to}"], set_objective: ["{id} ana hedef olsun", "Make {id} the objective"], create_branch: ["Yeni araştırma dalı: {name}", "New research branch: {name}"], search_literature: ["Literatür araması: {query}", "Literature search: {query}"],
+  recall: ["Hafızada arama: {query}", "Memory search: {query}"], failed_attempts: ["{id} için önceki başarısız ispatlar", "Earlier failed proofs of {id}"], search_library: ["Kitaplığımda arama: {query}", "My library search: {query}"],
+  remember: ["Araştırma hafızasına not eklensin", "Keep a note in research memory"], set_convention: ["Kural kaydedilsin: {name}", "Record a convention: {name}"],
 }
 function toolLabel(part: Extract<Part, { type: "tool" }>, lang: Lang): string {
   const template = TOOL_LABEL[part.tool]?.[lang === "tr" ? 0 : 1]
@@ -495,6 +498,8 @@ function ActionCard({ part, onDecide, waiting }: { part: Extract<Part, { type: "
   const detail = part.tool === "create_claim" ? <><div className="k">{String(part.args.title ?? "")}</div><MathText text={String(part.args.statement ?? "")} /></>
     : part.tool === "formalize" && part.args.lean ? <pre className="wf-code">{String(part.args.lean)}</pre>
     : part.tool === "check_proof" && part.args.proof ? <pre className="wf-code">{String(part.args.proof)}</pre>
+    : part.tool === "remember" ? <><div className="k">{memoryKindLabel(String(part.args.kind ?? ""), lang)}{part.args.claim ? ` · ${String(part.args.claim)}` : ""}</div><MathText text={String(part.args.text ?? "")} /><div className="hint">{t("memory.modelNoteHint")}</div></>
+    : part.tool === "set_convention" ? <><div className="k">{String(part.args.kind ?? "")} · {String(part.args.name ?? "")}</div><MathText text={String(part.args.value ?? "")} /></>
     : null
   const state = part.status === "proposed" ? (waiting ? "chat.tool.waiting" : "chat.tool.proposed") : `chat.tool.${part.status}`
   return (

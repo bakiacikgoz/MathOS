@@ -8,7 +8,7 @@ import {
   ProofRepairAttemptRepository, PublicationRecordRepository, ResearchBlockRepository, ResearchDocumentRepository,
   ReviewAttestationRepository, ReviewFindingRepository, ReviewPacketRepository, SolverJobRepository,
   SolverResultRepository, StaleMarkerRepository, StatementRevisionRepository,
-  ClaimRepository, DependencyRepository, FormalStatementRepository,
+  BranchRepository, ClaimRepository, DependencyRepository, FormalStatementRepository, MemoryNoteRepository,
 } from "@mathos/storage"
 import type { ClaimReadPort } from "../ports/claim-read-port.ts"
 import type { FormalReadPort } from "../ports/formal-read-port.ts"
@@ -17,12 +17,14 @@ import type { ArtifactStorePort } from "../ports/artifact-store-port.ts"
 import type { ClockPort } from "../ports/clock-port.ts"
 import { claimReadAdapter, FileArtifactStore, formalReadAdapter, graphReadAdapter, systemClock } from "./built-in-adapters.ts"
 import { MathematicalContextService } from "../services/mathematical-context-service.ts"
+import { renderContextForPrompt } from "../memory-prompts.ts"
 import { ResearchNotebookService } from "../services/research-notebook-service.ts"
 import { StatementRevisionService } from "../services/statement-revision-service.ts"
 import { AlignmentService, type AlignmentAuditor } from "../services/alignment-service.ts"
 import { ImpactStalenessService } from "../services/impact-staleness-service.ts"
 import { ProofPortfolioService, type ProofPortfolioDependencies } from "../services/proof-portfolio-service.ts"
 import { FailureMemoryService } from "../services/failure-memory-service.ts"
+import { ResearchMemoryService } from "../services/research-memory-service.ts"
 import { SolverAdapterRegistry } from "../services/solver-registry.ts"
 import { SolverLabService } from "../services/solver-lab-service.ts"
 
@@ -37,6 +39,7 @@ export interface ServiceContainer {
   impactStaleness:ImpactStalenessService
   proofPortfolio:ProofPortfolioService
   failureMemory:FailureMemoryService
+  researchMemory:ResearchMemoryService
   solverRegistry:SolverAdapterRegistry
   solverLab:SolverLabService
 }
@@ -49,7 +52,7 @@ function createV1Repositories(db: Database) {
     proofPortfolios: new ProofPortfolioRepository(db), proofJobs: new ProofJobRepository(db), proofCandidates: new ProofCandidateRepository(db), proofRepairAttempts: new ProofRepairAttemptRepository(db), portfolioBudgets:new PortfolioBudgetRepository(db), portfolioLeases:new PortfolioLeaseRepository(db),
     solverJobs: new SolverJobRepository(db), solverResults: new SolverResultRepository(db),
     conjectureProposals: new ConjectureProposalRepository(db), conjectureTriage: new ConjectureTriageRepository(db), agendaItems: new AgendaItemRepository(db),
-    failureFingerprints: new FailureFingerprintRepository(db), failureOccurrences: new FailureOccurrenceRepository(db),
+    failureFingerprints: new FailureFingerprintRepository(db), failureOccurrences: new FailureOccurrenceRepository(db), memoryNotes: new MemoryNoteRepository(db),
     reviewPackets: new ReviewPacketRepository(db), reviewFindings: new ReviewFindingRepository(db), reviewAttestations: new ReviewAttestationRepository(db),
     capsules: new CapsuleRecordRepository(db), publications: new PublicationRecordRepository(db), plugins: new PluginRecordRepository(db), projections: new ProjectionRecordRepository(db),
   }
@@ -66,6 +69,12 @@ export function createServiceContainer(root: string, db: Database, overrides: Pa
   const statementRevisions=new StatementRevisionService({revisions:repositories.statementRevisions,clock,nextId:()=>`SR-${clock.now().replace(/\D/g,"")}-${++sequence}`,writeEvent:()=>{}})
   const claimRepository=new ClaimRepository(db),formalRepository=new FormalStatementRepository(db)
   for(const {id} of db.query<{id:string},[]>("SELECT id FROM workspaces").all())statementRevisions.backfillLegacy(claimRepository.list(id),formalRepository.list(id),"CR-LEGACY")
+  const mathematicalContext = new MathematicalContextService({ items: repositories.contextItems, revisions: repositories.contextRevisions, clock, nextId: (prefix) => `${prefix}-${clock.now().replace(/\D/g, "")}-${++sequence}`, writeEvent: () => {} })
+  // The conventions the user approved, as the current branch sees them for one claim.
+  const contextText = (claimId: string) => {
+    const workspace = db.query<{ id: string }, []>("SELECT id FROM workspaces LIMIT 1").get(), branch = workspace ? new BranchRepository(db).current(workspace.id) : null
+    return workspace && branch ? renderContextForPrompt(mathematicalContext.resolveSnapshot({ workspaceId: workspace.id, branchId: branch.id, claimId }).items) : ""
+  }
   const container = {
     clock,
     artifacts: overrides.artifacts ?? new FileArtifactStore(root),
@@ -73,15 +82,24 @@ export function createServiceContainer(root: string, db: Database, overrides: Pa
     formals: overrides.formals ?? formalReadAdapter(new FormalStatementRepository(db)),
     graph: overrides.graph ?? graphReadAdapter(new DependencyRepository(db)),
     repositories,
-    mathematicalContext: new MathematicalContextService({ items: repositories.contextItems, revisions: repositories.contextRevisions, clock, nextId: (prefix) => `${prefix}-${clock.now().replace(/\D/g, "")}-${++sequence}`, writeEvent: () => {} }),
+    mathematicalContext,
     researchNotebook: new ResearchNotebookService({ root, documents:repositories.researchDocuments, blocks:repositories.researchBlocks, clock, unitOfWork, entityExists:(type,id) => type === "claim" ? Boolean(new ClaimRepository(db).get(id)) : true }),
     statementRevisions,
-    alignment:new AlignmentService({revisions:repositories.statementRevisions,alignments:repositories.formalAlignments,findings:repositories.alignmentFindings,clock,...(overrides.alignmentAuditor?{auditor:overrides.alignmentAuditor}:{}),nextId:(prefix)=>`${prefix}-${clock.now().replace(/\D/g,"")}-${++sequence}`}),
+    alignment:new AlignmentService({revisions:repositories.statementRevisions,alignments:repositories.formalAlignments,findings:repositories.alignmentFindings,clock,contextText,...(overrides.alignmentAuditor?{auditor:overrides.alignmentAuditor}:{}),nextId:(prefix)=>`${prefix}-${clock.now().replace(/\D/g,"")}-${++sequence}`}),
     impactStaleness:new ImpactStalenessService({markers:repositories.staleMarkers,clock,nextId:()=>`SM-${clock.now().replace(/\D/g,"")}-${++sequence}`}),
     proofPortfolio:new ProofPortfolioService({root,portfolios:repositories.proofPortfolios,jobs:repositories.proofJobs,candidates:repositories.proofCandidates,budgets:repositories.portfolioBudgets,leases:repositories.portfolioLeases,unitOfWork,now:()=>clock.now(),nextId:(prefix)=>`${prefix}-${clock.now().replace(/\D/g,"")}-${++sequence}`,createWorker:overrides.proofPortfolioRuntime?.createWorker ?? (async()=>{throw new Error("PROOF_PORTFOLIO_VCS_RUNTIME_REQUIRED")}),startProcess:overrides.proofPortfolioRuntime?.startProcess ?? (async()=>{throw new Error("PROOF_PORTFOLIO_PROCESS_RUNTIME_REQUIRED")}),crashHook:overrides.proofPortfolioRuntime?.crashHook}),
     failureMemory:new FailureMemoryService({failures:repositories.failureFingerprints,occurrences:repositories.failureOccurrences,unitOfWork,now:()=>clock.now(),nextId:(prefix)=>`${prefix}-${clock.now().replace(/\D/g,"")}-${++sequence}`}),
+    researchMemory:new ResearchMemoryService({notes:repositories.memoryNotes,clock,unitOfWork,claimStatus:(id)=>claimRepository.get(id)?.status??null,branchLineage:(branchId)=>branchLineage(db,branchId)}),
     solverRegistry,
     solverLab:new SolverLabService({registry:solverRegistry,jobs:repositories.solverJobs,results:repositories.solverResults,artifacts:overrides.artifacts??new FileArtifactStore(root),unitOfWork,now:()=>clock.now(),nextId:(prefix)=>`${prefix}-${clock.now().replace(/\D/g,"")}-${++sequence}`,validateWitness:()=>false,validateCertificate:()=>false,leanReplay:async()=>({passed:false,inputHash:"",outputHash:""}),createEvidence:()=>""}),
   }
   return container
+}
+
+/** A branch and the branches it was started from, nearest first (a cycle or a missing parent ends the walk). */
+function branchLineage(db: Database, branchId: string): string[] {
+  const parents = new Map(db.query<{ id: string; parent_branch_id: string | null }, []>("SELECT id, parent_branch_id FROM branches").all().map((row) => [row.id, row.parent_branch_id]))
+  const lineage: string[] = []
+  for (let id: string | null | undefined = branchId; id && !lineage.includes(id); id = parents.get(id)) lineage.push(id)
+  return lineage
 }

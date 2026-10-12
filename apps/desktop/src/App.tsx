@@ -23,6 +23,7 @@ const Literature = lazy(() => import("./views/Literature.tsx").then((m) => ({ de
 const Research = lazy(() => import("./views/Research.tsx").then((m) => ({ default: m.Research })))
 const Claims = lazy(() => import("./views/Claims.tsx").then((m) => ({ default: m.Claims })))
 const Branches = lazy(() => import("./views/Branches.tsx").then((m) => ({ default: m.Branches })))
+const Memory = lazy(() => import("./views/Memory.tsx").then((m) => ({ default: m.Memory })))
 const Health = lazy(() => import("./views/Health.tsx").then((m) => ({ default: m.Health })))
 const Console = lazy(() => import("./views/Console.tsx").then((m) => ({ default: m.Console })))
 const Providers = lazy(() => import("./views/Providers.tsx").then((m) => ({ default: m.Providers })))
@@ -128,6 +129,7 @@ function Screen({ route }: { route: Route }) {
     <div key={route} className="page view-enter">
       {route === "overview" && <Overview />}
       {route === "branches" && <Branches />}
+      {route === "memory" && <Memory />}
       {route === "reports" && <Reports />}
       {route === "literature" && <Literature />}
       {route === "research" && <Research />}
@@ -138,7 +140,7 @@ function Screen({ route }: { route: Route }) {
   )
 }
 
-const ROUTES: Route[] = ["overview", "assistant", "claims", "graph", "literature", "research", "branches", "reports", "health", "providers", "console", "settings"]
+const ROUTES: Route[] = ["overview", "assistant", "claims", "graph", "literature", "research", "branches", "memory", "reports", "health", "providers", "console", "settings"]
 function validWorkspace(value: unknown): Workspace | null {
   if (!value || typeof value !== "object") return null
   const { root, name } = value as Partial<Workspace>

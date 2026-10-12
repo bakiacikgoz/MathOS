@@ -43,7 +43,7 @@ export function parseFidelityPayload(value: unknown): {
 
 export async function reviewFidelity(
   auditor: ModelProvider,
-  input: { claimId: string; naturalStatement: string; leanStatement: string },
+  input: { claimId: string; naturalStatement: string; leanStatement: string; context?: string },
 ): Promise<Omit<FidelityReview, "id" | "workspaceId" | "formalStatementId" | "createdAt">> {
   const parsed = await auditor.generateStructured({
     schemaName: "fidelity_review",
@@ -51,7 +51,7 @@ export async function reviewFidelity(
       { role: "system", content: FIDELITY_SYSTEM_PROMPT },
       {
         role: "user",
-        content: `Claim ${input.claimId}\n\nNATURAL:\n${input.naturalStatement}\n\nFORMAL:\n${input.leanStatement}`,
+        content: `Claim ${input.claimId}\n\nNATURAL:\n${input.naturalStatement}\n\nFORMAL:\n${input.leanStatement}${input.context ? `\n\n${input.context}` : ""}`,
       },
     ],
     parse: parseFidelityPayload,
