@@ -11,7 +11,7 @@ export function verifyRelease(releaseRoot: string, expected: { gitRevision: stri
   productVersion: MATHOS_PRODUCT_VERSION,
 }) {
   const manifest = JSON.parse(readFileSync(join(releaseRoot, "RELEASE-MANIFEST.json"), "utf8")) as ReleaseManifestV1
-  assertMathOSCompatibility({ workspaceSchemaVersion: 30, bridgeProtocolVersion: manifest.bridgeProtocolVersion, pluginApiVersion: manifest.pluginApiVersion, capsuleFormatVersion: 1, publicationFormatVersion: 1 })
+  assertMathOSCompatibility({ workspaceSchemaVersion: 31, bridgeProtocolVersion: manifest.bridgeProtocolVersion, pluginApiVersion: manifest.pluginApiVersion, capsuleFormatVersion: 1, publicationFormatVersion: 1 })
   const integrity = verifyReleaseManifest(releaseRoot, manifest)
   const checksums = manifest.files.map(file => `${file.sha256}  ${file.path}`).join("\n") + "\n"
   if (readFileSync(join(releaseRoot, "SHA256SUMS"), "utf8") !== checksums) integrity.errors.push("RELEASE_CHECKSUM_FILE_MISMATCH")

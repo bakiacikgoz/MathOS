@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 
-export const WORKSPACE_SCHEMA_VERSION=30
+export const WORKSPACE_SCHEMA_VERSION=31
 export const MINIMUM_WORKSPACE_SCHEMA_VERSION=16
 export const BRIDGE_PROTOCOL_VERSION=1
 export const PLUGIN_API_VERSION=1

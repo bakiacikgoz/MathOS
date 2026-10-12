@@ -5,7 +5,7 @@ The product version is defined by `MATHOS_PRODUCT_VERSION` in the shared runtime
 | Contract | Current | Compatibility rule |
 | --- | ---: | --- |
 | Product development version | `1.0.0-rc.1` | Frozen to `1.0.0-rc.1` only after G01–G22 pass |
-| Workspace schema | 30 | Schemas 16–30 accepted; newer or older unsupported schemas fail before mutation |
+| Workspace schema | 31 | Schemas 16–31 accepted; newer or older unsupported schemas fail before mutation |
 | Bridge protocol | 1 | Exact match |
 | Plugin API | 1 | Exact match; incompatible plugins disabled |
 | Capsule format | 1 | Exact match; newer import refused before mutation |

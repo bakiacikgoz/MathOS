@@ -5,7 +5,7 @@ import { MATHOS_PRODUCT_VERSION, assertProductVersionAlignment, currentBuildIden
 describe("canonical product identity",()=>{
   test("reports every compatibility version from one identity",()=>{
     expect(currentBuildIdentity({gitRevision:"0123456789abcdef0123456789abcdef01234567",buildId:"build-1"})).toEqual({
-      productVersion:MATHOS_PRODUCT_VERSION,gitRevision:"0123456789abcdef0123456789abcdef01234567",buildId:"build-1",schemaVersion:30,
+      productVersion:MATHOS_PRODUCT_VERSION,gitRevision:"0123456789abcdef0123456789abcdef01234567",buildId:"build-1",schemaVersion:31,
       bridgeProtocolVersion:1,pluginApiVersion:1,capsuleFormatVersion:1,publicationFormatVersion:1,
     })
   })
@@ -18,6 +18,6 @@ describe("canonical product identity",()=>{
     const identity=JSON.parse(new TextDecoder().decode(cli.stdout))
     expect(identity.productVersion).toBe(MATHOS_PRODUCT_VERSION)
     expect(identity.gitRevision).toMatch(/^[0-9a-f]{40}$|^UNKNOWN$/)
-    expect(identity.schemaVersion).toBe(30)
+    expect(identity.schemaVersion).toBe(31)
   }, 30000)
 })

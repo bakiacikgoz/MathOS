@@ -17,7 +17,7 @@ describe("product completion baseline", () => {
     const result=await captureProductBaseline({root,runner,write:(path,data)=>writes.push({path,data})})
     expect(result.baselineReference).toBe("541e39ef6454ffd7b3934348ccb457f067b28f31")
     expect(result.gitRevision).toBe("541e39ef6454ffd7b3934348ccb457f067b28f31")
-    expect(result.versions).toEqual({product:"1.0.0-rc.1",schema:30,bridge:1,pluginApi:1,capsule:1,publication:1})
+    expect(result.versions).toEqual({product:"1.0.0-rc.1",schema:31,bridge:1,pluginApi:1,capsule:1,publication:1})
     expect(result.checks.every(check=>check.status==="PASS")).toBe(true)
     expect(writes).toHaveLength(1)
     expect(writes[0]!.path).toBe(join(root,"artifacts","product-completion","baseline.json"))
