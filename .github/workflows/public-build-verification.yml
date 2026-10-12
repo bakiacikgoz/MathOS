@@ -62,7 +62,10 @@ jobs:
       - name: Root typecheck
         run: bun run typecheck
       - name: Root tests
-        run: bun test
+        run: bun test --reporter=junit --reporter-outfile="${{ runner.temp }}/root-junit.xml"
+      - name: Annotate failing root tests
+        if: failure()
+        run: bun scripts/ci/junit-annotations.ts "${{ runner.temp }}/root-junit.xml"
       - name: Desktop typecheck
         working-directory: apps/desktop
         run: bun run typecheck
