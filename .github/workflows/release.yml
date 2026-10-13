@@ -1,0 +1,154 @@
+name: Release
+
+# Builds every download of a version from its tag and attaches them to a DRAFT GitHub Release.
+# Nothing is published here: the maintainer reviews the draft and presses Publish. The tag must
+# name the product version, every license must be resolved, and each build is verified on its
+# own native runner before the draft is created.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  cli:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - runner: windows-2025
+            target: windows-x64
+            shell: pwsh
+          - runner: macos-15
+            target: darwin-arm64
+            shell: bash
+          - runner: ubuntu-24.04
+            target: linux-x64
+            shell: bash
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
+    env:
+      MATHOS_LEAN_AUTO_INSTALL: "0"
+      MATHOS_RELEASE_ENRICH_LICENSES: "1"
+      MATHOS_RELEASE_REQUIRE_COMPLETE_LICENSES: "1"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.2
+      - name: Check the tag names the product version
+        run: bun scripts/release/assets.ts check-tag "${{ github.ref_name }}"
+      - name: Frozen root install
+        run: bun install --frozen-lockfile
+      - name: Frozen desktop install
+        run: bun install --cwd apps/desktop --frozen-lockfile
+      - name: Build the CLI archive
+        run: bun run release:build
+      - name: Verify the CLI archive
+        run: bun run release:verify
+      - name: Package the VS Code extension
+        if: matrix.target == 'darwin-arm64'
+        run: bun run vscode:package
+      - name: Verify the VS Code extension
+        if: matrix.target == 'darwin-arm64'
+        run: bun run vscode:verify
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-cli-${{ matrix.target }}
+          path: |
+            artifacts/releases/*/mathos-*.tar.gz
+            dist/*.vsix
+          if-no-files-found: error
+          retention-days: 7
+
+  desktop:
+    runs-on: windows-2025
+    timeout-minutes: 75
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      MATHOS_LEAN_AUTO_INSTALL: "0"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.2
+      - uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de
+        with:
+          toolchain: 1.97.0
+      - name: Check the tag names the product version
+        run: bun scripts/release/assets.ts check-tag "${{ github.ref_name }}"
+      - name: Install root dependencies
+        run: bun install --frozen-lockfile
+      - name: Install desktop dependencies
+        working-directory: apps/desktop
+        run: bun install --frozen-lockfile
+      - name: Build the MathOS engine (sidecar)
+        working-directory: apps/desktop
+        run: bun scripts/build-host.ts --triple=x86_64-pc-windows-msvc
+      - name: Smoke-test the engine on Windows
+        working-directory: apps/desktop
+        run: bun scripts/smoke-host.ts src-tauri/binaries/mathos-host-x86_64-pc-windows-msvc.exe --secret-store
+      - name: Write license files for the installer
+        working-directory: apps/desktop
+        env:
+          MATHOS_RELEASE_ENRICH_LICENSES: "1"
+        run: bun scripts/write-legal.ts --target=windows-x64 --require-complete
+      - name: Build the installer
+        working-directory: apps/desktop
+        run: bunx tauri build --ci --config src-tauri/tauri.bundle.conf.json -- --locked
+      - name: Name the installer after the version
+        run: |
+          $installers = @(Get-ChildItem apps/desktop/src-tauri/target/release/bundle/nsis -Filter *-setup.exe)
+          if ($installers.Count -ne 1) { throw "Expected one NSIS installer, found $($installers.Count)" }
+          New-Item -ItemType Directory -Force release-desktop | Out-Null
+          Copy-Item $installers[0].FullName ("release-desktop/MathOS-{0}-windows-x64-setup.exe" -f "${{ github.ref_name }}".Substring(1))
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-desktop-windows-x64
+          path: release-desktop/*.exe
+          if-no-files-found: error
+          retention-days: 7
+
+  draft:
+    needs: [cli, desktop]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.2
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          path: ${{ runner.temp }}/downloads
+      - name: Collect the assets and one SHA256SUMS
+        run: bun scripts/release/assets.ts collect "${{ runner.temp }}/downloads" "${{ runner.temp }}/release" "${GITHUB_REF_NAME#v}"
+      - name: Write the release notes
+        run: bun scripts/release/assets.ts notes "${GITHUB_REF_NAME#v}" "${{ runner.temp }}/notes.md"
+      - name: Create the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          prerelease=""
+          case "$version" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft --verify-tag $prerelease \
+            --title "MathOS $version" --notes-file "${{ runner.temp }}/notes.md" "${{ runner.temp }}"/release/*

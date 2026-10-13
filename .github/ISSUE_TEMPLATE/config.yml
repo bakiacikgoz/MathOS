@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Installation help
+    url: https://github.com/bakiacikgoz/MathOS/blob/main/docs/INSTALLATION.md
+    about: Downloads, unsigned installers, Lean and Mathlib setup.

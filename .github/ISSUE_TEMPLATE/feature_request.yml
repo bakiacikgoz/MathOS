@@ -1,0 +1,20 @@
+name: Feature request
+description: A workflow MathOS should support.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: Describe the research task and where MathOS gets in the way.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would help?
+  - type: textarea
+    id: trust
+    attributes:
+      label: Does it touch verification?
+      description: MathOS only lets the Lean kernel mark a claim verified. Say if your idea changes what counts as evidence.

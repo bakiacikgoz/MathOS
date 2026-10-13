@@ -1,0 +1,48 @@
+name: Bug report
+description: Something in MathOS does not work as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please do not paste API keys, tokens or private research. For a security problem, follow [SECURITY.md](https://github.com/bakiacikgoz/MathOS/blob/main/docs/SECURITY.md) instead of opening an issue.
+  - type: input
+    id: version
+    attributes:
+      label: MathOS version
+      description: Output of `mathos --version --json`, or the version under Settings → General → MathOS engine in the desktop app.
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where did it happen?
+      options: [Desktop app, Command line or TUI, VS Code extension, Atlas, Installer]
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Operating system
+      placeholder: Windows 11 x64, macOS 15 on Apple Silicon, Ubuntu 24.04 x64
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. Open a workspace\n2. ...\n3. ..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected and what happened instead
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Error codes shown in the app, and `mathos doctor --json` if it is relevant. Remove anything private first.
+      render: text

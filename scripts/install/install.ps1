@@ -1,10 +1,10 @@
 $ErrorActionPreference = 'Stop'
 
-$baseUrl = $env:MATHOS_RELEASE_BASE_URL
 $version = $env:MATHOS_VERSION
-if ([string]::IsNullOrWhiteSpace($baseUrl) -or [string]::IsNullOrWhiteSpace($version)) {
-  throw 'Set MATHOS_RELEASE_BASE_URL and MATHOS_VERSION to an exact official release.'
+if ([string]::IsNullOrWhiteSpace($version)) {
+  throw 'Set MATHOS_VERSION to an exact release version, for example 1.0.0.'
 }
+$baseUrl = if ([string]::IsNullOrWhiteSpace($env:MATHOS_RELEASE_BASE_URL)) { "https://github.com/bakiacikgoz/MathOS/releases/download/v$version" } else { $env:MATHOS_RELEASE_BASE_URL }
 $architecture = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x64' }
 $archiveName = "mathos-$version-windows-$architecture.tar.gz"
 $installationRoot = if ($env:MATHOS_INSTALL_ROOT) { $env:MATHOS_INSTALL_ROOT } else { Join-Path $env:LOCALAPPDATA 'Programs\MathOS' }

@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
-: "${MATHOS_RELEASE_BASE_URL:?Set MATHOS_RELEASE_BASE_URL to the official release asset base URL}"
-version="${MATHOS_VERSION:?Set MATHOS_VERSION to an exact release version}"
+version="${MATHOS_VERSION:?Set MATHOS_VERSION to an exact release version, for example 1.0.0}"
+MATHOS_RELEASE_BASE_URL="${MATHOS_RELEASE_BASE_URL:-https://github.com/bakiacikgoz/MathOS/releases/download/v$version}"
 os=$(uname -s | tr '[:upper:]' '[:lower:]')
 arch=$(uname -m); [ "$arch" = x86_64 ] && arch=x64; [ "$arch" = aarch64 ] && arch=arm64
 target="$os-$arch"; archive="mathos-$version-$target.tar.gz"; tmp=$(mktemp -d)
@@ -39,7 +39,7 @@ finish_install() {
 }
 trap 'finish_install' EXIT
 trap 'exit 130' HUP INT TERM
-curl -fL "$MATHOS_RELEASE_BASE_URL/$archive" -o "$tmp/release.tar.gz"
+curl -fL "$MATHOS_RELEASE_BASE_URL/$archive" -o "$tmp/release.tar.gz" || { echo "MathOS $version has no download for $target at $MATHOS_RELEASE_BASE_URL" >&2; exit 1; }
 curl -fL "$MATHOS_RELEASE_BASE_URL/SHA256SUMS" -o "$tmp/SHA256SUMS"
 expected=$(awk -v f="$archive" '$2==f {print $1}' "$tmp/SHA256SUMS"); [ -n "$expected" ] || { echo "checksum missing" >&2; exit 1; }
 if [ "$os" = darwin ]; then actual=$(shasum -a 256 "$tmp/release.tar.gz" | awk '{print $1}'); else actual=$(sha256sum "$tmp/release.tar.gz" | awk '{print $1}'); fi

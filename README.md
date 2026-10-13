@@ -157,18 +157,19 @@ The assistant uses the read tools `recall`, `failed_attempts` and `search_librar
 
 The desktop app (Tauri 2 + React) is the easiest way in. It drives the same engine as the CLI, so the trust rules are identical.
 
-- **Windows:** download `MathOS-windows-x64-setup` from the latest successful [Desktop · Windows](https://github.com/bakiacikgoz/MathOS/actions/workflows/desktop-windows.yml) run and run the installer. If SmartScreen appears, choose *More info → Run anyway*.
+- **Windows:** download `MathOS-<version>-windows-x64-setup.exe` from the [latest release](https://github.com/bakiacikgoz/MathOS/releases/latest) and run it. The installer is not code-signed yet, so SmartScreen may warn: choose *More info → Run anyway*.
 - **macOS and Linux:** build from source, as described in the [desktop README](apps/desktop/README.md).
 
-On first launch, pick a folder or create a workspace (or open the sample project). Connect a model under **Model Providers**. Then install Lean from **System Health** with one click.
+On first launch, pick a folder or create a workspace (or open the sample project). Connect a model under **Settings → Model Providers**. MathOS installs Lean and Mathlib in the background and shows the progress under **Settings → System Health**; Mathlib needs [git](https://git-scm.com/downloads).
 
 <p align="center"><img src="docs/screenshots/overview-dark.png" alt="MathOS overview in dark mode" width="100%"></p>
 
 ### Command line
 
-Download the release archive for your platform, verify it against `SHA256SUMS` and put `mathos` on your path. The user-scoped installer does all of this without sudo. See [installation](docs/INSTALLATION.md).
+Release archives cover Windows (x64), Apple Silicon Macs and Linux (x64). The installer downloads the right one, checks it against `SHA256SUMS` and installs it for your user, without sudo. On Windows, use `install.ps1` as shown in [installation](docs/INSTALLATION.md).
 
 ```sh
+curl -fsSL https://github.com/bakiacikgoz/MathOS/releases/download/v1.0.0-rc.1/install.sh | MATHOS_VERSION=1.0.0-rc.1 sh
 mathos --version --json
 mathos help
 mkdir prime-gap-research && cd prime-gap-research

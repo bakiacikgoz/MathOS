@@ -57,7 +57,8 @@ export async function buildRelease(target=hostReleaseTarget(),outputRoot=join(RO
   const result=await Bun.build({entrypoints:[join(ROOT,"apps","tui","src","cli.ts")],plugins:[solidPlugin],compile:standaloneCompileOptions(target,executable),minify:true,define:{"process.env.MATHOS_BUILD_REVISION":JSON.stringify(identity.gitRevision),"process.env.MATHOS_BUILD_ID":JSON.stringify(identity.buildId)}})
   if(!result.success)throw new Error(`STANDALONE_BUILD_FAILED:${result.logs.map(String).join(";")}`)
   const paths=[`bin/${executableName}`,...packageAtlas(ROOT,releaseRoot),...packageVscodeBridge(ROOT,releaseRoot)]
-  paths.push(...(await writeReleaseLegalFiles(ROOT,releaseRoot,identity.gitRevision,target)).paths)
+  const legal=await writeReleaseLegalFiles(ROOT,releaseRoot,identity.gitRevision,target);paths.push(...legal.paths)
+  if(process.env.MATHOS_RELEASE_REQUIRE_COMPLETE_LICENSES==="1"&&legal.licenses.releaseBlocked)throw new Error(`RELEASE_LICENSES_INCOMPLETE:unresolved=${legal.licenses.unresolvedCount},missingNotices=${legal.licenses.missingNoticeCount}`)
   const manifest=createReleaseManifest({root:releaseRoot,target,productVersion:MATHOS_PRODUCT_VERSION,gitRevision:identity.gitRevision,buildId:identity.buildId,paths});writeFileSync(join(releaseRoot,"RELEASE-MANIFEST.json"),JSON.stringify(manifest,null,2)+"\n");writeFileSync(join(releaseRoot,"SHA256SUMS"),manifest.files.map(file=>`${file.sha256}  ${file.path}`).join("\n")+"\n")
   const archiveName=`mathos-${MATHOS_PRODUCT_VERSION}-${target}.tar.gz`,archivePath=join(outputRoot,MATHOS_PRODUCT_VERSION,archiveName);createReleaseArchive(releaseRoot,archivePath)
   const archiveChecksumPath=writeReleaseArchiveChecksums(outputRoot,MATHOS_PRODUCT_VERSION)

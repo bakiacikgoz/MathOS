@@ -145,3 +145,21 @@ for (const failure of ["backup", "activate"] as const) {
     } finally { rmSync(f.root, { recursive: true, force: true }) }
   }, 30_000)
 }
+
+test("without a base URL the installer downloads from the GitHub Release of the requested version", () => {
+  const f = fixture("linux")
+  try {
+    const curl = join(f.toolDir, "curl")
+    writeFileSync(curl, `#!/bin/sh\nfor arg in "$@"; do case "$arg" in https://*) echo "$arg" >> "${toPosix(join(f.root, "urls"))}";; esac; done\nexit 22\n`)
+    chmodSync(curl, 0o755)
+    const script = resolve(import.meta.dir, "../scripts/install/install.sh")
+    const { MATHOS_RELEASE_BASE_URL: _, ...env } = process.env
+    const result = Bun.spawnSync([shell, "-c", 'PATH="$1:$PATH" exec sh "$2"', "--", toPosix(f.toolDir), toPosix(script)], {
+      env: { ...env, MATHOS_VERSION: "1.0.0", MATHOS_INSTALL_DIR: `${toPosix(f.installed)}/bin`, HOME: `${toPosix(f.root)}/home` }, stdout: "pipe", stderr: "pipe",
+    })
+    expect(result.exitCode).not.toBe(0)
+    expect(readFileSync(join(f.root, "urls"), "utf8").trim()).toBe("https://github.com/bakiacikgoz/MathOS/releases/download/v1.0.0/mathos-1.0.0-linux-x64.tar.gz")
+    expect(result.stderr.toString()).toContain("MathOS 1.0.0 has no download for linux-x64")
+    expect(existsSync(join(f.installed, "bin", "mathos"))).toBe(false)
+  } finally { rmSync(f.root, { recursive: true, force: true }) }
+})

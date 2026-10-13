@@ -55,7 +55,7 @@ This compiles the host into a standalone executable (`scripts/build-host.ts` →
 
 ## Windows
 
-**Ready-made installer.** Every push that touches the app runs the `Desktop · Windows` workflow (GitHub → Actions; it can also be started by hand with *Run workflow*). It typechecks and tests the app. It builds the engine and checks that it answers CLI requests on Windows and stores and reads a key in Windows Credential Manager. Then it builds the installer. Download `MathOS-windows-x64-setup` from the run's *Artifacts*, unzip it and run `MathOS_<version>_x64-setup.exe`.
+**Ready-made installer.** Each release has `MathOS-<version>-windows-x64-setup.exe` on the [Releases page](https://github.com/bakiacikgoz/MathOS/releases); the release workflow builds it from the version tag. Between releases, every push that touches the app runs the `Desktop · Windows` workflow (GitHub → Actions; it can also be started by hand with *Run workflow*). It typechecks and tests the app. It builds the engine and checks that it answers CLI requests on Windows and stores and reads a key in Windows Credential Manager. Then it builds the installer. Download `MathOS-windows-x64-setup` from the run's *Artifacts*, unzip it and run `MathOS_<version>_x64-setup.exe`.
 
 - The installer is not code-signed yet, so SmartScreen shows "Windows protected your PC". Choose *More info → Run anyway*.
 - It installs for the current user only, with no administrator rights needed. WebView2 is already present on Windows 10/11; if it is missing, the installer downloads it.
