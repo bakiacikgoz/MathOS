@@ -2,9 +2,9 @@
 
 Each section is also the text of its GitHub Release.
 
-## 1.0.0-rc.1
+## 1.0.0
 
-Release candidate for MathOS 1.0: a local research workspace where AI proposes and Lean decides.
+The first stable release of MathOS: a local research workspace where AI proposes and Lean decides.
 
 ### Highlights
 
@@ -30,3 +30,7 @@ Release candidate for MathOS 1.0: a local research workspace where AI proposes a
 The installers and executables are **not code-signed** yet. Windows SmartScreen may warn on first run (choose *More info → Run anyway*), and macOS may block the command until you allow it (see [installation](https://github.com/bakiacikgoz/MathOS/blob/main/docs/INSTALLATION.md)). Verify a download with `SHA256SUMS` before running it. The desktop app for macOS and Linux is built from source for now.
 
 Every archive and the installer carry `LICENSE`, `NOTICE`, `SOURCE.json`, an SPDX SBOM and the third-party license texts.
+
+## 1.0.0-rc.1
+
+Release candidate for 1.0.0, used to rehearse the release workflow. Its contents are described under 1.0.0.

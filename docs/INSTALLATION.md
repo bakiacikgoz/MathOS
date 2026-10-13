@@ -1,6 +1,6 @@
 # Installation
 
-Every MathOS download is on the [Releases page](https://github.com/bakiacikgoz/MathOS/releases). The commands below use version `1.0.0-rc.1`; replace it with the version you want.
+Every MathOS download is on the [Releases page](https://github.com/bakiacikgoz/MathOS/releases). The commands below use version `1.0.0`; replace it with the version you want.
 
 | You want | Download |
 |---|---|
@@ -19,7 +19,7 @@ MathOS installers and executables are not code-signed in this release. Your syst
 - **Windows SmartScreen** shows "Windows protected your PC". Choose *More info → Run anyway*.
 - **macOS** may refuse to open a `mathos` you downloaded with a browser. The installer script downloads with `curl`, which macOS does not quarantine. For a manual download, run `xattr -d com.apple.quarantine mathos` once.
 
-Check a file against `SHA256SUMS` before you run it. On Windows: `Get-FileHash .\MathOS-1.0.0-rc.1-windows-x64-setup.exe`. On macOS: `shasum -a 256 <file>`. On Linux: `sha256sum <file>`.
+Check a file against `SHA256SUMS` before you run it. On Windows: `Get-FileHash .\MathOS-1.0.0-windows-x64-setup.exe`. On macOS: `shasum -a 256 <file>`. On Linux: `sha256sum <file>`.
 
 ## Desktop app (Windows)
 
@@ -34,15 +34,15 @@ The installers download the archive for your platform, check it against `SHA256S
 macOS and Linux install to `~/.local/bin/mathos` (set `MATHOS_INSTALL_DIR` to change it):
 
 ```sh
-curl -fsSL https://github.com/bakiacikgoz/MathOS/releases/download/v1.0.0-rc.1/install.sh | MATHOS_VERSION=1.0.0-rc.1 sh
+curl -fsSL https://github.com/bakiacikgoz/MathOS/releases/download/v1.0.0/install.sh | MATHOS_VERSION=1.0.0 sh
 mathos --version --json
 ```
 
 Windows installs to `%LOCALAPPDATA%\Programs\MathOS\bin\mathos.exe` (set `MATHOS_INSTALL_ROOT` to change it). Add that folder to your user `PATH` to type `mathos` anywhere:
 
 ```powershell
-$env:MATHOS_VERSION = '1.0.0-rc.1'
-irm https://github.com/bakiacikgoz/MathOS/releases/download/v1.0.0-rc.1/install.ps1 | iex
+$env:MATHOS_VERSION = '1.0.0'
+irm https://github.com/bakiacikgoz/MathOS/releases/download/v1.0.0/install.ps1 | iex
 & "$env:LOCALAPPDATA\Programs\MathOS\bin\mathos.exe" --version --json
 ```
 

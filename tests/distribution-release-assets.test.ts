@@ -8,9 +8,9 @@ import { inspectTarArchive } from "@mathos/shared/archive"
 test("release checksum file covers every target archive with hashes of archive bytes", () => {
   const output = mkdtempSync(join(tmpdir(), "mathos-release-sums-"))
   try {
-    const version = "1.0.0-rc.1"
-    const windows = "mathos-1.0.0-rc.1-windows-x64.tar.gz"
-    const mac = "mathos-1.0.0-rc.1-darwin-arm64.tar.gz"
+    const version = "1.0.0"
+    const windows = "mathos-1.0.0-windows-x64.tar.gz"
+    const mac = "mathos-1.0.0-darwin-arm64.tar.gz"
     const versionDir = join(output, version)
     mkdirSync(versionDir, { recursive: true })
     for (const [name, bytes] of [[windows, "windows archive"], [mac, "mac archive"]]) {
@@ -88,7 +88,7 @@ test("generated Homebrew formula installs assets at runtime layout sibling share
   try {
     const formula = join(output, "mathos.rb")
     const script = resolve(import.meta.dir, "../scripts/distribution/generate-homebrew-formula.ts")
-    const run = Bun.spawnSync([process.execPath, script, "1.0.0-rc.1", "https://example.invalid/mathos.tar.gz", "a".repeat(64), formula], { stdout: "pipe", stderr: "pipe" })
+    const run = Bun.spawnSync([process.execPath, script, "1.0.0", "https://example.invalid/mathos.tar.gz", "a".repeat(64), formula], { stdout: "pipe", stderr: "pipe" })
     expect(run.exitCode).toBe(0)
     const text = readFileSync(formula, "utf8")
     expect(text).toContain('bin.install "root/bin/mathos"')

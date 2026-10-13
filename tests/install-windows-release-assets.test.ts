@@ -10,7 +10,7 @@ test.skipIf(process.platform !== "win32")("PowerShell installer verifies archive
   const root = mkdtempSync(join(tmpdir(), "mathos-install-win-"))
   try {
     const bundle = join(root, "bundle"), release = join(root, "sürüm dosyaları"), installed = join(root, "kurulu MathOS"), tempFolder = join(root, "Türkçe geçici dizin")
-    const version = "1.0.0-rc.1", archive = `mathos-${version}-windows-x64.tar.gz`
+    const version = "1.0.0", archive = `mathos-${version}-windows-x64.tar.gz`
     mkdirSync(join(bundle, "root", "bin"), { recursive: true })
     mkdirSync(join(bundle, "root", "share", "mathos", "atlas"), { recursive: true })
     mkdirSync(release)

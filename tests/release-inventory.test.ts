@@ -18,10 +18,10 @@ function put(root: string, path: string, value: string) {
 test("release inventory includes separate root and desktop locks, nested versions, Rust crates, and installed asset licenses", () => {
   const root = mkdtempSync(join(tmpdir(), "mathos-inventory-"))
   try {
-    put(root, "package.json", JSON.stringify({ name: "mathos", version: "1.0.0-rc.1", license: "AGPL-3.0-only" }))
+    put(root, "package.json", JSON.stringify({ name: "mathos", version: "1.0.0", license: "AGPL-3.0-only" }))
     put(root, "LICENSE", "GNU AFFERO GENERAL PUBLIC LICENSE\n")
     put(root, "packages/core/package.json", JSON.stringify({ name: "@mathos/core", version: "0.1.0" }))
-    put(root, "apps/desktop/package.json", JSON.stringify({ name: "@mathos/desktop", version: "1.0.0-rc.1", license: "AGPL-3.0-only" }))
+    put(root, "apps/desktop/package.json", JSON.stringify({ name: "@mathos/desktop", version: "1.0.0", license: "AGPL-3.0-only" }))
     put(root, "bun.lock", JSON.stringify({ lockfileVersion: 2, packages: {
       "@mathos/core": ["@mathos/core@workspace:packages/core"],
       "@scope/alpha": ["@scope/alpha@1.0.0", "", {}, "sha512-a"],
@@ -39,17 +39,17 @@ test("release inventory includes separate root and desktop locks, nested version
     put(root, "apps/desktop/node_modules/@lobehub/icons-static-svg/LICENSE", "Icon fixture notice\n")
     put(root, "apps/desktop/node_modules/mathlive/package.json", JSON.stringify({ name: "mathlive", version: "0.110.0", license: "MIT" }))
     put(root, "apps/desktop/node_modules/mathlive/LICENSE", "Font fixture notice\n")
-    put(root, "apps/desktop/src-tauri/Cargo.lock", `version = 3\n[[package]]\nname = "mathos-desktop"\nversion = "1.0.0-rc.1"\n[[package]]\nname = "serde"\nversion = "1.0.200"\nsource = "registry+https://github.com/rust-lang/crates.io-index"\n`)
-    put(root, "apps/desktop/src-tauri/Cargo.toml", `[package]\nname = "mathos-desktop"\nversion = "1.0.0-rc.1"\nlicense = "AGPL-3.0-only"\n`)
+    put(root, "apps/desktop/src-tauri/Cargo.lock", `version = 3\n[[package]]\nname = "mathos-desktop"\nversion = "1.0.0"\n[[package]]\nname = "serde"\nversion = "1.0.200"\nsource = "registry+https://github.com/rust-lang/crates.io-index"\n`)
+    put(root, "apps/desktop/src-tauri/Cargo.toml", `[package]\nname = "mathos-desktop"\nversion = "1.0.0"\nlicense = "AGPL-3.0-only"\n`)
     const cargoCache = join(root, "cargo-registry")
     put(cargoCache, "serde-1.0.200/Cargo.toml", `[package]\nname = "serde"\nversion = "1.0.200"\nlicense = "MIT/Apache-2.0"\n`)
     put(cargoCache, "serde-1.0.200/LICENSE-MIT", "Rust fixture MIT text\n")
 
-    const result = createReleaseDependencyInventory({ sourceRoot: root, gitRevision: REVISION, productVersion: "1.0.0-rc.1", created: CREATED, cargoRegistryRoots: [cargoCache] })
+    const result = createReleaseDependencyInventory({ sourceRoot: root, gitRevision: REVISION, productVersion: "1.0.0", created: CREATED, cargoRegistryRoots: [cargoCache] })
     const rows = result.licenses.packages
     expect(rows.filter(row => row.name === "@scope/alpha").map(row => [row.version, row.license])).toEqual([["1.0.0", "MIT"], ["2.0.0", "Apache-2.0"]])
     expect(rows.find(row => row.ecosystem === "cargo" && row.name === "serde")).toMatchObject({ version: "1.0.200", license: "MIT OR Apache-2.0", licenseSource: "cargo-registry/Cargo.toml", rawLicense: "MIT/Apache-2.0" })
-    expect(rows.find(row => row.name === "mathos-desktop" && row.lockfileEntry === "apps/desktop/src-tauri/Cargo.lock#mathos-desktop@1.0.0-rc.1")).toMatchObject({
+    expect(rows.find(row => row.name === "mathos-desktop" && row.lockfileEntry === "apps/desktop/src-tauri/Cargo.lock#mathos-desktop@1.0.0")).toMatchObject({
       ecosystem: "workspace", license: "AGPL-3.0-only", licenseSource: "apps/desktop/src-tauri/Cargo.toml",
       licenseEvidenceUrl: `https://github.com/bakiacikgoz/MathOS/blob/${REVISION}/apps/desktop/src-tauri/Cargo.toml`,
       source: `https://github.com/bakiacikgoz/MathOS/blob/${REVISION}/apps/desktop/src-tauri/Cargo.toml`,

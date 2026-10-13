@@ -22,7 +22,7 @@ describe("final product capability evidence", () => {
     const root = mkdtempSync(join(tmpdir(), "mathos-final-capabilities-"))
     try {
       const qualification = join(root, "artifacts", "qualification")
-      const release = join(root, "artifacts", "releases", "1.0.0-rc.1", "windows-x64", "root", "bin")
+      const release = join(root, "artifacts", "releases", "1.0.0", "windows-x64", "root", "bin")
       mkdirSync(qualification, { recursive: true }); mkdirSync(release, { recursive: true })
       writeFileSync(join(release, "mathos.exe"), "fixture")
       writeArtifactIdentity(root, "windows-x64", "mathos.exe")
@@ -68,7 +68,7 @@ describe("release qualification does not promote incomplete evidence", () => {
   test("finds the macOS archive layout produced by build-release", () => {
     const root = mkdtempSync(join(tmpdir(), "mathos-artifact-layout-"))
     try {
-      const bin = join(root, "artifacts/releases/1.0.0-rc.1/darwin-arm64/root/bin")
+      const bin = join(root, "artifacts/releases/1.0.0/darwin-arm64/root/bin")
       mkdirSync(bin, { recursive: true }); writeFileSync(join(bin, "mathos"), "fixture")
       writeArtifactIdentity(root, "darwin-arm64", "mathos")
       const result = evaluateEvidence({ root, platform: "darwin", arch: "arm64", gitRevision: "a".repeat(40), sandbox: true, vscodeHost: true })
