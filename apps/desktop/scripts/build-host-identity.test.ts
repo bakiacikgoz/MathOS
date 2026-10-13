@@ -8,11 +8,16 @@ const desktopRoot = resolve(import.meta.dir, "..")
 const gitRevision = "0123456789abcdef0123456789abcdef01234567"
 const buildId = "desktop-identity-test"
 const hash = (path: string) => createHash("sha256").update(readFileSync(path)).digest("hex")
+// The host is a Bun binary; Rust only names the sidecar. Without rustc, use the triple Tauri uses on this host.
+const knownTriples: Record<string, string> = { "win32-x64": "x86_64-pc-windows-msvc", "darwin-arm64": "aarch64-apple-darwin", "darwin-x64": "x86_64-apple-darwin", "linux-x64": "x86_64-unknown-linux-gnu", "linux-arm64": "aarch64-unknown-linux-gnu" }
+function hostTriple(): string | undefined {
+  const rustc = Bun.which("rustc") ? Bun.spawnSync(["rustc", "-vV"], { stdout: "pipe" }) : null
+  const reported = rustc?.exitCode === 0 ? new TextDecoder().decode(rustc.stdout).match(/^host:\s*(\S+)/m)?.[1] : undefined
+  return reported ?? knownTriples[`${process.platform}-${process.arch}`]
+}
 
 test("compiled desktop host reports its build identity outside the checkout", () => {
-  const rustc = Bun.spawnSync(["rustc", "-vV"], { stdout: "pipe" })
-  expect(rustc.exitCode).toBe(0)
-  const triple = new TextDecoder().decode(rustc.stdout).match(/^host:\s*(\S+)/m)?.[1]
+  const triple = hostTriple()
   expect(triple).toBeDefined()
   const fileName = `mathos-host-${triple}${process.platform === "win32" ? ".exe" : ""}`
   const defaultSidecar = join(desktopRoot, "src-tauri", "binaries", fileName)
@@ -20,7 +25,7 @@ test("compiled desktop host reports its build identity outside the checkout", ()
   const previousHash = existsSync(defaultSidecar) ? hash(defaultSidecar) : null
   try {
     const outputDir = join(fixture, "build")
-    const built = Bun.spawnSync([process.execPath, join(import.meta.dir, "build-host.ts"), `--output-dir=${outputDir}`], {
+    const built = Bun.spawnSync([process.execPath, join(import.meta.dir, "build-host.ts"), `--output-dir=${outputDir}`, `--triple=${triple}`], {
       cwd: desktopRoot,
       env: { ...process.env, MATHOS_BUILD_REVISION: gitRevision, MATHOS_BUILD_ID: buildId },
       stdout: "pipe",
