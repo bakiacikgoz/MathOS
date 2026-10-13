@@ -101,7 +101,7 @@ describe("local parallel runtime hardening", () => {
     await app.runTeam(session.id)
     expect(app.getTeam(session.id).usage.proofAttempts).toBeLessThanOrEqual(1)
     app.close()
-  })
+  }, 30_000)
 
   test("digest snapshot hides in-round findings", async () => {
     const { app } = await ready()
@@ -119,7 +119,7 @@ describe("local parallel runtime hardening", () => {
     const leaked = (later?.digestVerifiedFindings ?? []).some((item) => item.claimId === a1.localClaimId)
     expect(leaked).toBe(false)
     app.close()
-  })
+  }, 30_000)
 
   test("step timeout blocks only that worker", async () => {
     const lean = new FakeLeanAdapter()

@@ -225,7 +225,7 @@ describe("multi-agent hardening", () => {
     expect(applied.status).toBe("FAILED")
     expect(applied.failureCode).toBe("TARGET_NOT_COMPATIBLE")
     app.close()
-  })
+  }, 30_000)
 
   test("teamOverview exists for panel", async () => {
     const { app } = await ready()

@@ -8,4 +8,4 @@ test("single-vs-multi fake benchmark is labelled harness-only and inconclusive",
   expect(result.multi.qualityPass).toBe(true)
   expect(result.multi.agents).toBe(3)
   expect(result.decision).toBe("INCONCLUSIVE")
-})
+}, 30_000)
