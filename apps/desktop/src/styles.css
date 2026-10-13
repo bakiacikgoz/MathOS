@@ -255,6 +255,18 @@ h1, h2, h3, p { margin: 0; }
   scroll-behavior: smooth;
 }
 .page-inner { max-width: 1040px; margin: 0 auto; }
+
+/* Settings: one tab bar over providers, health, the console and the general preferences. */
+.settings-shell { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.settings-bar { padding: calc(var(--titlebar) + 8px) 48px 0; flex-shrink: 0; }
+.settings-tabs { display: flex; gap: 4px; max-width: 1040px; margin: 0 auto; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+.settings-tab { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; margin-bottom: -1px; border-bottom: 2px solid transparent; color: var(--text-2); font-weight: 500; white-space: nowrap; transition: color var(--fast), border-color var(--fast); }
+.settings-tab:hover { color: var(--text); }
+.settings-tab.active { color: var(--text); border-bottom-color: var(--ink); }
+.settings-shell > .page { padding-top: 28px; }
+.settings-general > * { max-width: 760px; }
+.settings-shell .console { padding: 20px 16px 0; width: 100%; max-width: 1136px; margin: 0 auto; min-height: 0; flex: 1; }
+.settings-shell .console-input { margin-left: 32px; margin-right: 32px; }
 .page.wide .page-inner { max-width: none; }
 
 .view-enter { animation: view-in var(--slow) var(--ease) both; }
@@ -599,7 +611,7 @@ h1, h2, h3, p { margin: 0; }
 .math .katex-display { margin: 0.6em 0; overflow-x: auto; overflow-y: hidden; }
 
 @media (max-width: 1080px) {
-  .page { padding-left: 32px; padding-right: 32px; }
+  .page, .settings-bar { padding-left: 32px; padding-right: 32px; }
   .stats { grid-template-columns: repeat(2, 1fr); }
   .split { grid-template-columns: 320px 1fr; }
 }

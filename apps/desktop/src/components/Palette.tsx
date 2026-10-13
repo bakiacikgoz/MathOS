@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { mod, NAV, useApp } from "../lib/app.ts"
+import { mod, NAV, SETTINGS_TABS, useApp } from "../lib/app.ts"
 import { useClaims } from "../lib/data.ts"
 import { useT } from "../lib/i18n.ts"
 import { Icon, type IconName } from "./Icon.tsx"
@@ -23,8 +23,10 @@ export function Palette({ open, onClose }: { open: boolean; onClose: () => void 
     const done = (fn: () => void) => () => { onClose(); fn() }
     const base: Item[] = [
       { id: "new", label: t("claimForm.title"), hint: `${mod}N`, icon: "plus", run: done(app.newClaim) },
-      ...NAV.map((nav) => ({ id: nav.route, label: t(nav.label), hint: `${mod}${nav.key}`, icon: nav.icon, run: done(() => app.navigate(nav.route)) })),
+      ...NAV.map((nav) => ({ id: nav.route, label: t(nav.label), hint: nav.key ? `${mod}${nav.key}` : undefined, icon: nav.icon as IconName, run: done(() => app.navigate(nav.route)) })),
       { id: "settings", label: t("nav.settings"), hint: `${mod},`, icon: "settings" as IconName, run: done(() => app.navigate("settings")) },
+      // Settings tabs stay one search away even though they left the sidebar.
+      ...SETTINGS_TABS.filter((tab) => tab.route !== "settings").map((tab) => ({ id: tab.route, label: `${t("nav.settings")} › ${t(tab.label)}`, icon: tab.icon as IconName, run: done(() => app.navigate(tab.route)) })),
       { id: "theme", label: `${t("settings.appearance")}: ${app.theme.pref === "dark" ? t("settings.light") : t("settings.dark")}`, icon: app.theme.pref === "dark" ? "sun" : "moon", run: done(() => app.theme.set(app.theme.pref === "dark" ? "light" : "dark", { x: innerWidth / 2, y: innerHeight / 3 })) },
       { id: "lang", label: app.lang === "tr" ? "Dil: English" : "Language: Türkçe", hint: app.lang === "tr" ? "EN" : "TR", icon: "globe", run: done(() => app.setLang(app.lang === "tr" ? "en" : "tr")) },
       { id: "switch", label: t("nav.switchWorkspace"), icon: "folder", run: done(app.closeWorkspace) },

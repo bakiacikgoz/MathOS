@@ -45,19 +45,25 @@ export function useApp(): AppApi {
   return value
 }
 
-export const NAV: Array<{ route: Route; label: MessageKey; icon: "overview" | "chat" | "claims" | "graph" | "book" | "sparkles" | "branch" | "brain" | "file" | "health" | "plug" | "console"; key: string; group: "research" | "system" }> = [
-  { route: "overview", label: "nav.overview", icon: "overview", key: "1", group: "research" },
-  { route: "assistant", label: "nav.assistant", icon: "chat", key: "2", group: "research" },
-  { route: "claims", label: "nav.claims", icon: "claims", key: "3", group: "research" },
-  { route: "graph", label: "nav.graph", icon: "graph", key: "4", group: "research" },
-  { route: "literature", label: "nav.literature", icon: "book", key: "5", group: "research" },
-  { route: "research", label: "nav.research", icon: "sparkles", key: "6", group: "research" },
-  { route: "branches", label: "nav.branches", icon: "branch", key: "7", group: "research" },
-  { route: "memory", label: "nav.memory", icon: "brain", key: "", group: "research" },
-  { route: "reports", label: "nav.reports", icon: "file", key: "8", group: "research" },
-  { route: "health", label: "nav.health", icon: "health", key: "9", group: "system" },
-  { route: "providers", label: "nav.providers", icon: "plug", key: "0", group: "system" },
-  { route: "console", label: "nav.console", icon: "console", key: "", group: "system" },
+export const NAV: Array<{ route: Route; label: MessageKey; icon: "overview" | "chat" | "claims" | "graph" | "book" | "sparkles" | "branch" | "brain" | "file"; key: string }> = [
+  { route: "overview", label: "nav.overview", icon: "overview", key: "1" },
+  { route: "assistant", label: "nav.assistant", icon: "chat", key: "2" },
+  { route: "claims", label: "nav.claims", icon: "claims", key: "3" },
+  { route: "graph", label: "nav.graph", icon: "graph", key: "4" },
+  { route: "literature", label: "nav.literature", icon: "book", key: "5" },
+  { route: "research", label: "nav.research", icon: "sparkles", key: "6" },
+  { route: "branches", label: "nav.branches", icon: "branch", key: "7" },
+  { route: "memory", label: "nav.memory", icon: "brain", key: "8" },
+  { route: "reports", label: "nav.reports", icon: "file", key: "9" },
 ]
+
+/** How the app is set up rather than the research itself: these are tabs of Settings, not sidebar items. */
+export const SETTINGS_TABS: Array<{ route: Route; label: MessageKey; icon: "settings" | "plug" | "health" | "console" }> = [
+  { route: "settings", label: "settings.general", icon: "settings" },
+  { route: "providers", label: "nav.providers", icon: "plug" },
+  { route: "health", label: "nav.health", icon: "health" },
+  { route: "console", label: "nav.console", icon: "console" },
+]
+export const isSettingsRoute = (route: Route) => SETTINGS_TABS.some((tab) => tab.route === route)
 
 export const mod = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘" : "Ctrl+"

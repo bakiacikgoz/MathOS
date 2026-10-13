@@ -1,10 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
-import { mod, NAV, useApp, type RecentWorkspace, type Route } from "../lib/app.ts"
+import { isSettingsRoute, mod, NAV, useApp, type RecentWorkspace, type Route } from "../lib/app.ts"
 import { runJson } from "../lib/bridge.ts"
 import { useBranches, useClaims, useDoctor } from "../lib/data.ts"
 import { useProviderStatus } from "../lib/providers.ts"
 import { useT, type MessageKey } from "../lib/i18n.ts"
-import type { ThemePref } from "../lib/theme.ts"
 import { Icon, Mark, type IconName } from "./Icon.tsx"
 import { Wordmark } from "./Brand.tsx"
 import { errorText } from "../lib/cli-text.ts"
@@ -28,8 +27,6 @@ export function Sidebar({ onPalette }: { onPalette: () => void }) {
     setIndicator(active ? { top: active.offsetTop, height: active.offsetHeight } : null)
   }, [app.route, collapsed])
 
-  const groups: Array<{ id: "research" | "system"; label: MessageKey }> = [{ id: "research", label: "nav.group.research" }, { id: "system", label: "nav.group.system" }]
-
   return (
     <aside className={`sidebar ${collapsed ? "collapsed" : ""}`} aria-label={t("sidebar.label")}>
       {/* The full logo when there is room; the compact mark when the sidebar is collapsed. */}
@@ -46,22 +43,19 @@ export function Sidebar({ onPalette }: { onPalette: () => void }) {
 
       <nav className="nav" ref={nav}>
         <span className="nav-indicator" style={{ transform: `translateY(${indicator?.top ?? 0}px)`, height: indicator?.height ?? 34, opacity: indicator === null ? 0 : 1 }} />
-        {groups.map((group) => (
-          <div key={group.id} className="nav-group" role="group" aria-label={t(group.label)} data-tour={`nav-${group.id}`}>
-            <div className="nav-group-label" aria-hidden>{t(group.label)}</div>
-            {NAV.filter((item) => item.group === group.id).map((item) => (
-              <NavItem key={item.route} route={item.route} icon={item.icon} label={t(item.label)} shortcut={item.key ? `${mod}${item.key}` : ""} signal={signals[item.route] ?? null} collapsed={collapsed} />
-            ))}
-          </div>
-        ))}
+        <div className="nav-group" role="group" aria-label={t("nav.group.research")} data-tour="nav-research">
+          <div className="nav-group-label" aria-hidden>{t("nav.group.research")}</div>
+          {NAV.map((item) => (
+            <NavItem key={item.route} route={item.route} icon={item.icon} label={t(item.label)} shortcut={item.key ? `${mod}${item.key}` : ""} signal={signals[item.route] ?? null} collapsed={collapsed} />
+          ))}
+        </div>
       </nav>
 
       <div className="sidebar-foot" data-tour="sidebar-foot">
         <LeanIndicator collapsed={collapsed} />
-        <NavItem route="settings" icon="settings" label={t("nav.settings")} shortcut={`${mod},`} signal={null} collapsed={collapsed} />
+        {/* Providers, system health, the console, theme and language are settings: they live behind this one item. */}
+        <NavItem route="settings" active={isSettingsRoute(app.route)} icon="settings" label={t("nav.settings")} shortcut={`${mod},`} signal={signals.settings ?? null} collapsed={collapsed} />
         <div className="sidebar-foot-row">
-          <ThemeSwitch />
-          <LangSwitch />
           <button className="icon-btn" onClick={app.sidebar.toggle} title={`${t(collapsed ? "sidebar.expand" : "sidebar.collapse")} (${mod}B)`} aria-label={t(collapsed ? "sidebar.expand" : "sidebar.collapse")} aria-expanded={!collapsed}>
             <Icon name="panel" size={16} />
           </button>
@@ -71,10 +65,10 @@ export function Sidebar({ onPalette }: { onPalette: () => void }) {
   )
 }
 
-function NavItem({ route, icon, label, shortcut, signal, collapsed }: { route: Route; icon: IconName; label: string; shortcut: string; signal: Signal; collapsed: boolean }) {
+function NavItem({ route, active: activeOverride, icon, label, shortcut, signal, collapsed }: { route: Route; active?: boolean; icon: IconName; label: string; shortcut: string; signal: Signal; collapsed: boolean }) {
   const app = useApp()
   const { t } = useT()
-  const active = app.route === route
+  const active = activeOverride ?? app.route === route
   const hint = signal?.kind === "dot" ? t(signal.title) : null
   return (
     <button className={`nav-item ${active ? "active" : ""}`} data-tour={`nav-${route}`} onClick={() => app.navigate(route)} aria-current={active ? "page" : undefined}
@@ -88,7 +82,8 @@ function NavItem({ route, icon, label, shortcut, signal, collapsed }: { route: R
   )
 }
 
-/** Live, truthful hints: counts come straight from the CLI; dots only when something needs the user. */
+/** Live, truthful hints: counts come straight from the CLI; dots only when something needs the user. Health and provider
+ * problems show on Settings, where those tabs now live. */
 function useNavSignals(): Partial<Record<Route, Signal>> {
   const app = useApp()
   const root = app.workspace.root
@@ -98,8 +93,9 @@ function useNavSignals(): Partial<Record<Route, Signal>> {
   return {
     claims: claims.data ? { kind: "count", value: claims.data.length } : null,
     branches: branches.data && branches.data.length > 1 ? { kind: "count", value: branches.data.length } : null,
-    health: checks.some((check) => check.status === "FAIL") ? { kind: "dot", tone: "strong", title: "sidebar.healthFail" } : checks.some((check) => check.status === "WARN") ? { kind: "dot", tone: "soft", title: "sidebar.healthWarn" } : null,
-    providers: pending ? { kind: "dot", tone: "strong", title: "sidebar.providersAttention" } : null,
+    settings: pending ? { kind: "dot", tone: "strong", title: "sidebar.providersAttention" }
+      : checks.some((check) => check.status === "FAIL") ? { kind: "dot", tone: "strong", title: "sidebar.healthFail" }
+      : checks.some((check) => check.status === "WARN") ? { kind: "dot", tone: "soft", title: "sidebar.healthWarn" } : null,
   }
 }
 
@@ -157,40 +153,6 @@ function WorkspaceSwitcher({ collapsed }: { collapsed: boolean }) {
           </button>
         </div>
       )}
-    </div>
-  )
-}
-
-/** Language lives next to the theme: both are "how the app looks", reachable from every screen. */
-function LangSwitch() {
-  const app = useApp()
-  const { t } = useT()
-  const options: Array<{ value: "tr" | "en"; label: string; name: string }> = [{ value: "tr", label: "TR", name: "Türkçe" }, { value: "en", label: "EN", name: "English" }]
-  return (
-    <div className="theme-switch lang-switch" role="radiogroup" aria-label={t("settings.language")}>
-      {options.map((option) => (
-        <button key={option.value} role="radio" aria-checked={app.lang === option.value} className={app.lang === option.value ? "on" : ""}
-          title={`${t("settings.language")}: ${option.name}`} aria-label={option.name} lang={option.value} onClick={() => app.setLang(option.value)}>
-          {option.label}
-        </button>
-      ))}
-    </div>
-  )
-}
-
-function ThemeSwitch() {
-  const app = useApp()
-  const { t } = useT()
-  const options: Array<{ value: ThemePref; icon: IconName; label: MessageKey }> = [{ value: "light", icon: "sun", label: "settings.light" }, { value: "dark", icon: "moon", label: "settings.dark" }, { value: "system", icon: "system", label: "settings.system" }]
-  return (
-    <div className="theme-switch" role="radiogroup" aria-label={t("settings.appearance")}>
-      {options.map((option) => (
-        <button key={option.value} role="radio" aria-checked={app.theme.pref === option.value} className={app.theme.pref === option.value ? "on" : ""}
-          title={`${t("settings.appearance")}: ${t(option.label)}`} aria-label={t(option.label)}
-          onClick={(event) => app.theme.set(option.value, { x: event.clientX, y: event.clientY })}>
-          <Icon name={option.icon} size={14} />
-        </button>
-      ))}
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react"
-import { AppContext, NAV, type AppApi, type RecentWorkspace, type Route, type Workspace } from "./lib/app.ts"
+import { AppContext, NAV, isSettingsRoute, type AppApi, type RecentWorkspace, type Route, type Workspace } from "./lib/app.ts"
 import { detectLang, LangContext, translate, type Lang } from "./lib/i18n.ts"
 import { useTheme } from "./lib/theme.ts"
 import { readPref, writePref } from "./lib/storage.ts"
@@ -24,12 +24,9 @@ const Research = lazy(() => import("./views/Research.tsx").then((m) => ({ defaul
 const Claims = lazy(() => import("./views/Claims.tsx").then((m) => ({ default: m.Claims })))
 const Branches = lazy(() => import("./views/Branches.tsx").then((m) => ({ default: m.Branches })))
 const Memory = lazy(() => import("./views/Memory.tsx").then((m) => ({ default: m.Memory })))
-const Health = lazy(() => import("./views/Health.tsx").then((m) => ({ default: m.Health })))
-const Console = lazy(() => import("./views/Console.tsx").then((m) => ({ default: m.Console })))
-const Providers = lazy(() => import("./views/Providers.tsx").then((m) => ({ default: m.Providers })))
 const Settings = lazy(() => import("./views/Settings.tsx").then((m) => ({ default: m.Settings })))
 
-const preload = () => { void import("./views/Claims.tsx"); void import("./views/Branches.tsx"); void import("./views/Health.tsx"); void import("./views/Console.tsx"); void import("./views/Providers.tsx"); void import("./views/Settings.tsx") }
+const preload = () => { void import("./views/Claims.tsx"); void import("./views/Branches.tsx"); void import("./views/Settings.tsx") }
 
 export function App() {
   const theme = useTheme()
@@ -102,7 +99,7 @@ export function App() {
             {route !== "assistant" && <div className="titlebar-drag" data-tauri-drag-region />}
             <Sidebar onPalette={() => setPalette(true)} />
             <main className="main">
-              <ErrorBoundary key={route} title={translate(lang, "common.error")} detail={translate(lang, "error.viewCrashed")} resetLabel={translate(lang, "nav.overview")} onReset={() => navigate("overview")}>
+              <ErrorBoundary key={isSettingsRoute(route) ? "settings" : route} title={translate(lang, "common.error")} detail={translate(lang, "error.viewCrashed")} resetLabel={translate(lang, "nav.overview")} onReset={() => navigate("overview")}>
                 <Suspense fallback={null}>
                   <Screen route={route} />
                 </Suspense>
@@ -124,7 +121,8 @@ function Screen({ route }: { route: Route }) {
   if (route === "claims") return <div key={route} className="view-enter" style={{ height: "100%" }}><Claims /></div>
   if (route === "assistant") return <div key={route} className="view-enter" style={{ height: "100%" }}><Suspense fallback={null}><Assistant /></Suspense></div>
   if (route === "graph") return <div key={route} className="view-enter" style={{ height: "100%" }}><Graph /></div>
-  if (route === "console") return <div key={route} className="view-enter" style={{ height: "100%" }}><Console /></div>
+  // Providers, health and the console are tabs of Settings; one shell keeps the tab bar steady between them.
+  if (isSettingsRoute(route)) return <div key="settings" className="view-enter" style={{ height: "100%" }}><Settings route={route} /></div>
   return (
     <div key={route} className="page view-enter">
       {route === "overview" && <Overview />}
@@ -133,9 +131,6 @@ function Screen({ route }: { route: Route }) {
       {route === "reports" && <Reports />}
       {route === "literature" && <Literature />}
       {route === "research" && <Research />}
-      {route === "health" && <Health />}
-      {route === "providers" && <Providers />}
-      {route === "settings" && <Settings />}
     </div>
   )
 }

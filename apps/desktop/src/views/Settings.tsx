@@ -1,6 +1,6 @@
 import { RemoteModelsSetting } from "../components/Privacy.tsx"
 import { Fragment, useEffect, useState } from "react"
-import { mod, useApp } from "../lib/app.ts"
+import { mod, NAV, SETTINGS_TABS, useApp, type Route } from "../lib/app.ts"
 import { hostInfo, restartHost, type HostInfo } from "../lib/bridge.ts"
 import { clearCache } from "../lib/query.ts"
 import { useT } from "../lib/i18n.ts"
@@ -8,8 +8,35 @@ import type { ThemePref } from "../lib/theme.ts"
 import { Icon } from "../components/Icon.tsx"
 import { HelpButton, useAutoTour, useTours } from "../components/Tour.tsx"
 import { Segmented } from "../components/Primitives.tsx"
+import { Providers } from "./Providers.tsx"
+import { Health } from "./Health.tsx"
+import { Console } from "./Console.tsx"
 
-export function Settings() {
+/** Settings holds everything about how MathOS is set up, one tab each; the sidebar keeps only the research. */
+export function Settings({ route }: { route: Route }) {
+  const app = useApp()
+  const { t } = useT()
+  return (
+    <div className="settings-shell">
+      <div className="settings-bar" data-tauri-drag-region>
+        <nav className="settings-tabs" aria-label={t("nav.settings")} data-tour="settings-tabs">
+          {SETTINGS_TABS.map((tab) => (
+            <button key={tab.route} className={`settings-tab ${route === tab.route ? "active" : ""}`} aria-current={route === tab.route ? "page" : undefined} onClick={() => app.navigate(tab.route)}>
+              <Icon name={tab.icon} size={15} />{t(tab.label)}
+            </button>
+          ))}
+        </nav>
+      </div>
+      {route === "console" ? <Console /> : (
+        <div className="page">
+          {route === "providers" ? <Providers /> : route === "health" ? <Health /> : <GeneralSettings />}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function GeneralSettings() {
   const app = useApp()
   const { t } = useT()
   const [info, setInfo] = useState<HostInfo | null>(null)
@@ -21,15 +48,15 @@ export function Settings() {
   ]
   const shortcuts: Array<[string, string]> = [
     [t("nav.search"), `${mod}K`], [t("claimForm.title"), `${mod}N`],
-    [t("nav.overview"), `${mod}1`], [t("nav.claims"), `${mod}2`], [t("nav.branches"), `${mod}3`], [t("nav.health"), `${mod}4`], [t("nav.console"), `${mod}5`],
-    [t("nav.settings"), `${mod},`],
+    ...NAV.filter((item) => item.key).map((item): [string, string] => [t(item.label), `${mod}${item.key}`]),
+    [t("nav.settings"), `${mod},`], [t("sidebar.collapse"), `${mod}B`],
   ]
 
   const tours = useTours()
   useAutoTour("settings", true, "app")
   return (
-    <div className="page-inner" style={{ maxWidth: 760 }}>
-      <div className="page-head"><div><div className="eyebrow">MathOS</div><h1 className="title">{t("nav.settings")}</h1></div><HelpButton tour="settings" /></div>
+    <div className="page-inner settings-general">
+      <div className="page-head"><div><div className="eyebrow">{t("nav.settings")}</div><h1 className="title">{t("settings.general")}</h1></div><HelpButton tour="settings" /></div>
 
       <div className="settings-group">
         <div className="section-title" style={{ marginTop: 0 }}>{t("settings.appearance")}</div>

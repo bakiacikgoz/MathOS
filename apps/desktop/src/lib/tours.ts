@@ -19,10 +19,8 @@ export const TOURS: Record<TourId, TourStep[]> = {
   app: [
     s("ws", "right", "Çalışma alanınız", "Buradan son çalışma alanları arasında geçiş yapabilirsiniz.", "Your workspace", "Switch between recent workspaces from here."),
     s("search", "right", "Her şeye tek yerden ulaşın", "Ctrl/⌘+K ile sayfalar, komutlar ve önermeler arasında arama yapın.", "Reach everything", "Press Ctrl/⌘+K to search pages, commands and claims."),
-    s("nav-research", "right", "Araştırma", "Genel bakış, önermeler ve araştırma dalları. Sayılar doğrudan çalışma alanından gelir.", "Research", "Overview, claims and research branches. Counts come straight from the workspace."),
-    s("nav-system", "right", "Sistem", "Sağlık denetimi, model sağlayıcıları ve konsol. Bir nokta, dikkatinizi bekleyen bir şey olduğunu gösterir.", "System", "Health checks, model providers and the console. A dot means something needs you."),
-    s("nav-providers", "right", "Önce bir model bağlayın", "Araştırma asistanı için bir sağlayıcı seçin. Modeller yalnızca öneride bulunur; kanıt otoritesi Lean'dir.", "Connect a model first", "Pick a provider for the research assistant. Models only propose; Lean is the proof authority."),
-    s("sidebar-foot", "right", "Görünüm ve ayarlar", "Temayı değiştirin, kenar çubuğunu Ctrl/⌘+B ile daraltın, ayarlara gidin.", "Appearance and settings", "Change the theme, collapse the sidebar with Ctrl/⌘+B, open settings."),
+    s("nav-research", "right", "Araştırma", "Araştırmanızın bütün ekranları: genel bakış, asistan, önermeler, dallar, hafıza ve raporlar. Sayılar doğrudan çalışma alanından gelir.", "Research", "Every screen of your research: overview, assistant, claims, branches, memory and reports. Counts come straight from the workspace."),
+    s("sidebar-foot", "right", "Ayarlar", "Model sağlayıcıları, sistem sağlığı, konsol, tema ve dil Ayarlar'da. Önce bir model bağlayın; modeller yalnızca öneride bulunur, kanıt otoritesi Lean'dir. Bir nokta, orada dikkatinizi bekleyen bir şey olduğunu gösterir. Kenar çubuğunu Ctrl/⌘+B ile daraltın.", "Settings", "Model providers, system health, the console, theme and language are in Settings. Connect a model first; models only propose, Lean is the proof authority. A dot means something there needs you. Collapse the sidebar with Ctrl/⌘+B."),
   ],
   overview: [
     s("objective", "bottom", "Ana hedef", "Çalışmanın odaklandığı önerme. Durumu, yalnızca Lean doğrulaması sonrası \"doğrulandı\" olur.", "Main objective", "The claim your work focuses on. It only becomes \"verified\" after Lean accepts a proof."),
@@ -55,6 +53,7 @@ export const TOURS: Record<TourId, TourStep[]> = {
     s("console-input", "top", "Komut satırı", "Masaüstünde karşılığı olmayan her komut burada çalışır.", "Command line", "Every command without a desktop view runs here."),
   ],
   settings: [
+    s("settings-tabs", "bottom", "Ayar sekmeleri", "Genel tercihler, model sağlayıcıları, sistem sağlığı ve konsol burada, her biri kendi sekmesinde.", "Settings tabs", "General preferences, model providers, system health and the console live here, one tab each."),
     s("settings-appearance", "bottom", "Görünüm", "Açık, koyu ya da sistem teması.", "Appearance", "Light, dark or follow the system."),
     s("settings-language", "top", "Dil", "Türkçe ve İngilizce arasında anında geçiş.", "Language", "Switch between Turkish and English instantly."),
     s("settings-privacy", "top", "Gizlilik", "Bulut modelleri varsayılan olarak kapalıdır. Açtığınızda metinleriniz seçtiğiniz sağlayıcıya gider.", "Privacy", "Cloud models are off by default. When on, your text goes to the provider you choose."),
