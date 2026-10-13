@@ -3,7 +3,7 @@ import { gunzipSync } from "node:zlib"
 
 type Inventory = ReturnType<typeof createReleaseDependencyInventory>
 type Fetcher = (url: string, init?: RequestInit) => Promise<Response>
-type Options = { fetcher?: Fetcher; maxRequests?: number; maxNoticeRequests?: number; timeoutMs?: number; concurrency?: number; retryDelayMs?: number }
+type Options = { fetcher?: Fetcher; maxRequests?: number; maxNoticeRequests?: number; timeoutMs?: number; archiveTimeoutMs?: number; concurrency?: number; retryDelayMs?: number }
 
 const REGISTRY_ATTEMPTS = 3
 
@@ -68,11 +68,13 @@ export async function enrichReleaseDependencyInventory(inventory: Inventory, opt
   const timeoutMs = Math.max(1000, Math.min(options.timeoutMs ?? 8000, 30000))
   const maxNoticeRequests = Math.max(0, Math.min(options.maxNoticeRequests ?? 256, 2000))
   const retryDelayMs = Math.max(0, Math.min(options.retryDelayMs ?? 1000, 10_000))
+  // Native-binary archives run to several MB; on a home connection with parallel downloads they need far longer than metadata.
+  const archiveTimeoutMs = Math.max(1000, Math.min(options.archiveTimeoutMs ?? 120_000, 300_000))
   const candidates = inventory.licenses.packages.map((row, index) => ({ row, index }))
     .filter(({ row }) => row.distribution !== "not-distributed" && (row.license === "NOASSERTION" || !row.noticeFiles?.length) && (row.ecosystem === "npm-root" || row.ecosystem === "npm-desktop" || row.ecosystem === "cargo"))
     .sort((a, b) => Number(b.row.license === "NOASSERTION") - Number(a.row.license === "NOASSERTION"))
     .slice(0, maxRequests)
-  const results = { attempted: 0, resolved: 0, failures: 0, requestLimit: maxRequests, noticesAttempted: 0, noticesResolved: 0, noticeRequestLimit: maxNoticeRequests }
+  const results = { attempted: 0, resolved: 0, failures: 0, requestLimit: maxRequests, noticesAttempted: 0, noticesResolved: 0, noticeRequestLimit: maxNoticeRequests, noticeFailures: [] as string[] }
   const tarballCandidates: Array<{ row: (typeof candidates)[number]["row"]; url: string }> = []
   let cursor = 0
   await Promise.all(Array.from({ length: Math.min(concurrency, candidates.length) }, async () => {
@@ -118,20 +120,19 @@ export async function enrichReleaseDependencyInventory(inventory: Inventory, opt
       try {
         let body: Buffer | null = null
         for (let attempt = 1; attempt <= REGISTRY_ATTEMPTS && !body; attempt++) {
-          const response = await fetchWithRetry(fetcher, url, () => ({ signal: AbortSignal.timeout(timeoutMs), redirect: "error", credentials: "omit" }), retryDelayMs)
+          const response = await fetchWithRetry(fetcher, url, () => ({ signal: AbortSignal.timeout(archiveTimeoutMs), redirect: "error", credentials: "omit" }), retryDelayMs)
           if (!response.ok) break
           body = await limitedBody(response, 24_000_000)
           // An archive over the size limit stays unread; only a broken transfer is read again.
           if (body === OVERSIZED) { body = null; break }
         }
-        if (!body) continue
-        const notices = tarNotices(body)
-        if (!notices) continue
+        const notices = body ? tarNotices(body) : null
+        if (!notices) { results.noticeFailures.push(`${row.ecosystem} ${row.name}@${row.version}`); continue }
         if (!notices.length) { row.noticeSearch = "registry-archive"; continue }
         row.noticeFiles = notices.map(notice => notice.file)
         remoteNoticeSections.push(`=== ${row.ecosystem} ${row.name}@${row.version} ===\nSource: ${row.source}\nLicense declaration: ${row.license}\nNotice archive: ${url}\n${notices.map(notice => `--- ${notice.file} ---\n${notice.text.trimEnd()}`).join("\n\n")}`)
         results.noticesResolved++
-      } catch { /* Missing archive remains a release blocker. */ }
+      } catch { results.noticeFailures.push(`${row.ecosystem} ${row.name}@${row.version}`) /* Missing archive remains a release blocker. */ }
     }
   }))
   if (remoteNoticeSections.length) inventory.notices += `${remoteNoticeSections.sort((a, b) => a.localeCompare(b)).join("\n\n")}\n`

@@ -242,6 +242,21 @@ test("a dropped registry request is retried instead of leaving the notice missin
   } finally { rmSync(root, { recursive: true, force: true }) }
 })
 
+test("an archive that never arrives is named in the enrichment result", async () => {
+  const root = mkdtempSync(join(tmpdir(), "mathos-inventory-"))
+  try {
+    minimalRoot(root, { "pkg": ["pkg@1.0.0", "", {}, "sha512-a"] })
+    put(root, "node_modules/pkg/package.json", JSON.stringify({ name: "pkg", version: "1.0.0", license: "MIT" }))
+    const inventory = createReleaseDependencyInventory({ sourceRoot: root, gitRevision: REVISION, productVersion: "1.0.0", created: CREATED, cargoRegistryRoots: [] })
+    await enrichReleaseDependencyInventory(inventory, { fetcher: async input => {
+      if (String(input) === "https://registry.npmjs.org/pkg/1.0.0") return new Response(JSON.stringify({ name: "pkg", version: "1.0.0", license: "MIT", dist: { tarball: "https://registry.npmjs.org/pkg/-/pkg-1.0.0.tgz" } }), { status: 200 })
+      throw new DOMException("The operation timed out.", "TimeoutError")
+    }, maxRequests: 1, maxNoticeRequests: 1, retryDelayMs: 0 })
+    expect((inventory.licenses as { registryEnrichment?: { noticeFailures?: string[] } }).registryEnrichment?.noticeFailures).toEqual(["npm-root pkg@1.0.0"])
+    expect(inventory.licenses.releaseBlocked).toBe(true)
+  } finally { rmSync(root, { recursive: true, force: true }) }
+})
+
 test("a missing registry entry is not retried", async () => {
   const root = mkdtempSync(join(tmpdir(), "mathos-inventory-"))
   try {
