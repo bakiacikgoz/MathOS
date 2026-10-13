@@ -211,6 +211,48 @@ test("exact registry tarball license text is included without extracting files t
   } finally { rmSync(root, { recursive: true, force: true }) }
 })
 
+test("a dropped registry request is retried instead of leaving the notice missing", async () => {
+  const root = mkdtempSync(join(tmpdir(), "mathos-inventory-"))
+  try {
+    put(root, "package.json", JSON.stringify({ name: "mathos", version: "1.0.0", license: "AGPL-3.0-only" }))
+    put(root, "bun.lock", JSON.stringify({ packages: { "pkg": ["pkg@1.0.0", "", {}, "sha512-a"] } }))
+    put(root, "apps/desktop/bun.lock", JSON.stringify({ packages: {} }))
+    put(root, "node_modules/pkg/package.json", JSON.stringify({ name: "pkg", version: "1.0.0", license: "MIT" }))
+    put(root, "apps/desktop/src-tauri/Cargo.lock", `version = 3\n`)
+    put(root, "apps/desktop/src-tauri/Cargo.toml", `[package]\nname = "mathos-desktop"\nversion = "1.0.0"\n`)
+    const license = "Copyright 2026 fixture\nPermission is hereby granted\n"
+    const header = Buffer.alloc(512)
+    header.write("package/LICENSE", 0, "ascii")
+    header.write(license.length.toString(8).padStart(11, "0") + "\0", 124, "ascii")
+    const archive = gzipSync(Buffer.concat([header, Buffer.from(license), Buffer.alloc(512 - license.length), Buffer.alloc(1024)]))
+    const inventory = createReleaseDependencyInventory({ sourceRoot: root, gitRevision: REVISION, productVersion: "1.0.0", created: CREATED, cargoRegistryRoots: [] })
+    const calls = new Map<string, number>()
+    await enrichReleaseDependencyInventory(inventory, { fetcher: async input => {
+      const url = String(input), call = (calls.get(url) ?? 0) + 1; calls.set(url, call)
+      if (url === "https://registry.npmjs.org/pkg/1.0.0") {
+        if (call === 1) throw new TypeError("fetch failed")
+        return new Response(JSON.stringify({ name: "pkg", version: "1.0.0", license: "MIT", dist: { tarball: "https://registry.npmjs.org/pkg/-/pkg-1.0.0.tgz" } }), { status: 200 })
+      }
+      if (url === "https://registry.npmjs.org/pkg/-/pkg-1.0.0.tgz") return call === 1 ? new Response("busy", { status: 503 }) : new Response(archive, { status: 200 })
+      return new Response("missing", { status: 404 })
+    }, maxRequests: 1, maxNoticeRequests: 1, retryDelayMs: 0 })
+    expect([...calls.values()]).toEqual([2, 2])
+    expect(inventory.licenses.packages.find(row => row.name === "pkg")?.noticeFiles).toEqual(["package/LICENSE"])
+    expect(inventory.licenses.releaseBlocked).toBe(false)
+  } finally { rmSync(root, { recursive: true, force: true }) }
+})
+
+test("a missing registry entry is not retried", async () => {
+  const root = mkdtempSync(join(tmpdir(), "mathos-inventory-"))
+  try {
+    minimalRoot(root, { "pkg": ["pkg@1.0.0", "", {}, "sha512-a"] })
+    const inventory = createReleaseDependencyInventory({ sourceRoot: root, gitRevision: REVISION, productVersion: "1.0.0", created: CREATED, cargoRegistryRoots: [] })
+    let calls = 0
+    await enrichReleaseDependencyInventory(inventory, { fetcher: async () => { calls++; return new Response("missing", { status: 404 }) }, maxRequests: 1, maxNoticeRequests: 0, retryDelayMs: 0 })
+    expect(calls).toBe(1)
+  } finally { rmSync(root, { recursive: true, force: true }) }
+})
+
 function minimalRoot(root: string, packages: Record<string, unknown[]>, desktop: Record<string, unknown[]> = {}) {
   put(root, "package.json", JSON.stringify({ name: "mathos", version: "1.0.0", license: "AGPL-3.0-only" }))
   put(root, "bun.lock", JSON.stringify({ packages }))

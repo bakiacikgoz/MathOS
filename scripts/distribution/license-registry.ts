@@ -3,8 +3,27 @@ import { gunzipSync } from "node:zlib"
 
 type Inventory = ReturnType<typeof createReleaseDependencyInventory>
 type Fetcher = (url: string, init?: RequestInit) => Promise<Response>
-type Options = { fetcher?: Fetcher; maxRequests?: number; maxNoticeRequests?: number; timeoutMs?: number; concurrency?: number }
+type Options = { fetcher?: Fetcher; maxRequests?: number; maxNoticeRequests?: number; timeoutMs?: number; concurrency?: number; retryDelayMs?: number }
 
+const REGISTRY_ATTEMPTS = 3
+
+/** A dropped connection, a timeout, 429 or 5xx is retried; any other answer is final. */
+async function fetchWithRetry(fetcher: Fetcher, url: string, init: () => RequestInit, delayMs: number): Promise<Response> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const response = await fetcher(url, init())
+      if ((response.status !== 429 && response.status < 500) || attempt === REGISTRY_ATTEMPTS) return response
+      await response.body?.cancel()
+    } catch (error) {
+      if (attempt === REGISTRY_ATTEMPTS) throw error
+    }
+    await Bun.sleep(delayMs * 2 ** (attempt - 1))
+  }
+}
+
+const OVERSIZED = Buffer.alloc(0)
+
+/** The body, OVERSIZED past the limit, or null when the transfer broke off. */
 async function limitedBody(response: Response, limit: number): Promise<Buffer | null> {
   if (!response.body) return null
   const reader = response.body.getReader()
@@ -15,7 +34,7 @@ async function limitedBody(response: Response, limit: number): Promise<Buffer | 
       const { done, value } = await reader.read()
       if (done) break
       size += value.length
-      if (size > limit) { await reader.cancel(); return null }
+      if (size > limit) { await reader.cancel(); return OVERSIZED }
       chunks.push(Buffer.from(value))
     }
   } catch { return null }
@@ -48,6 +67,7 @@ export async function enrichReleaseDependencyInventory(inventory: Inventory, opt
   const concurrency = Math.max(1, Math.min(options.concurrency ?? 6, 16))
   const timeoutMs = Math.max(1000, Math.min(options.timeoutMs ?? 8000, 30000))
   const maxNoticeRequests = Math.max(0, Math.min(options.maxNoticeRequests ?? 256, 2000))
+  const retryDelayMs = Math.max(0, Math.min(options.retryDelayMs ?? 1000, 10_000))
   const candidates = inventory.licenses.packages.map((row, index) => ({ row, index }))
     .filter(({ row }) => row.distribution !== "not-distributed" && (row.license === "NOASSERTION" || !row.noticeFiles?.length) && (row.ecosystem === "npm-root" || row.ecosystem === "npm-desktop" || row.ecosystem === "cargo"))
     .sort((a, b) => Number(b.row.license === "NOASSERTION") - Number(a.row.license === "NOASSERTION"))
@@ -62,7 +82,7 @@ export async function enrichReleaseDependencyInventory(inventory: Inventory, opt
         `https://registry.npmjs.org/${encodeURIComponent(row.name)}/${encodeURIComponent(row.version)}`
       results.attempted++
       try {
-        const response = await fetcher(url, { signal: AbortSignal.timeout(timeoutMs), redirect: "error", credentials: "omit", headers: { Accept: "application/json" } })
+        const response = await fetchWithRetry(fetcher, url, () => ({ signal: AbortSignal.timeout(timeoutMs), redirect: "error", credentials: "omit", headers: { Accept: "application/json" } }), retryDelayMs)
         if (!response.ok) { results.failures++; continue }
         const body = await response.json() as any
         const exactVersion = row.ecosystem === "cargo" ? body?.version?.num : body?.version
@@ -96,9 +116,14 @@ export async function enrichReleaseDependencyInventory(inventory: Inventory, opt
       const { row, url } = noticeQueue[noticeCursor++]!
       results.noticesAttempted++
       try {
-        const response = await fetcher(url, { signal: AbortSignal.timeout(timeoutMs), redirect: "error", credentials: "omit" })
-        if (!response.ok) continue
-        const body = await limitedBody(response, 24_000_000)
+        let body: Buffer | null = null
+        for (let attempt = 1; attempt <= REGISTRY_ATTEMPTS && !body; attempt++) {
+          const response = await fetchWithRetry(fetcher, url, () => ({ signal: AbortSignal.timeout(timeoutMs), redirect: "error", credentials: "omit" }), retryDelayMs)
+          if (!response.ok) break
+          body = await limitedBody(response, 24_000_000)
+          // An archive over the size limit stays unread; only a broken transfer is read again.
+          if (body === OVERSIZED) { body = null; break }
+        }
         if (!body) continue
         const notices = tarNotices(body)
         if (!notices) continue
