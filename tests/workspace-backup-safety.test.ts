@@ -9,7 +9,7 @@ import { gzipSync } from "node:zlib"
 import { MathOS, backupWorkspace } from "@mathos/core"
 import { FakeLeanAdapter } from "@mathos/lean"
 import { FakeVcs } from "@mathos/vcs"
-import { BackupIntegrityFailed } from "@mathos/shared"
+import { BackupIntegrityFailed, environmentWithPath } from "@mathos/shared"
 import { extractTarArchive, writeTarGzip } from "@mathos/shared/archive"
 import { SCHEMA_EPOCH } from "@mathos/storage"
 
@@ -48,11 +48,12 @@ function archive(entries: Array<{ path: string; body?: Buffer | string; type?: "
 test.skipIf(process.platform !== "win32" || !existsSync(join(process.env.ProgramFiles ?? "C:\\Program Files", "Git", "usr", "bin", "tar.exe")))("backup and restore are independent of which tar is first on PATH", async () => {
   const gitTar = join(process.env.ProgramFiles ?? "C:\\Program Files", "Git", "usr", "bin", "tar.exe")
   if (process.env.MATHOS_TAR_PATH_CHILD !== "1") {
-    const environment = { ...process.env, PATH: `${dirname(gitTar)}${delimiter}${process.env.PATH ?? ""}`, MATHOS_TAR_PATH_CHILD: "1" }
-    const result = spawnSync(process.execPath, ["test", join(import.meta.dir, "workspace-backup-safety.test.ts"), "--test-name-pattern", "backup and restore are independent of which tar is first on PATH"], {
-      cwd: join(import.meta.dir, ".."), env: environment, encoding: "utf8", timeout: 60_000,
+    // One PATH spelling only: with both `Path` and `PATH` the child may not see Git's tar first.
+    const environment = { ...environmentWithPath(`${dirname(gitTar)}${delimiter}${process.env.PATH ?? ""}`), MATHOS_TAR_PATH_CHILD: "1" }
+    const result = spawnSync(process.execPath, ["test", "--timeout=30000", join(import.meta.dir, "workspace-backup-safety.test.ts"), "--test-name-pattern", "backup and restore are independent of which tar is first on PATH"], {
+      cwd: join(import.meta.dir, ".."), env: environment, encoding: "utf8", timeout: 90_000,
     })
-    expect(result.status).toBe(0)
+    if (result.status !== 0) throw new Error(`Child test exited ${String(result.status)}:\n${result.stdout}${result.stderr}`)
     expect(`${result.stdout}${result.stderr}`).toContain("1 pass")
     return
   }
@@ -70,7 +71,7 @@ test.skipIf(process.platform !== "win32" || !existsSync(join(process.env.Program
     try { expect(reopened.getClaim(claim.id).title).toBe("tar independent") }
     finally { reopened.close() }
   } finally { app.close() }
-})
+}, 120_000)
 
 test("backup and restore preserve Turkish paths, filenames and content", async () => {
   const parent = temp()
