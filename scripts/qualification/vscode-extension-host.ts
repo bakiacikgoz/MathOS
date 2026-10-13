@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs"
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, openSync, readFileSync, readSync, readdirSync, closeSync, rmSync, symlinkSync, writeFileSync } from "node:fs"
 import { createHash } from "node:crypto"
 import { homedir, tmpdir } from "node:os"
 import { join, resolve } from "node:path"
@@ -14,37 +14,68 @@ const workspaceRoot = resolve(positional[0])
 const evidenceRoot = resolve(positional[1] ?? join(root, "artifacts/qualification/macos-2026-09-05"))
 const executableOption = arguments_.find((value) => value.startsWith("--executable="))?.slice("--executable=".length)
 const selectedProfile = arguments_.find((value) => value.startsWith("--select-profile="))?.slice("--select-profile=".length) ?? "codex-subscription"
-const vscodeCli = "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
-const vscodeExecutable = "/Applications/Visual Studio Code.app/Contents/MacOS/Code"
+const isWindows = process.platform === "win32"
+// Windows has no fixed install location; pass --vscode-root= for a portable or user install.
+const vscodeRoot = arguments_.find((value) => value.startsWith("--vscode-root="))?.slice("--vscode-root=".length)
+  ?? (isWindows ? join(process.env.LOCALAPPDATA ?? join(homedir(), "AppData/Local"), "Programs/Microsoft VS Code") : "/Applications/Visual Studio Code.app")
+const vscodeExecutable = isWindows ? join(vscodeRoot, "Code.exe") : join(vscodeRoot, "Contents/MacOS/Code")
+const vscodeCliScript = isWindows ? windowsCliScript(vscodeRoot) : join(vscodeRoot, "Contents/Resources/app/bin/code")
+// code.cmd cannot be spawned without a shell, so the Windows CLI runs the same way code.cmd does.
+const vscodeCli = (args: string[]) => Bun.spawnSync(isWindows ? [vscodeExecutable, vscodeCliScript, ...args] : [vscodeCliScript, ...args], {
+  cwd: root, stdout: "pipe", stderr: "pipe",
+  env: isWindows ? { ...process.env, ELECTRON_RUN_AS_NODE: "1", VSCODE_DEV: "" } : process.env,
+})
 const vsix = join(root, `dist/mathos-${MATHOS_PRODUCT_VERSION}.vsix`)
-const mathosExecutable = resolve(executableOption ?? join(root, `artifacts/releases/${MATHOS_PRODUCT_VERSION}/darwin-arm64/root/bin/mathos`))
+
+/** Recent Windows builds keep resources under a commit-named folder next to Code.exe. */
+function windowsCliScript(installRoot: string) {
+  const flat = join(installRoot, "resources/app/out/cli.js")
+  if (existsSync(flat) || !existsSync(installRoot)) return flat
+  return readdirSync(installRoot).map((name) => join(installRoot, name, "resources/app/out/cli.js")).find((path) => existsSync(path)) ?? flat
+}
+const releaseTarget = isWindows ? "windows-x64/root/bin/mathos.exe" : "darwin-arm64/root/bin/mathos"
+const mathosExecutable = resolve(executableOption ?? join(root, `artifacts/releases/${MATHOS_PRODUCT_VERSION}/${releaseTarget}`))
 const testRunner = join(root, "scripts/qualification/vscode-extension-host-runner.cjs")
 const sourceRevisionInspection = inspectGitHead(root)
 
-for (const [label, path] of Object.entries({ workspaceRoot, vscodeCli, vscodeExecutable, vsix, mathosExecutable, testRunner })) {
+for (const [label, path] of Object.entries({ workspaceRoot, vscodeCliScript, vscodeExecutable, vsix, mathosExecutable, testRunner })) {
   if (!existsSync(path)) throw new Error(`${label} missing: ${path}`)
 }
 const standaloneVersionProbe = Bun.spawnSync([mathosExecutable, "--version", "--json"], { cwd: workspaceRoot, stdout: "pipe", stderr: "pipe" })
 if (standaloneVersionProbe.exitCode !== 0) throw new Error(`Standalone version probe failed: ${standaloneVersionProbe.stderr.toString()}`)
 const standaloneIdentity = JSON.parse(standaloneVersionProbe.stdout.toString())
-const standaloneFile = Bun.spawnSync(["file", mathosExecutable], { stdout: "pipe", stderr: "pipe" }).stdout.toString().trim()
+const standaloneFile = isWindows ? describePortableExecutable(mathosExecutable) : Bun.spawnSync(["file", mathosExecutable], { stdout: "pipe", stderr: "pipe" }).stdout.toString().trim()
+const expectedBinaryFormat = isWindows ? /^PE32\+ executable x86-64$/u : /Mach-O 64-bit executable arm64/u
+
+/** `file` is not part of Windows, so the PE header is read directly. */
+function describePortableExecutable(path: string) {
+  const header = Buffer.alloc(4096), handle = openSync(path, "r")
+  try { readSync(handle, header, 0, header.length, 0) } finally { closeSync(handle) }
+  if (header.toString("latin1", 0, 2) !== "MZ") return "not a PE executable"
+  const pe = header.readUInt32LE(0x3c)
+  if (pe + 26 > header.length || header.toString("latin1", pe, pe + 4) !== "PE\0\0") return "not a PE executable"
+  const machine = header.readUInt16LE(pe + 4), optionalMagic = header.readUInt16LE(pe + 24)
+  return `${optionalMagic === 0x20b ? "PE32+" : "PE32"} executable ${machine === 0x8664 ? "x86-64" : `machine 0x${machine.toString(16)}`}`
+}
 
 mkdirSync(evidenceRoot, { recursive: true })
 const sessionRoot = mkdtempSync(join(tmpdir(), "mathos-vscode-host-"))
 const userDataDir = join(sessionRoot, "user-data")
 const extensionsDir = join(sessionRoot, "extensions")
 const invocationLog = join(evidenceRoot, "vscode-command-invocations.jsonl")
-const executableWrapper = join(sessionRoot, "mathos-qualification-wrapper")
+const executableWrapper = join(sessionRoot, isWindows ? "mathos-qualification-wrapper.exe" : "mathos-qualification-wrapper")
 // MathOS runs against a copy of the user's settings: selecting a profile from VS Code must not change the real default.
-const userMathosRoot = join(homedir(), "Library/Application Support/MathOS")
+const userDataRelative = isWindows ? "AppData/Roaming/MathOS" : "Library/Application Support/MathOS"
+const userMathosRoot = isWindows && process.env.APPDATA ? join(process.env.APPDATA, "MathOS") : join(homedir(), userDataRelative)
 const qualificationHome = join(sessionRoot, "home")
-const qualificationMathosRoot = join(qualificationHome, "Library/Application Support/MathOS")
+const qualificationMathosRoot = join(qualificationHome, userDataRelative)
+const qualificationEnvironment = isWindows ? { HOME: qualificationHome, APPDATA: join(qualificationHome, "AppData/Roaming") } : { HOME: qualificationHome }
 mkdirSync(join(qualificationMathosRoot, "config"), { recursive: true })
 for (const name of ["config.toml", "model-profiles.json"]) {
   const source = join(userMathosRoot, "config", name)
   if (existsSync(source)) copyFileSync(source, join(qualificationMathosRoot, "config", name))
 }
-if (existsSync(join(userMathosRoot, "lean"))) symlinkSync(join(userMathosRoot, "lean"), join(qualificationMathosRoot, "lean"))
+if (existsSync(join(userMathosRoot, "lean"))) symlinkSync(join(userMathosRoot, "lean"), join(qualificationMathosRoot, "lean"), isWindows ? "junction" : undefined)
 const userConfigDigest = () => ["config.toml", "model-profiles.json"].map((name) => {
   const path = join(userMathosRoot, "config", name)
   return existsSync(path) ? createHash("sha256").update(readFileSync(path)).digest("hex") : "absent"
@@ -53,15 +84,15 @@ const userConfigBefore = userConfigDigest()
 mkdirSync(join(userDataDir, "User"), { recursive: true })
 mkdirSync(extensionsDir, { recursive: true })
 writeFileSync(invocationLog, "")
-writeFileSync(executableWrapper, [
+const wrapperSource = [
   "#!/usr/bin/env bun",
   'import { appendFileSync } from "node:fs"',
   `const executable = ${JSON.stringify(mathosExecutable)}`,
   `const logPath = ${JSON.stringify(invocationLog)}`,
-  `const qualificationHome = ${JSON.stringify(qualificationHome)}`,
+  `const qualificationEnvironment = ${JSON.stringify(qualificationEnvironment)}`,
   "const args = process.argv.slice(2)",
   'const command = args[0] ?? ""',
-  'const child = Bun.spawn([executable, ...args], { cwd: process.cwd(), env: { ...process.env, HOME: qualificationHome }, stdin: "inherit", stdout: "pipe", stderr: "pipe" })',
+  'const child = Bun.spawn([executable, ...args], { cwd: process.cwd(), env: { ...process.env, ...qualificationEnvironment }, stdin: "inherit", stdout: "pipe", stderr: "pipe" })',
   'const record = (event) => appendFileSync(logPath, `${JSON.stringify({ ...event, command, wrapperPid: process.pid, childPid: child.pid, at: new Date().toISOString() })}\\n`)',
   'record({ event: "start", executable, args })',
   "let stdoutBytes = 0, stderrBytes = 0, atlasText = '', atlasUrl = null",
@@ -71,7 +102,14 @@ writeFileSync(executableWrapper, [
   'record({ event: "exit", code, stdoutBytes, stderrBytes })',
   "process.exit(code)",
   "",
-].join("\n"), { mode: 0o700 })
+].join("\n")
+if (isWindows) {
+  // VS Code starts the configured executable without a shell, so Windows needs a real .exe rather than a script.
+  const source = join(sessionRoot, "mathos-qualification-wrapper.ts")
+  writeFileSync(source, wrapperSource)
+  const compiled = Bun.spawnSync([process.execPath, "build", "--compile", source, "--outfile", executableWrapper], { cwd: root, stdout: "pipe", stderr: "pipe" })
+  if (compiled.exitCode !== 0) throw new Error(`Qualification wrapper build failed: ${compiled.stderr.toString()}`)
+} else writeFileSync(executableWrapper, wrapperSource, { mode: 0o700 })
 writeFileSync(join(userDataDir, "User/settings.json"), `${JSON.stringify({
   "mathos.executablePath": executableWrapper,
   "telemetry.telemetryLevel": "off",
@@ -88,13 +126,12 @@ function matchingCommandProcesses(rows: string[]) {
 
 const baselineProcessInspection = inspectProcessTable()
 const baselineBridgeProcesses = matchingBridgeProcesses(baselineProcessInspection.rows)
-const install = Bun.spawnSync([
-  vscodeCli,
+const install = vscodeCli([
   "--user-data-dir", userDataDir,
   "--extensions-dir", extensionsDir,
   "--install-extension", vsix,
   "--force",
-], { cwd: root, stdout: "pipe", stderr: "pipe" })
+])
 writeFileSync(join(evidenceRoot, "vscode-extension-install.log"), `${install.stdout.toString()}${install.stderr.toString()}`)
 if (install.exitCode !== 0) throw new Error(`VSIX installation failed with exit ${install.exitCode}`)
 const installedExtensionPath = readdirSync(extensionsDir)
@@ -116,7 +153,7 @@ const host = Bun.spawn([
   "--disable-workspace-trust",
 ], {
   cwd: root,
-  env: { ...process.env, VSCODE_CLI: "1", MATHOS_VSCODE_RUNTIME_REPORT: runtimeReport, MATHOS_VSCODE_INVOCATION_LOG: invocationLog, MATHOS_QUALIFICATION_HOME: qualificationHome, MATHOS_QUALIFICATION_SELECT_PROFILE: selectedProfile },
+  env: { ...process.env, VSCODE_CLI: "1", MATHOS_VSCODE_RUNTIME_REPORT: runtimeReport, MATHOS_VSCODE_INVOCATION_LOG: invocationLog, MATHOS_QUALIFICATION_CONFIG: join(qualificationMathosRoot, "config/config.toml"), MATHOS_QUALIFICATION_SELECT_PROFILE: selectedProfile },
   stdout: "pipe",
   stderr: "pipe",
 })
@@ -131,13 +168,13 @@ const remainingBridgeProcesses = matchingBridgeProcesses(teardownProcessInspecti
 const remainingCommandProcesses = matchingCommandProcesses(teardownProcessInspection.rows)
 const userConfigUnchanged = userConfigDigest() === userConfigBefore
 const runtime = existsSync(runtimeReport) ? JSON.parse(readFileSync(runtimeReport, "utf8")) : null
-const installed = Bun.spawnSync([vscodeCli, "--user-data-dir", userDataDir, "--extensions-dir", extensionsDir, "--list-extensions", "--show-versions"], { stdout: "pipe", stderr: "pipe" })
+const installed = vscodeCli(["--user-data-dir", userDataDir, "--extensions-dir", extensionsDir, "--list-extensions", "--show-versions"])
 const evidenceText = `${install.stdout.toString()}${install.stderr.toString()}${stdout}${stderr}${JSON.stringify(runtime)}`
 const literalSecretLeaks = collectKnownSecrets().filter((secret) => evidenceText.includes(secret)).length
 const shapedSecretLeaks = [...evidenceText.matchAll(/(?:Bearer\s+\S+|sk-[A-Za-z0-9_-]{8,})/giu)].length
 const summary = {
   schemaVersion: "mathos.vscode-extension-host-qualification.v1",
-  vscodeVersion: Bun.spawnSync([vscodeCli, "--version"], { stdout: "pipe" }).stdout.toString().split(/\r?\n/u)[0],
+  vscodeVersion: vscodeCli(["--version"]).stdout.toString().split(/\r?\n/u)[0],
   vsix,
   realExecutable: mathosExecutable,
   standaloneIdentity,
@@ -159,7 +196,7 @@ const summary = {
   selectedProfile,
   userConfigUnchanged,
   runtime,
-  ready: exitCode === 0 && runtime?.ready === true && standaloneIdentity?.productVersion === MATHOS_PRODUCT_VERSION && sourceRevisionInspection.ok === true && revisionsMatch(standaloneIdentity?.gitRevision, sourceRevisionInspection.revision) && /Mach-O 64-bit executable arm64/u.test(standaloneFile) && runtime?.invocationEvents?.filter((event: any) => event.event === "start").every((event: any) => event.executable === mathosExecutable) === true && baselineProcessInspection.ok === true && teardownProcessInspection.ok === true && baselineBridgeProcesses.length === 0 && remainingBridgeProcesses.length === 0 && remainingCommandProcesses.length === 0 && literalSecretLeaks + shapedSecretLeaks === 0 && userConfigUnchanged,
+  ready: exitCode === 0 && runtime?.ready === true && standaloneIdentity?.productVersion === MATHOS_PRODUCT_VERSION && sourceRevisionInspection.ok === true && revisionsMatch(standaloneIdentity?.gitRevision, sourceRevisionInspection.revision) && expectedBinaryFormat.test(standaloneFile) && runtime?.invocationEvents?.filter((event: any) => event.event === "start").every((event: any) => event.executable === mathosExecutable) === true && baselineProcessInspection.ok === true && teardownProcessInspection.ok === true && baselineBridgeProcesses.length === 0 && remainingBridgeProcesses.length === 0 && remainingCommandProcesses.length === 0 && literalSecretLeaks + shapedSecretLeaks === 0 && userConfigUnchanged,
 }
 writeFileSync(join(evidenceRoot, "vscode-host-summary.json"), `${JSON.stringify(summary, null, 2)}\n`)
 rmSync(sessionRoot, { recursive: true, force: true })

@@ -9,9 +9,19 @@ describe("VS Code Extension Host qualification inspection", () => {
     const result = inspectProcessTable((_command, options) => {
       timeout = options.timeout
       return { exitCode: 0, stdout: output(" 10  1 mathos bridge stdio\n 11  1 other\n"), stderr: output("") }
-    })
+    }, "darwin")
     expect(timeout).toBe(5_000)
     expect(result).toEqual({ ok: true, rows: ["10  1 mathos bridge stdio", "11  1 other"] })
+  })
+
+  test("Windows process inspection reads the same pid, parent and command rows without ps", () => {
+    let executable = ""
+    const result = inspectProcessTable((command) => {
+      executable = command[0]!
+      return { exitCode: 0, stdout: output("10 1 C:\\mathos.exe bridge stdio\r\n"), stderr: output("") }
+    }, "win32")
+    expect(executable).toBe("powershell.exe")
+    expect(result).toEqual({ ok: true, rows: ["10 1 C:\\mathos.exe bridge stdio"] })
   })
 
   test("process inspection fails closed on nonzero exit and runner errors", () => {

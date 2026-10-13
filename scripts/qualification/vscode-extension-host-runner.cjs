@@ -16,8 +16,13 @@ const requiredCommands = [
   "mathos.showProviderQuota",
 ]
 
+// Same "pid ppid command" rows as `ps -axo`, which Windows does not have.
+const WINDOWS_PROCESS_TABLE = "Get-CimInstance Win32_Process | ForEach-Object { \"$($_.ProcessId) $($_.ParentProcessId) $($_.CommandLine)\" }"
+
 function bridgeProcesses(parentPid) {
-  const output = execFileSync("ps", ["-axo", "pid=,ppid=,command="], { encoding: "utf8" })
+  const output = process.platform === "win32"
+    ? execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", WINDOWS_PROCESS_TABLE], { encoding: "utf8", windowsHide: true })
+    : execFileSync("ps", ["-axo", "pid=,ppid=,command="], { encoding: "utf8" })
   return output.split(/\r?\n/u).filter((line) => {
     const match = line.trim().match(/^(\d+)\s+(\d+)\s+(.*)$/u)
     return match && Number(match[2]) === parentPid && match[3].includes("bridge stdio")
@@ -28,7 +33,7 @@ const selectedProfile = process.env.MATHOS_QUALIFICATION_SELECT_PROFILE ?? "code
 
 function persistedDefaultProfile() {
   try {
-    const config = readFileSync(join(process.env.MATHOS_QUALIFICATION_HOME ?? homedir(), "Library/Application Support/MathOS/config/config.toml"), "utf8")
+    const config = readFileSync(process.env.MATHOS_QUALIFICATION_CONFIG ?? join(homedir(), "Library/Application Support/MathOS/config/config.toml"), "utf8")
     return config.match(/^default_profile\s*=\s*"([^"]+)"/mu)?.[1] ?? null
   } catch {
     return null

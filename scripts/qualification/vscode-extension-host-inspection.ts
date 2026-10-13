@@ -2,9 +2,12 @@ type Output = { toString(): string }
 export type InspectionRunner = (command: string[], options: { stdout: "pipe"; stderr: "pipe"; timeout: number; cwd?: string }) => { exitCode: number | null; stdout: Output; stderr: Output }
 const defaultRunner: InspectionRunner = (command, options) => Bun.spawnSync(command, options)
 
-export function inspectProcessTable(runner: InspectionRunner = defaultRunner): { ok: boolean; rows: string[]; error?: string } {
+export function inspectProcessTable(runner: InspectionRunner = defaultRunner, platform: NodeJS.Platform = process.platform): { ok: boolean; rows: string[]; error?: string } {
   try {
-    const result = runner(["ps", "-axo", "pid=,ppid=,command="], { stdout: "pipe", stderr: "pipe", timeout: 5_000 })
+    const command = platform === "win32"
+      ? ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", "Get-CimInstance Win32_Process | ForEach-Object { \"$($_.ProcessId) $($_.ParentProcessId) $($_.CommandLine)\" }"]
+      : ["ps", "-axo", "pid=,ppid=,command="]
+    const result = runner(command, { stdout: "pipe", stderr: "pipe", timeout: platform === "win32" ? 30_000 : 5_000 })
     if (result.exitCode !== 0) return { ok: false, rows: [], error: `ps exited ${String(result.exitCode)}: ${result.stderr.toString().trim() || "no diagnostic"}` }
     return { ok: true, rows: result.stdout.toString().split(/\r?\n/u).map((line) => line.trim()).filter(Boolean) }
   } catch (error) {
