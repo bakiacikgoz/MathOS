@@ -43,6 +43,7 @@ export {
   configPath,
   charterPath,
   WORKSPACE_DIRECTORIES,
+  environmentWithPath,
 } from "./paths.ts"
 export { createLogger, silentLogger, type Logger, type LogLevel } from "./logging.ts"
 export { createSupportBundle, verifySupportBundle, normalizeDoctorContract } from "./diagnostics.ts"

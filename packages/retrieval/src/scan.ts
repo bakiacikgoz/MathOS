@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
+import { environmentWithPath } from "@mathos/shared"
 import type { LeanDeclaration } from "./types.ts"
 import { walk } from "./fingerprint.ts"
 import { moduleFromPath, parseLeanDeclarations } from "./parse.ts"
@@ -63,7 +64,7 @@ export function findInitRoot(): string | null {
     const proc = Bun.spawnSync(["lean", "--print-prefix"], {
       stdout: "pipe",
       stderr: "pipe",
-      env: { ...process.env, PATH: `${process.env.HOME}/.elan/bin:${process.env.PATH ?? ""}` },
+      env: environmentWithPath(`${process.env.HOME}/.elan/bin:${process.env.PATH ?? ""}`),
     })
     const prefix = new TextDecoder().decode(proc.stdout).trim()
     const init = join(prefix, "src", "lean", "Init")

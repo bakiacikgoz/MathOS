@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test"
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { basename, join } from "node:path"
-import { installLean, leanInstallHolder, leanInstallProgress, leanInstallStatus, NativeLeanAdapter, progressFromLine, writeFormalProject, type LeanInstallEvent, type LeanInstallRuntime } from "@mathos/lean"
+import { elanWindowsCommand, installLean, leanInstallHolder, leanInstallProgress, leanInstallStatus, NativeLeanAdapter, progressFromLine, writeFormalProject, type LeanInstallEvent, type LeanInstallRuntime } from "@mathos/lean"
 import { cancelJob, pollJob, resetJobs, startJob } from "../apps/tui/src/jobs.ts"
 import { blockedCommandReason } from "../apps/desktop/host/protocol.ts"
 
@@ -59,8 +59,22 @@ describe("Lean install", () => {
   test("on Windows the elan installer leaves the user's PATH alone", async () => {
     const home = temp(), { runtime, calls } = fakeRuntime(home, { platform: "win32" })
     await expect(installLean(() => {}, { runtime, runtimeRoot: join(temp(), "runtime") })).rejects.toThrow("LEAN_INSTALL_STEP_FAILED")
-    expect(calls[0]).toEqual(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", join(home, "tmp", "elan-init.ps1"), "-NoPrompt", "1", "-NoModifyPath", "1", "-DefaultToolchain", "leanprover/lean4:v4.33.1"])
+    expect(calls[0]).toEqual(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", `& '${join(home, "tmp", "elan-init.ps1")}' -NoPrompt $true -NoModifyPath $true -DefaultToolchain 'leanprover/lean4:v4.33.1'; exit $LASTEXITCODE`])
   })
+
+  test("a home folder with an apostrophe still reaches the elan installer as one path", () => {
+    expect(elanWindowsCommand("C:\\Users\\O'Brien\\tmp\\elan-init.ps1")).toBe("& 'C:\\Users\\O''Brien\\tmp\\elan-init.ps1' -NoPrompt $true -NoModifyPath $true -DefaultToolchain 'leanprover/lean4:v4.33.1'; exit $LASTEXITCODE")
+  })
+
+  // elan-init.ps1 declares [bool] parameters; `powershell -File` hands them over as strings and the script refuses them.
+  test.skipIf(process.platform !== "win32")("Windows PowerShell accepts the elan installer's boolean parameters", () => {
+    const dir = temp(), script = join(dir, "it's elan-init.ps1")
+    writeFileSync(script, 'param([bool] $NoPrompt = 0, [bool] $NoModifyPath = 0, [string] $DefaultToolchain = "")\n"$NoPrompt $NoModifyPath $DefaultToolchain"\nexit 7\n')
+    const result = Bun.spawnSync(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", elanWindowsCommand(script)], { stdout: "pipe", stderr: "pipe" })
+    expect(result.stderr.toString()).toBe("")
+    expect(result.stdout.toString().trim()).toBe("True True leanprover/lean4:v4.33.1")
+    expect(result.exitCode).toBe(7)
+  }, 30_000)
 
   test("only one process installs at a time; a lock left by a dead process does not block", async () => {
     const home = temp(), runtimeRoot = join(temp(), "runtime"), { runtime, calls } = fakeRuntime(home)

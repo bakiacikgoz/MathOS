@@ -3,7 +3,7 @@ import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSyn
 import { basename, dirname, extname, join, resolve } from "node:path"
 import { homedir, tmpdir } from "node:os"
 import { exportBlueprintLatex, importBlueprintLatex, parseMathosMarkdown } from "@mathos/notebook"
-import { MATHOS_PRODUCT_VERSION, MathOSError, cliExitCode, currentBuildIdentity, formatCliError, resolveRuntimeLayout, withWorkspaceOperationLock } from "@mathos/shared"
+import { MATHOS_PRODUCT_VERSION, MathOSError, cliExitCode, currentBuildIdentity, environmentWithPath, formatCliError, resolveRuntimeLayout, withWorkspaceOperationLock } from "@mathos/shared"
 import { repairWorkspaceRuntimeState } from "@mathos/workspace"
 import { DEPENDENCY_RELATIONS, type DependencyRelation } from "@mathos/domain"
 import { SCHEMA_EPOCH } from "@mathos/storage"
@@ -210,7 +210,7 @@ export async function runHeadless(argv: string[]): Promise<number> {
         if (!json && !rest.includes("--background") && !rest.includes("--window") && !rest.includes("--check")) {
           const argv = clientArgv(runtime, spec, spec.loginArgs)
           if (!argv) { process.stdout.write(`${spec.displayName} is not installed. Install it with:\n  ${process.platform === "win32" ? spec.install.windows : spec.install.unix}\n${spec.install.url}\n`); return 1 }
-          return await Bun.spawn(argv, { stdio: ["inherit", "inherit", "inherit"], env: { ...process.env, PATH: runtime.env.PATH } }).exited
+          return await Bun.spawn(argv, { stdio: ["inherit", "inherit", "inherit"], env: environmentWithPath(runtime.env.PATH ?? "") }).exited
         }
         const result = await startClientLogin(runtime, spec, { window: rest.includes("--window"), check: rest.includes("--check") })
         process.stdout.write(`${JSON.stringify({ profile: profile.id, clientName: spec.displayName, ...result })}\n`); return 0

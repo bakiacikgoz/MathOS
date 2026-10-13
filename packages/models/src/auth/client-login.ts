@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs"
 import { homedir } from "node:os"
 import { delimiter, join } from "node:path"
+import { environmentWithPath } from "@mathos/shared"
 import { buildExternalClientEnvironment } from "./external-client-auth.ts"
 
 // Sign-in for official-client providers (Codex, Claude Code, Gemini CLI, Qwen Code, Copilot).
@@ -192,14 +193,14 @@ function discoveredPath(env: NodeJS.ProcessEnv): string | null {
 
 export function bunClientRuntime(env: NodeJS.ProcessEnv = process.env): ClientLoginRuntime {
   const path = clientSearchPath(process.platform, env, discoveredPath(env))
-  const lookupEnv = { ...env, PATH: path }
+  const lookupEnv = environmentWithPath(path, env)
   return {
     platform: process.platform,
     env: lookupEnv,
     which: (name) => Bun.which(name, { PATH: path }),
     spawn: (argv, options) => {
       // A background login keeps stdin open (never written) so a client that offers "paste the code" does not see EOF and quit.
-      const child = Bun.spawn(argv, { env: { ...options.env, PATH: path }, stdin: options.background ? "pipe" : "ignore", stdout: options.background ? "ignore" : "pipe", stderr: "ignore", windowsHide: true })
+      const child = Bun.spawn(argv, { env: environmentWithPath(path, options.env), stdin: options.background ? "pipe" : "ignore", stdout: options.background ? "ignore" : "pipe", stderr: "ignore", windowsHide: true })
       if (options.background) child.unref()
       return { exited: child.exited, stdout: options.background || typeof child.stdout === "number" || !child.stdout ? Promise.resolve("") : new Response(child.stdout).text(), kill: () => { try { child.kill() } catch {} } }
     },

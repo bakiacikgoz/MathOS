@@ -47,3 +47,15 @@ export const WORKSPACE_DIRECTORIES = [
   `${MATHOS_DIR}/logs`,
   `${MATHOS_DIR}/worktrees`,
 ] as const
+
+/**
+ * A child environment with its search path replaced. Windows spells the variable `Path` and matches names without
+ * regard to case, so `{ ...process.env, PATH }` would hand the child both spellings, and Windows PowerShell's
+ * Start-Process then refuses to start anything.
+ */
+export function environmentWithPath(path: string, base: Record<string, string | undefined> = process.env, platform: NodeJS.Platform = process.platform): Record<string, string | undefined> {
+  const env: Record<string, string | undefined> = {}
+  for (const [key, value] of Object.entries(base)) if (platform !== "win32" || key.toUpperCase() !== "PATH") env[key] = value
+  env.PATH = path
+  return env
+}

@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node
 import { homedir } from "node:os"
 import { delimiter, join, resolve } from "node:path"
 import type { DoctorCheck, LeanDiagnostic } from "@mathos/domain"
+import { environmentWithPath } from "@mathos/shared"
 import { installLean, leanInstallStatus } from "./install.ts"
 import { leanRuntimeRoot, mathlibReadyAt, writeFormalProject } from "./project.ts"
 import type {
@@ -27,7 +28,7 @@ async function runAsync(cmd: string, args: string[], cwd?: string, signal?: Abor
       cwd,
       stdout: "pipe",
       stderr: "pipe",
-      env: { ...process.env, PATH: leanPath() },
+      env: environmentWithPath(leanPath()),
     })
     let timedOut = false
     const timer = timeoutMs ? setTimeout(() => {
@@ -56,7 +57,7 @@ function run(cmd: string, args: string[], cwd?: string, signal?: AbortSignal, ti
       cwd,
       stdout: "pipe",
       stderr: "pipe",
-      env: { ...process.env, PATH: leanPath() },
+      env: environmentWithPath(leanPath()),
       timeout: timeoutMs,
     })
     if (signal?.aborted) {

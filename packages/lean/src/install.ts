@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statfsSync, writeFileSync } from "node:fs"
 import { homedir, tmpdir } from "node:os"
 import { basename, delimiter, dirname, join } from "node:path"
+import { environmentWithPath } from "@mathos/shared"
 import { PINNED_LEAN_TOOLCHAIN } from "./pin.ts"
 import { leanRuntimeRoot, mathlibBuiltAt, mathlibFetchedAt, writeRuntimeProject } from "./project.ts"
 
@@ -46,6 +47,12 @@ export interface LeanInstallStatus {
 export const LEAN_INSTALL_MIN_FREE_BYTES = 8 * 1024 ** 3
 const ELAN_SH = "https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh"
 const ELAN_PS1 = "https://raw.githubusercontent.com/leanprover/elan/master/elan-init.ps1"
+
+/** elan-init.ps1 takes [bool] parameters, which `powershell -File` can only pass as strings and then rejects. */
+export function elanWindowsCommand(script: string): string {
+  const quote = (value: string) => `'${value.replaceAll("'", "''")}'`
+  return `& ${quote(script)} -NoPrompt $true -NoModifyPath $true -DefaultToolchain ${quote(PINNED_LEAN_TOOLCHAIN)}; exit $LASTEXITCODE`
+}
 
 export class LeanInstallError extends Error {
   constructor(public readonly code: string, public readonly step: LeanInstallStep, message: string) { super(`${code}: ${message}`) }
@@ -141,7 +148,7 @@ export async function installLean(emit: (event: LeanInstallEvent) => void, optio
 }
 
 async function installLocked(runtimeRoot: string, emit: (event: LeanInstallEvent) => void, runtime: LeanInstallRuntime, signal: AbortSignal | undefined): Promise<LeanInstallStatus> {
-  const env = { ...process.env, PATH: leanSearchPath(runtime), RUST_BACKTRACE: "0" }
+  const env = { ...environmentWithPath(leanSearchPath(runtime)), RUST_BACKTRACE: "0" }
   const run = async (step: LeanInstallStep, argv: string[], cwd?: string) => {
     const tail: string[] = []
     // Mathlib's cache tool tries every file even when the server is unreachable, which takes an hour to fail;
@@ -194,7 +201,7 @@ async function installLocked(runtimeRoot: string, emit: (event: LeanInstallEvent
     if (runtime.platform === "win32") {
       const script = join(runtime.tmp, "elan-init.ps1")
       await runtime.download(ELAN_PS1, script)
-      await run("elan", ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script, "-NoPrompt", "1", "-NoModifyPath", "1", "-DefaultToolchain", PINNED_LEAN_TOOLCHAIN])
+      await run("elan", ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", elanWindowsCommand(script)])
     } else {
       const script = join(runtime.tmp, "elan-init.sh")
       await runtime.download(ELAN_SH, script)
