@@ -63,7 +63,11 @@ export function evaluateEvidence(options: {
         && inventory.complete === true && inventory.releaseBlocked === false
         && inventory.unresolvedCount === 0 && inventory.missingNoticeCount === 0
         && Array.isArray(inventory.packages) && inventory.packages.length > 0
-        && inventory.packages.every((row: { license?: unknown; licenseSource?: unknown }) => typeof row.license === "string" && row.license !== "NOASSERTION" && typeof row.licenseSource === "string")
+        && inventory.packages.every((row: { license?: unknown; licenseSource?: unknown; distribution?: unknown; review?: { reason?: unknown; evidence?: unknown } }) =>
+          row.distribution === "not-distributed"
+            // Listed for completeness; reviewed as absent from every release file, with the evidence recorded.
+            ? typeof row.review?.reason === "string" && row.review.reason.length > 0 && typeof row.review.evidence === "string" && row.review.evidence.length > 0
+            : typeof row.license === "string" && row.license !== "NOASSERTION" && typeof row.licenseSource === "string")
         && sbom.spdxVersion === "SPDX-2.3" && sbom.dataLicense === "CC0-1.0" && sbom.SPDXID === "SPDXRef-DOCUMENT"
         && typeof sbom.documentNamespace === "string" && Array.isArray(sbom.creationInfo?.creators)
         && readFileSync(resolve(releaseRoot, "THIRD_PARTY_NOTICES.txt"), "utf8").trim().length > 0

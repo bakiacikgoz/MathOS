@@ -130,5 +130,11 @@ test("public capability gate rejects unresolved or unbound third-party licenses"
     save(); expect(evaluate().releaseLicenses).toBe(false)
     inventory.gitRevision = "a".repeat(40); inventory.missingNoticeCount = 1
     save(); expect(evaluate().releaseLicenses).toBe(false)
+    inventory.missingNoticeCount = 0
+    const tool = { license: "NOASSERTION", licenseSource: null, distribution: "not-distributed", review: { reason: "Build tool only.", evidence: "" } }
+    Object.assign(inventory, { packages: [{ license: "MIT", licenseSource: "fixture/package.json" }, tool] })
+    save(); expect(evaluate().releaseLicenses).toBe(false)
+    tool.review.evidence = "No release bundle imports it."
+    save(); expect(evaluate().releaseLicenses).toBe(true)
   } finally { rmSync(root, { recursive: true, force: true }) }
 })
