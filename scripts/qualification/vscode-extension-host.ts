@@ -1,5 +1,6 @@
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs"
+import { createHash } from "node:crypto"
+import { homedir, tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { MATHOS_PRODUCT_VERSION } from "@mathos/shared"
 import { collectKnownSecrets } from "../../packages/models/src/redact.ts"
@@ -12,6 +13,7 @@ if (!positional[0]) throw new Error("QUALIFICATION_WORKSPACE_REQUIRED: pass the 
 const workspaceRoot = resolve(positional[0])
 const evidenceRoot = resolve(positional[1] ?? join(root, "artifacts/qualification/macos-2026-09-05"))
 const executableOption = arguments_.find((value) => value.startsWith("--executable="))?.slice("--executable=".length)
+const selectedProfile = arguments_.find((value) => value.startsWith("--select-profile="))?.slice("--select-profile=".length) ?? "codex-subscription"
 const vscodeCli = "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
 const vscodeExecutable = "/Applications/Visual Studio Code.app/Contents/MacOS/Code"
 const vsix = join(root, `dist/mathos-${MATHOS_PRODUCT_VERSION}.vsix`)
@@ -33,6 +35,21 @@ const userDataDir = join(sessionRoot, "user-data")
 const extensionsDir = join(sessionRoot, "extensions")
 const invocationLog = join(evidenceRoot, "vscode-command-invocations.jsonl")
 const executableWrapper = join(sessionRoot, "mathos-qualification-wrapper")
+// MathOS runs against a copy of the user's settings: selecting a profile from VS Code must not change the real default.
+const userMathosRoot = join(homedir(), "Library/Application Support/MathOS")
+const qualificationHome = join(sessionRoot, "home")
+const qualificationMathosRoot = join(qualificationHome, "Library/Application Support/MathOS")
+mkdirSync(join(qualificationMathosRoot, "config"), { recursive: true })
+for (const name of ["config.toml", "model-profiles.json"]) {
+  const source = join(userMathosRoot, "config", name)
+  if (existsSync(source)) copyFileSync(source, join(qualificationMathosRoot, "config", name))
+}
+if (existsSync(join(userMathosRoot, "lean"))) symlinkSync(join(userMathosRoot, "lean"), join(qualificationMathosRoot, "lean"))
+const userConfigDigest = () => ["config.toml", "model-profiles.json"].map((name) => {
+  const path = join(userMathosRoot, "config", name)
+  return existsSync(path) ? createHash("sha256").update(readFileSync(path)).digest("hex") : "absent"
+}).join(":")
+const userConfigBefore = userConfigDigest()
 mkdirSync(join(userDataDir, "User"), { recursive: true })
 mkdirSync(extensionsDir, { recursive: true })
 writeFileSync(invocationLog, "")
@@ -41,9 +58,10 @@ writeFileSync(executableWrapper, [
   'import { appendFileSync } from "node:fs"',
   `const executable = ${JSON.stringify(mathosExecutable)}`,
   `const logPath = ${JSON.stringify(invocationLog)}`,
+  `const qualificationHome = ${JSON.stringify(qualificationHome)}`,
   "const args = process.argv.slice(2)",
   'const command = args[0] ?? ""',
-  'const child = Bun.spawn([executable, ...args], { cwd: process.cwd(), env: process.env, stdin: "inherit", stdout: "pipe", stderr: "pipe" })',
+  'const child = Bun.spawn([executable, ...args], { cwd: process.cwd(), env: { ...process.env, HOME: qualificationHome }, stdin: "inherit", stdout: "pipe", stderr: "pipe" })',
   'const record = (event) => appendFileSync(logPath, `${JSON.stringify({ ...event, command, wrapperPid: process.pid, childPid: child.pid, at: new Date().toISOString() })}\\n`)',
   'record({ event: "start", executable, args })',
   "let stdoutBytes = 0, stderrBytes = 0, atlasText = '', atlasUrl = null",
@@ -98,7 +116,7 @@ const host = Bun.spawn([
   "--disable-workspace-trust",
 ], {
   cwd: root,
-  env: { ...process.env, VSCODE_CLI: "1", MATHOS_VSCODE_RUNTIME_REPORT: runtimeReport, MATHOS_VSCODE_INVOCATION_LOG: invocationLog },
+  env: { ...process.env, VSCODE_CLI: "1", MATHOS_VSCODE_RUNTIME_REPORT: runtimeReport, MATHOS_VSCODE_INVOCATION_LOG: invocationLog, MATHOS_QUALIFICATION_HOME: qualificationHome, MATHOS_QUALIFICATION_SELECT_PROFILE: selectedProfile },
   stdout: "pipe",
   stderr: "pipe",
 })
@@ -111,6 +129,7 @@ await Bun.sleep(1_000)
 const teardownProcessInspection = inspectProcessTable()
 const remainingBridgeProcesses = matchingBridgeProcesses(teardownProcessInspection.rows)
 const remainingCommandProcesses = matchingCommandProcesses(teardownProcessInspection.rows)
+const userConfigUnchanged = userConfigDigest() === userConfigBefore
 const runtime = existsSync(runtimeReport) ? JSON.parse(readFileSync(runtimeReport, "utf8")) : null
 const installed = Bun.spawnSync([vscodeCli, "--user-data-dir", userDataDir, "--extensions-dir", extensionsDir, "--list-extensions", "--show-versions"], { stdout: "pipe", stderr: "pipe" })
 const evidenceText = `${install.stdout.toString()}${install.stderr.toString()}${stdout}${stderr}${JSON.stringify(runtime)}`
@@ -137,8 +156,10 @@ const summary = {
     teardown: { ok: teardownProcessInspection.ok, error: teardownProcessInspection.error ?? null },
   },
   secretLeakCount: literalSecretLeaks + shapedSecretLeaks,
+  selectedProfile,
+  userConfigUnchanged,
   runtime,
-  ready: exitCode === 0 && runtime?.ready === true && standaloneIdentity?.productVersion === MATHOS_PRODUCT_VERSION && sourceRevisionInspection.ok === true && revisionsMatch(standaloneIdentity?.gitRevision, sourceRevisionInspection.revision) && /Mach-O 64-bit executable arm64/u.test(standaloneFile) && runtime?.invocationEvents?.filter((event: any) => event.event === "start").every((event: any) => event.executable === mathosExecutable) === true && baselineProcessInspection.ok === true && teardownProcessInspection.ok === true && baselineBridgeProcesses.length === 0 && remainingBridgeProcesses.length === 0 && remainingCommandProcesses.length === 0 && literalSecretLeaks + shapedSecretLeaks === 0,
+  ready: exitCode === 0 && runtime?.ready === true && standaloneIdentity?.productVersion === MATHOS_PRODUCT_VERSION && sourceRevisionInspection.ok === true && revisionsMatch(standaloneIdentity?.gitRevision, sourceRevisionInspection.revision) && /Mach-O 64-bit executable arm64/u.test(standaloneFile) && runtime?.invocationEvents?.filter((event: any) => event.event === "start").every((event: any) => event.executable === mathosExecutable) === true && baselineProcessInspection.ok === true && teardownProcessInspection.ok === true && baselineBridgeProcesses.length === 0 && remainingBridgeProcesses.length === 0 && remainingCommandProcesses.length === 0 && literalSecretLeaks + shapedSecretLeaks === 0 && userConfigUnchanged,
 }
 writeFileSync(join(evidenceRoot, "vscode-host-summary.json"), `${JSON.stringify(summary, null, 2)}\n`)
 rmSync(sessionRoot, { recursive: true, force: true })

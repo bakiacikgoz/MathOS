@@ -24,9 +24,11 @@ function bridgeProcesses(parentPid) {
   }).map((line) => line.trim())
 }
 
+const selectedProfile = process.env.MATHOS_QUALIFICATION_SELECT_PROFILE ?? "codex-subscription"
+
 function persistedDefaultProfile() {
   try {
-    const config = readFileSync(join(homedir(), "Library/Application Support/MathOS/config/config.toml"), "utf8")
+    const config = readFileSync(join(process.env.MATHOS_QUALIFICATION_HOME ?? homedir(), "Library/Application Support/MathOS/config/config.toml"), "utf8")
     return config.match(/^default_profile\s*=\s*"([^"]+)"/mu)?.[1] ?? null
   } catch {
     return null
@@ -104,9 +106,9 @@ exports.run = async function run() {
     result.commands.push(await settle("mathos.showObjective", () => vscode.commands.executeCommand("mathos.showObjective")))
     result.commands.push(await settle("mathos.openClaim", () => vscode.commands.executeCommand("mathos.openClaim", "C-001"), 2_000))
     result.commands.push(await settle("mathos.showModelProviders", () => vscode.commands.executeCommand("mathos.showModelProviders")))
-    result.commands.push(await settle("mathos.selectModelProfile", () => vscode.commands.executeCommand("mathos.selectModelProfile", "codex-subscription"), 20_000))
+    result.commands.push(await settle("mathos.selectModelProfile", () => vscode.commands.executeCommand("mathos.selectModelProfile", selectedProfile), 20_000))
     result.commands.push(await settle("mathos.refreshProviderStatus", () => vscode.commands.executeCommand("mathos.refreshProviderStatus"), 20_000))
-    result.commands.push(await settle("mathos.showProviderQuota", () => vscode.commands.executeCommand("mathos.showProviderQuota", "codex-subscription"), 2_000))
+    result.commands.push(await settle("mathos.showProviderQuota", () => vscode.commands.executeCommand("mathos.showProviderQuota", selectedProfile), 2_000))
     result.commands.push(await settle("mathos.doctor", () => vscode.commands.executeCommand("mathos.doctor")))
     const doctorEvents = await waitForEvidence(invocationLogPath, (events) => events.some((event) => event.event === "exit" && event.command === "doctor"), 45_000)
     const doctorStart = doctorEvents.find((event) => event.event === "start" && event.command === "doctor") ?? null
@@ -149,8 +151,7 @@ exports.run = async function run() {
       /^http:\/\/127\.0\.0\.1:\d+$/u.test(result.atlasExecution?.ready?.url ?? "") &&
       result.atlasExecution?.httpStatus === 401 &&
       result.atlasExecution?.processAliveAfterTerminalDispose === false &&
-      result.persistedProfileBeforeCommand === "codex-subscription" &&
-      result.persistedProfileAfterCommand === "codex-subscription" &&
+      result.persistedProfileAfterCommand === selectedProfile &&
       result.bridgeProcessesAfterRefresh.length === 1
     )
   } catch (error) {

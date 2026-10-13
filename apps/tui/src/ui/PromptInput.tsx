@@ -25,7 +25,8 @@ export function PromptInput(props: {
   })
 
   function clearEditor() {
-    if (!editor) return
+    // A submitted command such as /quit can destroy the renderer before the prompt is cleared.
+    if (!editor || editor.isDestroyed) return
     editor.selectAll()
     editor.deleteSelection()
     setDraft("")
@@ -34,7 +35,7 @@ export function PromptInput(props: {
   }
 
   function applyText(text: string) {
-    if (!editor) return
+    if (!editor || editor.isDestroyed) return
     editor.selectAll()
     editor.deleteSelection()
     if (text) editor.insertText(text)
