@@ -12,8 +12,9 @@ test("elsewhere names keep their case and only PATH is replaced", () => {
 })
 
 // Windows PowerShell's Start-Process fails with "Item has already been added" when both spellings arrive.
+// Without -Wait: the failure happens before the process starts, and waiting on cmd.exe races its exit.
 test.skipIf(process.platform !== "win32")("Windows PowerShell can start a process from the replaced environment", () => {
-  const result = Bun.spawnSync(["powershell", "-NoProfile", "-Command", "Start-Process -FilePath cmd.exe -ArgumentList '/c','exit 0' -Wait -NoNewWindow; 'started'"], {
+  const result = Bun.spawnSync(["powershell", "-NoProfile", "-Command", "Start-Process -FilePath cmd.exe -ArgumentList '/c','exit 0' -NoNewWindow; 'started'"], {
     env: environmentWithPath(`C:\\mathos-test;${process.env.PATH ?? ""}`) as Record<string, string>, stdout: "pipe", stderr: "pipe",
   })
   expect(result.stderr.toString()).toBe("")
