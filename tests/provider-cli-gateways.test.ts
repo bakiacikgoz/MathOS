@@ -18,6 +18,16 @@ const configure = async (...args: string[]) => { output = ""; errors = ""; retur
 const run = async (...args: string[]) => { output = ""; errors = ""; return runHeadless(args) }
 
 describe("provider CLI for gateways and generic endpoints", () => {
+  test("a local or API profile without a model is saved with a warning, since only official clients pick their own", async () => {
+    const local = `cli-ollama-${process.pid}`, client = `cli-codex-${process.pid}`; ids.push(local, client)
+    expect(await configure("ollama", "--profile", local)).toBe(0)
+    expect(JSON.parse(output).warning).toStartWith("PROFILE_MODEL_AUTO_UNRESOLVED")
+    expect(await configure("ollama", "--profile", local, "--update", "--model", "qwen3:8b")).toBe(0)
+    expect(JSON.parse(output)).toMatchObject({ warning: null, profile: { model: "qwen3:8b" } })
+    expect(await configure("openai-codex-chatgpt", "--profile", client)).toBe(0)
+    expect(JSON.parse(output).warning).toBeNull()
+  })
+
   test("status --json without a profile lists every profile", async () => {
     const id = `cli-go-${process.pid}`; ids.push(id)
     expect(await configure("opencode-go", "--profile", id, "--model", "kimi-k3")).toBe(0)

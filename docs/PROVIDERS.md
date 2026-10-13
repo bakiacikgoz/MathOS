@@ -23,17 +23,19 @@ Codex, Claude Code, Gemini CLI, Qwen Code and GitHub Copilot keep their own cred
 - **Desktop app:** Model Providers → the provider → *Sign in*. For Codex and Claude Code the official sign-in page opens in the browser and the step moves on by itself when you are done. Gemini CLI, Qwen Code and Copilot sign in inside their own window, which the app opens for you. If the client is not installed, *Install for me* runs the vendor's official installer in a visible window.
 - **Terminal:** `mathos provider login <profile>` runs the client's own sign-in in place (`codex login`, `claude auth login`, or the client's window). `mathos provider install-client <profile>` opens the official installer. `--json` adds `--check` (report only), `--background` and `--window` for scripts.
 - `mathos provider status` asks the client whether you are signed in (`codex login status`, `claude auth status --json`) and reports `CLIENT_MISSING`, `LOGIN_REQUIRED` or `CONFIGURED`. Gemini CLI, Qwen Code and Copilot have no status command, so they stay `LOGIN_REQUIRED` until a test request succeeds.
-| OpenRouter | `mathos provider configure openrouter --profile openrouter-main --model auto` | PAYG; MathOS secret store |
+| OpenRouter | `mathos provider configure openrouter --profile openrouter-main --model openrouter/auto` | PAYG; MathOS secret store |
 | Kimi Code | `mathos provider configure kimi-code-membership --profile kimi-main --model k3-256k` | Subscription plan, distinct from Kimi Platform PAYG |
 | MiniMax | `mathos provider configure minimax-token-plan-global --profile minimax-main --model MiniMax-M2.7` | Token subscription plan, distinct from MiniMax PAYG |
-| Alibaba | `mathos provider configure alibaba-model-studio-payg --profile alibaba-payg --model auto` | PAYG is available; Token/Coding Plans remain terms restricted |
+| Alibaba | `mathos provider configure alibaba-model-studio-payg --profile alibaba-payg --model <model>` | PAYG is available; Token/Coding Plans remain terms restricted |
 | Z.AI | `mathos provider configure zai-payg --profile zai-payg --model GLM-5.1` | PAYG is available; Coding Plan is blocked pending vendor approval |
 | DeepSeek | `mathos provider configure deepseek-api --profile deepseek-main --model deepseek-v4-pro` | PAYG; MathOS secret store |
 | OpenCode Go | `mathos provider configure opencode-go --profile go-main --model kimi-k3` | $10/month subscription with per-model usage limits; MathOS secret store |
 | OpenCode Zen | `mathos provider configure opencode-zen --profile zen-main --model claude-sonnet-5` | PAYG balance; MathOS secret store |
-| Ollama | `mathos provider configure ollama --profile ollama-local --model auto` | Local, loopback only |
-| LM Studio | `mathos provider configure lm-studio --profile lmstudio-local --model auto` | Local, loopback only |
-| llama.cpp | `mathos provider configure llama-cpp --profile llama-local --model auto` | Local, loopback only |
+| Ollama | `mathos provider configure ollama --profile ollama-local --model qwen3:8b` (a name from `ollama list`) | Local, loopback only |
+| LM Studio | `mathos provider configure lm-studio --profile lmstudio-local --model <loaded model>` | Local, loopback only |
+| llama.cpp | `mathos provider configure llama-cpp --profile llama-local --model <model>` | Local, loopback only |
+
+API and local providers need a model id in `--model`. `auto` only works with the official clients (Codex, Claude Code, Copilot, Gemini CLI, Qwen Code), which then use their own default; anywhere else `provider configure` warns with `PROFILE_MODEL_AUTO_UNRESOLVED`, and requests fail until you set a model with `--update --model <id>`.
 
 ## Multi-protocol gateways
 
