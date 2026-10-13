@@ -136,7 +136,7 @@ A long research project needs more than a chat history. MathOS keeps four kinds 
 | **Failure memory** | Every failed proof attempt (Lean rejected it, the statement was changed, or a forbidden construct was used), fingerprinted by the Lean statement. | Later proof sessions on the same statement see the earlier failed routes and are told to take a different one. |
 | **Personal memory** | Your preferences (for example "answer in Turkish, keep proofs short") and a library of results the Lean kernel verified, carried across workspaces. | Preferences go to the assistant in every workspace. A library entry is a starting point: in a new workspace it is not verified until Lean checks it there. |
 
-A model can propose a note or a convention, but it is saved only after you approve its card. A model note added with `--propose` waits on the **Memory** page until you keep or reject it. The desktop **Memory** page shows pending items, notes with filters, conventions, failed attempts, your preferences and the library.
+A model can propose a note or a convention, but it is saved only after you approve its card. A model note added with `--propose` waits on the **Memory** tab until you keep or reject it. The **Memory** tab in the desktop Settings shows pending items, notes with filters, conventions, failed attempts, your preferences and the library.
 
 ```sh
 mathos memory add --kind DEAD_END --claim C-003 --text "Induction on n alone does not close the odd case"

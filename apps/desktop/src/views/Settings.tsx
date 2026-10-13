@@ -11,6 +11,7 @@ import { Segmented } from "../components/Primitives.tsx"
 import { Providers } from "./Providers.tsx"
 import { Health } from "./Health.tsx"
 import { Console } from "./Console.tsx"
+import { Memory } from "./Memory.tsx"
 
 /** Settings holds everything about how MathOS is set up, one tab each; the sidebar keeps only the research. */
 export function Settings({ route }: { route: Route }) {
@@ -29,7 +30,7 @@ export function Settings({ route }: { route: Route }) {
       </div>
       {route === "console" ? <Console /> : (
         <div className="page">
-          {route === "providers" ? <Providers /> : route === "health" ? <Health /> : <GeneralSettings />}
+          {route === "providers" ? <Providers /> : route === "memory" ? <Memory /> : route === "health" ? <Health /> : <GeneralSettings />}
         </div>
       )}
     </div>

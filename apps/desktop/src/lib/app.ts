@@ -45,7 +45,7 @@ export function useApp(): AppApi {
   return value
 }
 
-export const NAV: Array<{ route: Route; label: MessageKey; icon: "overview" | "chat" | "claims" | "graph" | "book" | "sparkles" | "branch" | "brain" | "file"; key: string }> = [
+export const NAV: Array<{ route: Route; label: MessageKey; icon: "overview" | "chat" | "claims" | "graph" | "book" | "sparkles" | "branch" | "file"; key: string }> = [
   { route: "overview", label: "nav.overview", icon: "overview", key: "1" },
   { route: "assistant", label: "nav.assistant", icon: "chat", key: "2" },
   { route: "claims", label: "nav.claims", icon: "claims", key: "3" },
@@ -53,14 +53,14 @@ export const NAV: Array<{ route: Route; label: MessageKey; icon: "overview" | "c
   { route: "literature", label: "nav.literature", icon: "book", key: "5" },
   { route: "research", label: "nav.research", icon: "sparkles", key: "6" },
   { route: "branches", label: "nav.branches", icon: "branch", key: "7" },
-  { route: "memory", label: "nav.memory", icon: "brain", key: "8" },
-  { route: "reports", label: "nav.reports", icon: "file", key: "9" },
+  { route: "reports", label: "nav.reports", icon: "file", key: "8" },
 ]
 
 /** How the app is set up rather than the research itself: these are tabs of Settings, not sidebar items. */
-export const SETTINGS_TABS: Array<{ route: Route; label: MessageKey; icon: "settings" | "plug" | "health" | "console" }> = [
+export const SETTINGS_TABS: Array<{ route: Route; label: MessageKey; icon: "settings" | "plug" | "brain" | "health" | "console" }> = [
   { route: "settings", label: "settings.general", icon: "settings" },
   { route: "providers", label: "nav.providers", icon: "plug" },
+  { route: "memory", label: "nav.memory", icon: "brain" },
   { route: "health", label: "nav.health", icon: "health" },
   { route: "console", label: "nav.console", icon: "console" },
 ]

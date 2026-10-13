@@ -23,7 +23,6 @@ const Literature = lazy(() => import("./views/Literature.tsx").then((m) => ({ de
 const Research = lazy(() => import("./views/Research.tsx").then((m) => ({ default: m.Research })))
 const Claims = lazy(() => import("./views/Claims.tsx").then((m) => ({ default: m.Claims })))
 const Branches = lazy(() => import("./views/Branches.tsx").then((m) => ({ default: m.Branches })))
-const Memory = lazy(() => import("./views/Memory.tsx").then((m) => ({ default: m.Memory })))
 const Settings = lazy(() => import("./views/Settings.tsx").then((m) => ({ default: m.Settings })))
 
 const preload = () => { void import("./views/Claims.tsx"); void import("./views/Branches.tsx"); void import("./views/Settings.tsx") }
@@ -121,13 +120,12 @@ function Screen({ route }: { route: Route }) {
   if (route === "claims") return <div key={route} className="view-enter" style={{ height: "100%" }}><Claims /></div>
   if (route === "assistant") return <div key={route} className="view-enter" style={{ height: "100%" }}><Suspense fallback={null}><Assistant /></Suspense></div>
   if (route === "graph") return <div key={route} className="view-enter" style={{ height: "100%" }}><Graph /></div>
-  // Providers, health and the console are tabs of Settings; one shell keeps the tab bar steady between them.
+  // Providers, memory, health and the console are tabs of Settings; one shell keeps the tab bar steady between them.
   if (isSettingsRoute(route)) return <div key="settings" className="view-enter" style={{ height: "100%" }}><Settings route={route} /></div>
   return (
     <div key={route} className="page view-enter">
       {route === "overview" && <Overview />}
       {route === "branches" && <Branches />}
-      {route === "memory" && <Memory />}
       {route === "reports" && <Reports />}
       {route === "literature" && <Literature />}
       {route === "research" && <Research />}

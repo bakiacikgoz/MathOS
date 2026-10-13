@@ -53,7 +53,7 @@ export function Sidebar({ onPalette }: { onPalette: () => void }) {
 
       <div className="sidebar-foot" data-tour="sidebar-foot">
         <LeanIndicator collapsed={collapsed} />
-        {/* Providers, system health, the console, theme and language are settings: they live behind this one item. */}
+        {/* Providers, memory, system health, the console, theme and language are settings: they live behind this one item. */}
         <NavItem route="settings" active={isSettingsRoute(app.route)} icon="settings" label={t("nav.settings")} shortcut={`${mod},`} signal={signals.settings ?? null} collapsed={collapsed} />
         <div className="sidebar-foot-row">
           <button className="icon-btn" onClick={app.sidebar.toggle} title={`${t(collapsed ? "sidebar.expand" : "sidebar.collapse")} (${mod}B)`} aria-label={t(collapsed ? "sidebar.expand" : "sidebar.collapse")} aria-expanded={!collapsed}>
