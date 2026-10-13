@@ -188,16 +188,17 @@ async function installLocked(runtimeRoot: string, emit: (event: LeanInstallEvent
     if (!runtime.which("git")) throw new LeanInstallError("LEAN_INSTALL_GIT_MISSING", "git", "git is required to download Mathlib")
   })
 
+  // MathOS finds elan in ~/.elan/bin by itself, so the installer must not edit the user's shell profile or PATH.
   await step("elan", before.elan ? "already installed" : null, async () => {
     mkdirSync(runtime.tmp, { recursive: true })
     if (runtime.platform === "win32") {
       const script = join(runtime.tmp, "elan-init.ps1")
       await runtime.download(ELAN_PS1, script)
-      await run("elan", ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script, "-NoPrompt", "1", "-DefaultToolchain", PINNED_LEAN_TOOLCHAIN])
+      await run("elan", ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script, "-NoPrompt", "1", "-NoModifyPath", "1", "-DefaultToolchain", PINNED_LEAN_TOOLCHAIN])
     } else {
       const script = join(runtime.tmp, "elan-init.sh")
       await runtime.download(ELAN_SH, script)
-      await run("elan", ["sh", script, "-y", "--default-toolchain", PINNED_LEAN_TOOLCHAIN])
+      await run("elan", ["sh", script, "-y", "--no-modify-path", "--default-toolchain", PINNED_LEAN_TOOLCHAIN])
     }
     if (!findElan(runtime)) throw new LeanInstallError("LEAN_INSTALL_STEP_FAILED", "elan", "elan finished but was not found in ~/.elan/bin")
   })

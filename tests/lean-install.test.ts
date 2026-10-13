@@ -11,10 +11,10 @@ afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: tru
 const temp = () => { const dir = mkdtempSync(join(tmpdir(), "mathos-lean-install-")); dirs.push(dir); return dir }
 
 /** A machine where commands succeed by creating what the real tool would, so every step can be observed. */
-function fakeRuntime(home: string, options: { git?: boolean; fail?: Record<string, { code: number; lines: string[] }>; free?: number } = {}) {
+function fakeRuntime(home: string, options: { git?: boolean; fail?: Record<string, { code: number; lines: string[] }>; free?: number; platform?: NodeJS.Platform } = {}) {
   const calls: string[][] = []
   const runtime: LeanInstallRuntime = {
-    platform: "linux", home, tmp: join(home, "tmp"),
+    platform: options.platform ?? "linux", home, tmp: join(home, "tmp"),
     which: (name) => name === "git" && options.git !== false ? "/usr/bin/git" : null,
     freeBytes: () => options.free ?? 100 * 1024 ** 3,
     async download(_url, destination) { writeFileSync(destination, "#!/bin/sh\n") },
@@ -47,12 +47,19 @@ describe("Lean install", () => {
     expect(status.ready).toBe(true)
     const done = events.filter((event) => event.type === "step" && event.state === "done").map((event) => event.step)
     expect(done).toEqual(["git", "elan", "project", "toolchain", "mathlib", "cache", "build"])
-    expect(calls[0]).toEqual(["sh", join(home, "tmp", "elan-init.sh"), "-y", "--default-toolchain", "leanprover/lean4:v4.33.1"])
+    // elan goes to ~/.elan without touching the shell profile; MathOS finds it there itself.
+    expect(calls[0]).toEqual(["sh", join(home, "tmp", "elan-init.sh"), "-y", "--no-modify-path", "--default-toolchain", "leanprover/lean4:v4.33.1"])
     expect(events.some((event) => event.type === "progress" && event.step === "cache" && event.percent === 50)).toBe(true)
     // Mathlib is fetched from git directly, not through the Reservoir index.
     expect(readFileSync(join(runtimeRoot, "lakefile.toml"), "utf8")).toContain('git = "https://github.com/leanprover-community/mathlib4"')
     expect(calls.find((argv) => argv.at(-1) === "update")).toBeDefined()
     expect(status.runtimeRoot).toBe(runtimeRoot)
+  })
+
+  test("on Windows the elan installer leaves the user's PATH alone", async () => {
+    const home = temp(), { runtime, calls } = fakeRuntime(home, { platform: "win32" })
+    await expect(installLean(() => {}, { runtime, runtimeRoot: join(temp(), "runtime") })).rejects.toThrow("LEAN_INSTALL_STEP_FAILED")
+    expect(calls[0]).toEqual(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", join(home, "tmp", "elan-init.ps1"), "-NoPrompt", "1", "-NoModifyPath", "1", "-DefaultToolchain", "leanprover/lean4:v4.33.1"])
   })
 
   test("only one process installs at a time; a lock left by a dead process does not block", async () => {
