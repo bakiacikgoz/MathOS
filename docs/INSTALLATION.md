@@ -59,7 +59,7 @@ MathOS verifies with the repository-pinned `leanprover/lean4:v4.33.1` toolchain 
 Mathlib is downloaded with [git](https://git-scm.com/downloads), which Windows does not include. Install git first; if it is missing, MathOS says so and links to the download.
 
 - **Desktop:** MathOS installs Lean in the background on first start, with progress under **Settings → System Health**. Lean goes to its standard folder (`~/.elan`), Mathlib to the app data folder. Nothing is downloaded into your workspaces, and your `PATH` is not changed.
-- **Command line:** `mathos lean install --accept-downloads=lean,mathlib`, then `mathos setup status` to confirm.
+- **Command line:** `mathos lean install --accept-downloads=lean,mathlib`, then `mathos lean status` to confirm (`"ready": true`).
 
 If you already use [elan](https://lean-lang.org/install/), MathOS uses it and only adds the pinned toolchain.
 

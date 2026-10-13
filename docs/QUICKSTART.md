@@ -3,7 +3,7 @@
 ```sh
 mathos init --name research
 cd research
-mathos setup status
+mathos lean status
 mathos doctor --json
 mathos claim create --type conjecture --title "Objective" --statement "State the objective precisely."
 mathos objective set C-001
