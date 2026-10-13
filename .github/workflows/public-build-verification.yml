@@ -62,7 +62,8 @@ jobs:
       - name: Root typecheck
         run: bun run typecheck
       - name: Root tests
-        run: bun test --reporter=junit --reporter-outfile="${{ runner.temp }}/root-junit.xml"
+        # Integration tests that open SQLite workspaces can pass the 5 s default on a cold Windows runner.
+        run: bun test --timeout=30000 --reporter=junit --reporter-outfile="${{ runner.temp }}/root-junit.xml"
       - name: Annotate failing root tests
         if: failure()
         run: bun scripts/ci/junit-annotations.ts "${{ runner.temp }}/root-junit.xml"

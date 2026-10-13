@@ -12,7 +12,7 @@ const root=resolve(import.meta.dir,".."),bun=process.execPath
 const gates:Record<string,string[][]>={
 G01:[[bun,"test","tests/version-contract.test.ts","tests/release-manifest.test.ts"]],
 G02:[[bun,"run","typecheck"],[bun,"run","build"],[bun,"run","build:atlas"],[bun,"run","build:vscode"]],
-G03:[[bun,"test"]],G04:[[bun,"test","tests/verification-trust.test.ts","tests/verification-authority.test.ts"]],
+G03:[[bun,"test","--timeout=30000"]],G04:[[bun,"test","tests/verification-trust.test.ts","tests/verification-authority.test.ts"]],
 G05:[[bun,"run","release:build"],[bun,"test","tests/package-smoke.test.ts"]],G06:[[bun,"run","release:verify"]],
 G07:[[bun,"test","tests/distribution-layout.test.ts","tests/no-source-tree-runtime-dependency.test.ts"]],
 G08:[[bun,"test","tests/setup-state.test.ts","tests/setup-resume.test.ts","tests/setup-doctor.test.ts"]],
