@@ -49,7 +49,7 @@ export function Research() {
             {list.map((row) => (
               <li key={row.id}><button className={row.id === selected ? "on" : ""} onClick={() => setSelected(row.id)}>
                 <span className={`run-dot ${shownStatus(row).toLowerCase()}`} />
-                <span className="meta"><strong>{row.id}{row.objectiveClaimId ? ` · ${row.objectiveClaimId}` : ""}</strong><span>{t(`research.status.${shownStatus(row)}` as MessageKey)} · {t("research.steps").replace("{n}", String(row.currentStep))} · {new Date(row.updatedAt).toLocaleString(lang === "tr" ? "tr-TR" : "en-GB", { dateStyle: "short", timeStyle: "short" })}</span></span>
+                <span className="meta"><strong>{row.id}{row.objectiveClaimId ? ` · ${row.objectiveClaimId}` : ""}</strong><span>{t(`research.status.${shownStatus(row)}` as MessageKey)} · {t(row.currentStep === 1 ? "research.stepsOne" : "research.steps").replace("{n}", String(row.currentStep))} · {new Date(row.updatedAt).toLocaleString(lang === "tr" ? "tr-TR" : "en-GB", { dateStyle: "short", timeStyle: "short" })}</span></span>
               </button></li>
             ))}
           </ul>
