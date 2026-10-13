@@ -73,3 +73,16 @@ test("Windows VSIX ZIP verification runs outside the GNU tar Git Bash environmen
   expect(steps).toContainEqual(expect.objectContaining({ if: "runner.os == 'Windows'", shell: "pwsh" }))
   expect(steps).toContainEqual(expect.objectContaining({ if: "runner.os == 'macOS'", shell: "bash" }))
 })
+
+test("the Windows installer bundles the license files written just before packaging", () => {
+  const bundle = JSON.parse(readFileSync(new URL("../apps/desktop/src-tauri/tauri.bundle.conf.json", import.meta.url), "utf8")) as { bundle: { resources?: Record<string, string> } }
+  expect(bundle.bundle.resources).toEqual({ "legal/*": "legal/" })
+  const workflow = Bun.YAML.parse(readFileSync(new URL("../.github/workflows/desktop-windows.yml", import.meta.url), "utf8")) as {
+    jobs: { build: { steps: Array<{ name?: string; run?: string; env?: Record<string, string> }> } }
+  }
+  const steps = workflow.jobs.build.steps
+  const legal = steps.findIndex(step => step.run?.includes("scripts/write-legal.ts"))
+  expect(legal).toBeGreaterThan(-1)
+  expect(steps[legal]!.env?.MATHOS_RELEASE_ENRICH_LICENSES).toBe("1")
+  expect(legal).toBeLessThan(steps.findIndex(step => step.run?.includes("tauri build")))
+})

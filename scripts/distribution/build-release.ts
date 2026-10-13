@@ -30,6 +30,13 @@ export function packageReleaseLegalMetadata(sourceRoot:string,releaseRoot:string
   writeFileSync(join(releaseRoot,"SOURCE.json"),JSON.stringify({gitRevision,sourceUrl:`https://github.com/bakiacikgoz/MathOS/tree/${gitRevision}`},null,2)+"\n")
   return["LICENSE","NOTICE","SOURCE.json"]
 }
+/** LICENSE, NOTICE, SOURCE.json and the dependency inventory; shared by the CLI archive and the desktop installer. */
+export async function writeReleaseLegalFiles(sourceRoot:string,outDir:string,gitRevision:string,target:string){
+  const paths=packageReleaseLegalMetadata(sourceRoot,outDir,gitRevision)
+  const inventory=createReleaseDependencyInventory({sourceRoot,gitRevision,productVersion:MATHOS_PRODUCT_VERSION,target});if(process.env.MATHOS_RELEASE_ENRICH_LICENSES==="1")await enrichReleaseDependencyInventory(inventory,{maxRequests:2000,maxNoticeRequests:2000});applyStandardLicenseTexts(inventory)
+  writeFileSync(join(outDir,"SBOM.json"),JSON.stringify(inventory.sbom,null,2)+"\n");writeFileSync(join(outDir,"THIRD_PARTY_LICENSES.json"),JSON.stringify(inventory.licenses,null,2)+"\n");writeFileSync(join(outDir,"THIRD_PARTY_NOTICES.txt"),inventory.notices)
+  return{paths:[...paths,"SBOM.json","THIRD_PARTY_LICENSES.json","THIRD_PARTY_NOTICES.txt"],licenses:inventory.licenses}
+}
 export function createReleaseArchive(releaseRoot:string,archivePath:string):void{
   function assertAsciiEntries(directory:string):void{
     for(const entry of readdirSync(directory,{withFileTypes:true})){
@@ -50,8 +57,7 @@ export async function buildRelease(target=hostReleaseTarget(),outputRoot=join(RO
   const result=await Bun.build({entrypoints:[join(ROOT,"apps","tui","src","cli.ts")],plugins:[solidPlugin],compile:standaloneCompileOptions(target,executable),minify:true,define:{"process.env.MATHOS_BUILD_REVISION":JSON.stringify(identity.gitRevision),"process.env.MATHOS_BUILD_ID":JSON.stringify(identity.buildId)}})
   if(!result.success)throw new Error(`STANDALONE_BUILD_FAILED:${result.logs.map(String).join(";")}`)
   const paths=[`bin/${executableName}`,...packageAtlas(ROOT,releaseRoot),...packageVscodeBridge(ROOT,releaseRoot)]
-  paths.push(...packageReleaseLegalMetadata(ROOT,releaseRoot,identity.gitRevision))
-  const inventory=createReleaseDependencyInventory({sourceRoot:ROOT,gitRevision:identity.gitRevision,productVersion:MATHOS_PRODUCT_VERSION,target});if(process.env.MATHOS_RELEASE_ENRICH_LICENSES==="1")await enrichReleaseDependencyInventory(inventory,{maxRequests:2000,maxNoticeRequests:2000});applyStandardLicenseTexts(inventory);writeFileSync(join(releaseRoot,"SBOM.json"),JSON.stringify(inventory.sbom,null,2)+"\n");writeFileSync(join(releaseRoot,"THIRD_PARTY_LICENSES.json"),JSON.stringify(inventory.licenses,null,2)+"\n");writeFileSync(join(releaseRoot,"THIRD_PARTY_NOTICES.txt"),inventory.notices);paths.push("SBOM.json","THIRD_PARTY_LICENSES.json","THIRD_PARTY_NOTICES.txt")
+  paths.push(...(await writeReleaseLegalFiles(ROOT,releaseRoot,identity.gitRevision,target)).paths)
   const manifest=createReleaseManifest({root:releaseRoot,target,productVersion:MATHOS_PRODUCT_VERSION,gitRevision:identity.gitRevision,buildId:identity.buildId,paths});writeFileSync(join(releaseRoot,"RELEASE-MANIFEST.json"),JSON.stringify(manifest,null,2)+"\n");writeFileSync(join(releaseRoot,"SHA256SUMS"),manifest.files.map(file=>`${file.sha256}  ${file.path}`).join("\n")+"\n")
   const archiveName=`mathos-${MATHOS_PRODUCT_VERSION}-${target}.tar.gz`,archivePath=join(outputRoot,MATHOS_PRODUCT_VERSION,archiveName);createReleaseArchive(releaseRoot,archivePath)
   const archiveChecksumPath=writeReleaseArchiveChecksums(outputRoot,MATHOS_PRODUCT_VERSION)
