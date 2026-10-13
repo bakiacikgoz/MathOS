@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { gzipSync } from "node:zlib"
-import { createReleaseDependencyInventory } from "../scripts/distribution/dependency-inventory.ts"
+import { applyStandardLicenseTexts, createReleaseDependencyInventory, loadLicenseReviews } from "../scripts/distribution/dependency-inventory.ts"
 import { enrichReleaseDependencyInventory } from "../scripts/distribution/license-registry.ts"
 
 const REVISION = "a".repeat(40)
@@ -208,5 +208,88 @@ test("exact registry tarball license text is included without extracting files t
     expect(inventory.licenses.packages.find(row => row.name === "pkg")?.noticeFiles).toEqual(["package/LICENSE"])
     expect(inventory.licenses.missingNoticeCount).toBe(0)
     expect(inventory.licenses.releaseBlocked).toBe(false)
+  } finally { rmSync(root, { recursive: true, force: true }) }
+})
+
+function minimalRoot(root: string, packages: Record<string, unknown[]>, desktop: Record<string, unknown[]> = {}) {
+  put(root, "package.json", JSON.stringify({ name: "mathos", version: "1.0.0", license: "AGPL-3.0-only" }))
+  put(root, "bun.lock", JSON.stringify({ packages }))
+  put(root, "apps/desktop/bun.lock", JSON.stringify({ packages: desktop }))
+  put(root, "apps/desktop/src-tauri/Cargo.lock", `version = 3\n`)
+  put(root, "apps/desktop/src-tauri/Cargo.toml", `[package]\nname = "mathos-desktop"\nversion = "1.0.0"\n`)
+}
+
+test("packages reviewed as not distributed stay listed but leave the release gate, for the exact reviewed version only", () => {
+  const root = mkdtempSync(join(tmpdir(), "mathos-inventory-"))
+  try {
+    minimalRoot(root, { "tool": ["tool@1.0.0", "", {}, "sha512-a"], "other": ["other@2.0.0", "", {}, "sha512-b"] })
+    put(root, "node_modules/tool/package.json", JSON.stringify({ name: "tool", version: "1.0.0", license: "SEE LICENSE IN LICENSE.md" }))
+    put(root, "node_modules/other/package.json", JSON.stringify({ name: "other", version: "2.0.0", license: "SEE LICENSE IN LICENSE.md" }))
+    const review = { decision: "not-distributed" as const, ecosystem: "npm-root" as const, reviewedAt: "2026-10-13", reason: "Build tool only.", evidence: "No release bundle imports it." }
+    const result = createReleaseDependencyInventory({ sourceRoot: root, gitRevision: REVISION, productVersion: "1.0.0", created: CREATED, cargoRegistryRoots: [], bunRuntimeVersion: null,
+      reviews: [{ ...review, packages: ["tool@1.0.0", "other@1.0.0"] }] })
+    expect(result.licenses.packages.find(row => row.name === "tool")).toMatchObject({ license: "NOASSERTION", distribution: "not-distributed", review: { reason: "Build tool only." } })
+    expect(result.licenses.packages.find(row => row.name === "other")?.distribution).toBeUndefined()
+    expect(result.sbom.packages.map(row => row.name)).toContain("tool")
+    expect(result.licenses).toMatchObject({ unresolvedCount: 1, missingNoticeCount: 1, notDistributedCount: 1, releaseBlocked: true })
+  } finally { rmSync(root, { recursive: true, force: true }) }
+})
+
+test("the committed license review file is valid and names exact versions", () => {
+  const reviews = loadLicenseReviews()
+  expect(reviews.length).toBeGreaterThan(0)
+  expect(reviews.every(review => review.packages.every(id => /^(?:@[^/@]+\/)?[^@]+@\d[^@]*$/.test(id)))).toBe(true)
+  expect(() => loadLicenseReviews(join(import.meta.dir, "..", "package.json"))).toThrow("LICENSE_REVIEW_INVALID")
+})
+
+test("standard license text covers a valid SPDX package only after its exact source copy was searched", async () => {
+  const root = mkdtempSync(join(tmpdir(), "mathos-inventory-"))
+  try {
+    minimalRoot(root, {
+      "searched": ["searched@1.0.0", "", {}, "sha512-a"],
+      "dual": ["dual@1.0.0", "", {}, "sha512-b"],
+      "excepted": ["excepted@1.0.0", "", {}, "sha512-c"],
+      "unseen": ["unseen@1.0.0", "", {}, "sha512-d"],
+    })
+    put(root, "node_modules/searched/package.json", JSON.stringify({ name: "searched", version: "1.0.0", license: "ISC" }))
+    put(root, "node_modules/excepted/package.json", JSON.stringify({ name: "excepted", version: "1.0.0", license: "Apache-2.0 WITH LLVM-exception" }))
+    const header = Buffer.alloc(512)
+    header.write("package/index.js", 0, "ascii")
+    header.write((1).toString(8).padStart(11, "0") + "\0", 124, "ascii")
+    const archive = gzipSync(Buffer.concat([header, Buffer.from("x"), Buffer.alloc(511), Buffer.alloc(1024)]))
+    const inventory = createReleaseDependencyInventory({ sourceRoot: root, gitRevision: REVISION, productVersion: "1.0.0", created: CREATED, cargoRegistryRoots: [], bunRuntimeVersion: null, reviews: [] })
+    await enrichReleaseDependencyInventory(inventory, { fetcher: async input => {
+      const url = String(input)
+      if (url === "https://registry.npmjs.org/dual/1.0.0") return new Response(JSON.stringify({ name: "dual", version: "1.0.0", license: "Zlib OR Apache-2.0 OR MIT", dist: { tarball: "https://registry.npmjs.org/dual/-/dual-1.0.0.tgz" } }), { status: 200 })
+      if (url === "https://registry.npmjs.org/dual/-/dual-1.0.0.tgz") return new Response(archive, { status: 200 })
+      if (url === "https://registry.npmjs.org/unseen/1.0.0") return new Response(JSON.stringify({ name: "unseen", version: "1.0.0", license: "MIT", dist: { tarball: "https://registry.npmjs.org/unseen/-/unseen-1.0.0.tgz" } }), { status: 200 })
+      return new Response("missing", { status: 404 })
+    }, maxRequests: 10, maxNoticeRequests: 10 })
+    applyStandardLicenseTexts(inventory)
+    const rows = Object.fromEntries(inventory.licenses.packages.map(row => [row.name, row]))
+    expect(rows.searched).toMatchObject({ noticeSearch: "installed-package", noticeBasis: "spdx-standard-text", noticeFiles: ["spdx-standard-text:ISC"] })
+    expect(rows.dual).toMatchObject({ noticeSearch: "registry-archive", noticeFiles: ["spdx-standard-text:MIT"] })
+    expect(rows.excepted?.noticeFiles).toEqual([])
+    expect(rows.unseen).toMatchObject({ license: "MIT", noticeFiles: [] })
+    expect(rows.unseen?.noticeSearch).toBeUndefined()
+    expect(inventory.notices).toContain("=== npm-root dual@1.0.0 ===")
+    expect(inventory.notices).toContain("The registry archive of this exact version contains no license or notice file. Used under MIT")
+    expect(inventory.notices).toContain("--- ISC ---\nISC License")
+    expect(inventory.licenses).toMatchObject({ unresolvedCount: 0, missingNoticeCount: 2, releaseBlocked: true })
+  } finally { rmSync(root, { recursive: true, force: true }) }
+})
+
+test("the embedded Bun runtime is inventoried with its license and LGPL texts, and blocks when that version was never reviewed", () => {
+  const root = mkdtempSync(join(tmpdir(), "mathos-inventory-"))
+  try {
+    minimalRoot(root, {})
+    const reviewed = createReleaseDependencyInventory({ sourceRoot: root, gitRevision: REVISION, productVersion: "1.0.0", created: CREATED, cargoRegistryRoots: [], bunRuntimeVersion: "1.4.2", reviews: [] })
+    expect(reviewed.licenses.packages.find(row => row.ecosystem === "runtime")).toMatchObject({ name: "bun", version: "1.4.2", license: "MIT",
+      noticeFiles: ["bun-1.4.2-LICENSE.md", "spdx-standard-text:LGPL-2.0-only", "spdx-standard-text:LGPL-2.1-only"] })
+    expect(reviewed.notices).toContain("Bun statically links JavaScriptCore")
+    expect(reviewed.notices).toContain("GNU LIBRARY GENERAL PUBLIC LICENSE")
+    expect(reviewed.licenses.releaseBlocked).toBe(false)
+    const unknown = createReleaseDependencyInventory({ sourceRoot: root, gitRevision: REVISION, productVersion: "1.0.0", created: CREATED, cargoRegistryRoots: [], bunRuntimeVersion: "0.0.1", reviews: [] })
+    expect(unknown.licenses).toMatchObject({ missingNoticeCount: 1, releaseBlocked: true })
   } finally { rmSync(root, { recursive: true, force: true }) }
 })

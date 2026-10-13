@@ -1,4 +1,4 @@
-import { cargoSpdxLicense, createReleaseDependencyInventory, spdxLicense } from "./dependency-inventory.ts"
+import { cargoSpdxLicense, createReleaseDependencyInventory, licenseGate, spdxLicense } from "./dependency-inventory.ts"
 import { gunzipSync } from "node:zlib"
 
 type Inventory = ReturnType<typeof createReleaseDependencyInventory>
@@ -22,16 +22,17 @@ async function limitedBody(response: Response, limit: number): Promise<Buffer | 
   return Buffer.concat(chunks)
 }
 
-function tarNotices(compressed: Buffer): Array<{ file: string; text: string }> {
+/** Notice files in a package archive; null when the archive cannot be read, so "no notice" is never assumed. */
+function tarNotices(compressed: Buffer): Array<{ file: string; text: string }> | null {
   let tar: Buffer
-  try { tar = gunzipSync(compressed, { maxOutputLength: 48_000_000 }) } catch { return [] }
+  try { tar = gunzipSync(compressed, { maxOutputLength: 160_000_000 }) } catch { return null }
   const matches: Array<{ file: string; text: string }> = []
   for (let offset = 0; offset + 512 <= tar.length;) {
     const header = tar.subarray(offset, offset + 512)
     const name = header.subarray(0, 100).toString("utf8").split("\0")[0] ?? ""
     if (!name) break
     const size = Number.parseInt(header.subarray(124, 136).toString("ascii").split("\0")[0]?.trim() ?? "", 8)
-    if (!Number.isFinite(size) || size < 0 || offset + 512 + size > tar.length) break
+    if (!Number.isFinite(size) || size < 0 || offset + 512 + size > tar.length) return null
     const basename = name.split("/").at(-1) ?? ""
     if (/^(?:LICEN[CS]E|COPYING|NOTICE)(?:[.\-_].*)?$/i.test(basename) && size <= 512_000 && matches.length < 8) {
       try { matches.push({ file: name, text: new TextDecoder("utf-8", { fatal: true }).decode(tar.subarray(offset + 512, offset + 512 + size)) }) } catch { /* Binary file is not notice text. */ }
@@ -43,12 +44,12 @@ function tarNotices(compressed: Buffer): Array<{ file: string; text: string }> {
 
 export async function enrichReleaseDependencyInventory(inventory: Inventory, options: Options = {}): Promise<void> {
   const fetcher = options.fetcher ?? fetch
-  const maxRequests = Math.max(0, Math.min(options.maxRequests ?? 256, 1000))
+  const maxRequests = Math.max(0, Math.min(options.maxRequests ?? 256, 2000))
   const concurrency = Math.max(1, Math.min(options.concurrency ?? 6, 16))
   const timeoutMs = Math.max(1000, Math.min(options.timeoutMs ?? 8000, 30000))
-  const maxNoticeRequests = Math.max(0, Math.min(options.maxNoticeRequests ?? 256, 1000))
+  const maxNoticeRequests = Math.max(0, Math.min(options.maxNoticeRequests ?? 256, 2000))
   const candidates = inventory.licenses.packages.map((row, index) => ({ row, index }))
-    .filter(({ row }) => (row.license === "NOASSERTION" || !row.noticeFiles?.length) && (row.ecosystem === "npm-root" || row.ecosystem === "npm-desktop" || row.ecosystem === "cargo"))
+    .filter(({ row }) => row.distribution !== "not-distributed" && (row.license === "NOASSERTION" || !row.noticeFiles?.length) && (row.ecosystem === "npm-root" || row.ecosystem === "npm-desktop" || row.ecosystem === "cargo"))
     .sort((a, b) => Number(b.row.license === "NOASSERTION") - Number(a.row.license === "NOASSERTION"))
     .slice(0, maxRequests)
   const results = { attempted: 0, resolved: 0, failures: 0, requestLimit: maxRequests, noticesAttempted: 0, noticesResolved: 0, noticeRequestLimit: maxNoticeRequests }
@@ -97,10 +98,11 @@ export async function enrichReleaseDependencyInventory(inventory: Inventory, opt
       try {
         const response = await fetcher(url, { signal: AbortSignal.timeout(timeoutMs), redirect: "error", credentials: "omit" })
         if (!response.ok) continue
-        const body = await limitedBody(response, 8_000_000)
+        const body = await limitedBody(response, 24_000_000)
         if (!body) continue
         const notices = tarNotices(body)
-        if (!notices.length) continue
+        if (!notices) continue
+        if (!notices.length) { row.noticeSearch = "registry-archive"; continue }
         row.noticeFiles = notices.map(notice => notice.file)
         remoteNoticeSections.push(`=== ${row.ecosystem} ${row.name}@${row.version} ===\nSource: ${row.source}\nLicense declaration: ${row.license}\nNotice archive: ${url}\n${notices.map(notice => `--- ${notice.file} ---\n${notice.text.trimEnd()}`).join("\n\n")}`)
         results.noticesResolved++
@@ -108,9 +110,6 @@ export async function enrichReleaseDependencyInventory(inventory: Inventory, opt
     }
   }))
   if (remoteNoticeSections.length) inventory.notices += `${remoteNoticeSections.sort((a, b) => a.localeCompare(b)).join("\n\n")}\n`
-  inventory.licenses.unresolvedCount = inventory.licenses.packages.filter(row => row.license === "NOASSERTION").length
-  inventory.licenses.missingNoticeCount = inventory.licenses.packages.filter(row => row.ecosystem !== "workspace" && !row.noticeFiles?.length).length
-  inventory.licenses.complete = inventory.licenses.unresolvedCount === 0 && inventory.licenses.missingNoticeCount === 0
-  inventory.licenses.releaseBlocked = !inventory.licenses.complete
+  Object.assign(inventory.licenses, licenseGate(inventory.licenses.packages))
   Object.assign(inventory.licenses, { registryEnrichment: results })
 }

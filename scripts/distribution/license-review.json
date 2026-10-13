@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "mathos.license-review.v1",
+  "policy": "Each entry names exact locked versions. A version change drops the review and the package becomes a release blocker again until it is reviewed. A not-distributed decision keeps the package in the inventory and SBOM; it only removes it from the release gate because no MathOS release file contains it.",
+  "reviews": [
+    {
+      "decision": "not-distributed",
+      "ecosystem": "npm-root",
+      "packages": [
+        "@github/copilot@1.0.82",
+        "@github/copilot-darwin-arm64@1.0.82",
+        "@github/copilot-darwin-x64@1.0.82",
+        "@github/copilot-linux-arm64@1.0.82",
+        "@github/copilot-linux-x64@1.0.82",
+        "@github/copilot-linuxmusl-arm64@1.0.82",
+        "@github/copilot-linuxmusl-x64@1.0.82",
+        "@github/copilot-win32-arm64@1.0.82",
+        "@github/copilot-win32-x64@1.0.82"
+      ],
+      "reviewedAt": "2026-10-13",
+      "reason": "GitHub Copilot CLI is not bundled. @github/copilot-sdk looks the CLI up at run time, and a compiled MathOS uses the CLI the user installed (packages/models/src/protocols/copilot-sdk.ts).",
+      "evidence": "Bun.build metafiles for apps/tui/src/cli.ts and apps/desktop/host/host.ts list no @github/copilot input, and the compiled executables do not contain the GitHub Copilot CLI License text."
+    },
+    {
+      "decision": "not-distributed",
+      "ecosystem": "npm-root",
+      "packages": [
+        "@vscode/vsce-sign@2.1.0",
+        "@vscode/vsce-sign-alpine-arm64@2.0.6",
+        "@vscode/vsce-sign-alpine-x64@2.0.6",
+        "@vscode/vsce-sign-darwin-arm64@2.0.6",
+        "@vscode/vsce-sign-darwin-x64@2.0.6",
+        "@vscode/vsce-sign-linux-arm@2.0.6",
+        "@vscode/vsce-sign-linux-arm64@2.0.6",
+        "@vscode/vsce-sign-linux-x64@2.0.6",
+        "@vscode/vsce-sign-win32-arm64@2.0.6",
+        "@vscode/vsce-sign-win32-x64@2.0.6"
+      ],
+      "reviewedAt": "2026-10-13",
+      "reason": "Signing helper of @vscode/vsce, the extension packaging tool that runs only at build time.",
+      "evidence": "The VS Code extension bundle (apps/vscode-extension/src/extension.ts) and every other release bundle have no npm package inputs from @vscode/vsce or @vscode/vsce-sign."
+    },
+    {
+      "decision": "not-distributed",
+      "ecosystem": "npm-desktop",
+      "packages": [
+        "binary@0.3.0",
+        "buffers@0.1.1",
+        "chainsaw@0.1.0",
+        "traverse@0.3.9"
+      ],
+      "reviewedAt": "2026-10-13",
+      "reason": "Node-only dependencies of exceljs through unzipper. The desktop front end resolves exceljs to its browser build (dist/exceljs.min.js), which does not include unzipper or these packages.",
+      "evidence": "The Vite module list of the desktop production build contains none of binary, buffers, chainsaw, traverse or unzipper."
+    }
+  ]
+}

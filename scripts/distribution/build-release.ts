@@ -6,7 +6,7 @@ import { MATHOS_PRODUCT_VERSION,assertProductVersionAlignment,createReleaseManif
 import { writeTarGzip } from "@mathos/shared/archive"
 import { packageAtlas } from "./package-atlas.ts"
 import { packageVscodeBridge } from "./package-vscode.ts"
-import { createReleaseDependencyInventory } from "./dependency-inventory.ts"
+import { applyStandardLicenseTexts,createReleaseDependencyInventory } from "./dependency-inventory.ts"
 import { enrichReleaseDependencyInventory } from "./license-registry.ts"
 import solidPlugin from "@opentui/solid/bun-plugin"
 import { assertSupportedBun } from "../build-output.ts"
@@ -51,7 +51,7 @@ export async function buildRelease(target=hostReleaseTarget(),outputRoot=join(RO
   if(!result.success)throw new Error(`STANDALONE_BUILD_FAILED:${result.logs.map(String).join(";")}`)
   const paths=[`bin/${executableName}`,...packageAtlas(ROOT,releaseRoot),...packageVscodeBridge(ROOT,releaseRoot)]
   paths.push(...packageReleaseLegalMetadata(ROOT,releaseRoot,identity.gitRevision))
-  const inventory=createReleaseDependencyInventory({sourceRoot:ROOT,gitRevision:identity.gitRevision,productVersion:MATHOS_PRODUCT_VERSION,target});if(process.env.MATHOS_RELEASE_ENRICH_LICENSES==="1")await enrichReleaseDependencyInventory(inventory);writeFileSync(join(releaseRoot,"SBOM.json"),JSON.stringify(inventory.sbom,null,2)+"\n");writeFileSync(join(releaseRoot,"THIRD_PARTY_LICENSES.json"),JSON.stringify(inventory.licenses,null,2)+"\n");writeFileSync(join(releaseRoot,"THIRD_PARTY_NOTICES.txt"),inventory.notices);paths.push("SBOM.json","THIRD_PARTY_LICENSES.json","THIRD_PARTY_NOTICES.txt")
+  const inventory=createReleaseDependencyInventory({sourceRoot:ROOT,gitRevision:identity.gitRevision,productVersion:MATHOS_PRODUCT_VERSION,target});if(process.env.MATHOS_RELEASE_ENRICH_LICENSES==="1")await enrichReleaseDependencyInventory(inventory,{maxRequests:2000,maxNoticeRequests:2000});applyStandardLicenseTexts(inventory);writeFileSync(join(releaseRoot,"SBOM.json"),JSON.stringify(inventory.sbom,null,2)+"\n");writeFileSync(join(releaseRoot,"THIRD_PARTY_LICENSES.json"),JSON.stringify(inventory.licenses,null,2)+"\n");writeFileSync(join(releaseRoot,"THIRD_PARTY_NOTICES.txt"),inventory.notices);paths.push("SBOM.json","THIRD_PARTY_LICENSES.json","THIRD_PARTY_NOTICES.txt")
   const manifest=createReleaseManifest({root:releaseRoot,target,productVersion:MATHOS_PRODUCT_VERSION,gitRevision:identity.gitRevision,buildId:identity.buildId,paths});writeFileSync(join(releaseRoot,"RELEASE-MANIFEST.json"),JSON.stringify(manifest,null,2)+"\n");writeFileSync(join(releaseRoot,"SHA256SUMS"),manifest.files.map(file=>`${file.sha256}  ${file.path}`).join("\n")+"\n")
   const archiveName=`mathos-${MATHOS_PRODUCT_VERSION}-${target}.tar.gz`,archivePath=join(outputRoot,MATHOS_PRODUCT_VERSION,archiveName);createReleaseArchive(releaseRoot,archivePath)
   const archiveChecksumPath=writeReleaseArchiveChecksums(outputRoot,MATHOS_PRODUCT_VERSION)
