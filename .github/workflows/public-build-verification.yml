@@ -8,6 +8,10 @@ on:
   push:
     branches: [main]
     paths:
+      # The docs smoke test reads these, so a docs-only change can fail the suite.
+      - "README.md"
+      - "docs/**"
+      - "examples/**"
       - "apps/**"
       - "packages/**"
       - "scripts/**"
