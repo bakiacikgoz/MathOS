@@ -1,0 +1,982 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="canonical" href="https://bakiacikgoz.github.io/MathOS/">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#f4f5f7">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MathOS">
+<meta property="og:title" content="MathOS · Yapay zekâ önerir. Lean karar verir.">
+<meta property="og:description" content="Matematikçiler için yerel araştırma ortamı. AI proposes, Lean decides.">
+<meta property="og:url" content="https://bakiacikgoz.github.io/MathOS/">
+<meta property="og:image" content="https://bakiacikgoz.github.io/MathOS/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:locale:alternate" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://bakiacikgoz.github.io/MathOS/og.png">
+<title>MathOS</title>
+<meta name="description" content="MathOS: yapay zekânın önerdiği, Lean çekirdeğinin karar verdiği yerel matematik araştırma ortamı.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Caveat:wght@500;600&display=swap">
+<style>
+/* Düzen: krem, perde dokulu zemin; yüzen koyu hap menü; ortalanmış kalın başlık; beyaz çerçevede gerçek ürün görüntüsü ve üstüne binen çipler.
+   Renk: siyah-beyaz ve sıcak kırık beyaz. Tek vurgu, onay işaretindeki küçük mavi. Aydınlık tema varsayılan. */
+:root {
+  color-scheme: light;
+  --ground: #f4f5f7;
+  --ground-2: #eceef1;
+  --card: #ffffff;
+  --ink: #1f1f22;
+  --ink-2: #4a4a50;
+  --muted: #60646c;
+  --line: #e5e7eb;
+  --line-2: #d4d7dd;
+  --soft: #f6f7f9;
+  --dark: #1c1c1f;
+  --dark-ink: #ffffff;
+  --check: #2563eb;
+  --shadow: 0 1px 2px rgb(15 20 30 / .06), 0 18px 40px -22px rgb(15 20 30 / .26);
+  --shadow-lg: 0 2px 6px rgb(15 20 30 / .06), 0 40px 80px -40px rgb(15 20 30 / .42);
+
+  --f-sans: "Plus Jakarta Sans", -apple-system, "Segoe UI", system-ui, sans-serif;
+  --f-code: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --f-hand: "Caveat", "Segoe Print", cursive;
+  --f-math: "STIX Two Math", "Cambria Math", "Latin Modern Math", math, serif;
+
+  --gutter: clamp(16px, 4vw, 40px);
+  --max: 1200px;
+  --ease: cubic-bezier(.16, 1, .3, 1);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #09090b; --ground-2: #0c0c0e; --card: #1a1a1d; --ink: #f2f2f3; --ink-2: #c4c4c8; --muted: #8e8e94;
+  --line: #2a2a2e; --line-2: #36363b; --soft: #212125; --dark: #f2f2f3; --dark-ink: #121214; --check: #60a5fa;
+  --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 18px 40px -22px rgb(0 0 0 / .7);
+  --shadow-lg: 0 2px 6px rgb(0 0 0 / .4), 0 40px 80px -40px rgb(0 0 0 / .8);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 96px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0; background: var(--ground); color: var(--ink);
+  font-family: var(--f-sans); font-size: 1rem; line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--ink); color: var(--card); }
+a { color: inherit; text-underline-offset: 0.22em; }
+:focus-visible { outline: 2px solid var(--check); outline-offset: 3px; border-radius: 8px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; letter-spacing: -0.025em; }
+p { margin: 0; text-wrap: pretty; }
+code, pre, .mono { font-family: var(--f-code); font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
+.mono { font-size: 0.86em; }
+math { font-family: var(--f-math); }
+img { max-width: 100%; height: auto; display: block; }
+.wrap { max-width: var(--max); margin-inline: auto; padding-inline: var(--gutter); }
+.ico { width: 18px; height: 18px; flex: none; }
+
+/* Hareketli arka plan: logodaki eğriden ışık şeritleri (Demirtaş hüzme tekniği). Dörtte bir çözünürlükte çizilir,
+   CSS ile büyütülüp bulanıklaştırılır: yumuşak görünür, işlemciyi yormaz. Turkuazdan maviye; mor yok. */
+.bg { position: fixed; left: -6%; top: -6%; width: 112%; height: 112%; pointer-events: none; z-index: 0; display: block;
+  filter: blur(clamp(7px, 1.1vw, 15px)) saturate(150%); animation: isik-gir .9s ease-out both; }
+@keyframes isik-gir { from { opacity: 0; } }
+/* Hüzmeler metnin arkasından geçse de yazı okunur kalsın: üstte zemin renginde yumuşak bir örtü */
+.glow { position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background: radial-gradient(70% 52% at 50% 30%, rgb(244 245 247 / .62) 0%, rgb(244 245 247 / .32) 45%, rgb(244 245 247 / 0) 100%); }
+:root[data-theme="dark"] .glow {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(60% 46% at 50% 30%, rgb(9 9 11 / .7) 0%, rgb(9 9 11 / .35) 50%, rgb(9 9 11 / 0) 100%),
+    radial-gradient(130% 100% at 50% 50%, rgb(9 9 11 / 0) 50%, rgb(9 9 11 / .4) 100%);
+}
+.page { position: relative; overflow-x: clip; }
+.page > main, .page > .foot, .page > .nav-shell { position: relative; z-index: 1; }
+
+/* ---------- Yüzen menü ---------- */
+.nav-shell { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 18px); z-index: 20; display: flex; justify-content: center; padding-inline: 16px; }
+.nav {
+  display: flex; align-items: center; gap: 4px; padding: 6px; border-radius: 999px;
+  background: #1c1c1f; color: #fff; box-shadow: 0 10px 30px -12px rgb(0 0 0 / .45), 0 0 0 1px rgb(255 255 255 / .06) inset;
+  max-width: 100%;
+}
+.nav .brand { display: inline-flex; align-items: center; padding: 6px 14px 6px 12px; color: #fff; text-decoration: none; }
+.nav .brand svg { height: 22px; width: auto; }
+.nav a.link { padding: 9px 13px; border-radius: 999px; font-size: 0.875rem; font-weight: 600; color: rgb(255 255 255 / .82); text-decoration: none; white-space: nowrap; }
+.nav a.link:hover { color: #fff; background: rgb(255 255 255 / .08); }
+.nav .sep { width: 1px; height: 22px; background: rgb(255 255 255 / .16); margin-inline: 6px; }
+.nav .theme { display: inline-grid; place-items: center; width: 38px; height: 38px; border-radius: 999px; border: 0; background: transparent; color: rgb(255 255 255 / .82); cursor: pointer; }
+.nav .theme:hover { background: rgb(255 255 255 / .08); color: #fff; }
+.nav .theme .sun, :root[data-theme="dark"] .nav .theme .moon { display: none; }
+:root[data-theme="dark"] .nav .theme .sun { display: block; }
+.nav .cta { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 18px; border-radius: 999px; background: #fff; color: #1c1c1f; font-weight: 700; font-size: 0.875rem; text-decoration: none; white-space: nowrap; }
+.nav .cta:hover { background: #f1f1f1; }
+@media (max-width: 860px) { .nav a.link, .nav .sep { display: none; } .nav .brand { padding-right: 8px; } }
+
+/* ---------- Açılış ---------- */
+.hero { position: relative; z-index: 1; text-align: center; padding-block: clamp(56px, 8vw, 96px) 0; }
+.badge {
+  display: flex; width: max-content; max-width: 100%; margin-inline: auto; align-items: center; gap: 10px; padding: 5px 14px 5px 5px; border-radius: 999px;
+  background: var(--card); box-shadow: var(--shadow); font-size: 0.875rem; font-weight: 600; text-decoration: none; color: var(--ink);
+}
+.badge .new { background: var(--dark); color: var(--dark-ink); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.06em; padding: 5px 10px; border-radius: 999px; }
+.badge .badge-more { color: var(--muted); font-weight: 500; }
+.badge:hover .badge-more { color: var(--ink); }
+.badge { white-space: nowrap; }
+@media (max-width: 560px) { .badge .badge-more { display: none; } }
+.hero h1 { margin-top: 26px; font-size: clamp(2.6rem, 1.2rem + 5.4vw, 5rem); line-height: 1.04; font-weight: 800; letter-spacing: -0.04em; color: var(--ink); }
+.hero .sub { margin: 22px auto 0; max-width: 40rem; font-size: clamp(1.05rem, 1rem + .3vw, 1.2rem); line-height: 1.6; color: var(--ink-2); }
+.actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 34px; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 28px; border-radius: 999px;
+  font: 700 1rem/1 var(--f-sans); text-decoration: none; cursor: pointer; border: 0;
+  background: var(--dark); color: var(--dark-ink); box-shadow: 0 12px 24px -12px rgb(0 0 0 / .5);
+  transition: transform .2s var(--ease), box-shadow .2s;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: 0 16px 28px -12px rgb(0 0 0 / .55); }
+.btn:active { transform: translateY(0) scale(.98); }
+.btn.light { background: var(--card); color: var(--ink); box-shadow: var(--shadow); font-weight: 600; }
+.btn.small { min-height: 40px; padding: 0 16px; font-size: 0.875rem; }
+.hero .note { margin-top: 14px; font-size: 0.8125rem; color: var(--muted); }
+
+/* Ürün çerçevesi ve yüzen çipler */
+.stage { position: relative; margin: clamp(48px, 6vw, 72px) auto 0; max-width: 1080px; }
+.frame { position: relative; z-index: 1; background: var(--card); border-radius: 28px; padding: 12px; box-shadow: var(--shadow-lg); }
+.frame img { border-radius: 18px; width: 100%; }
+.chip {
+  position: absolute; z-index: 2; display: inline-flex; align-items: center; gap: 10px; padding: 10px 16px 10px 10px;
+  background: var(--card); border-radius: 999px; box-shadow: var(--shadow); font-size: 0.9rem; font-weight: 700; white-space: nowrap; color: var(--ink);
+}
+.chip .tick { width: 30px; height: 30px; border-radius: 50%; background: var(--check); color: #fff; display: grid; place-items: center; flex: none; }
+.chip .tick svg { width: 16px; height: 16px; }
+.chip .state { font: 600 0.72rem var(--f-code); color: var(--muted); }
+.chip .num { display: grid; place-items: center; height: 30px; padding: 0 10px; border-radius: 999px; background: var(--dark); color: var(--dark-ink); font-size: 0.75rem; font-weight: 800; }
+.chip .dots { display: inline-flex; }
+.chip .dots span { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; margin-left: -6px; border: 2px solid var(--card); background: var(--soft); font: 700 0.62rem var(--f-sans); color: var(--ink-2); }
+.chip .dots span:last-child { background: var(--dark); color: var(--dark-ink); }
+.chip-verified { left: -44px; top: 34%; }
+.chip-models { right: -40px; bottom: 9%; }
+.chip-lang { right: -28px; top: 12%; font-weight: 600; }
+.hand { position: absolute; z-index: 2; left: -78px; top: calc(34% + 64px); font: 600 1.6rem/1 var(--f-hand); color: var(--ink-2); transform: rotate(-8deg); display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.hand svg { width: 34px; height: 46px; color: var(--ink-2); }
+@media (max-width: 1240px) { .chip-verified { left: -16px; } .chip-models { right: -12px; } .chip-lang { right: -8px; } .hand { left: -20px; } }
+@media (max-width: 760px) {
+  .stage { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .chip, .hand { position: static; transform: none; }
+  .chip-lang, .hand { display: none; }
+  .frame { order: -1; padding: 6px; border-radius: 18px; }
+  .frame img { border-radius: 13px; }
+}
+
+/* ---------- Bölümler ---------- */
+section.block { padding-block: clamp(80px, 11vw, 136px) 0; position: relative; z-index: 1; }
+.head { text-align: center; display: grid; gap: 14px; justify-items: center; margin-bottom: clamp(36px, 5vw, 56px); }
+.head .pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; background: var(--card); box-shadow: var(--shadow); font-size: 0.8125rem; font-weight: 600; color: var(--ink-2); }
+.head h2 { font-size: clamp(2rem, 1.2rem + 2.8vw, 3.25rem); line-height: 1.08; font-weight: 800; letter-spacing: -0.035em; max-width: 24ch; }
+.head p { max-width: 40rem; font-size: 1.0625rem; color: var(--ink-2); }
+.panel { background: var(--card); border-radius: 24px; box-shadow: var(--shadow); }
+
+/* Kapı figürü (logo: eğri = öneri, dikey eksen = VerificationGate) */
+.gate { margin: 0; position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 240px minmax(0, 1fr); align-items: start; padding: 32px; }
+.gate-curve { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 2; }
+.gate-curve path { fill: none; stroke: var(--ink); stroke-linecap: round; }
+.gate-curve .prop { stroke-width: 1.5; stroke-dasharray: 4 6; opacity: .45; }
+.gate-curve .proof { stroke-width: 2.2; transition: stroke-dashoffset 1s var(--ease); }
+.gate-curve .end { fill: var(--ink); transition: opacity .3s .8s; }
+.card { position: relative; z-index: 1; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 20px 22px; min-width: 0; }
+.card.proposal { border-style: dashed; border-color: var(--line-2); background: var(--soft); }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 0.8125rem; color: var(--muted); margin-bottom: 14px; }
+.tag { display: inline-flex; align-items: center; padding: 5px 11px; border-radius: 999px; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; background: var(--card); color: var(--ink); box-shadow: 0 0 0 1px var(--line-2) inset; }
+.tag.dark { background: var(--dark); color: var(--dark-ink); box-shadow: none; }
+.claim-id { font: 0.75rem var(--f-code); color: var(--muted); }
+.claim-title { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.02em; margin-top: 2px; }
+.card math[display="block"] { font-size: 1.3rem; margin: 10px 0 14px; }
+.lean { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; overflow-x: auto; font-size: 0.74rem; line-height: 1.65; white-space: pre; scrollbar-width: thin; }
+.lean .k { font-weight: 600; }
+.card .foot-note { margin-top: 12px; font-size: 0.8125rem; color: var(--muted); }
+.axis { position: relative; z-index: 1; align-self: stretch; display: flex; flex-direction: column; align-items: center; gap: 58px; padding-top: 172px; }
+.axis::before { content: ""; position: absolute; left: 50%; top: -32px; bottom: -32px; width: 1px; background: var(--line-2); }
+.gate-point { position: relative; width: 13px; height: 13px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 5px var(--card); flex: none; }
+.checks { position: relative; list-style: none; margin: 0; padding: 14px 16px; display: grid; gap: 9px; background: var(--card); border: 1px solid var(--line-2); border-radius: 16px; font-size: 0.875rem; font-weight: 600; width: 196px; box-shadow: var(--shadow); }
+.checks .cap { font: 600 0.75rem var(--f-code); color: var(--muted); padding-bottom: 7px; border-bottom: 1px solid var(--line); }
+.checks li:not(.cap) { display: flex; align-items: center; gap: 10px; }
+.tk { flex: none; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--line-2); display: grid; place-items: center; transition: background-color .25s, border-color .25s; }
+.tk svg { width: 11px; height: 11px; color: #fff; opacity: 0; transform: scale(.4); transition: opacity .25s, transform .35s var(--ease); }
+.checks li.pass .tk { background: var(--check); border-color: var(--check); }
+.checks li.pass .tk svg { opacity: 1; transform: none; }
+.checks li.run .tk { border-color: var(--check); border-top-color: transparent; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.card.verdict { margin-top: 150px; box-shadow: var(--shadow); }
+.vstate { display: inline-flex; align-items: center; gap: 8px; padding: 7px 13px; border-radius: 999px; font: 600 0.78rem/1 var(--f-code); background: var(--soft); color: var(--muted); transition: background-color .4s, color .4s; }
+.vstate .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.gate[data-state="verified"] .vstate { background: var(--dark); color: var(--dark-ink); }
+.gate[data-state="verified"] .vstate .dot { background: #4ade80; }
+.vlist { margin: 16px 0 0; font-size: 0.875rem; }
+.vlist div { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; border-top: 1px solid var(--line); }
+.vlist dt { color: var(--muted); } .vlist dd { margin: 0; font-weight: 600; }
+.replay { margin-top: 14px; }
+.replay[disabled] { opacity: .45; cursor: default; transform: none; }
+.gate-cap { grid-column: 1 / -1; margin-top: 26px; text-align: center; font-size: 0.875rem; color: var(--muted); }
+@media (max-width: 900px) {
+  .gate { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+  .gate-curve, .gate-point { display: none; }
+  .card.verdict { margin-top: 0; }
+  .axis { padding-block: 22px; gap: 0; }
+  .axis::before { top: 0; bottom: 0; }
+  .checks { width: min(100%, 260px); }
+}
+
+/* Güven tablosu */
+.ledger-panel { margin-top: 20px; padding: 8px 28px 20px; overflow-x: auto; }
+.ledger { width: 100%; border-collapse: collapse; min-width: 560px; }
+.ledger th { text-align: left; font-size: 0.8125rem; font-weight: 600; color: var(--muted); padding: 18px 16px 12px 0; border-bottom: 1px solid var(--line-2); }
+.ledger td { padding: 15px 16px 15px 0; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.ledger tr:last-child td { border-bottom: 0; }
+.ledger td:first-child { font-weight: 600; width: 42%; }
+.ledger td:nth-child(2) { color: var(--ink-2); font-size: 0.9375rem; }
+.ledger td:last-child, .ledger th:last-child { text-align: right; padding-right: 0; white-space: nowrap; }
+.ledger .st { font: 600 0.75rem var(--f-code); background: var(--soft); border: 1px solid var(--line); padding: 3px 8px; border-radius: 6px; }
+.yes { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
+.yes .tick-s { width: 22px; height: 22px; border-radius: 50%; background: var(--check); color: #fff; display: grid; place-items: center; }
+.yes .tick-s svg { width: 12px; height: 12px; }
+.no { color: var(--muted); }
+.ledger-note { margin-top: 18px; text-align: center; color: var(--muted); font-size: 0.9375rem; }
+
+/* Yol */
+.road { list-style: none; margin: 0; padding: 28px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; position: relative; }
+.road li { position: relative; padding: 0 18px 0 0; min-width: 0; }
+.road li::before { content: ""; position: absolute; left: 34px; right: 0; top: 16px; border-top: 1.5px dashed var(--line-2); }
+.road li:last-child::before { display: none; }
+.road .n { position: relative; z-index: 1; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--card); box-shadow: 0 0 0 1.5px var(--ink) inset; font: 700 0.8125rem var(--f-code); margin-bottom: 18px; }
+.road li:last-child .n { background: var(--dark); color: var(--dark-ink); box-shadow: none; }
+.road .who { display: block; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.road h3 { font-size: 1.125rem; font-weight: 700; margin-bottom: 8px; }
+.road p { font-size: 0.9rem; color: var(--ink-2); line-height: 1.55; }
+.road .ex { margin-top: 14px; font-size: 0.8125rem; color: var(--muted); }
+.road .ex math { font-size: 1.05rem; color: var(--ink); }
+.road .ex code { display: block; color: var(--ink); background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; overflow-x: auto; white-space: pre; font-size: 0.72rem; line-height: 1.55; }
+.road .final { display: inline-flex; align-items: center; gap: 7px; font: 600 0.75rem var(--f-code); color: var(--dark-ink); background: var(--dark); border-radius: 999px; padding: 6px 12px; }
+.road .final i { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; }
+.road-note { margin-top: 20px; text-align: center; color: var(--muted); font-size: 0.9375rem; }
+@media (max-width: 980px) {
+  .road { grid-template-columns: minmax(0, 1fr); gap: 26px; padding: 22px; }
+  .road li { display: grid; grid-template-columns: 32px minmax(0, 1fr); column-gap: 16px; padding: 0; }
+  .road li::before { left: 15px; top: 34px; bottom: -26px; right: auto; border-top: 0; border-left: 1.5px dashed var(--line-2); }
+  .road .n { margin-bottom: 0; grid-row: span 4; }
+}
+
+/* Ekran turu */
+.tour { display: grid; gap: clamp(56px, 8vw, 96px); }
+.shot { margin: 0; }
+.shot .frame { padding: 10px; border-radius: 22px; box-shadow: var(--shadow); }
+.shot .frame img { border-radius: 14px; }
+.shot figcaption { margin: 18px auto 0; max-width: 46rem; text-align: center; color: var(--ink-2); }
+.shot figcaption b { color: var(--ink); }
+.pair { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(28px, 4vw, 56px); align-items: center; }
+.pair.flip { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+.pair.flip .shot { order: 2; }
+.pair .txt { display: grid; gap: 12px; }
+.pair .txt h3 { font-size: clamp(1.4rem, 1.1rem + 1vw, 1.9rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; }
+.pair .txt p { color: var(--ink-2); }
+kbd { font-family: var(--f-code); font-size: 0.8em; background: var(--card); border: 1px solid var(--line-2); border-bottom-width: 2px; border-radius: 6px; padding: 1px 6px; }
+.lang-note { text-align: center; font-size: 0.8125rem; color: var(--muted); }
+@media (max-width: 860px) { .pair, .pair.flip { grid-template-columns: minmax(0, 1fr); } .pair.flip .shot { order: 0; } }
+
+/* Hafıza */
+.memory { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.memory .panel { padding: 26px 28px; display: grid; gap: 8px; align-content: start; }
+.memory .ic { width: 40px; height: 40px; border-radius: 12px; background: var(--soft); border: 1px solid var(--line); display: grid; place-items: center; margin-bottom: 6px; }
+.memory .ic svg { width: 20px; height: 20px; }
+.memory h3 { font-size: 1.125rem; font-weight: 700; }
+.memory p { color: var(--ink-2); font-size: 0.9375rem; }
+.memory .cli { margin-top: 6px; font-size: 0.8rem; color: var(--muted); overflow-x: auto; white-space: nowrap; }
+@media (max-width: 760px) { .memory { grid-template-columns: minmax(0, 1fr); } }
+
+/* Modeller */
+.models { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: stretch; }
+.providers { margin: 0; padding: 10px 28px; }
+.providers div { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); gap: 16px; padding: 15px 0; border-bottom: 1px solid var(--line); }
+.providers div:last-child { border-bottom: 0; }
+.providers dt { font-weight: 700; } .providers dd { margin: 0; color: var(--ink-2); }
+.models-side { padding: 28px; display: grid; gap: 16px; align-content: start; }
+.models-side p { color: var(--ink-2); }
+.terminal { margin: 6px 0 0; border-radius: 16px; background: #1c1c1f; color: #ececee; padding: 18px 20px; overflow-x: auto; font-size: 0.8rem; line-height: 1.8; white-space: pre; scrollbar-width: thin; }
+.terminal .p, .terminal .c { color: #8b8b92; }
+@media (max-width: 860px) { .models { grid-template-columns: minmax(0, 1fr); } .providers div { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+
+/* Dahası */
+.more { margin: 0; padding: 8px 28px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 36px; }
+.more div { padding: 20px 0; border-bottom: 1px solid var(--line); min-width: 0; }
+.more div:nth-last-child(-n+3) { border-bottom: 0; }
+.more dt { font-weight: 700; margin-bottom: 4px; }
+.more dd { margin: 0; color: var(--ink-2); font-size: 0.9375rem; }
+@media (max-width: 900px) { .more { grid-template-columns: repeat(2, minmax(0, 1fr)); } .more div:nth-last-child(-n+3) { border-bottom: 1px solid var(--line); } .more div:last-child { border-bottom: 0; } }
+@media (max-width: 560px) { .more { grid-template-columns: minmax(0, 1fr); } }
+
+/* Kurulum: koyu kart */
+.install { margin-top: clamp(80px, 11vw, 136px); position: relative; z-index: 1; }
+.install-card { background: #1c1c1f; color: #fff; border-radius: 32px; padding: clamp(28px, 5vw, 64px); display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(28px, 5vw, 64px); box-shadow: var(--shadow-lg); }
+:root[data-theme="dark"] .install-card { background: #1a1a1d; box-shadow: 0 0 0 1px #2a2a2e inset; }
+.install h2 { font-size: clamp(2.2rem, 1.3rem + 3vw, 3.6rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1.02; }
+.install .lede { margin-top: 16px; color: #c9c9cf; font-size: 1.0625rem; }
+.install .actions { justify-content: flex-start; margin-top: 28px; }
+.install .btn { background: #fff; color: #1c1c1f; }
+.install .btn.ghost { background: transparent; color: #fff; box-shadow: 0 0 0 1px rgb(255 255 255 / .3) inset; }
+.install .warn { margin-top: 22px; font-size: 0.875rem; color: #d9d9de; padding: 14px 16px; border-radius: 14px; background: rgb(255 255 255 / .06); }
+.install h3 { font-size: 0.9375rem; font-weight: 700; margin-bottom: 12px; }
+.cmd { display: flex; align-items: center; gap: 8px; min-width: 0; border-radius: 14px; background: rgb(255 255 255 / .07); padding: 6px 6px 6px 16px; margin-bottom: 10px; }
+.cmd pre { margin: 0; flex: 1; min-width: 0; overflow-x: auto; white-space: pre; font-size: 0.8rem; line-height: 1.5; padding-block: 8px; scrollbar-width: thin; color: #f1f1f3; }
+.cmd pre::before { content: "$ "; color: #8b8b92; }
+.copy { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 10px; border: 0; background: transparent; color: #a8a8ae; cursor: pointer; }
+.copy:hover { background: rgb(255 255 255 / .1); color: #fff; }
+.copy svg { width: 17px; height: 17px; }
+.copy .ok { display: none; color: #4ade80; } .copy.done .ok { display: block; } .copy.done .cp { display: none; }
+.install .small-note { font-size: 0.8125rem; color: #a8a8ae; margin-top: 4px; }
+.files { width: 100%; border-collapse: collapse; font-size: 0.875rem; margin-top: 26px; }
+.files th { text-align: left; font-weight: 600; color: #a8a8ae; padding: 0 12px 10px 0; border-bottom: 1px solid rgb(255 255 255 / .2); }
+.files td { padding: 11px 12px 11px 0; border-bottom: 1px solid rgb(255 255 255 / .1); vertical-align: top; color: #e4e4e8; }
+.files td:first-child { font: 0.76rem var(--f-code); word-break: break-all; width: 52%; color: #fff; }
+.install .install-card :focus-visible { outline-color: #fff; }
+@media (max-width: 900px) { .install-card { grid-template-columns: minmax(0, 1fr); border-radius: 24px; } }
+
+/* Alt bilgi */
+.foot { padding-block: 40px 48px; font-size: 0.875rem; color: var(--muted); position: relative; z-index: 1; }
+.foot .wrap { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; }
+.foot .wm { color: var(--ink); display: inline-flex; } .foot .wm svg { height: 22px; width: auto; }
+.foot nav { display: flex; flex-wrap: wrap; gap: 18px; margin-left: auto; }
+.foot a { color: var(--ink-2); }
+
+/* Hareket her bilgisayarda çalışır: hareket azaltma açıkken durmaz, kayma küçülür (0,3) ve saydamlık öne çıkar. */
+.hero > * { animation: rise .9s var(--ease) both; }
+.hero > *:nth-child(2) { animation-delay: .05s; } .hero > *:nth-child(3) { animation-delay: .1s; } .hero > *:nth-child(4) { animation-delay: .15s; } .hero > *:nth-child(n+5) { animation-delay: .2s; }
+@keyframes rise { from { transform: translateY(14px); opacity: .5; } }
+@media (prefers-reduced-motion: reduce) {
+  @keyframes rise { from { transform: translateY(4px); opacity: .25; } }
+}
+
+/* Dil seçici, yakında etiketi, sürüm durumu, platform listesi */
+.nav .lang { display: inline-grid; place-items: center; min-width: 38px; height: 38px; padding: 0 10px; border-radius: 999px; border: 0; background: transparent; color: rgb(255 255 255 / .82); font: 800 0.75rem/1 var(--f-sans); letter-spacing: 0.06em; cursor: pointer; }
+.nav .lang:hover { background: rgb(255 255 255 / .08); color: #fff; }
+.soon-tag { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 999px; background: rgb(255 255 255 / .16); font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+:root[data-theme="dark"] .btn:not(.light) .soon-tag { background: rgb(0 0 0 / .1); }
+:root.released .when-soon { display: none !important; }
+:root:not(.released) .when-out { display: none !important; }
+.hero .note a { color: inherit; }
+.platforms { list-style: none; margin: 0 0 26px; padding: 0; border-top: 1px solid rgb(255 255 255 / .14); }
+.platforms li { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid rgb(255 255 255 / .1); }
+.pl-txt { display: grid; gap: 2px; min-width: 0; }
+.pl-txt b { font-size: 1rem; }
+.pl-txt span { font-size: 0.8125rem; color: #b9b9c0; }
+.install .pl-btn { flex: none; min-height: 38px; padding: 0 14px; gap: 8px; font-size: 0.8125rem; }
+.pl-file { font-size: 0.72rem; opacity: .78; }
+</style>
+
+</head>
+<body>
+<div class="page">
+<canvas class="bg" id="bg" aria-hidden="true"></canvas>
+<div class="glow" aria-hidden="true"></div>
+
+<div class="nav-shell" id="top">
+  <nav class="nav" data-i18n-aria="nav_main" aria-label="Ana menü">
+    <a class="brand" href="#top" data-i18n-aria="nav_home" aria-label="MathOS ana sayfa"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1125 379" fill="currentColor" role="img" aria-label="MathOS"><path fill-rule="evenodd" d="M812.9 374.6C812.4 374.3 812.3 373 812.3 354.3C812.3 343 812.2 334.3 812 334.2C811.9 334.1 744.1 333.9 661.5 333.8C578.8 333.7 437.4 333.6 347.3 333.5C50 333.1 20.3 333.1 20 333.5C19.9 333.7 19.6 334.4 19.3 335.1C18.5 337.9 16 339.6 12.7 339.8C8.9 339.9 6.2 338.4 4.6 335.2C3.5 333.1 3.6 330.9 4.9 328.2C6.6 324.9 9.4 323.3 12.9 323.8C16.4 324.3 18.6 326.1 19.7 329.4L20.2 331.2L93.4 331.4C214.4 331.7 810.8 332.1 811.8 331.9C812.5 331.7 812.7 331.5 812.6 330.9C812.5 330.2 812.4 330.2 805.2 330C793.3 329.7 784.3 328.1 768.8 323.6C755.8 319.9 738.9 311.1 728.2 302.7C719.6 296 713.7 289.9 706.9 280.8C702.6 275 700.6 271.7 697.7 265.6C691.8 253.3 689.4 245.5 687.3 230.8C686.8 227.2 686.5 212.6 687 208.8C687.2 207 687.5 204.1 687.7 202.3C688 199.4 688.8 194.3 689.2 192.9C689.5 192 690.2 192.2 692.9 194.3C696.5 197 698 198 701.7 200.1C709 204.3 721.5 210.3 722.9 210.3C724.5 210.3 724.6 210.8 724.8 222C725 234 725.4 238.1 727.2 246.7C727.4 247.9 727.9 250 728.2 251.5C729.4 257.5 731.3 263.6 733.1 267.7C733.6 268.7 734.5 270.9 735.2 272.7C737 277.4 740.5 283.7 744.4 289.5C749.7 297.3 759.8 307.1 767.4 311.8C774.9 316.5 785.5 320.9 793.8 322.6C795.7 323 797.8 323.5 798.7 323.7C800.7 324.2 811 325.1 811.7 324.8C812.3 324.6 812.3 322.9 812.4 277.2C812.5 250.6 812.4 229.7 812.2 229.4C812 229.2 811.5 229 811 229C809 229 805 225.3 804.5 223C804.1 221.2 804.3 221.2 789.9 221C770.2 220.7 762.4 219.8 749 216.4C736.6 213.3 727.5 210.2 718.7 205.9C708.8 201.2 708.6 201.1 700.8 196.2C699.9 195.6 698.2 194.6 697 194C695.8 193.4 694.2 192.5 693.4 191.9C692.7 191.4 691.9 191 691.8 191C691.7 191 690.1 189.9 688.2 188.6C686.3 187.3 683.6 185.5 682.3 184.7C677.9 182 667 173 659 165.5C643.3 150.9 638 145.8 619.2 127.3C610.6 118.9 599.4 108.5 591.9 101.9C589.3 99.6 585.7 96.5 583.9 94.9C582 93.3 579.4 91.2 578.1 90.2C573.5 86.9 566.1 81.5 564.3 80.2C561 77.7 556.1 74.4 551.8 71.8C549.4 70.4 546.7 68.7 545.7 68C543.7 66.7 537.1 63 536.7 63C536.6 63 534.7 62 532.4 60.7C523.4 55.6 510.8 50.3 498.5 46.3C494.6 45.1 493.5 44.8 485.7 42.8C473.6 39.8 470.2 39.2 457.5 37.5C448.1 36.3 431.3 35.9 423.5 36.7C413.4 37.7 409.4 38.1 404.8 38.9C402.1 39.3 398.9 39.9 397.7 40C396.6 40.2 394.9 40.5 394.1 40.7C393.2 40.9 391.9 41.2 391.2 41.3C390.4 41.5 387.4 42.2 384.5 42.8C374.8 45 360.4 49.7 346.7 55.2C340.8 57.5 319.3 67.9 315.8 70.1C314.1 71.1 307.3 75 305.4 76C302.6 77.4 303.9 76.3 309.3 72.6C315.2 68.7 335.7 57.8 344.6 53.8C350.9 51 366 45.4 374.9 42.7C376.6 42.1 378.2 41.6 378.3 41.5C379 41.1 393.8 37.4 397.7 36.7C411.2 34.3 412.4 34.1 422.3 33.2C434.8 32 444.7 31.8 454.2 32.7C467 33.8 471.2 34.4 480.7 36.2C482.2 36.5 484.2 36.8 485.1 37C486 37.2 486.8 37.4 487 37.5C487.1 37.6 487.9 37.8 488.7 38C494.2 39.1 509.4 43.9 519.3 47.8C524.4 49.7 533.6 53.9 538 56.2C539.9 57.3 543.7 59.2 546.3 60.7C552.1 63.7 555.2 65.6 564.1 71.6C570.8 76 572.5 77.3 579.7 82.8C593.4 93.4 605.1 103.8 621.4 120C625.8 124.3 629.5 127.9 629.7 128C629.9 128.2 636 134.2 643.3 141.4C650.6 148.7 657.5 155.5 658.7 156.5C659.9 157.6 664.4 161.7 668.6 165.6C675.5 172.1 685 180.2 689.2 183C691.1 184.3 692.5 185.4 696.1 188.2C697.5 189.3 700.2 191.3 702.1 192.6C706.2 195.3 720.3 202.7 723.3 203.6C724.5 204 726.8 204.8 728.3 205.5C734.1 208 744.9 211.2 754.8 213.2C759.5 214.2 763.3 214.8 773.3 216C777.8 216.5 788.9 217 796.2 217C802.3 217 802.9 216.9 803.4 216.4C803.8 216.1 804 215.6 804 215.4C804 213.5 807.8 209.6 810.2 209C811 208.8 811.8 208.4 812 208.2C812.5 207.6 812.8 97.6 812.3 96.7C812.1 96.1 811.7 96 810.4 96C806.9 96 798.2 97.3 794.2 98.4C786.8 100.4 782.9 102 775.3 106.1C770.1 108.9 760.4 116.5 755.2 121.8C744.9 132.4 735.4 149.4 730.7 166C730.5 166.6 730.1 168.3 729.7 169.7C729.3 171 728.8 172.8 728.6 173.7C727.8 177.8 726.8 183.5 726.4 187C726.1 188.6 725.8 191.4 725.5 193.3C725.2 195.2 725 197.8 725 199.1C725 200.6 724.9 201.4 724.6 201.5C724.1 201.7 720.6 200.2 713.8 196.8C709 194.4 693 183.7 692.2 182.3C692 182.1 692.3 181.2 692.6 180.2C693 179.3 694 176.6 694.8 174.3C698.8 163.1 704.8 151.6 711.4 142.5C715 137.5 724.6 127.3 729.7 123C739.9 114.5 746.1 110.3 756.3 105C759.5 103.3 761 102.6 765.5 100.7C767.3 99.9 774.8 97.2 776.8 96.6C780.2 95.6 789.3 93.5 792.1 93C793.3 92.8 794.5 92.6 794.7 92.5C795.6 92.2 807.7 91 809.8 91C811.5 91 812 90.9 812.3 90.4C812.5 90.1 812.6 72 812.6 47.7C812.7 21.1 812.8 5.3 813 4.9C813.5 4.1 814.9 4.2 815.3 5C815.5 5.4 815.6 19.6 815.6 47.2C815.6 70.1 815.7 89.2 815.8 89.7C816 90.2 816.3 90.7 816.6 90.8C816.9 90.9 819.9 91 823.2 91.2C829.3 91.4 832.5 91.7 838 92.6C842 93.2 848.8 94.6 850.5 95.2C851.2 95.4 853 95.9 854.5 96.3C863 98.7 874.2 103.4 880.3 107.2C891.6 114.2 894.6 116.4 901.7 122.8C912.4 132.6 923.2 148 928.2 160.8C928.7 162.1 929.3 163.6 929.5 164.2C931.6 169.1 935.5 184 936.5 191.2C938 202.3 938.2 205 938.2 216.3C938.1 227.7 937.9 230.7 936.5 239.7C935.8 243.9 935.5 244.1 933.4 242.3C931.1 240.1 922.3 234 921.5 234C921.4 234 920.2 233.3 918.8 232.4C912.6 228.7 907.9 226.2 904.6 224.9C903.9 224.6 903.3 224.2 903.3 223.9C903.3 223.7 903.2 219 903.2 213.5C903.2 206.4 903 202.1 902.6 198.5C902.2 195.8 901.8 191.5 901.5 189C900.3 178.1 898 167.3 894.8 157.9C893.7 154.6 890 145.9 887.5 141.1C881.6 129.2 871.5 117.7 860.2 109.9C852.9 104.7 843.3 100.4 834 98.1C830.3 97.1 821.7 96 818.2 96C816.7 96 816.3 96.1 816 96.6C815.6 97.4 815.5 207.3 815.9 207.9C816.1 208.1 817.2 208.7 818.6 209.3C821.4 210.6 822.4 211.6 823.8 214.4L824.8 216.5L840 216.5C857.6 216.6 861.9 216.9 875.5 219.1C884.6 220.6 895.3 223.7 902.1 226.8C909.3 230 918.4 234.8 921.4 236.9C923.3 238.1 927.5 241.2 930.8 243.7C934.2 246.1 937.9 248.8 939 249.7C941.9 251.6 957.5 267.2 961.6 272C963.4 274.1 967.8 278.9 971.5 282.6C986 297.4 998.9 307.1 1012.9 313.7C1017.9 316 1019.5 316.7 1024.3 318.3C1031.4 320.7 1031.2 320.7 1035.1 319.6C1040.2 318.3 1045.7 315.8 1049.5 313.2C1052.8 311 1058.5 305.2 1060.8 301.7C1065.1 295.2 1066.2 292.4 1067.7 285.2C1068.6 280.4 1068.6 270.9 1067.7 266.6C1064.8 254 1057 244.2 1042.8 235.6C1036.7 231.9 1024.8 225.8 1019.6 223.6C1017.4 222.7 1014.7 221.5 1012.2 220.3C1011.1 219.7 1009.5 219 1008.7 218.7C1007.8 218.3 1004.2 216.7 1000.7 215C997.1 213.4 993.7 211.8 993.2 211.5C987.9 209.1 978.7 204 975.9 202C975.3 201.6 973.6 200.3 972.1 199.3C967.2 195.8 962.5 190.9 958.9 185.3C953.5 177.1 950 165.1 950 155C950 150.5 950.7 143.9 951.5 141.1C951.8 140.2 952 139.2 952 138.9C952 138.1 953.9 132.3 955.1 129.3C959.4 118.9 967.7 109.2 977.8 102.6C984 98.6 993.1 94.6 999.5 93.2C1008.1 91.1 1018 90.3 1026.3 90.9C1029.4 91.2 1032.7 91.5 1033.8 91.7C1040.2 92.9 1047 94.7 1053.5 96.8C1061.6 99.6 1064.3 100.2 1066.8 99.8C1070 99.4 1071.9 98.2 1074.1 95.1C1075.2 93.4 1076 93.3 1076.4 95C1076.7 96.5 1078.3 111.5 1079.7 125C1079.8 126.7 1080.1 129.5 1080.2 131.2C1080.3 132.8 1080.6 135.8 1080.8 137.8C1081.1 139.8 1081.6 145 1082 149.3C1082.8 157.9 1082.9 157.7 1080.8 157.7C1079.7 157.7 1079.7 157.6 1079 155.4C1078.7 154.2 1078.3 152.6 1078.2 152C1078 151.4 1077.3 149 1076.5 146.7C1070.9 130.2 1065.4 120.8 1055.8 111.1C1048.2 103.4 1040 98.8 1030.1 96.6C1027.4 96 1025.7 95.9 1020 95.9C1012.4 95.8 1010.5 96.1 1005 97.9C994.2 101.4 985.1 109.2 980.6 118.8C976.8 126.9 975.6 134.9 976.8 143.9C977.3 147.1 977.7 148.6 979.8 154.2C980.3 155.6 982.3 159 983.6 160.7C986.8 164.7 992 169.1 998 172.8C1000.8 174.6 1013.6 181 1018.2 183.1C1021.5 184.5 1023.7 185.5 1027.5 187.3C1029.5 188.3 1031.6 189.2 1032.2 189.5C1032.7 189.7 1033.7 190.1 1034.3 190.4C1035 190.7 1036.2 191.3 1037.2 191.7C1050.1 197.4 1063.1 204.5 1070.8 210C1074.9 212.9 1082.1 219.8 1085.3 223.8C1088.8 228.2 1090.4 230.7 1092.6 235.8C1095.5 242.2 1096.1 244.1 1097.2 250.5C1098 255.1 1098 265.7 1097.2 270.5C1096 277.2 1093.4 284.9 1090.3 290.7C1088.4 294.1 1083.7 300.2 1080.1 303.8C1071.9 312.1 1059.9 318.9 1047.7 322.3C1044.7 323.1 1043.8 323.6 1044.6 324.1C1044.7 324.2 1048.5 324.9 1053 325.6C1057.5 326.4 1062 327.2 1063 327.4C1066.2 328 1071.7 328.7 1076.3 329C1078.8 329.2 1082 329.5 1083.5 329.7C1087.2 330.1 1103.9 330.8 1104.3 330.5C1104.5 330.4 1105.1 329.7 1105.5 328.9C1108.2 324.8 1112.7 323.3 1116.6 325.2C1122.4 328.1 1122.9 336.3 1117.7 339.8C1116.4 340.7 1115.8 340.8 1113.8 340.9C1109.8 341.2 1107 339.4 1105.4 335.9L1104.8 334.4L1096.3 334.2C1091.6 334.1 1026.7 334 952 334C846.6 334 816.2 334.1 816 334.4C815.8 334.6 815.7 343.6 815.7 354.3C815.7 366.6 815.5 374 815.3 374.4C814.9 375.1 813.8 375.2 812.9 374.6ZM1066.6 331.9C1067.4 331.4 1066.3 331 1061.8 330.5C1038.8 327.7 1021.4 322.9 1006.5 315C996.6 309.8 990.3 305.6 980.1 297.3C975.6 293.7 961.4 279.7 953 270.6C947 264.2 933.6 251.2 929 247.4C926.5 245.4 923.2 242.9 921.7 241.8C917.5 239 904.8 231.4 903.6 231C903 230.9 900.6 230 898.2 229.2C893.3 227.4 882.2 224 881.4 224C881.1 224 880.1 223.8 879.2 223.5C871.3 221.3 859.4 220.3 841.5 220.3C827.2 220.4 824.3 220.7 824.3 222.3C824.3 223.1 823.1 225.3 822 226.4C821 227.6 819.4 228.4 817.4 229C816.4 229.2 816 229.6 815.8 230.1C815.7 230.5 815.7 252 815.7 277.8L815.8 324.8L816.8 324.9C818.8 325.2 830.6 323.5 836.7 322.1C841.7 321 845.3 319.6 852.3 316.1C867.1 308.8 876.7 300.3 885.9 286.5C888.9 282 890.4 279.3 892.7 274.3C896.2 266.7 898.1 260.9 900 252.3C900.6 249.7 901.3 246.5 901.6 245.2C902 243.3 903 236.2 903 234.8C903 234.3 904 234.2 904.5 234.6C904.7 234.8 905.7 235.4 906.7 235.9C914.5 240.2 914.3 240 920.2 244.3C925 247.8 927.2 249.5 930 252.1C932.4 254.3 932.5 254.7 931 259.1C929.9 262.5 924.8 272 921.6 276.8C912.7 290 899.3 302.6 884.9 311.2C875.2 317 867.9 320.5 859.8 322.9C849.5 326.1 844.3 327.5 841.3 328C835.2 329 828.4 329.7 823.2 329.9C815.9 330.1 815.6 330.1 815.7 331.1L815.8 331.8L930 332C1068.2 332.2 1066.1 332.2 1066.6 331.9ZM338.2 327.8C330 326 323.8 323.5 319.5 320.1C315.5 316.9 311.8 311.1 310.3 305.5C308.8 299.8 309.2 292.2 311.2 287C314.2 279.6 321.8 272 333 265.3C339.1 261.7 344.2 259.3 362.8 251.5C369.2 248.8 376.1 245.8 380 244.1C387.6 240.7 395.7 236.1 396.4 234.9C396.9 233.9 396.5 219 395.8 215C395.1 211 393.4 206 392 203.5C391.3 202.4 389.5 200.1 387.8 198.4C385.1 195.7 384.5 195.2 381.3 193.7C375.8 191.1 374.2 190.8 366.8 190.8C361.4 190.9 360.1 191 358 191.6C351.5 193.4 349.1 194.7 346.1 197.6C343.7 200.1 342.5 202.5 342.4 205.6C342.2 208.2 342.5 209.2 344.4 213.3C347.6 220 346.9 226.7 342.8 230.8C338.7 234.9 331.7 236.2 326.7 233.8C321 231.1 318.3 226.8 318.3 220.4C318.3 213.1 320.9 207.6 327.1 201.8C330.5 198.6 332.6 197 336.5 195C342.2 192 347.1 190.1 353 188.5C354.2 188.2 355.6 187.8 356.2 187.6C356.7 187.4 358.4 187.1 360 187C361.6 186.8 364 186.5 365.3 186.4C368.6 185.9 380.3 185.9 382.9 186.3C384 186.5 386.2 186.8 387.7 187C391.2 187.4 393.6 188 400.3 190C413.6 194.1 423 203.2 426 214.9C427.6 221.2 427.7 222.5 427.7 258.9C427.7 279.1 427.8 295.4 428 298.5C428.7 309.2 430.9 314.4 435.8 316.8C437.9 317.9 440.8 318 443 317C445.1 316 447.9 313.5 449.8 310.9C450.7 309.7 451.6 308.7 451.9 308.7C453.3 308.7 452.4 311.4 449.5 315.7C448.1 317.7 444.9 321.1 443 322.6C440.8 324.3 436.1 326.2 431.2 327.3C427.6 328.2 421.3 328.3 419 327.5C418.2 327.3 416.4 326.7 415.2 326.3C410.6 324.9 408.7 323.8 405.5 320.5C403.8 318.8 402 316.6 401.4 315.6C399.3 312.1 397.3 305.3 397.3 301.6C397.3 299.3 397.1 298.3 396.7 298.3C396.5 298.3 395.7 299.3 394.8 300.6C392.8 303.4 383.8 312.4 380 315.4C372 321.6 364.3 325.3 355.2 327.1C351.6 327.9 350.3 328 345 328C341.6 327.9 338.5 327.9 338.2 327.8ZM487.2 327.6C486.6 327.5 485.4 327.2 484.5 327C481.3 326.4 475.3 323.9 472.8 322.2C471.4 321.3 469 319.3 467.5 317.8C465.1 315.4 464.4 314.5 463.2 311.9C461.5 308.4 460.9 306.5 460 300.4C459.4 296.2 459.3 294.6 459.3 245.5C459.3 217.7 459.3 195 459.2 194.9C459.2 194.9 454.4 194.8 448.5 194.7L437.8 194.5L437.7 193.2C437.6 191.6 438.2 191 440 191C441.2 191 442.4 190.7 446.8 189.3C453.9 187.1 458.4 184.7 464.8 179.9C473 173.7 481.7 162.8 485.1 154.6C486.1 152.1 486.2 152 487.2 152C487.8 152 488.3 152.2 488.4 152.4C488.5 152.7 488.6 160.9 488.6 170.7C488.7 180.5 488.8 188.6 488.9 188.7C489.1 188.9 498 189 508.8 189.1L528.5 189.2L528.6 191.1C528.6 192.2 528.5 193.4 528.3 193.8L528 194.7L508.4 194.7L488.8 194.8L488.7 206.7C488.6 213.2 488.6 235.9 488.7 257.2C488.9 298.3 488.9 297.8 490.5 303.5C491.7 307.8 494.3 311.8 497.1 314.1C500.5 316.7 503.6 317.9 508.3 318.2C515.4 318.7 521.6 316.1 527.7 309.9C528.7 308.8 529.7 308 530.1 308C530.8 308 531.2 308.9 530.8 309.5C530.6 309.7 529.8 311 528.9 312.4C525.8 316.9 521.5 320.5 514.8 323.8C508.1 327.1 503.8 328 494.9 328C491.2 328 487.7 327.8 487.2 327.6ZM530.3 324.7C526.9 324.5 526.8 324.5 526.8 323.7C526.8 322.9 527 322.8 528.5 322.6C531.2 322.3 535.3 321 537.4 319.9C539.7 318.7 542.6 315.7 543.8 313.3C544.3 312.3 544.9 310.4 545.3 309C545.8 306.7 545.8 301.3 545.8 223.8C545.8 145.1 545.8 141 545.2 137.7C544.2 131.8 542.7 128.7 539.2 125.4C537.2 123.5 535 122.3 532 121.7C529.7 121.2 529.2 120.9 529.2 120.3C529.2 119.6 530.4 119.1 535.2 118C540.2 116.8 545 115.3 547.8 114C548.9 113.5 550.2 113 550.6 112.8C555 111.5 568.4 103.2 572.6 99.2C573.9 98 574.8 97.3 575.2 97.5C575.7 97.7 575.8 105.2 575.8 155.8C575.9 206.1 576 214.4 576.4 214.3C576.6 214.2 577.8 212.7 578.9 211C581.1 207.7 585.8 202.4 589.2 199.4C594.7 194.5 603.7 189.7 611.3 187.6C617 186 618.2 185.8 627 185.9C637.5 185.9 638.5 186.1 646.8 190.2C653.6 193.6 658.8 199.4 662 207.4C663.4 210.9 664.2 214.3 665 219.8C665.7 224.3 665.7 226.1 665.9 259.2C666 295.1 666.2 302.1 667.4 307C668.8 313 672 317.5 676.3 319.7C679.6 321.3 680.8 321.7 685 322.3C688.7 322.9 688.8 322.9 688.8 323.7L688.8 324.5L674.8 324.8C667.1 324.9 650.6 325 638 324.9C617.6 324.8 615.2 324.7 614.9 324.3C614.3 323.3 615.2 322.8 617.5 322.5C620.5 322.2 624.1 321.2 625.9 320.1C628 318.9 630.8 316.3 632 314.4C634.9 309.8 635 308.2 635 273.9C635 235 634.5 222.2 632.9 217C630 207.3 627 203.2 621 200.2C617.3 198.3 615.2 197.9 609.8 197.9C603.6 197.9 601.4 198.4 595.2 201.8C593.3 202.8 589.5 205.9 587.9 207.7C583.4 212.9 580.9 217.3 579 223.6C576.5 231.9 576.3 234.6 576.3 266.9C576.3 292.7 576.6 301.9 577.4 306C579.3 315.8 585.3 321.1 595.5 322.2C598.9 322.5 599.1 322.6 598.9 323.6C598.8 324.5 598.8 324.5 595.8 324.7C592.4 325 535.7 324.9 530.3 324.7ZM215.3 323.5C215.1 323.2 215.1 322.8 215.3 322.4C215.6 321.9 216.3 321.7 218.9 321.4C226 320.5 232.9 317.3 236.9 312.8C242.1 307.2 244.4 300.5 245.3 288.7C246.2 277.5 247.9 129.5 247.2 128.9C246.7 128.6 246.1 129.2 245.8 130.3C245.5 131.8 242 139.6 239.8 144C238.7 146.3 237.2 149.4 236.6 151C234.9 155.1 230.6 165.1 229.2 168.2C227.9 170.8 225.9 175.5 216.8 196.3C214.3 202.1 211.8 207.9 211.1 209.2C207.3 217.4 205.4 221.4 204.6 223.5C204.3 224.4 203.5 226.1 202.9 227.3C201.5 230.3 201.2 231.1 199.8 234.5C198.6 237.5 197.6 239.7 196.3 242.7C195.6 244 193.3 249.4 190.1 256.8C189.5 258.3 188 261.9 186.8 264.8C185.6 267.8 183.7 272.2 182.5 274.7C181.4 277.1 180.1 280 179.7 281C179.3 282 178.8 283.1 178.7 283.4C178.5 283.6 177.3 286.4 176 289.5C174.7 292.6 173.1 296.2 172.4 297.5C171.8 298.8 170.8 301.1 170.1 302.7C169.4 304.2 168.5 306.4 168 307.6C167.4 308.7 167 309.7 167 309.8C167 309.9 166.3 311.4 165.5 313.2C164.7 314.9 164 316.4 164 316.5C164 316.6 163.3 318.3 162.3 320.2C160.6 324 159.9 324.5 159.2 322.5C159.1 321.9 158.7 321 158.5 320.4C158.2 319.9 158 319.3 158 319.2C158 319.1 157 317 155.8 314.5C154.6 311.9 152.5 307.2 151.2 304C149.3 299.5 142 282.2 136.5 269.5C136.1 268.4 135.4 267 133.6 263C132.9 261.6 132.1 259.7 131.7 258.7C130.6 256 129.6 253.7 128.6 251.3C128.3 250.7 127.5 248.8 126.8 247.2C126.1 245.5 125.1 243.2 124.6 242C124.1 240.8 123.5 239.5 123.3 239C123.1 238.5 122.7 237.7 122.5 237.2C118.8 228.9 115.8 221.6 110.5 208.7C109.4 206.2 107.9 202.6 106.9 200.7C106 198.7 104.2 194.5 102.8 191.2C101.4 188 99.9 184.4 99.4 183.2C98.2 180.6 93.9 170.5 93.4 169.2C92.7 167 90.6 161.8 90.3 161.5C90.2 161.3 88.9 158.4 87.5 155C85 149.1 84.3 147.3 80.2 138C79.3 135.7 78.3 133.3 78 132.8C77.5 131.5 77.2 131.4 76.9 132.4C76.4 134.4 77.4 267.4 78 275.3C78.5 281.5 79.6 288.9 80.7 292.7C83.9 304.3 90.3 313 99 317.3C102.8 319.2 105.6 320.3 108.8 321C111.1 321.4 111.5 321.6 111.6 322.3L111.7 323L73.9 323C36.3 323 36 323 36 322.3C36 321.9 36.3 321.6 36.9 321.5C39.6 320.9 40.7 320.5 43.2 319.6C49.7 317.1 55.6 312.5 60.1 306.2C62.5 302.7 64.5 298 66 292C68.1 283.5 69 275.6 69.3 261.3C70 235 70.4 136.3 69.9 130.7C69.3 123.4 68.2 119.4 65.4 113.8C63.8 110.8 63 109.7 60.8 107.5C57.8 104.5 53.6 101.5 50.3 100.2C47.8 99.2 42.3 97.7 41 97.7C40.5 97.7 39.8 97.5 39.5 97.2C39 96.8 38.9 96.6 39.2 96.1C39.6 95.5 41 95.5 69.4 95.4C85.8 95.4 99.5 95.4 99.9 95.5C100.3 95.6 100.8 96.3 101.3 97.6C101.8 98.6 103.1 101.6 104.4 104.1C105.6 106.6 107.3 110.1 108 111.9C108.8 113.7 109.8 116.1 110.4 117.2C111.2 119.1 111.8 120.4 115.8 129.5C116.8 131.7 118.6 135.6 119.8 138.1C121 140.6 122 142.7 122 142.8C122 142.9 122.4 143.9 123 145.1C123.5 146.2 124.4 148.1 124.8 149.2C125.3 150.3 126 151.8 126.4 152.7C127.2 154.4 128 156.1 128.5 157.5C129.4 159.5 131 163 134 169C135.6 172.4 137 175.3 137 175.4C137 175.5 137.5 176.8 138.2 178.2C140.2 182.5 140.9 184.1 141.7 186C142.1 187 143 189.1 143.7 190.6C144.4 192.1 145 193.4 145 193.5C145 193.5 145.7 195.1 146.5 196.8C147.3 198.6 148.4 201 148.9 202C149.3 203.1 150.1 205 150.7 206.2C151.2 207.3 152 209.2 152.5 210.2C152.9 211.3 154.2 214.1 155.3 216.5C156.5 218.9 157.7 221.4 158 222.2C158.3 222.9 158.9 224.2 159.3 225.2C159.7 226.1 160.2 227.3 160.5 227.8C160.7 228.4 161.7 230.6 162.7 232.7C163.8 234.8 165.2 238 166 239.8C167.4 243 167.8 244.1 170.7 250.3C171.4 251.9 172.2 253.6 172.5 254.2C175.7 261.5 177.8 265.7 178.3 265.7C178.7 265.7 179.6 263.9 181.2 260.1C182.5 257 185.5 250.3 187.8 245.2C190 240 192.4 234.5 193.1 233C193.8 231.4 195.1 228.4 196.1 226.2C197.1 224.1 198.6 220.9 199.3 219.1C200.1 217.3 201.4 214.4 202.2 212.7C203.1 210.9 205.2 206.2 207 202.2C208.8 198.1 210.9 193.6 211.7 192C212.4 190.4 213.4 188.5 213.7 187.6C214.6 185.3 221 171.1 223.8 165.2C225 162.4 228.4 155 231.2 148.7C237.8 133.7 239.1 130.8 242.7 123.2C244.4 119.7 246.8 114.4 248 111.5C251 104.5 254.6 96.9 255.1 96.5C255.4 96.3 265.4 96.2 284.2 96.3L312.8 96.5L312.8 97.3C312.8 98.1 312.7 98.2 310.2 98.6C300.5 100 291.1 106.5 287.3 114.4C284.2 120.7 283.1 125.8 282.7 134.8C282.3 143.5 282.3 280 282.7 287.3C282.8 290.5 283.2 294.2 283.5 295.5C285.6 305.3 287.5 309.6 291.8 313.8C295.8 317.8 302.8 321 308.9 321.7C312 322.1 312 322.1 311.9 323L311.8 323.8L263.8 323.9C223.6 323.9 215.6 323.9 215.3 323.5ZM367.6 315.1C378 312.5 389.5 302.7 394.7 291.8L396.5 288.2L396.5 264.8C396.5 247.4 396.4 241.3 396.1 241C395.8 240.7 395.5 240.8 394.6 241.4C394 241.9 391.8 243.2 389.7 244.3C379.8 249.7 367.2 257.3 363.7 259.8C359.3 263 354.5 267.2 352.7 269.3C344.7 278.6 341.9 286.2 342.7 296.8C343.1 303 344.8 306.8 348.7 310.7C353.4 315.5 360.1 317 367.6 315.1Z"/></svg></a>
+    <a class="link" href="#guven" data-i18n="nav_trust">Güven modeli</a>
+    <a class="link" href="#yol" data-i18n="nav_how">Nasıl çalışır</a>
+    <a class="link" href="#uygulama" data-i18n="nav_app">Uygulama</a>
+    <a class="link" href="#modeller" data-i18n="nav_models">Modeller</a>
+    <span class="sep" aria-hidden="true"></span>
+    <a class="link" href="https://github.com/bakiacikgoz/MathOS" target="_blank" rel="noopener">GitHub</a>
+    <button class="lang" type="button" id="lang" data-i18n-aria="lang_switch" aria-label="Switch to English"><span data-i18n="lang_other">EN</span></button>
+    <button class="theme" type="button" id="theme" aria-label="Koyu temaya geç">
+      <svg class="ico moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></svg>
+      <svg class="ico sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></svg>
+    </button>
+    <a class="cta" href="#kurulum" data-i18n="nav_get">İndir</a>
+  </nav>
+</div>
+
+<main>
+  <section class="hero wrap" aria-labelledby="h-hero">
+    <a class="badge" href="https://github.com/bakiacikgoz/MathOS" target="_blank" rel="noopener" data-dl="badge">
+      <span class="new when-soon" data-i18n="badge_soon_tag">YAKINDA</span><span class="new when-out" data-i18n="badge_new_tag">YENİ</span>
+      <span class="when-soon" data-i18n="badge_soon">MathOS 1.0 yakında</span><span class="when-out" data-i18n="badge_out">MathOS 1.0 yayında</span>
+      <span class="badge-more when-soon" data-i18n="badge_follow">GitHub'da takip et ›</span><span class="badge-more when-out" data-i18n="badge_notes">Sürüm notları ›</span>
+    </a>
+    <h1 id="h-hero" data-i18n="hero_title">Yapay zekâ önerir.<br>Lean karar verir.</h1>
+    <p class="sub" data-i18n="hero_sub">Matematik araştırman için yerel bir çalışma alanı. Varsayımlar, Lean formelleştirmeleri, kanıt denemeleri ve literatür tek klasörde durur. Asistan seninle çalışır; bir iddiayı doğrulanmış sayabilen tek şey Lean çekirdeğidir.</p>
+    <div class="actions">
+      <a class="btn" id="dl-primary" href="https://github.com/bakiacikgoz/MathOS" target="_blank" rel="noopener" data-dl="win">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>
+        <span class="os-label" data-os="win" data-i18n="dl_win">Windows için indir</span><span class="os-label" data-os="mac" data-i18n="dl_mac" hidden>macOS için indir</span><span class="os-label" data-os="linux" data-i18n="dl_linux" hidden>Linux için indir</span>
+        <span class="soon-tag when-soon" data-i18n="soon">Yakında</span>
+      </a>
+      <a class="btn light" href="#yol" data-i18n="hero_how">Nasıl çalıştığını gör</a>
+    </div>
+    <p class="note"><span data-i18n="hero_note">Ücretsiz ve açık kaynak</span> · <a href="#kurulum" data-i18n="hero_other">Windows, macOS ve Linux</a></p>
+
+    <div class="stage">
+      <div class="frame"><img src="img/claim-workflow.webp" width="1600" height="1000" data-i18n-alt="alt_claim" alt="MathOS iddia ekranı: Lean'e çeviri ve doğal dil ile Lean ifadesinin anlam karşılaştırması." fetchpriority="high"></div>
+      <div class="chip chip-verified"><span class="tick"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.5 8.3 3 3 6-6.6"/></svg></span><span data-i18n="chip_kernel">Lean çekirdeği</span> <span class="state">KERNEL_VERIFIED</span></div>
+      <div class="hand" aria-hidden="true">
+        <svg viewBox="0 0 34 46" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M18 44c-6-6-9-13-4-19 4-5 10-1 7 4-3 4-9 1-9-6 0-6 4-12 8-19"/><path d="m16 7 4-4 2 6"/></svg>
+        <span data-i18n="hand">yalnız Lean</span>
+      </div>
+      <div class="chip chip-lang"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z"/></svg><span data-i18n="chip_lang">Türkçe ve İngilizce arayüz</span></div>
+      <div class="chip chip-models"><span class="num">60+</span><span data-i18n="chip_models">model sağlayıcı · Ollama · LM Studio</span></div>
+    </div>
+  </section>
+
+  <section class="block wrap" id="guven" aria-labelledby="h-guven">
+    <div class="head">
+      <span class="pill" data-i18n="nav_trust">Güven modeli</span>
+      <h2 id="h-guven" data-i18n="trust_title">Kanıt sayılan tek bir şey var.</h2>
+      <p data-i18n="trust_sub">Dil modelleri fikir üretmekte iyidir, yanlış bir kanıtı da kendinden emin anlatabilirler. MathOS ikisini tasarım gereği ayrı tutar.</p>
+    </div>
+
+    <figure class="gate panel" id="gate" data-state="verified" data-i18n-aria="gate_aria" aria-label="Bir iddianın öneriden doğrulamaya geçişi">
+      <svg class="gate-curve" aria-hidden="true"><path class="prop"/><path class="proof"/><circle class="end" r="3.5"/></svg>
+      <div class="card proposal">
+        <div class="card-head"><span class="tag" data-i18n="tag_prop">Öneri</span><span>model · local-math-7b</span></div>
+        <div class="claim-id" data-i18n="claim_id">T-001 · Teorem</div>
+        <div class="claim-title" data-i18n="claim_title">İlk n tek sayının toplamı</div>
+        <math display="block" data-i18n-aria="math_aria" aria-label="i sıfırdan n eksi bire kadar 2i artı 1 toplamı eşittir n kare">
+          <munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>0</mn></mrow><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></munderover>
+          <mo stretchy="false">(</mo><mn>2</mn><mi>i</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo><mo>=</mo><msup><mi>n</mi><mn>2</mn></msup>
+        </math>
+<pre class="lean"><span class="k">theorem</span> odd_sum (n : ℕ) :
+    ∑ i ∈ Finset.range n, (2 * i + 1) = n ^ 2 := <span class="k">by</span>
+  <span class="k">induction</span> n <span class="k">with</span>
+  | zero =&gt; <span class="k">simp</span>
+  | succ n ih =&gt; <span class="k">rw</span> [Finset.sum_range_succ, ih]; <span class="k">ring</span></pre>
+        <p class="foot-note" data-i18n="prop_note">Modelin yazdığı kanıt değildir. Anlamı sen onaylarsın.</p>
+      </div>
+      <div class="axis">
+        <span class="gate-point" aria-hidden="true"></span>
+        <ol class="checks" data-i18n-aria="checks_aria" aria-label="VerificationGate denetimleri">
+          <li class="cap">VerificationGate</li>
+          <li class="pass"><span class="tk"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m2.5 6.2 2.3 2.3 4.7-4.9"/></svg></span><span data-i18n="chk_kernel">Lean çekirdeği</span></li>
+          <li class="pass"><span class="tk"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m2.5 6.2 2.3 2.3 4.7-4.9"/></svg></span><span data-i18n="chk_fid">Sadakat politikası</span></li>
+          <li class="pass"><span class="tk"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m2.5 6.2 2.3 2.3 4.7-4.9"/></svg></span><span data-i18n="chk_forb">Yasak yapılar</span></li>
+          <li class="pass"><span class="tk"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m2.5 6.2 2.3 2.3 4.7-4.9"/></svg></span><span data-i18n="chk_ax">Aksiyom denetimi</span></li>
+        </ol>
+      </div>
+      <div class="card verdict">
+        <div class="card-head"><span class="tag dark" data-i18n="tag_dec">Karar</span><span data-i18n="local_lean">yerel · Lean 4 v4.33.1</span></div>
+        <span class="vstate" role="status" aria-live="polite"><span class="dot"></span><span class="vs-text">KERNEL_VERIFIED</span></span>
+        <dl class="vlist">
+          <div><dt data-i18n="v_claim">İddia</dt><dd>T-001</dd></div>
+          <div><dt data-i18n="v_meaning">Anlam onayı</dt><dd data-i18n="v_meaning_who">Matematikçi</dd></div>
+          <div><dt data-i18n="v_proof">Kanıt kontrolü</dt><dd data-i18n="chk_kernel">Lean çekirdeği</dd></div>
+          <div><dt data-i18n="v_repro">Yeniden üretim</dt><dd data-i18n="v_capsule">Kapsül</dd></div>
+        </dl>
+        <button class="btn light small replay" type="button" id="replay">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+          <span data-i18n="replay">Yeniden doğrula</span>
+        </button>
+      </div>
+      <figcaption class="gate-cap" data-i18n="gate_cap">Kesik çizgi öneri, düz çizgi kanıt. Örnek çalışma alanı: <span class="mono">odd-sums</span></figcaption>
+    </figure>
+
+    <div class="panel ledger-panel">
+      <table class="ledger">
+        <thead><tr><th scope="col" data-i18n="l_source">Kaynak</th><th scope="col" data-i18n="l_counts">Ne sayılır</th><th scope="col" data-i18n="l_verify">İddiayı doğrular mı?</th></tr></thead>
+        <tbody>
+          <tr><td data-i18n="l1a">VerificationGate üzerinden Lean çekirdeği</td><td data-i18n="l1b">Kanıt</td><td><span class="yes"><span class="tick-s"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="m2.5 6.2 2.3 2.3 4.7-4.9"/></svg></span><span data-i18n="yes">Evet</span></span></td></tr>
+          <tr><td data-i18n="l2a">Bir formelleştirmeyi senin onaylaman</td><td data-i18n="l2b">Anlam sadık; doğrulamadan önce şart</td><td class="no" data-i18n="no">Hayır</td></tr>
+          <tr><td data-i18n="l3a">Model çıktısı (asistan, kanıtlayıcı, planlayıcı)</td><td data-i18n="tag_prop">Öneri</td><td class="no" data-i18n="no">Hayır</td></tr>
+          <tr><td data-i18n="l4a">Hesaplama ve deneyler</td><td><span class="st">COMPUTATIONAL_EVIDENCE</span></td><td class="no" data-i18n="no">Hayır</td></tr>
+          <tr><td data-i18n="l5a">Hafıza: notlar, uzlaşımlar, başarısız denemeler</td><td data-i18n="l5b">Kayıt ve bağlam</td><td class="no" data-i18n="no">Hayır</td></tr>
+          <tr><td data-i18n="l6a">Literatür ve atıflar</td><td><span class="st">EXTERNAL_SOURCE</span></td><td class="no" data-i18n="no">Hayır</td></tr>
+          <tr><td data-i18n="l7a">Eklentiler</td><td data-i18n="l7b">Süreç dışı araç</td><td class="no" data-i18n="no">Hayır</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="ledger-note" data-i18n="ledger_note">Eksik bir yetenek, örneğin kurulu olmayan Lean ya da ayarlanmamış bir sağlayıcı, sahte bir başarı olarak değil <span class="mono">BLOCKED</span> olarak görünür.</p>
+  </section>
+
+  <section class="block wrap" id="yol" aria-labelledby="h-yol">
+    <div class="head">
+      <span class="pill" data-i18n="nav_how">Nasıl çalışır</span>
+      <h2 id="h-yol" data-i18n="road_title">Fikirden doğrulanmış teoreme.</h2>
+      <p data-i18n="road_sub">Her iddianın doğrulamaya giden bir yolu var. Hangi adımda olduğunu her zaman görürsün.</p>
+    </div>
+    <ol class="road panel">
+      <li>
+        <span class="n">1</span><span class="who" data-i18n="who_you">Sen</span>
+        <h3 data-i18n="r1t">Fikir</h3>
+        <p data-i18n="r1p">Doğal dil ve LaTeX. <kbd>$</kbd> ile formül cümlenin içinde açılır.</p>
+        <div class="ex"><math data-i18n-aria="math_aria2" aria-label="ilk n tek sayının toplamı n karedir"><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>0</mn></mrow><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></munderover><mo stretchy="false">(</mo><mn>2</mn><mi>i</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo><mo>=</mo><msup><mi>n</mi><mn>2</mn></msup></math></div>
+      </li>
+      <li>
+        <span class="n">2</span><span class="who" data-i18n="who_either">Sen ya da model</span>
+        <h3 data-i18n="r2t">Lean ifadesi</h3>
+        <p data-i18n="r2p">Sen yazarsın ya da bir model Mathlib uyumlu bir taslak önerir.</p>
+        <div class="ex"><code>∑ i ∈ Finset.range n,
+  (2 * i + 1) = n ^ 2</code></div>
+      </li>
+      <li>
+        <span class="n">3</span><span class="who" data-i18n="who_only_you">Yalnız sen</span>
+        <h3 data-i18n="r3t">Aynı anlam mı?</h3>
+        <p data-i18n="r3p">İki ifadeyi yan yana görürsün. Onay senindir; model yalnızca tavsiye eder.</p>
+      </li>
+      <li>
+        <span class="n">4</span><span class="who" data-i18n="who_either">Sen ya da model</span>
+        <h3 data-i18n="r4t">Kanıt denemesi</h3>
+        <p data-i18n="r4p">Başarısız yollar hafızaya yazılır, sonraki deneme onları tekrarlamaz.</p>
+      </li>
+      <li>
+        <span class="n">5</span><span class="who" data-i18n="who_lean">Yalnız Lean</span>
+        <h3>VerificationGate</h3>
+        <p data-i18n="r5p">Çekirdek, sadakat politikası, yasak yapılar ve aksiyom denetimi.</p>
+        <div class="ex"><span class="final"><i></i>KERNEL_VERIFIED</span></div>
+      </li>
+    </ol>
+    <p class="road-note" data-i18n="road_note">Her adım kaydedilir. Her model çağrısı sağlayıcısı ve rolüyle günlüğe yazılır. Her doğrulama kapsülünden yeniden üretilebilir.</p>
+  </section>
+
+  <section class="block wrap" id="uygulama" aria-labelledby="h-uygulama">
+    <div class="head">
+      <span class="pill" data-i18n="nav_app">Uygulama</span>
+      <h2 id="h-uygulama" data-i18n="app_title">Araştırman tek pencerede.</h2>
+      <p data-i18n="app_sub">Masaüstü uygulaması komut satırıyla aynı motoru kullanır, bu yüzden güven kuralları da aynıdır.</p>
+    </div>
+    <div class="tour">
+      <figure class="shot">
+        <div class="frame"><img src="img/assistant-approval.webp" width="1600" height="1000" data-i18n-alt="alt_assist" alt="MathOS asistanı yeni bir lemma öneriyor ve onay bekliyor." loading="lazy" decoding="async"></div>
+        <figcaption data-i18n="cap_assist"><b>Araştırmanın içinde çalışan bir asistan.</b> Çalışma alanını görür, Mathlib'de ve literatürde arar, eylem önerir. Her eylem ancak sen onaylayınca çalışır.</figcaption>
+      </figure>
+      <div class="pair">
+        <figure class="shot"><div class="frame"><img src="img/research-run.webp" width="1600" height="1000" data-i18n-alt="alt_run" alt="Bir araştırma koşusu matematikçiye toplamın nereden başlaması gerektiğini soruyor." loading="lazy" decoding="async"></div></figure>
+        <div class="txt">
+          <h3 data-i18n="run_t">Ne zaman sana soracağını bilen araştırma koşuları.</h3>
+          <p data-i18n="run_p1">Bir hedef ve bütçe ver. Planlayıcı hedefi çözümler, öncülleri arar, problemi parçalar ve kanıt dener.</p>
+          <p data-i18n="run_p2">Toplamın 0'dan mı 1'den mi başlayacağı gibi senin vermen gereken bir karar geldiğinde durur ve sorar.</p>
+        </div>
+      </div>
+      <div class="pair flip">
+        <figure class="shot"><div class="frame"><img src="img/formula-editor.webp" width="1600" height="1000" data-i18n-alt="alt_formula" alt="İddia ifadesinin içinde açılan satır içi formül editörü." loading="lazy" decoding="async"></div></figure>
+        <div class="txt">
+          <h3 data-i18n="fx_t">Matematiği düşündüğün gibi yaz.</h3>
+          <p data-i18n="fx_p1"><kbd>$</kbd> yazınca formül cümlenin içinde açılır. <kbd>\</kbd> yazınca sembolleri adıyla ararsın: “toplam”, “sum”, “integral”.</p>
+          <p data-i18n="fx_p2">Her şey temiz LaTeX olarak saklanır; raporlar PDF, Word, Markdown, LaTeX, Excel ya da CSV olarak dışarı çıkar.</p>
+        </div>
+      </div>
+      <figure class="shot">
+        <div class="frame"><img src="img/research-graph.webp" width="1600" height="633" data-i18n-alt="alt_graph" alt="Araştırma grafiği: tanım, lemmalar, teorem ve varsayım arasındaki bağımlılıklar." loading="lazy" decoding="async"></div>
+        <figcaption data-i18n="cap_graph"><b>Araştırma grafiği.</b> Neyin neye dayandığını ve hangi iddianın doğrulandığını gösterir. Hedefinle arandaki doğrulanmamış sınır sağda listelenir. Ekran görüntüleri İngilizce arayüzden; uygulama Türkçe de kullanılabilir.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="block wrap" id="hafiza" aria-labelledby="h-hafiza">
+    <div class="head">
+      <span class="pill" data-i18n="mem_pill">Hafıza</span>
+      <h2 id="h-hafiza" data-i18n="mem_title">Araştırmanı hatırlar, hiçbirini kanıt saymaz.</h2>
+      <p data-i18n="mem_sub">Bir modelin önerdiği not ya da uzlaşım, ancak sen kartını onaylarsan kaydedilir.</p>
+    </div>
+    <div class="memory">
+      <div class="panel"><h3 data-i18n="m1t">Uzlaşımlar</h3><p data-i18n="m1p">Onayladığın gösterim ve varsayımlar: “ℕ 0'dan başlar”, “log doğal logaritmadır”. Her Lean çevirisi ifadeyi senin kastettiğin gibi okur.</p><p class="cli mono">mathos context propose --kind CONVENTION</p></div>
+      <div class="panel"><h3 data-i18n="m2t">Araştırma notları</h3><p data-i18n="m2p">Kararlar, çıkmaz sokaklar, açık sorular. Her not dayanağını gösterir: senin notun, model önerisi, doğrulanmış bir iddia ya da çürütüldü.</p><p class="cli mono">mathos memory add --kind DEAD_END</p></div>
+      <div class="panel"><h3 data-i18n="m3t">Başarısızlık hafızası</h3><p data-i18n="m3p">Lean'in reddettiği her kanıt denemesi, ifadesine göre parmak iziyle saklanır. Sonraki oturum aynı yola sapmaz.</p><p class="cli mono">mathos failures list --claim C-003</p></div>
+      <div class="panel"><h3 data-i18n="m4t">Kişisel hafıza</h3><p data-i18n="m4p">Tercihlerin ve Lean'in doğruladığı sonuçlardan oluşan kitaplığın seninle gelir. Yeni alanda Lean tekrar kontrol edene kadar doğrulanmış sayılmaz.</p><p class="cli mono">mathos library add C-003</p></div>
+    </div>
+  </section>
+
+  <section class="block wrap" id="modeller" aria-labelledby="h-modeller">
+    <div class="head">
+      <span class="pill" data-i18n="nav_models">Modeller</span>
+      <h2 id="h-modeller" data-i18n="models_title">Kendi modelini getir.</h2>
+      <p data-i18n="models_sub">60'tan fazla sağlayıcı ön ayarı. Zaten ödediğin aboneliği seç ya da her şeyi kendi makinende tut.</p>
+    </div>
+    <div class="models">
+      <dl class="providers panel">
+        <div><dt data-i18n="p_local">Yerel</dt><dd>Ollama · LM Studio · llama.cpp</dd></div>
+        <div><dt data-i18n="p_subs">Abonelikler</dt><dd>ChatGPT (Codex) · GitHub Copilot · Kimi Code · OpenCode Go · MiniMax</dd></div>
+        <div><dt data-i18n="p_api">API'ler</dt><dd>OpenAI · Anthropic · Gemini · DeepSeek · Mistral · Groq · Together · Fireworks · OpenRouter</dd></div>
+        <div><dt data-i18n="p_ent">Kurumsal</dt><dd>Google Vertex · Gemini CLI Enterprise</dd></div>
+        <div><dt data-i18n="p_other">Diğer</dt><dd data-i18n="p_other_d">OpenAI ya da Anthropic uyumlu her uç nokta</dd></div>
+      </dl>
+      <div class="models-side panel">
+        <p data-i18n="ms_p1">Yerel modeller loopback'te kalır. Bulut modelleri sen izin verene kadar kapalıdır. Anahtarlar işletim sisteminin sır deposuna gider; komut satırından geçmez, günlüğe yazılmaz.</p>
+        <p data-i18n="ms_p2">Abonelik ile kullandıkça öde API profilleri her zaman ayrıdır. Yedek modele geçiş, sen açmadıkça faturalama sınırını aşmaz.</p>
+<pre class="terminal"><span class="p">$</span> mathos provider catalog
+<span class="p">$</span> mathos provider configure ollama-local
+<span class="p">$</span> mathos provider use ollama-local
+<span class="p">$</span> mathos claims --json   <span class="c" data-i18n="term_c"># her komutta --json</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="block wrap" id="dahasi" aria-labelledby="h-dahasi">
+    <div class="head">
+      <h2 id="h-dahasi" data-i18n="more_title">Ve dahası.</h2>
+    </div>
+    <dl class="more panel">
+      <div><dt data-i18n="mo1t">Literatür</dt><dd data-i18n="mo1d">Kaynakları ara, içe aktar, kökeniyle atıf yap. Atıf kanıt değil, kaynak olarak kaydedilir.</dd></div>
+      <div><dt data-i18n="mo2t">Deneyler</dt><dd data-i18n="mo2d">Hesaplamaları sandbox'ta çalıştır (Windows ve macOS'ta Docker). Sonuç hesaplamalı kanıttır.</dd></div>
+      <div><dt data-i18n="mo3t">Dallar</dt><dd data-i18n="mo3d">Ana çizgiyi kaybetmeden alternatif yaklaşımları dene, sonra anlamsal olarak birleştir.</dd></div>
+      <div><dt data-i18n="mo4t">Defterler ve kapsüller</dt><dd data-i18n="mo4d">Herkesin bir doğrulamayı tekrar oynatabileceği yeniden üretilebilir kapsüller.</dd></div>
+      <div><dt data-i18n="mo5t">Yayın</dt><dd data-i18n="mo5d">Doğrulanmış sonuçların tüm bağımlılıklarıyla deterministik dışa aktarımı.</dd></div>
+      <div><dt>Atlas</dt><dd data-i18n="mo6d">Çalışma alanının salt okunur web görünümü, yalnız kendi makinende.</dd></div>
+      <div><dt>VS Code</dt><dd data-i18n="mo7d">Hedef, iddialar, sağlayıcı durumu ve Atlas kenar çubuğunda.</dd></div>
+      <div><dt data-i18n="mo8t">Terminal arayüzü</dt><dd data-i18n="mo8d">Eksiksiz bir TUI ve her komutu <span class="mono">--json</span> ile betiklenebilen CLI.</dd></div>
+      <div><dt data-i18n="mo9t">Eklentiler</dt><dd data-i18n="mo9d">Yetkisi sınırlı, süreç dışı eklentiler. Doğrulama yetkileri yoktur.</dd></div>
+    </dl>
+  </section>
+
+  <section class="install wrap" id="kurulum" aria-labelledby="h-kurulum">
+    <div class="install-card">
+      <div>
+        <h2 id="h-kurulum"><span class="when-soon" data-i18n="inst_title_soon">MathOS 1.0 yakında.</span><span class="when-out" data-i18n="inst_title">MathOS 1.0'ı kur.</span></h2>
+        <p class="lede when-soon" data-i18n="inst_lede_soon">İlk sürüm son kabul testlerinde. Yayınlandığında indirme bağlantıları burada açılacak; o zamana kadar gelişmeleri GitHub'dan takip edebilirsin.</p>
+        <p class="lede when-out" data-i18n="inst_lede">İlk açılışta bir klasör seç ya da örnek projeyi aç. Modelini Ayarlar'dan bağla. Lean ve Mathlib arka planda kurulur.</p>
+        <div class="actions">
+          <a class="btn" href="https://github.com/bakiacikgoz/MathOS" target="_blank" rel="noopener" data-dl="repo">
+            <svg class="ico" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+            <span data-i18n="inst_repo">GitHub'da takip et</span>
+          </a>
+          <a class="btn ghost" href="https://github.com/bakiacikgoz/MathOS/blob/main/docs/QUICKSTART.md" target="_blank" rel="noopener" data-i18n="inst_quick">Hızlı başlangıç</a>
+        </div>
+        <p class="warn" data-i18n="inst_warn">Kurulum dosyaları henüz kod imzalı değil. Windows SmartScreen uyarırsa <b>Ek bilgi → Yine de çalıştır</b>'ı seç; macOS komutu engellerse Sistem Ayarları'ndan izin ver. İstersen dosyayı önce <span class="mono">SHA256SUMS</span> ile doğrula.</p>
+      </div>
+      <div>
+        <ul class="platforms">
+          <li>
+            <div class="pl-txt"><b>Windows</b><span data-i18n="pl_win">Masaüstü uygulaması · Windows 10 ve 11 (x64)</span></div>
+            <a class="btn small pl-btn" href="https://github.com/bakiacikgoz/MathOS" target="_blank" rel="noopener" data-dl="win"><span class="when-out" data-i18n="dl_short">İndir</span><span class="when-soon" data-i18n="soon">Yakında</span><span class="pl-file mono">.exe</span></a>
+          </li>
+          <li>
+            <div class="pl-txt"><b>macOS</b><span data-i18n="pl_mac">Komut satırı · Apple Silicon (M1 ve sonrası)</span></div>
+            <a class="btn small pl-btn" href="https://github.com/bakiacikgoz/MathOS" target="_blank" rel="noopener" data-dl="mac"><span class="when-out" data-i18n="dl_short">İndir</span><span class="when-soon" data-i18n="soon">Yakında</span><span class="pl-file mono">.tar.gz</span></a>
+          </li>
+          <li>
+            <div class="pl-txt"><b>Linux</b><span data-i18n="pl_linux">Komut satırı · x64</span></div>
+            <a class="btn small pl-btn" href="https://github.com/bakiacikgoz/MathOS" target="_blank" rel="noopener" data-dl="linux"><span class="when-out" data-i18n="dl_short">İndir</span><span class="when-soon" data-i18n="soon">Yakında</span><span class="pl-file mono">.tar.gz</span></a>
+          </li>
+          <li>
+            <div class="pl-txt"><b>VS Code</b><span data-i18n="pl_vsix">Eşlikçi eklenti · hedef, iddialar ve Atlas kenar çubuğunda</span></div>
+            <a class="btn small pl-btn" href="https://github.com/bakiacikgoz/MathOS" target="_blank" rel="noopener" data-dl="vsix"><span class="when-out" data-i18n="dl_short">İndir</span><span class="when-soon" data-i18n="soon">Yakında</span><span class="pl-file mono">.vsix</span></a>
+          </li>
+        </ul>
+        <h3 data-i18n="cli_title">macOS ve Linux'ta tek komutla kur</h3>
+        <div class="cmd">
+          <pre id="cmd-unix">curl -fsSL https://github.com/bakiacikgoz/MathOS/releases/download/v1.0.0/install.sh | MATHOS_VERSION=1.0.0 sh</pre>
+          <button class="copy" type="button" data-copy="cmd-unix" data-i18n-aria="copy" aria-label="Komutu kopyala">
+            <svg class="cp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>
+            <svg class="ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+          </button>
+        </div>
+        <p class="small-note"><span class="when-soon" data-i18n="cli_soon">Komut 1.0 yayınlanınca çalışır.</span> <span data-i18n="cli_note">Kurucu doğru arşivi indirir, <span class="mono">SHA256SUMS</span> ile karşılaştırır ve sudo olmadan kurar. macOS masaüstü uygulaması şimdilik kaynaktan derlenir.</span></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <span class="wm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1125 379" fill="currentColor" role="img" aria-label="MathOS"><path fill-rule="evenodd" d="M812.9 374.6C812.4 374.3 812.3 373 812.3 354.3C812.3 343 812.2 334.3 812 334.2C811.9 334.1 744.1 333.9 661.5 333.8C578.8 333.7 437.4 333.6 347.3 333.5C50 333.1 20.3 333.1 20 333.5C19.9 333.7 19.6 334.4 19.3 335.1C18.5 337.9 16 339.6 12.7 339.8C8.9 339.9 6.2 338.4 4.6 335.2C3.5 333.1 3.6 330.9 4.9 328.2C6.6 324.9 9.4 323.3 12.9 323.8C16.4 324.3 18.6 326.1 19.7 329.4L20.2 331.2L93.4 331.4C214.4 331.7 810.8 332.1 811.8 331.9C812.5 331.7 812.7 331.5 812.6 330.9C812.5 330.2 812.4 330.2 805.2 330C793.3 329.7 784.3 328.1 768.8 323.6C755.8 319.9 738.9 311.1 728.2 302.7C719.6 296 713.7 289.9 706.9 280.8C702.6 275 700.6 271.7 697.7 265.6C691.8 253.3 689.4 245.5 687.3 230.8C686.8 227.2 686.5 212.6 687 208.8C687.2 207 687.5 204.1 687.7 202.3C688 199.4 688.8 194.3 689.2 192.9C689.5 192 690.2 192.2 692.9 194.3C696.5 197 698 198 701.7 200.1C709 204.3 721.5 210.3 722.9 210.3C724.5 210.3 724.6 210.8 724.8 222C725 234 725.4 238.1 727.2 246.7C727.4 247.9 727.9 250 728.2 251.5C729.4 257.5 731.3 263.6 733.1 267.7C733.6 268.7 734.5 270.9 735.2 272.7C737 277.4 740.5 283.7 744.4 289.5C749.7 297.3 759.8 307.1 767.4 311.8C774.9 316.5 785.5 320.9 793.8 322.6C795.7 323 797.8 323.5 798.7 323.7C800.7 324.2 811 325.1 811.7 324.8C812.3 324.6 812.3 322.9 812.4 277.2C812.5 250.6 812.4 229.7 812.2 229.4C812 229.2 811.5 229 811 229C809 229 805 225.3 804.5 223C804.1 221.2 804.3 221.2 789.9 221C770.2 220.7 762.4 219.8 749 216.4C736.6 213.3 727.5 210.2 718.7 205.9C708.8 201.2 708.6 201.1 700.8 196.2C699.9 195.6 698.2 194.6 697 194C695.8 193.4 694.2 192.5 693.4 191.9C692.7 191.4 691.9 191 691.8 191C691.7 191 690.1 189.9 688.2 188.6C686.3 187.3 683.6 185.5 682.3 184.7C677.9 182 667 173 659 165.5C643.3 150.9 638 145.8 619.2 127.3C610.6 118.9 599.4 108.5 591.9 101.9C589.3 99.6 585.7 96.5 583.9 94.9C582 93.3 579.4 91.2 578.1 90.2C573.5 86.9 566.1 81.5 564.3 80.2C561 77.7 556.1 74.4 551.8 71.8C549.4 70.4 546.7 68.7 545.7 68C543.7 66.7 537.1 63 536.7 63C536.6 63 534.7 62 532.4 60.7C523.4 55.6 510.8 50.3 498.5 46.3C494.6 45.1 493.5 44.8 485.7 42.8C473.6 39.8 470.2 39.2 457.5 37.5C448.1 36.3 431.3 35.9 423.5 36.7C413.4 37.7 409.4 38.1 404.8 38.9C402.1 39.3 398.9 39.9 397.7 40C396.6 40.2 394.9 40.5 394.1 40.7C393.2 40.9 391.9 41.2 391.2 41.3C390.4 41.5 387.4 42.2 384.5 42.8C374.8 45 360.4 49.7 346.7 55.2C340.8 57.5 319.3 67.9 315.8 70.1C314.1 71.1 307.3 75 305.4 76C302.6 77.4 303.9 76.3 309.3 72.6C315.2 68.7 335.7 57.8 344.6 53.8C350.9 51 366 45.4 374.9 42.7C376.6 42.1 378.2 41.6 378.3 41.5C379 41.1 393.8 37.4 397.7 36.7C411.2 34.3 412.4 34.1 422.3 33.2C434.8 32 444.7 31.8 454.2 32.7C467 33.8 471.2 34.4 480.7 36.2C482.2 36.5 484.2 36.8 485.1 37C486 37.2 486.8 37.4 487 37.5C487.1 37.6 487.9 37.8 488.7 38C494.2 39.1 509.4 43.9 519.3 47.8C524.4 49.7 533.6 53.9 538 56.2C539.9 57.3 543.7 59.2 546.3 60.7C552.1 63.7 555.2 65.6 564.1 71.6C570.8 76 572.5 77.3 579.7 82.8C593.4 93.4 605.1 103.8 621.4 120C625.8 124.3 629.5 127.9 629.7 128C629.9 128.2 636 134.2 643.3 141.4C650.6 148.7 657.5 155.5 658.7 156.5C659.9 157.6 664.4 161.7 668.6 165.6C675.5 172.1 685 180.2 689.2 183C691.1 184.3 692.5 185.4 696.1 188.2C697.5 189.3 700.2 191.3 702.1 192.6C706.2 195.3 720.3 202.7 723.3 203.6C724.5 204 726.8 204.8 728.3 205.5C734.1 208 744.9 211.2 754.8 213.2C759.5 214.2 763.3 214.8 773.3 216C777.8 216.5 788.9 217 796.2 217C802.3 217 802.9 216.9 803.4 216.4C803.8 216.1 804 215.6 804 215.4C804 213.5 807.8 209.6 810.2 209C811 208.8 811.8 208.4 812 208.2C812.5 207.6 812.8 97.6 812.3 96.7C812.1 96.1 811.7 96 810.4 96C806.9 96 798.2 97.3 794.2 98.4C786.8 100.4 782.9 102 775.3 106.1C770.1 108.9 760.4 116.5 755.2 121.8C744.9 132.4 735.4 149.4 730.7 166C730.5 166.6 730.1 168.3 729.7 169.7C729.3 171 728.8 172.8 728.6 173.7C727.8 177.8 726.8 183.5 726.4 187C726.1 188.6 725.8 191.4 725.5 193.3C725.2 195.2 725 197.8 725 199.1C725 200.6 724.9 201.4 724.6 201.5C724.1 201.7 720.6 200.2 713.8 196.8C709 194.4 693 183.7 692.2 182.3C692 182.1 692.3 181.2 692.6 180.2C693 179.3 694 176.6 694.8 174.3C698.8 163.1 704.8 151.6 711.4 142.5C715 137.5 724.6 127.3 729.7 123C739.9 114.5 746.1 110.3 756.3 105C759.5 103.3 761 102.6 765.5 100.7C767.3 99.9 774.8 97.2 776.8 96.6C780.2 95.6 789.3 93.5 792.1 93C793.3 92.8 794.5 92.6 794.7 92.5C795.6 92.2 807.7 91 809.8 91C811.5 91 812 90.9 812.3 90.4C812.5 90.1 812.6 72 812.6 47.7C812.7 21.1 812.8 5.3 813 4.9C813.5 4.1 814.9 4.2 815.3 5C815.5 5.4 815.6 19.6 815.6 47.2C815.6 70.1 815.7 89.2 815.8 89.7C816 90.2 816.3 90.7 816.6 90.8C816.9 90.9 819.9 91 823.2 91.2C829.3 91.4 832.5 91.7 838 92.6C842 93.2 848.8 94.6 850.5 95.2C851.2 95.4 853 95.9 854.5 96.3C863 98.7 874.2 103.4 880.3 107.2C891.6 114.2 894.6 116.4 901.7 122.8C912.4 132.6 923.2 148 928.2 160.8C928.7 162.1 929.3 163.6 929.5 164.2C931.6 169.1 935.5 184 936.5 191.2C938 202.3 938.2 205 938.2 216.3C938.1 227.7 937.9 230.7 936.5 239.7C935.8 243.9 935.5 244.1 933.4 242.3C931.1 240.1 922.3 234 921.5 234C921.4 234 920.2 233.3 918.8 232.4C912.6 228.7 907.9 226.2 904.6 224.9C903.9 224.6 903.3 224.2 903.3 223.9C903.3 223.7 903.2 219 903.2 213.5C903.2 206.4 903 202.1 902.6 198.5C902.2 195.8 901.8 191.5 901.5 189C900.3 178.1 898 167.3 894.8 157.9C893.7 154.6 890 145.9 887.5 141.1C881.6 129.2 871.5 117.7 860.2 109.9C852.9 104.7 843.3 100.4 834 98.1C830.3 97.1 821.7 96 818.2 96C816.7 96 816.3 96.1 816 96.6C815.6 97.4 815.5 207.3 815.9 207.9C816.1 208.1 817.2 208.7 818.6 209.3C821.4 210.6 822.4 211.6 823.8 214.4L824.8 216.5L840 216.5C857.6 216.6 861.9 216.9 875.5 219.1C884.6 220.6 895.3 223.7 902.1 226.8C909.3 230 918.4 234.8 921.4 236.9C923.3 238.1 927.5 241.2 930.8 243.7C934.2 246.1 937.9 248.8 939 249.7C941.9 251.6 957.5 267.2 961.6 272C963.4 274.1 967.8 278.9 971.5 282.6C986 297.4 998.9 307.1 1012.9 313.7C1017.9 316 1019.5 316.7 1024.3 318.3C1031.4 320.7 1031.2 320.7 1035.1 319.6C1040.2 318.3 1045.7 315.8 1049.5 313.2C1052.8 311 1058.5 305.2 1060.8 301.7C1065.1 295.2 1066.2 292.4 1067.7 285.2C1068.6 280.4 1068.6 270.9 1067.7 266.6C1064.8 254 1057 244.2 1042.8 235.6C1036.7 231.9 1024.8 225.8 1019.6 223.6C1017.4 222.7 1014.7 221.5 1012.2 220.3C1011.1 219.7 1009.5 219 1008.7 218.7C1007.8 218.3 1004.2 216.7 1000.7 215C997.1 213.4 993.7 211.8 993.2 211.5C987.9 209.1 978.7 204 975.9 202C975.3 201.6 973.6 200.3 972.1 199.3C967.2 195.8 962.5 190.9 958.9 185.3C953.5 177.1 950 165.1 950 155C950 150.5 950.7 143.9 951.5 141.1C951.8 140.2 952 139.2 952 138.9C952 138.1 953.9 132.3 955.1 129.3C959.4 118.9 967.7 109.2 977.8 102.6C984 98.6 993.1 94.6 999.5 93.2C1008.1 91.1 1018 90.3 1026.3 90.9C1029.4 91.2 1032.7 91.5 1033.8 91.7C1040.2 92.9 1047 94.7 1053.5 96.8C1061.6 99.6 1064.3 100.2 1066.8 99.8C1070 99.4 1071.9 98.2 1074.1 95.1C1075.2 93.4 1076 93.3 1076.4 95C1076.7 96.5 1078.3 111.5 1079.7 125C1079.8 126.7 1080.1 129.5 1080.2 131.2C1080.3 132.8 1080.6 135.8 1080.8 137.8C1081.1 139.8 1081.6 145 1082 149.3C1082.8 157.9 1082.9 157.7 1080.8 157.7C1079.7 157.7 1079.7 157.6 1079 155.4C1078.7 154.2 1078.3 152.6 1078.2 152C1078 151.4 1077.3 149 1076.5 146.7C1070.9 130.2 1065.4 120.8 1055.8 111.1C1048.2 103.4 1040 98.8 1030.1 96.6C1027.4 96 1025.7 95.9 1020 95.9C1012.4 95.8 1010.5 96.1 1005 97.9C994.2 101.4 985.1 109.2 980.6 118.8C976.8 126.9 975.6 134.9 976.8 143.9C977.3 147.1 977.7 148.6 979.8 154.2C980.3 155.6 982.3 159 983.6 160.7C986.8 164.7 992 169.1 998 172.8C1000.8 174.6 1013.6 181 1018.2 183.1C1021.5 184.5 1023.7 185.5 1027.5 187.3C1029.5 188.3 1031.6 189.2 1032.2 189.5C1032.7 189.7 1033.7 190.1 1034.3 190.4C1035 190.7 1036.2 191.3 1037.2 191.7C1050.1 197.4 1063.1 204.5 1070.8 210C1074.9 212.9 1082.1 219.8 1085.3 223.8C1088.8 228.2 1090.4 230.7 1092.6 235.8C1095.5 242.2 1096.1 244.1 1097.2 250.5C1098 255.1 1098 265.7 1097.2 270.5C1096 277.2 1093.4 284.9 1090.3 290.7C1088.4 294.1 1083.7 300.2 1080.1 303.8C1071.9 312.1 1059.9 318.9 1047.7 322.3C1044.7 323.1 1043.8 323.6 1044.6 324.1C1044.7 324.2 1048.5 324.9 1053 325.6C1057.5 326.4 1062 327.2 1063 327.4C1066.2 328 1071.7 328.7 1076.3 329C1078.8 329.2 1082 329.5 1083.5 329.7C1087.2 330.1 1103.9 330.8 1104.3 330.5C1104.5 330.4 1105.1 329.7 1105.5 328.9C1108.2 324.8 1112.7 323.3 1116.6 325.2C1122.4 328.1 1122.9 336.3 1117.7 339.8C1116.4 340.7 1115.8 340.8 1113.8 340.9C1109.8 341.2 1107 339.4 1105.4 335.9L1104.8 334.4L1096.3 334.2C1091.6 334.1 1026.7 334 952 334C846.6 334 816.2 334.1 816 334.4C815.8 334.6 815.7 343.6 815.7 354.3C815.7 366.6 815.5 374 815.3 374.4C814.9 375.1 813.8 375.2 812.9 374.6ZM1066.6 331.9C1067.4 331.4 1066.3 331 1061.8 330.5C1038.8 327.7 1021.4 322.9 1006.5 315C996.6 309.8 990.3 305.6 980.1 297.3C975.6 293.7 961.4 279.7 953 270.6C947 264.2 933.6 251.2 929 247.4C926.5 245.4 923.2 242.9 921.7 241.8C917.5 239 904.8 231.4 903.6 231C903 230.9 900.6 230 898.2 229.2C893.3 227.4 882.2 224 881.4 224C881.1 224 880.1 223.8 879.2 223.5C871.3 221.3 859.4 220.3 841.5 220.3C827.2 220.4 824.3 220.7 824.3 222.3C824.3 223.1 823.1 225.3 822 226.4C821 227.6 819.4 228.4 817.4 229C816.4 229.2 816 229.6 815.8 230.1C815.7 230.5 815.7 252 815.7 277.8L815.8 324.8L816.8 324.9C818.8 325.2 830.6 323.5 836.7 322.1C841.7 321 845.3 319.6 852.3 316.1C867.1 308.8 876.7 300.3 885.9 286.5C888.9 282 890.4 279.3 892.7 274.3C896.2 266.7 898.1 260.9 900 252.3C900.6 249.7 901.3 246.5 901.6 245.2C902 243.3 903 236.2 903 234.8C903 234.3 904 234.2 904.5 234.6C904.7 234.8 905.7 235.4 906.7 235.9C914.5 240.2 914.3 240 920.2 244.3C925 247.8 927.2 249.5 930 252.1C932.4 254.3 932.5 254.7 931 259.1C929.9 262.5 924.8 272 921.6 276.8C912.7 290 899.3 302.6 884.9 311.2C875.2 317 867.9 320.5 859.8 322.9C849.5 326.1 844.3 327.5 841.3 328C835.2 329 828.4 329.7 823.2 329.9C815.9 330.1 815.6 330.1 815.7 331.1L815.8 331.8L930 332C1068.2 332.2 1066.1 332.2 1066.6 331.9ZM338.2 327.8C330 326 323.8 323.5 319.5 320.1C315.5 316.9 311.8 311.1 310.3 305.5C308.8 299.8 309.2 292.2 311.2 287C314.2 279.6 321.8 272 333 265.3C339.1 261.7 344.2 259.3 362.8 251.5C369.2 248.8 376.1 245.8 380 244.1C387.6 240.7 395.7 236.1 396.4 234.9C396.9 233.9 396.5 219 395.8 215C395.1 211 393.4 206 392 203.5C391.3 202.4 389.5 200.1 387.8 198.4C385.1 195.7 384.5 195.2 381.3 193.7C375.8 191.1 374.2 190.8 366.8 190.8C361.4 190.9 360.1 191 358 191.6C351.5 193.4 349.1 194.7 346.1 197.6C343.7 200.1 342.5 202.5 342.4 205.6C342.2 208.2 342.5 209.2 344.4 213.3C347.6 220 346.9 226.7 342.8 230.8C338.7 234.9 331.7 236.2 326.7 233.8C321 231.1 318.3 226.8 318.3 220.4C318.3 213.1 320.9 207.6 327.1 201.8C330.5 198.6 332.6 197 336.5 195C342.2 192 347.1 190.1 353 188.5C354.2 188.2 355.6 187.8 356.2 187.6C356.7 187.4 358.4 187.1 360 187C361.6 186.8 364 186.5 365.3 186.4C368.6 185.9 380.3 185.9 382.9 186.3C384 186.5 386.2 186.8 387.7 187C391.2 187.4 393.6 188 400.3 190C413.6 194.1 423 203.2 426 214.9C427.6 221.2 427.7 222.5 427.7 258.9C427.7 279.1 427.8 295.4 428 298.5C428.7 309.2 430.9 314.4 435.8 316.8C437.9 317.9 440.8 318 443 317C445.1 316 447.9 313.5 449.8 310.9C450.7 309.7 451.6 308.7 451.9 308.7C453.3 308.7 452.4 311.4 449.5 315.7C448.1 317.7 444.9 321.1 443 322.6C440.8 324.3 436.1 326.2 431.2 327.3C427.6 328.2 421.3 328.3 419 327.5C418.2 327.3 416.4 326.7 415.2 326.3C410.6 324.9 408.7 323.8 405.5 320.5C403.8 318.8 402 316.6 401.4 315.6C399.3 312.1 397.3 305.3 397.3 301.6C397.3 299.3 397.1 298.3 396.7 298.3C396.5 298.3 395.7 299.3 394.8 300.6C392.8 303.4 383.8 312.4 380 315.4C372 321.6 364.3 325.3 355.2 327.1C351.6 327.9 350.3 328 345 328C341.6 327.9 338.5 327.9 338.2 327.8ZM487.2 327.6C486.6 327.5 485.4 327.2 484.5 327C481.3 326.4 475.3 323.9 472.8 322.2C471.4 321.3 469 319.3 467.5 317.8C465.1 315.4 464.4 314.5 463.2 311.9C461.5 308.4 460.9 306.5 460 300.4C459.4 296.2 459.3 294.6 459.3 245.5C459.3 217.7 459.3 195 459.2 194.9C459.2 194.9 454.4 194.8 448.5 194.7L437.8 194.5L437.7 193.2C437.6 191.6 438.2 191 440 191C441.2 191 442.4 190.7 446.8 189.3C453.9 187.1 458.4 184.7 464.8 179.9C473 173.7 481.7 162.8 485.1 154.6C486.1 152.1 486.2 152 487.2 152C487.8 152 488.3 152.2 488.4 152.4C488.5 152.7 488.6 160.9 488.6 170.7C488.7 180.5 488.8 188.6 488.9 188.7C489.1 188.9 498 189 508.8 189.1L528.5 189.2L528.6 191.1C528.6 192.2 528.5 193.4 528.3 193.8L528 194.7L508.4 194.7L488.8 194.8L488.7 206.7C488.6 213.2 488.6 235.9 488.7 257.2C488.9 298.3 488.9 297.8 490.5 303.5C491.7 307.8 494.3 311.8 497.1 314.1C500.5 316.7 503.6 317.9 508.3 318.2C515.4 318.7 521.6 316.1 527.7 309.9C528.7 308.8 529.7 308 530.1 308C530.8 308 531.2 308.9 530.8 309.5C530.6 309.7 529.8 311 528.9 312.4C525.8 316.9 521.5 320.5 514.8 323.8C508.1 327.1 503.8 328 494.9 328C491.2 328 487.7 327.8 487.2 327.6ZM530.3 324.7C526.9 324.5 526.8 324.5 526.8 323.7C526.8 322.9 527 322.8 528.5 322.6C531.2 322.3 535.3 321 537.4 319.9C539.7 318.7 542.6 315.7 543.8 313.3C544.3 312.3 544.9 310.4 545.3 309C545.8 306.7 545.8 301.3 545.8 223.8C545.8 145.1 545.8 141 545.2 137.7C544.2 131.8 542.7 128.7 539.2 125.4C537.2 123.5 535 122.3 532 121.7C529.7 121.2 529.2 120.9 529.2 120.3C529.2 119.6 530.4 119.1 535.2 118C540.2 116.8 545 115.3 547.8 114C548.9 113.5 550.2 113 550.6 112.8C555 111.5 568.4 103.2 572.6 99.2C573.9 98 574.8 97.3 575.2 97.5C575.7 97.7 575.8 105.2 575.8 155.8C575.9 206.1 576 214.4 576.4 214.3C576.6 214.2 577.8 212.7 578.9 211C581.1 207.7 585.8 202.4 589.2 199.4C594.7 194.5 603.7 189.7 611.3 187.6C617 186 618.2 185.8 627 185.9C637.5 185.9 638.5 186.1 646.8 190.2C653.6 193.6 658.8 199.4 662 207.4C663.4 210.9 664.2 214.3 665 219.8C665.7 224.3 665.7 226.1 665.9 259.2C666 295.1 666.2 302.1 667.4 307C668.8 313 672 317.5 676.3 319.7C679.6 321.3 680.8 321.7 685 322.3C688.7 322.9 688.8 322.9 688.8 323.7L688.8 324.5L674.8 324.8C667.1 324.9 650.6 325 638 324.9C617.6 324.8 615.2 324.7 614.9 324.3C614.3 323.3 615.2 322.8 617.5 322.5C620.5 322.2 624.1 321.2 625.9 320.1C628 318.9 630.8 316.3 632 314.4C634.9 309.8 635 308.2 635 273.9C635 235 634.5 222.2 632.9 217C630 207.3 627 203.2 621 200.2C617.3 198.3 615.2 197.9 609.8 197.9C603.6 197.9 601.4 198.4 595.2 201.8C593.3 202.8 589.5 205.9 587.9 207.7C583.4 212.9 580.9 217.3 579 223.6C576.5 231.9 576.3 234.6 576.3 266.9C576.3 292.7 576.6 301.9 577.4 306C579.3 315.8 585.3 321.1 595.5 322.2C598.9 322.5 599.1 322.6 598.9 323.6C598.8 324.5 598.8 324.5 595.8 324.7C592.4 325 535.7 324.9 530.3 324.7ZM215.3 323.5C215.1 323.2 215.1 322.8 215.3 322.4C215.6 321.9 216.3 321.7 218.9 321.4C226 320.5 232.9 317.3 236.9 312.8C242.1 307.2 244.4 300.5 245.3 288.7C246.2 277.5 247.9 129.5 247.2 128.9C246.7 128.6 246.1 129.2 245.8 130.3C245.5 131.8 242 139.6 239.8 144C238.7 146.3 237.2 149.4 236.6 151C234.9 155.1 230.6 165.1 229.2 168.2C227.9 170.8 225.9 175.5 216.8 196.3C214.3 202.1 211.8 207.9 211.1 209.2C207.3 217.4 205.4 221.4 204.6 223.5C204.3 224.4 203.5 226.1 202.9 227.3C201.5 230.3 201.2 231.1 199.8 234.5C198.6 237.5 197.6 239.7 196.3 242.7C195.6 244 193.3 249.4 190.1 256.8C189.5 258.3 188 261.9 186.8 264.8C185.6 267.8 183.7 272.2 182.5 274.7C181.4 277.1 180.1 280 179.7 281C179.3 282 178.8 283.1 178.7 283.4C178.5 283.6 177.3 286.4 176 289.5C174.7 292.6 173.1 296.2 172.4 297.5C171.8 298.8 170.8 301.1 170.1 302.7C169.4 304.2 168.5 306.4 168 307.6C167.4 308.7 167 309.7 167 309.8C167 309.9 166.3 311.4 165.5 313.2C164.7 314.9 164 316.4 164 316.5C164 316.6 163.3 318.3 162.3 320.2C160.6 324 159.9 324.5 159.2 322.5C159.1 321.9 158.7 321 158.5 320.4C158.2 319.9 158 319.3 158 319.2C158 319.1 157 317 155.8 314.5C154.6 311.9 152.5 307.2 151.2 304C149.3 299.5 142 282.2 136.5 269.5C136.1 268.4 135.4 267 133.6 263C132.9 261.6 132.1 259.7 131.7 258.7C130.6 256 129.6 253.7 128.6 251.3C128.3 250.7 127.5 248.8 126.8 247.2C126.1 245.5 125.1 243.2 124.6 242C124.1 240.8 123.5 239.5 123.3 239C123.1 238.5 122.7 237.7 122.5 237.2C118.8 228.9 115.8 221.6 110.5 208.7C109.4 206.2 107.9 202.6 106.9 200.7C106 198.7 104.2 194.5 102.8 191.2C101.4 188 99.9 184.4 99.4 183.2C98.2 180.6 93.9 170.5 93.4 169.2C92.7 167 90.6 161.8 90.3 161.5C90.2 161.3 88.9 158.4 87.5 155C85 149.1 84.3 147.3 80.2 138C79.3 135.7 78.3 133.3 78 132.8C77.5 131.5 77.2 131.4 76.9 132.4C76.4 134.4 77.4 267.4 78 275.3C78.5 281.5 79.6 288.9 80.7 292.7C83.9 304.3 90.3 313 99 317.3C102.8 319.2 105.6 320.3 108.8 321C111.1 321.4 111.5 321.6 111.6 322.3L111.7 323L73.9 323C36.3 323 36 323 36 322.3C36 321.9 36.3 321.6 36.9 321.5C39.6 320.9 40.7 320.5 43.2 319.6C49.7 317.1 55.6 312.5 60.1 306.2C62.5 302.7 64.5 298 66 292C68.1 283.5 69 275.6 69.3 261.3C70 235 70.4 136.3 69.9 130.7C69.3 123.4 68.2 119.4 65.4 113.8C63.8 110.8 63 109.7 60.8 107.5C57.8 104.5 53.6 101.5 50.3 100.2C47.8 99.2 42.3 97.7 41 97.7C40.5 97.7 39.8 97.5 39.5 97.2C39 96.8 38.9 96.6 39.2 96.1C39.6 95.5 41 95.5 69.4 95.4C85.8 95.4 99.5 95.4 99.9 95.5C100.3 95.6 100.8 96.3 101.3 97.6C101.8 98.6 103.1 101.6 104.4 104.1C105.6 106.6 107.3 110.1 108 111.9C108.8 113.7 109.8 116.1 110.4 117.2C111.2 119.1 111.8 120.4 115.8 129.5C116.8 131.7 118.6 135.6 119.8 138.1C121 140.6 122 142.7 122 142.8C122 142.9 122.4 143.9 123 145.1C123.5 146.2 124.4 148.1 124.8 149.2C125.3 150.3 126 151.8 126.4 152.7C127.2 154.4 128 156.1 128.5 157.5C129.4 159.5 131 163 134 169C135.6 172.4 137 175.3 137 175.4C137 175.5 137.5 176.8 138.2 178.2C140.2 182.5 140.9 184.1 141.7 186C142.1 187 143 189.1 143.7 190.6C144.4 192.1 145 193.4 145 193.5C145 193.5 145.7 195.1 146.5 196.8C147.3 198.6 148.4 201 148.9 202C149.3 203.1 150.1 205 150.7 206.2C151.2 207.3 152 209.2 152.5 210.2C152.9 211.3 154.2 214.1 155.3 216.5C156.5 218.9 157.7 221.4 158 222.2C158.3 222.9 158.9 224.2 159.3 225.2C159.7 226.1 160.2 227.3 160.5 227.8C160.7 228.4 161.7 230.6 162.7 232.7C163.8 234.8 165.2 238 166 239.8C167.4 243 167.8 244.1 170.7 250.3C171.4 251.9 172.2 253.6 172.5 254.2C175.7 261.5 177.8 265.7 178.3 265.7C178.7 265.7 179.6 263.9 181.2 260.1C182.5 257 185.5 250.3 187.8 245.2C190 240 192.4 234.5 193.1 233C193.8 231.4 195.1 228.4 196.1 226.2C197.1 224.1 198.6 220.9 199.3 219.1C200.1 217.3 201.4 214.4 202.2 212.7C203.1 210.9 205.2 206.2 207 202.2C208.8 198.1 210.9 193.6 211.7 192C212.4 190.4 213.4 188.5 213.7 187.6C214.6 185.3 221 171.1 223.8 165.2C225 162.4 228.4 155 231.2 148.7C237.8 133.7 239.1 130.8 242.7 123.2C244.4 119.7 246.8 114.4 248 111.5C251 104.5 254.6 96.9 255.1 96.5C255.4 96.3 265.4 96.2 284.2 96.3L312.8 96.5L312.8 97.3C312.8 98.1 312.7 98.2 310.2 98.6C300.5 100 291.1 106.5 287.3 114.4C284.2 120.7 283.1 125.8 282.7 134.8C282.3 143.5 282.3 280 282.7 287.3C282.8 290.5 283.2 294.2 283.5 295.5C285.6 305.3 287.5 309.6 291.8 313.8C295.8 317.8 302.8 321 308.9 321.7C312 322.1 312 322.1 311.9 323L311.8 323.8L263.8 323.9C223.6 323.9 215.6 323.9 215.3 323.5ZM367.6 315.1C378 312.5 389.5 302.7 394.7 291.8L396.5 288.2L396.5 264.8C396.5 247.4 396.4 241.3 396.1 241C395.8 240.7 395.5 240.8 394.6 241.4C394 241.9 391.8 243.2 389.7 244.3C379.8 249.7 367.2 257.3 363.7 259.8C359.3 263 354.5 267.2 352.7 269.3C344.7 278.6 341.9 286.2 342.7 296.8C343.1 303 344.8 306.8 348.7 310.7C353.4 315.5 360.1 317 367.6 315.1Z"/></svg></span>
+    <span data-i18n="foot_lic">© 2026 Baki Açıkgöz · AGPL-3.0-only · Ticari lisans talep üzerine</span>
+    <nav data-i18n-aria="foot_nav" aria-label="Bağlantılar">
+      <a href="https://github.com/bakiacikgoz/MathOS" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/bakiacikgoz/MathOS/tree/main/docs" target="_blank" rel="noopener" data-i18n="foot_docs">Belgeler</a>
+      <a href="https://github.com/bakiacikgoz/MathOS/blob/main/LICENSE" target="_blank" rel="noopener" data-i18n="foot_license">Lisans</a>
+    </nav>
+  </div>
+</footer>
+</div>
+
+<script>
+(() => {
+  // ---------- Sürüm durumu: 1.0 yayınlanınca YAYINDA = true yapmak yeterli ----------
+  const YAYINDA = false;
+  const SURUM = '1.0.0';
+  const REPO = 'https://github.com/bakiacikgoz/MathOS';
+  const DOSYA = {
+    win: `MathOS-${SURUM}-windows-x64-setup.exe`,
+    mac: `mathos-${SURUM}-darwin-arm64.tar.gz`,
+    linux: `mathos-${SURUM}-linux-x64.tar.gz`,
+    vsix: `mathos-${SURUM}.vsix`
+  };
+  const root = document.documentElement;
+  root.classList.toggle('released', YAYINDA);
+  document.querySelectorAll('[data-dl]').forEach(a => {
+    const k = a.dataset.dl;
+    if (!YAYINDA) { a.href = REPO; return; }
+    if (k === 'badge') a.href = `${REPO}/releases/tag/v${SURUM}`;
+    else if (k === 'repo') a.href = `${REPO}/releases/tag/v${SURUM}`;
+    else if (DOSYA[k]) a.href = `${REPO}/releases/download/v${SURUM}/${DOSYA[k]}`;
+  });
+
+  // Ziyaretçinin işletim sistemi: ana düğme ona göre (Mac → macOS, Linux → Linux, diğerleri → Windows).
+  const ua = navigator.userAgent || '';
+  const plat = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '';
+  const dokunmatik = navigator.maxTouchPoints > 1;
+  const os = /Mac/i.test(plat + ua) && !dokunmatik ? 'mac' : (/Linux/i.test(plat + ua) && !/Android/i.test(ua) ? 'linux' : 'win');
+  const birincil = document.getElementById('dl-primary');
+  birincil.dataset.dl = os;
+  if (YAYINDA) birincil.href = `${REPO}/releases/download/v${SURUM}/${DOSYA[os]}`;
+  birincil.querySelectorAll('.os-label').forEach(s => { s.hidden = s.dataset.os !== os; });
+
+  // ---------- Dil: tarayıcı diline göre Türkçe ya da İngilizce; seçim hatırlanır ----------
+  const EN = {
+    nav_main: 'Main menu', nav_home: 'MathOS home', nav_trust: 'Trust model', nav_how: 'How it works', nav_app: 'The app', nav_models: 'Models', nav_get: 'Download',
+    lang_switch: 'Türkçeye geç', lang_other: 'TR',
+    badge_soon_tag: 'SOON', badge_new_tag: 'NEW', badge_soon: 'MathOS 1.0 is coming', badge_out: 'MathOS 1.0 is out', badge_follow: 'Follow on GitHub ›', badge_notes: 'Release notes ›',
+    hero_title: 'AI proposes.<br>Lean decides.',
+    hero_sub: 'A local workspace for your mathematical research. Conjectures, Lean formalizations, proof attempts and literature live in one folder. An AI assistant works with you; only the Lean kernel can mark a claim verified.',
+    dl_win: 'Download for Windows', dl_mac: 'Download for macOS', dl_linux: 'Download for Linux', soon: 'Soon', hero_how: 'See how it works',
+    hero_note: 'Free and open source', hero_other: 'Windows, macOS and Linux',
+    alt_claim: 'The MathOS claim screen: translating to Lean and comparing the meaning of the natural-language and Lean statements.',
+    chip_kernel: 'Lean kernel', hand: 'only Lean', chip_lang: 'English and Turkish interface', chip_models: 'model providers · Ollama · LM Studio',
+    trust_title: 'Only one thing counts as proof.',
+    trust_sub: 'Language models are good at suggesting ideas. They are also good at sounding confident about proofs that are wrong. MathOS keeps the two apart by design.',
+    gate_aria: 'A claim moving from proposal to verification', tag_prop: 'Proposal', claim_id: 'T-001 · Theorem', claim_title: 'Sum of the first n odd numbers',
+    math_aria: 'the sum from i equals 0 to n minus 1 of 2i plus 1 equals n squared', prop_note: 'What the model writes is not proof. You approve the meaning.',
+    checks_aria: 'VerificationGate checks', chk_kernel: 'Lean kernel', chk_fid: 'Fidelity policy', chk_forb: 'Forbidden constructs', chk_ax: 'Axiom audit',
+    tag_dec: 'Decision', local_lean: 'local · Lean 4 v4.33.1', v_claim: 'Claim', v_meaning: 'Meaning approved by', v_meaning_who: 'Mathematician', v_proof: 'Proof checked by', v_repro: 'Reproducible from', v_capsule: 'Capsule',
+    replay: 'Verify again', gate_cap: 'Dashed line: proposal. Solid line: proof. Sample workspace: <span class="mono">odd-sums</span>',
+    l_source: 'Source', l_counts: 'What it counts as', l_verify: 'Can it verify a claim?',
+    l1a: 'Lean kernel through the VerificationGate', l1b: 'Proof', yes: 'Yes', no: 'No',
+    l2a: 'Your approval of a formalization', l2b: 'Meaning is faithful; required first',
+    l3a: 'Model output (assistant, prover, planner)', l4a: 'Computation and experiments',
+    l5a: 'Memory: notes, conventions, failed attempts', l5b: 'Record and context', l6a: 'Literature and citations', l7a: 'Plugins', l7b: 'Out-of-process tool',
+    ledger_note: 'A missing capability, such as Lean not installed or a provider that is not configured, shows up as <span class="mono">BLOCKED</span> and never as a fake success.',
+    road_title: 'From idea to verified theorem.', road_sub: 'Every claim has a road to verification, and you always see which step it is on.',
+    who_you: 'You', who_either: 'You or a model', who_only_you: 'Only you', who_lean: 'Only Lean',
+    r1t: 'Idea', r1p: 'Natural language and LaTeX. Type <kbd>$</kbd> and a formula opens inside the sentence.',
+    math_aria2: 'the sum of the first n odd numbers is n squared',
+    r2t: 'Lean statement', r2p: 'Written by you, or drafted by a model in Mathlib style.',
+    r3t: 'Same meaning?', r3p: 'You see both statements side by side. Approval is yours; a model may only advise.',
+    r4t: 'Proof attempt', r4p: 'Failed routes are remembered, so the next attempt does not repeat them.',
+    r5p: 'Kernel acceptance, fidelity policy, forbidden-construct checks and an axiom audit.',
+    road_note: 'Every step is recorded. Every model call is logged with its provider and role. Every verification can be replayed from its capsule.',
+    app_title: 'Your research in one window.', app_sub: 'The desktop app drives the same engine as the command line, so the trust rules are identical.',
+    alt_assist: 'The MathOS assistant proposing a new lemma and waiting for approval.',
+    cap_assist: '<b>An assistant that works inside your research.</b> It sees your workspace, searches Mathlib and the literature, and proposes actions. Each action runs only after you approve it.',
+    alt_run: 'A research run asking the mathematician where a sum should start.',
+    run_t: 'Research runs that know when to ask you.', run_p1: 'Give a run an objective and a budget. The planner analyses the goal, searches premises, decomposes the problem and attempts proofs.',
+    run_p2: 'When a decision is really yours, such as whether a sum starts at 0 or 1, it stops and asks.',
+    alt_formula: 'The inline formula editor inside a claim statement.',
+    fx_t: 'Write mathematics the way you think it.', fx_p1: 'Type <kbd>$</kbd> and a formula opens inside the sentence. Type <kbd>\\</kbd> and search symbols by name: “sum”, “toplam”, “integral”.',
+    fx_p2: 'Everything is stored as clean LaTeX; reports export to PDF, Word, Markdown, LaTeX, Excel or CSV.',
+    alt_graph: 'The research graph: dependencies between a definition, lemmas, a theorem and a conjecture.',
+    cap_graph: '<b>The research graph.</b> Shows what depends on what and which claims are verified. The unverified frontier between you and your objective is listed on the right.',
+    mem_pill: 'Memory', mem_title: 'It remembers your research and counts none of it as proof.', mem_sub: 'A note or convention a model proposes is saved only after you approve its card.',
+    m1t: 'Conventions', m1p: 'Notation and assumptions you approved: “ℕ starts at 0”, “log is the natural log”. Every Lean translation reads the statement the way you meant it.',
+    m2t: 'Research notes', m2p: 'Decisions, dead ends, open questions. Each note shows its basis: your note, a model suggestion, a verified claim, or refuted.',
+    m3t: 'Failure memory', m3p: 'Every proof attempt Lean rejected is fingerprinted by its statement. Later sessions do not walk the same route.',
+    m4t: 'Personal memory', m4p: 'Your preferences and a library of Lean-verified results travel with you. In a new workspace nothing counts as verified until Lean checks it there.',
+    models_title: 'Bring your own model.', models_sub: 'More than 60 provider presets. Use the subscription you already pay for, or keep everything on your own machine.',
+    p_local: 'Local', p_subs: 'Subscriptions', p_api: 'APIs', p_ent: 'Enterprise', p_other: 'Anything else', p_other_d: 'Any OpenAI- or Anthropic-compatible endpoint',
+    ms_p1: 'Local models stay on loopback. Cloud models are off until you allow them. Keys go to the operating system’s secret store, never through the command line and never into logs.',
+    ms_p2: 'Subscription and pay-as-you-go API profiles are always separate. Fallback never crosses a billing boundary unless you enable it.',
+    term_c: '# --json on every command',
+    more_title: 'And much more.',
+    mo1t: 'Literature', mo1d: 'Search, import and cite sources with provenance. A citation is recorded as a source, never as proof.',
+    mo2t: 'Experiments', mo2d: 'Run computations in a sandbox (Docker on Windows and macOS). Results count as computational evidence.',
+    mo3t: 'Branches', mo3d: 'Explore alternative approaches without losing the main line, then merge them semantically.',
+    mo4t: 'Notebooks and capsules', mo4d: 'Reproducible capsules that let anyone replay a verification.',
+    mo5t: 'Publication', mo5d: 'Deterministic export of verified results with their full dependency closure.',
+    mo6d: 'A read-only web view of your workspace, served only on your machine.', mo7d: 'Objective, claims, provider status and Atlas in the sidebar.',
+    mo8t: 'Terminal UI', mo8d: 'A complete TUI and a CLI you can script, with <span class="mono">--json</span> everywhere.',
+    mo9t: 'Plugins', mo9d: 'Out-of-process plugins with scoped access and no verification authority.',
+    inst_title_soon: 'MathOS 1.0 is coming.', inst_title: 'Install MathOS 1.0.',
+    inst_lede_soon: 'The first release is in final acceptance testing. Download links open here when it ships; until then you can follow along on GitHub.',
+    inst_lede: 'On first launch, pick a folder or open the sample project. Connect a model in Settings. Lean and Mathlib install in the background.',
+    inst_repo: 'Follow on GitHub', inst_quick: 'Quickstart',
+    inst_warn: 'The installers are not code-signed yet. If Windows SmartScreen warns, choose <b>More info → Run anyway</b>; if macOS blocks the command, allow it in System Settings. You can verify a download with <span class="mono">SHA256SUMS</span> first.',
+    pl_win: 'Desktop app · Windows 10 and 11 (x64)', pl_mac: 'Command line · Apple Silicon (M1 and later)', pl_linux: 'Command line · x64', pl_vsix: 'Companion extension · objective, claims and Atlas in the sidebar',
+    dl_short: 'Download', cli_title: 'Install with one command on macOS and Linux', copy: 'Copy command',
+    cli_soon: 'The command works once 1.0 is released.',
+    cli_note: 'The installer downloads the right archive, checks it against <span class="mono">SHA256SUMS</span> and installs it without sudo. The macOS desktop app is built from source for now.',
+    foot_lic: '© 2026 Baki Açıkgöz · AGPL-3.0-only · Commercial licenses on request', foot_nav: 'Links', foot_docs: 'Docs', foot_license: 'License',
+    t_dark: 'Switch to dark theme', t_light: 'Switch to light theme', copied: 'Copied', checking: 'Checking',
+    meta: 'MathOS: a local research environment for mathematicians where AI proposes and the Lean kernel decides.'
+  };
+  const TR_EK = {
+    t_dark: 'Koyu temaya geç', t_light: 'Aydınlık temaya geç', copied: 'Kopyalandı', checking: 'Denetleniyor', copy: 'Komutu kopyala',
+    lang_switch: 'Switch to English', lang_other: 'EN',
+    meta: 'MathOS: matematikçiler için yapay zekânın önerdiği, Lean çekirdeğinin karar verdiği yerel araştırma ortamı.'
+  };
+  // Türkçe metinler sayfanın kendisinde: ilk yüklemede DOM'dan okunur.
+  const TR = Object.assign({}, TR_EK);
+  document.querySelectorAll('[data-i18n]').forEach(el => { if (!(el.dataset.i18n in TR)) TR[el.dataset.i18n] = el.innerHTML; });
+  const attrs = [['data-i18n-alt', 'alt'], ['data-i18n-aria', 'aria-label']];
+  attrs.forEach(([d, a]) => document.querySelectorAll('[' + d + ']').forEach(el => { const k = el.getAttribute(d); if (!(k in TR)) TR[k] = el.getAttribute(a); }));
+  let dil = 'tr';
+  const t = k => (dil === 'en' ? EN : TR)[k] ?? TR[k] ?? k;
+  function dilUygula(d) {
+    dil = d === 'en' ? 'en' : 'tr';
+    root.lang = dil;
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t(el.dataset.i18n); });
+    attrs.forEach(([da, a]) => document.querySelectorAll('[' + da + ']').forEach(el => el.setAttribute(a, t(el.getAttribute(da)))));
+    const md = document.querySelector('meta[name="description"]'); if (md) md.setAttribute('content', t('meta'));
+    temaEtiketi();
+    if (typeof draw === 'function') requestAnimationFrame(draw);
+  }
+  let secili = null;
+  try { secili = localStorage.getItem('mathos-lang'); } catch (e) {}
+  const tarayici = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || 'en']);
+  const varsayilan = tarayici.some(l => /^tr\b/i.test(l)) ? 'tr' : 'en';
+  document.getElementById('lang').addEventListener('click', () => {
+    const yeni = dil === 'tr' ? 'en' : 'tr';
+    dilUygula(yeni);
+    try { localStorage.setItem('mathos-lang', yeni); } catch (e) {}
+  });
+
+  // ---------- Tema: aydınlık varsayılan; koyu yalnız seçilince ----------
+  const themeBtn = document.getElementById('theme');
+  function temaEtiketi() { themeBtn.setAttribute('aria-label', t(root.getAttribute('data-theme') === 'dark' ? 't_light' : 't_dark')); }
+  const setTheme = th => { root.setAttribute('data-theme', th === 'dark' ? 'dark' : 'light'); temaEtiketi(); };
+  setTheme('light');
+  try { if (localStorage.getItem('mathos-theme') === 'dark') setTheme('dark'); } catch (e) {}
+  themeBtn.addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    try { localStorage.setItem('mathos-theme', next); } catch (e) {}
+  });
+  if ((secili || varsayilan) !== 'tr') dilUygula(secili || varsayilan); else { root.lang = 'tr'; }
+
+  // Kopyala düğmeleri
+  document.querySelectorAll('.copy').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const src = document.getElementById(btn.dataset.copy);
+      const text = src.textContent.trim();
+      const done = () => { btn.classList.add('done'); btn.setAttribute('aria-label', t('copied')); setTimeout(() => { btn.classList.remove('done'); btn.setAttribute('aria-label', t('copy')); }, 1600); };
+      const select = () => { const r = document.createRange(); r.selectNodeContents(src); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
+      try { navigator.clipboard.writeText(text).then(done, select); } catch (e) { select(); }
+    });
+  });
+
+  // Kapı figürü: öneriden kapı noktasına kesik, kapıdan karara düz eğri.
+  const gate = document.getElementById('gate');
+  const items = [...gate.querySelectorAll('.checks li:not(.cap)')];
+  const stateText = gate.querySelector('.vs-text');
+  const replay = document.getElementById('replay');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const svg = gate.querySelector('.gate-curve');
+  const [prop, proof] = svg.querySelectorAll('path');
+  const endDot = svg.querySelector('.end');
+  const P = gate.querySelector('.card.proposal'), V = gate.querySelector('.card.verdict'), G = gate.querySelector('.gate-point');
+  let timers = [], proofLen = 0;
+
+  function draw() {
+    if (!G.offsetParent) return;
+    const f = gate.getBoundingClientRect(), r = el => el.getBoundingClientRect();
+    const g = r(G), p = r(P), v = r(V);
+    const gx = g.left + g.width / 2 - f.left, gy = g.top + g.height / 2 - f.top;
+    const x1 = p.right - f.left, y1 = gy - 50, x2 = v.left - f.left, y2 = gy + 50;
+    const k1 = (gx - x1) * 0.55, k2 = (x2 - gx) * 0.55;
+    svg.setAttribute('viewBox', `0 0 ${f.width} ${f.height}`);
+    prop.setAttribute('d', `M${x1} ${y1} C${x1 + k1} ${y1} ${gx - k1} ${gy} ${gx} ${gy}`);
+    proof.setAttribute('d', `M${gx} ${gy} C${gx + k2} ${gy} ${x2 - k2} ${y2} ${x2} ${y2}`);
+    endDot.setAttribute('cx', x2); endDot.setAttribute('cy', y2);
+    proofLen = proof.getTotalLength();
+    proof.style.strokeDasharray = proofLen;
+    proof.style.transition = 'none';
+    setProof(gate.dataset.state === 'verified');
+    proof.getBoundingClientRect(); proof.style.transition = '';
+  }
+  function setProof(on) { proof.style.strokeDashoffset = on ? 0 : proofLen; endDot.style.opacity = on ? 1 : 0; }
+  draw();
+  if ('ResizeObserver' in window) new ResizeObserver(draw).observe(gate); else addEventListener('resize', draw);
+  if (document.fonts) document.fonts.ready.then(draw);
+
+  function run() {
+    timers.forEach(clearTimeout); timers = [];
+    replay.disabled = true;
+    gate.dataset.state = 'checking'; setProof(false);
+    stateText.textContent = t('checking');
+    items.forEach(li => li.classList.remove('pass', 'run'));
+    items.forEach((li, i) => {
+      timers.push(setTimeout(() => li.classList.add('run'), 350 + i * 520));
+      timers.push(setTimeout(() => { li.classList.remove('run'); li.classList.add('pass'); }, 790 + i * 520));
+    });
+    timers.push(setTimeout(finish, 350 + items.length * 520 + 200));
+  }
+  function finish() {
+    items.forEach(li => { li.classList.remove('run'); li.classList.add('pass'); });
+    gate.dataset.state = 'verified'; setProof(true);
+    stateText.textContent = 'KERNEL_VERIFIED';
+    replay.disabled = false;
+  }
+  replay.addEventListener('click', run);
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { io.disconnect(); run(); } }, { threshold: 0.45 });
+    io.observe(gate);
+  }
+
+  // Hareketli arka plan: MathOS logosundaki eğri ışıktan çizilir. Her şerit logodaki gibi soldan sağa inen bir dalga
+  // (y = taban + eğim·x + A·sin(kx + φ)) boyunca akan bulanık bir ışıktır; dalga yavaşça kıvrılır, şerit yükselir.
+  // Demirtaş giriş ekranındaki hüzme tekniği: dörtte bir çözünürlük + CSS bulanıklığı, turkuazdan maviye, mor yok.
+  // Koyu temada ışık toplanır ('lighter'), açık temada renk zemine doygun düşer ('multiply'). Hareket azaltmada durmaz, yarı hızla akar.
+  const cv = document.getElementById('bg'), ctx = cv.getContext('2d', { alpha: false });
+  const OLCEK = 0.25, ADET = 14, hizCarpani = reduce ? 0.5 : 1;
+  let en = 1, boy = 1, seritler = [], son = 0, raf = 0, koyu = false;
+  const rastgele = (a, b) => a + Math.random() * (b - a);
+  function yeniSerit(i, ilk) {
+    const uzunluk = en * rastgele(0.55, 1.0);
+    return {
+      taban: rastgele(-0.1, 1.05) * boy,
+      egim: rastgele(0.12, 0.26),
+      genlik: boy * rastgele(0.05, 0.13),
+      k: (Math.PI * 2) / (en * rastgele(0.7, 1.25)),
+      faz: rastgele(0, Math.PI * 2), fazHizi: rastgele(0.0016, 0.0034),
+      cx: ilk ? rastgele(-uzunluk * 0.3, en + uzunluk * 0.3) : -uzunluk * 0.55,
+      ilerleme: rastgele(0.07, 0.16), yukselis: rastgele(0.012, 0.03),
+      uzunluk, kalinlik: Math.max(3, en * rastgele(0.022, 0.05)),
+      ton: 186 + (i * 38) / ADET + rastgele(-4, 4),
+      saydamlik: rastgele(0.32, 0.5), nabiz: rastgele(0, Math.PI * 2), nabizHizi: rastgele(0.01, 0.022)
+    };
+  }
+  function boyutla() {
+    const r = cv.getBoundingClientRect(), eskiEn = en, eskiBoy = boy;
+    en = Math.max(2, Math.round(r.width * OLCEK)); boy = Math.max(2, Math.round(r.height * OLCEK));
+    cv.width = en; cv.height = boy;
+    if (!seritler.length) { for (let i = 0; i < ADET; i++) seritler.push(yeniSerit(i, true)); return; }
+    const ox = en / eskiEn, oy = boy / eskiBoy;
+    seritler.forEach(s => { s.cx *= ox; s.uzunluk *= ox; s.kalinlik *= ox; s.k /= ox; s.taban *= oy; s.genlik *= oy; });
+  }
+  const yAt = (s, x) => s.taban + s.egim * (x - en / 2) + s.genlik * Math.sin(s.k * x + s.faz);
+  function ciz(s) {
+    const x0 = s.cx - s.uzunluk / 2, x1 = s.cx + s.uzunluk / 2;
+    const a = s.saydamlik * (0.8 + Math.sin(s.nabiz) * 0.2) * (koyu ? 1.35 : 1.25);
+    const renk = 'hsla(' + s.ton.toFixed(1) + (koyu ? ',92%,58%,' : ',96%,44%,');
+    const g = ctx.createLinearGradient(x0, 0, x1, 0);
+    g.addColorStop(0, renk + '0)'); g.addColorStop(0.25, renk + (a * 0.6).toFixed(3) + ')');
+    g.addColorStop(0.5, renk + a.toFixed(3) + ')'); g.addColorStop(0.75, renk + (a * 0.6).toFixed(3) + ')');
+    g.addColorStop(1, renk + '0)');
+    ctx.beginPath();
+    for (let x = x0; x <= x1; x += 2) { const y = yAt(s, x); x === x0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+    ctx.strokeStyle = g; ctx.lineWidth = s.kalinlik; ctx.lineCap = 'round'; ctx.stroke();
+  }
+  function kare(t) {
+    raf = requestAnimationFrame(kare);
+    const adim = son ? Math.min(3, (t - son) / 16.667) : 1; son = t;
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = koyu ? '#09090b' : '#f4f5f7'; ctx.fillRect(0, 0, en, boy);
+    ctx.globalCompositeOperation = koyu ? 'lighter' : 'multiply';
+    for (let i = 0; i < seritler.length; i++) {
+      const s = seritler[i], d = adim * hizCarpani;
+      s.cx += s.ilerleme * d; s.taban -= s.yukselis * d; s.faz += s.fazHizi * d * 6; s.nabiz += s.nabizHizi * d;
+      if (s.cx - s.uzunluk / 2 > en || s.taban < -boy * 0.35) seritler[i] = yeniSerit(i, false);
+      ciz(seritler[i]);
+    }
+  }
+  const temaOku = () => { koyu = root.getAttribute('data-theme') === 'dark'; };
+  const basla = () => { if (!raf) { son = 0; raf = requestAnimationFrame(kare); } };
+  const dur = () => { cancelAnimationFrame(raf); raf = 0; };
+  temaOku(); boyutla(); basla();
+  let zamanlayici = null;
+  addEventListener('resize', () => { clearTimeout(zamanlayici); zamanlayici = setTimeout(boyutla, 150); });
+  document.addEventListener('visibilitychange', () => document.hidden ? dur() : basla());
+  new MutationObserver(temaOku).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+})();
+</script>
+
+</body>
+</html>
