@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 import { existsSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs"
-import { tmpdir } from "node:os"
+import { homedir, tmpdir } from "node:os"
 import { isAbsolute, join, relative, resolve } from "node:path"
 
 const root = resolve(import.meta.dir, "..")
@@ -15,7 +15,13 @@ function bundledLean(): string | null {
   return null
 }
 
-const lean = process.env.MATHOS_LEAN_EXECUTABLE || Bun.which("lean") || bundledLean()
+// MathOS installs Lean under ~/.elan/bin without editing PATH, so look there as well.
+function elanLean(): string | null {
+  const executable = join(homedir(), ".elan", "bin", process.platform === "win32" ? "lean.exe" : "lean")
+  return existsSync(executable) ? executable : null
+}
+
+const lean = process.env.MATHOS_LEAN_EXECUTABLE || Bun.which("lean") || elanLean() || bundledLean()
 if (!lean) {
   console.log(JSON.stringify({ passed: false, reason: "LEAN_EXECUTABLE_MISSING" }))
   process.exit(1)

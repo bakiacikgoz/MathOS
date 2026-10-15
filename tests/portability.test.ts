@@ -19,7 +19,8 @@ describe("portability", () => {
       return /(?:\/Users\/[^/\s]+\/|\/home\/[^/\s]+\/|[A-Za-z]:\\Users\\[^\\\s]+\\)/u.test(text)
     })
     expect(offenders).toEqual([])
-  })
+    // Reading every tracked file takes seconds on a cold Windows file system.
+  }, 60_000)
 
   test("test workspaces are outside the checkout and cleanup is idempotent", () => {
     const workspace = createTestWorkspace()

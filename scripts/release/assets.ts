@@ -9,8 +9,7 @@ import { basename, join, resolve } from "node:path"
 import { MATHOS_PRODUCT_VERSION } from "../../packages/shared/src/version.ts"
 
 const ROOT = resolve(import.meta.dir, "..", "..")
-// The Apple Silicon archive stays out until a real Mac qualifies it (planned for 1.0.1).
-export const CLI_TARGETS = ["windows-x64", "linux-x64"] as const
+export const CLI_TARGETS = ["windows-x64", "darwin-arm64", "linux-x64"] as const
 
 export function checkReleaseTag(tag: string, version = MATHOS_PRODUCT_VERSION): void {
   if (tag !== `v${version}`) throw new Error(`RELEASE_TAG_MISMATCH: tag ${tag} does not name product version ${version}`)

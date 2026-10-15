@@ -166,7 +166,7 @@ On first launch, pick a folder or create a workspace (or open the sample project
 
 ### Command line
 
-Release archives cover Windows (x64) and Linux (x64); the Apple Silicon download follows in 1.0.1, and until then Macs build from source (see [Development](#development)). The installer downloads the right one, checks it against `SHA256SUMS` and installs it for your user, without sudo. On Windows, use `install.ps1` as shown in [installation](docs/INSTALLATION.md).
+Release archives cover Windows (x64), Apple Silicon Macs and Linux (x64). The installer downloads the right one, checks it against `SHA256SUMS` and installs it for your user, without sudo. On Windows, use `install.ps1` as shown in [installation](docs/INSTALLATION.md).
 
 ```sh
 curl -fsSL https://github.com/bakiacikgoz/MathOS/releases/download/v1.0.0/install.sh | MATHOS_VERSION=1.0.0 sh
@@ -251,7 +251,7 @@ bun run build
 bun run desktop:dev      # desktop app with hot reload
 ```
 
-To build and install the `mathos` command for the machine you are on (for example on a Mac, until its download arrives in 1.0.1):
+To build and install the `mathos` command for the machine you are on (for example an Intel Mac or Linux on ARM, which have no download):
 
 ```sh
 bun run release:build

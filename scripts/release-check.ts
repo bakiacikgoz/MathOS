@@ -51,6 +51,8 @@ export type ReleaseCommandRunner = (command: string[], options: { cwd: string; t
 const repositoryRoot = resolve(import.meta.dir, "..")
 const bun = process.execPath
 const DEFAULT_TIMEOUT_MS = 180_000
+// The whole unit suite needs several minutes on a Windows workstation.
+const CHECK_TIMEOUT_MS: Partial<Record<ReleaseCheckName, number>> = { "unit-integration-tests": 1_200_000 }
 
 function summary(stdout: string, stderr: string): string {
   const output = (stdout + "\n" + stderr)
@@ -218,9 +220,10 @@ export async function executeReleaseCheck(options: {
       checks.push({ name, status: "SKIPPED_UNSUPPORTED_PLATFORM", durationMs: 0, command: reportedCommand, evidence, exitCode: null, timedOut: false })
       continue
     }
-    const result = await runner(command, { cwd: repositoryRoot, timeoutMs: options.timeoutMs ?? DEFAULT_TIMEOUT_MS })
+    const timeoutMs = options.timeoutMs ?? CHECK_TIMEOUT_MS[name] ?? DEFAULT_TIMEOUT_MS
+    const result = await runner(command, { cwd: repositoryRoot, timeoutMs })
     let status: ReleaseCheckStatus = result.exitCode === 0 && !result.timedOut && validatesEvidence(name, result) ? "PASS" : "FAIL"
-    let evidence = result.timedOut ? `timed out after ${options.timeoutMs ?? DEFAULT_TIMEOUT_MS}ms; last output: ${summary(result.stdout, result.stderr)}` : summary(result.stdout, result.stderr)
+    let evidence = result.timedOut ? `timed out after ${timeoutMs}ms; last output: ${summary(result.stdout, result.stderr)}` : summary(result.stdout, result.stderr)
     if (result.diagnosticLogDir) evidence += `; raw local logs retained at ${result.diagnosticLogDir}`
     if (result.exitCode === 0 && !result.timedOut && !validatesEvidence(name, result)) {
       evidence = `command exited successfully without required evidence; ${evidence}`

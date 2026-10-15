@@ -182,7 +182,8 @@ describe("doctor", () => {
     } finally {
       app.close()
     }
-  }, 20000)
+    // On a machine with Lean installed, doctor runs the real toolchain checks (15-20 s on Windows).
+  }, 60_000)
 })
 
 describe("branch initialization", () => {

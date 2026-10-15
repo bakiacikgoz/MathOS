@@ -6,18 +6,20 @@ Every MathOS download is on the [Releases page](https://github.com/bakiacikgoz/M
 |---|---|
 | The desktop app on Windows 10 or 11 (x64) | `MathOS-<version>-windows-x64-setup.exe` |
 | The `mathos` command on Windows (x64) | `install.ps1`, or `mathos-<version>-windows-x64.tar.gz` |
+| The `mathos` command on an Apple Silicon Mac | `install.sh`, or `mathos-<version>-darwin-arm64.tar.gz` |
 | The `mathos` command on Linux (x64) | `install.sh`, or `mathos-<version>-linux-x64.tar.gz` |
 | The VS Code companion | `mathos-<version>.vsix` (*Extensions → … → Install from VSIX*) |
 
-`SHA256SUMS` lists the checksum of every file. The `mathos` command for Apple Silicon Macs arrives as a download in 1.0.1. Until then, and for Intel Macs and Linux on ARM, build it from source (see [Development](../README.md#development)); the desktop app for macOS and Linux is built from source too (see the [desktop README](../apps/desktop/README.md)).
+`SHA256SUMS` lists the checksum of every file. The desktop app for macOS and Linux, and the command for Intel Macs and Linux on ARM, are built from source for now (see the [desktop README](../apps/desktop/README.md) and [Development](../README.md#development)).
 
 ## Not code-signed yet
 
 MathOS installers and executables are not code-signed in this release. Your system may warn the first time:
 
 - **Windows SmartScreen** shows "Windows protected your PC". Choose *More info → Run anyway*.
+- **macOS** may refuse to open a `mathos` you downloaded with a browser. The installer script downloads with `curl`, which macOS does not quarantine. For a manual download, run `xattr -d com.apple.quarantine mathos` once.
 
-Check a file against `SHA256SUMS` before you run it. On Windows: `Get-FileHash .\MathOS-1.0.0-windows-x64-setup.exe`. On Linux: `sha256sum <file>`.
+Check a file against `SHA256SUMS` before you run it. On Windows: `Get-FileHash .\MathOS-1.0.0-windows-x64-setup.exe`. On macOS: `shasum -a 256 <file>`. On Linux: `sha256sum <file>`.
 
 ## Desktop app (Windows)
 
@@ -29,7 +31,7 @@ Uninstall from *Settings → Apps*. Your workspaces stay where you put them.
 
 The installers download the archive for your platform, check it against `SHA256SUMS`, install it for your user only (no sudo, no administrator), and run `mathos --version --json` before they finish. If anything fails, the previous installation is restored.
 
-Linux installs to `~/.local/bin/mathos` (set `MATHOS_INSTALL_DIR` to change it):
+macOS and Linux install to `~/.local/bin/mathos` (set `MATHOS_INSTALL_DIR` to change it):
 
 ```sh
 curl -fsSL https://github.com/bakiacikgoz/MathOS/releases/download/v1.0.0/install.sh | MATHOS_VERSION=1.0.0 sh
