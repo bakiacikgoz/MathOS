@@ -42,6 +42,8 @@ describe("final product capability evidence", () => {
       expect(valid.checks.standaloneArtifact).toBe(true)
       expect(valid.checks.windowsRuntimeEvidence).toBe(true)
       expect(valid.checks.macosRuntimeEvidence).toBe(false)
+      expect(valid.blockers).not.toContain("macosRuntimeEvidence")
+      expect(evaluateEvidence({ root, platform: "win32", arch: "x64", gitRevision: "a".repeat(40), sandbox: true, vscodeHost: true, releaseTargets: ["windows-x64", "darwin-arm64"] }).blockers).toContain("macosRuntimeEvidence")
 
       const stale = evaluateEvidence({ root, platform: "win32", arch: "x64", gitRevision: "b".repeat(40), sandbox: true, vscodeHost: true })
       expect(stale.checks.realModel).toBe(false)

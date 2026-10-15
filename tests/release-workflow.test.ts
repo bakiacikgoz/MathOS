@@ -3,11 +3,11 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "nod
 import { createHash } from "node:crypto"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { checkReleaseTag, collectReleaseAssets, expectedReleaseAssets, releaseNotes } from "../scripts/release/assets.ts"
+import { CLI_TARGETS, checkReleaseTag, collectReleaseAssets, expectedReleaseAssets, releaseNotes } from "../scripts/release/assets.ts"
 import { MATHOS_PRODUCT_VERSION } from "@mathos/shared"
 
 type Step = { name?: string; uses?: string; run?: string; if?: string; env?: Record<string, string>; with?: Record<string, unknown> }
-type Job = { "runs-on": string; permissions?: Record<string, string>; needs?: string[]; env?: Record<string, string>; steps: Step[] }
+type Job = { "runs-on": string; strategy?: { matrix: { include: { target: string }[] } }; permissions?: Record<string, string>; needs?: string[]; env?: Record<string, string>; steps: Step[] }
 const source = readFileSync(new URL("../.github/workflows/release.yml", import.meta.url), "utf8").replaceAll("\r\n", "\n")
 const workflow = Bun.YAML.parse(source) as { on: Record<string, unknown>; permissions: Record<string, string>; jobs: Record<string, Job> }
 
@@ -43,6 +43,14 @@ test("every build checks the tag and the license gate and is verified natively b
   expect(desktopRuns.findIndex(run => run.includes("smoke-host.ts"))).toBeLessThan(desktopRuns.findIndex(run => run.includes("tauri build")))
   expect(legal).toBeLessThan(desktopRuns.findIndex(run => run.includes("tauri build")))
   expect(desktopRuns.find(run => run.includes("tauri build"))).toContain("--locked")
+})
+
+test("the workflow builds exactly the shipped CLI targets and packages the extension on one of them", () => {
+  const targets = workflow.jobs.cli!.strategy!.matrix.include.map(entry => entry.target)
+  expect([...targets].sort()).toEqual([...CLI_TARGETS].sort())
+  for (const step of workflow.jobs.cli!.steps.filter(step => step.run?.startsWith("bun run vscode:"))) {
+    expect(CLI_TARGETS as readonly string[]).toContain(step.if?.match(/matrix\.target == '([^']+)'/)?.[1] ?? "")
+  }
 })
 
 test("a tag must name the product version exactly", () => {

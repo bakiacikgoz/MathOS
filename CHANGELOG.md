@@ -21,13 +21,14 @@ The first stable release of MathOS: a local research workspace where AI proposes
 |---|---|
 | `MathOS-<version>-windows-x64-setup.exe` | The desktop app on Windows 10 and 11 (x64) |
 | `mathos-<version>-windows-x64.tar.gz` | The `mathos` command on Windows (x64) |
-| `mathos-<version>-darwin-arm64.tar.gz` | The `mathos` command on Apple Silicon Macs |
 | `mathos-<version>-linux-x64.tar.gz` | The `mathos` command on Linux (x64) |
 | `mathos-<version>.vsix` | The VS Code companion extension |
 | `install.sh`, `install.ps1` | User-scoped command-line installers that verify `SHA256SUMS` |
 | `SHA256SUMS` | Checksums of every file above |
 
-The installers and executables are **not code-signed** yet. Windows SmartScreen may warn on first run (choose *More info → Run anyway*), and macOS may block the command until you allow it (see [installation](https://github.com/bakiacikgoz/MathOS/blob/main/docs/INSTALLATION.md)). Verify a download with `SHA256SUMS` before running it. The desktop app for macOS and Linux is built from source for now.
+The installers and executables are **not code-signed** yet. Windows SmartScreen may warn on first run (choose *More info → Run anyway*). Verify a download with `SHA256SUMS` before running it.
+
+The download for Apple Silicon Macs follows in 1.0.1, after it passes the same acceptance on a real Mac. Until then, build MathOS from source on a Mac (see [installation](https://github.com/bakiacikgoz/MathOS/blob/main/docs/INSTALLATION.md)). The desktop app for macOS and Linux is built from source for now.
 
 Every archive and the installer carry `LICENSE`, `NOTICE`, `SOURCE.json`, an SPDX SBOM and the third-party license texts.
 

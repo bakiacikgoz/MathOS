@@ -24,9 +24,6 @@ jobs:
           - runner: windows-2025
             target: windows-x64
             shell: pwsh
-          - runner: macos-15
-            target: darwin-arm64
-            shell: bash
           - runner: ubuntu-24.04
             target: linux-x64
             shell: bash
@@ -57,10 +54,10 @@ jobs:
       - name: Verify the CLI archive
         run: bun run release:verify
       - name: Package the VS Code extension
-        if: matrix.target == 'darwin-arm64'
+        if: matrix.target == 'linux-x64'
         run: bun run vscode:package
       - name: Verify the VS Code extension
-        if: matrix.target == 'darwin-arm64'
+        if: matrix.target == 'linux-x64'
         run: bun run vscode:verify
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:

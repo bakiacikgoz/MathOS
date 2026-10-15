@@ -4,6 +4,7 @@ import { inspectSandbox } from "@mathos/computation"
 import { mandatoryPlatformGates } from "./qualification/platform-qualification.ts"
 import { MATHOS_PRODUCT_VERSION } from "@mathos/shared"
 import { verifyRelease } from "./distribution/verify-release.ts"
+import { CLI_TARGETS } from "./release/assets.ts"
 
 type PlatformEvidence = {
   schemaVersion: "mathos.platform-qualification.v1"
@@ -41,6 +42,7 @@ export function evaluateEvidence(options: {
   sandbox: boolean
   vscodeHost: boolean
   directModel?: boolean
+  releaseTargets?: readonly string[]
 }) {
   const windows = currentEvidence(options.root, "windows-11-x64", options.gitRevision)
   const macos = currentEvidence(options.root, "macos-arm64", options.gitRevision)
@@ -82,7 +84,10 @@ export function evaluateEvidence(options: {
     windowsRuntimeEvidence: Boolean(windows),
     macosRuntimeEvidence: Boolean(macos),
   }
-  return { target, checks, blockers: Object.entries(checks).filter(([, passed]) => !passed).map(([name]) => name) }
+  // Evidence for a platform this release does not ship is reported but cannot block it.
+  const shipsMacos = (options.releaseTargets ?? CLI_TARGETS).includes("darwin-arm64")
+  const blockers = Object.entries(checks).filter(([name, passed]) => !passed && (name !== "macosRuntimeEvidence" || shipsMacos)).map(([name]) => name)
+  return { target, checks, blockers }
 }
 
 if (import.meta.main) {
