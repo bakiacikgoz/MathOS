@@ -13,3 +13,6 @@ export { NotebookSyncEngine, type NotebookSyncInput, type NotebookSyncPlan } fro
 export { importBlueprintLatex, type BlueprintDeclaration, type BlueprintImportResult, type BlueprintLoss } from "./latex-import.ts"
 export { exportBlueprintLatex } from "./blueprint.ts"
 export type { PublicationModel } from "./publication.ts"
+export { articleMarkdown } from "./templates/article-markdown.ts"
+export { articleLatex } from "./templates/article-latex.ts"
+export { articleHtml } from "./templates/article-html.ts"

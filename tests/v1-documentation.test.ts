@@ -23,7 +23,7 @@ describe("MathOS v1 documentation closure", () => {
 
   test("documents runnable quickstart, pilot feedback, and trust boundaries", () => {
     const pilot = text("docs/PROFESSIONAL_PILOT.md")
-    for (const command of ["bun install --frozen-lockfile", "mathos init", "mathos doctor", "mathos capsule", "mathos publish"]) expect(pilot).toContain(command)
+    for (const command of ["bun install --frozen-lockfile", "mathos init", "mathos doctor", "mathos capsule", "mathos publication build"]) expect(pilot).toContain(command)
     for (const field of ["Confusion", "Trust", "Time saved", "Failure", "False confidence", "Missing workflow"]) expect(pilot).toContain(field)
     const readme = text("README.md")
     expect(readme).toContain("VerificationGate")

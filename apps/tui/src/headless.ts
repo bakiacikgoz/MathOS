@@ -1,4 +1,4 @@
-import { MathOS, PersonalMemoryStore, SetupService, createDemoWorkspace, experimentTrustLabels, formatInitReport, formatTypedUserError, formatConfigShow, inspectHostEnvironment, startAtlasServer, type SetupCapabilityName, type SetupReport } from "@mathos/core"
+import { MathOS, PersonalMemoryStore, SetupService, replayClaimCapsule, verifyClaimCapsule, createDemoWorkspace, experimentTrustLabels, formatInitReport, formatTypedUserError, formatConfigShow, inspectHostEnvironment, startAtlasServer, type SetupCapabilityName, type SetupReport } from "@mathos/core"
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs"
 import { basename, dirname, extname, join, resolve } from "node:path"
 import { homedir, tmpdir } from "node:os"
@@ -28,7 +28,7 @@ import { applyAtomicUpdate, checkUpdate, rollbackUpdate, verifyUpdateArtifact, t
 import { runProviderLiveSmoke } from "../../../scripts/providers/live-smoke.ts"
 import { configuredModelProviders, configuredModelRoleAssignments } from "./model-runtime.ts"
 import { installLean, type LeanInstallEvent } from "@mathos/lean"
-import { leanRuntimeState, leanSelfTest, startLeanInstall } from "./lean-runtime.ts"
+import { leanReplayRuntime, leanRuntimeState, leanSelfTest, startLeanInstall } from "./lean-runtime.ts"
 import { autoPullSandboxImage, sandboxState } from "./sandbox-runtime.ts"
 import { cancelJob, jobsCanRunInBackground, listJobs, pollJob, startJob } from "./jobs.ts"
 import { assistantCommand } from "./assistant-cli.ts"
@@ -149,6 +149,21 @@ export async function runHeadless(argv: string[]): Promise<number> {
         const status = await installLean(print); process.stdout.write(`${JSON.stringify(status, null, 2)}\n`); return status.ready ? 0 : 2
       }
       throw new Error(`Unknown lean action: ${action}`)
+    }
+
+    // Checking and replaying a capsule needs no workspace: whoever received the file can do it.
+    if (command === "capsule" && (rest[0] === "verify" || rest[0] === "replay")) {
+      const parsed = capsuleCommand(rest), json = rest.includes("--json")
+      const [file, target] = parsed.args.filter((value) => !value.startsWith("--"))
+      if (!file) throw new Error(`Usage: mathos capsule ${parsed.action} <file.mathos-capsule>${parsed.action === "replay" ? " [<empty folder>]" : ""} [--json]`)
+      if (parsed.action === "verify") {
+        const { ok, errors, warnings, capsuleId, claimId } = verifyClaimCapsule(resolve(file))
+        process.stdout.write(json ? `${JSON.stringify({ ok, errors, warnings, capsuleId, claimId }, null, 2)}\n` : `CAPSULE ${ok ? "VALID" : "INVALID"} ${capsuleId ?? ""}\n${[...errors, ...warnings].join("\n")}\n`)
+        return ok ? 0 : 1
+      }
+      const report = await replayClaimCapsule(resolve(file), target === undefined ? undefined : resolve(target), leanReplayRuntime())
+      process.stdout.write(json ? `${JSON.stringify(report, null, 2)}\n` : `CAPSULE ${report.capsuleId} ${report.status}${"claimStatus" in report ? `\nCLAIM ${report.claimId} ${report.claimStatus}` : "\nGive an empty folder to replay it there."}\n`)
+      return report.status === "REPLAYED" || report.status === "PLANNED" ? 0 : 1
     }
 
     // The experiment sandbox: its state, and (with Docker running) fetching its image in the background.
@@ -1041,7 +1056,7 @@ export async function runHeadless(argv: string[]): Promise<number> {
         return 1
       }
 
-      if(command==="plugin"){process.stdout.write(`${JSON.stringify({...pluginCommand(rest),securityBoundary:"OUT_OF_PROCESS"},null,2)}\n`);return 0}if(command==="capsule"){process.stdout.write(`${JSON.stringify({...capsuleCommand(rest),overwrite:false},null,2)}\n`);return 0}if(command==="publication"){process.stdout.write(`${JSON.stringify({...publicationCommand(rest),provenanceRequired:true},null,2)}\n`);return 0}if(command==="review"){process.stdout.write(`${JSON.stringify({...reviewCommand(rest),authority:"HUMAN_ATTESTATION"},null,2)}\n`);return 0}if(command==="conjecture"){process.stdout.write(`${JSON.stringify({...conjectureCommand(rest),trust:"PROPOSAL — HUMAN ACCEPTANCE REQUIRED"},null,2)}\n`);return 0}if(command==="agenda"){process.stdout.write(`${JSON.stringify({...agendaCommand(rest),mode:"RESEARCH_STATE"},null,2)}\n`);return 0}
+      if(command==="plugin"){process.stdout.write(`${JSON.stringify({...pluginCommand(rest),securityBoundary:"OUT_OF_PROCESS"},null,2)}\n`);return 0}if(command==="capsule"){const parsed=capsuleCommand(rest),claimId=parsed.args.find((value,index)=>!value.startsWith("--")&&parsed.args[index-1]!=="--out");if(!claimId)throw new Error("Usage: mathos capsule export <claim-id> [--out <file>] [--json]");const exported=await app.exportCapsule(claimId,flag(rest,"--out"));process.stdout.write(rest.includes("--json")?`${JSON.stringify(exported,null,2)}\n`:`CAPSULE ${exported.capsuleId}\n${exported.output}\nsha256 ${exported.sha256}\n`);return 0}if(command==="publication"){const parsed=publicationCommand(rest),claimId=parsed.args.find((value,index)=>!value.startsWith("--")&&parsed.args[index-1]!=="--out");if(!claimId)throw new Error("Usage: mathos publication build|inspect <claim-id> [--out <folder>] [--json]");if(parsed.action==="inspect"){const path=join(flag(rest,"--out")??join(app.root,"publication",claimId.toUpperCase()),"publication.json");if(!existsSync(path))throw new Error(`PUBLICATION_NOT_FOUND: run mathos publication build ${claimId}`);process.stdout.write(readFileSync(path,"utf8"));return 0}const built=await app.buildPublication(claimId,flag(rest,"--out"));process.stdout.write(rest.includes("--json")?`${JSON.stringify(built,null,2)}\n`:`PUBLICATION ${built.claimId} ${built.claimStatus}\n${built.outputDir}\ncapsule ${built.capsule.capsuleId}\n`);return 0}if(command==="review"){process.stdout.write(`${JSON.stringify({...reviewCommand(rest),authority:"HUMAN_ATTESTATION"},null,2)}\n`);return 0}if(command==="conjecture"){process.stdout.write(`${JSON.stringify({...conjectureCommand(rest),trust:"PROPOSAL — HUMAN ACCEPTANCE REQUIRED"},null,2)}\n`);return 0}if(command==="agenda"){process.stdout.write(`${JSON.stringify({...agendaCommand(rest),mode:"RESEARCH_STATE"},null,2)}\n`);return 0}
       if(command==="atlas"){const graph=app.buildGraph({includeLiterature:true}),snapshot=projectAtlas(graph), launch=rest.length===0||rest[0]==="open"||rest.includes("--no-open");if(launch){const atlasLayout=resolveRuntimeLayout({executablePath:process.execPath,platform:process.platform,home:homedir(),env:process.env}),session=startAtlasServer({snapshot:()=>snapshot,providers:()=>providerSummaries(atlasLayout.userConfigRoot)}),url=`${session.url}/?token=${session.token}`;if(!rest.includes("--no-open")){const opener=process.platform==="win32"?["explorer.exe",url]:process.platform==="darwin"?["open",url]:["xdg-open",url];Bun.spawn(opener,{stdout:"ignore",stderr:"ignore"})}const sessionFile=rest.includes("--no-open")?writeAtlasSessionFile(url):null;process.stdout.write(`MathOS Atlas READ ONLY\n${session.url}\n${sessionFile?`Session link (with token, readable only by you): ${sessionFile}\n`:""}Ctrl+C to stop\n`);await new Promise<void>(resolve=>{const stop=()=>{session.stop();if(sessionFile)rmSync(dirname(sessionFile),{recursive:true,force:true});process.off("SIGINT",stop);process.off("SIGTERM",stop);resolve()};process.once("SIGINT",stop);process.once("SIGTERM",stop)});return 0}const parsed=atlasTextCommand(rest.filter(x=>x!=="--json"));if(parsed.action==="critical-path"){process.stdout.write(`${JSON.stringify(blockerCriticalPath(graph,parsed.args[0]??graph.metadata.focusNodeId??""),null,2)}\n`);return 0}if(parsed.action==="impact"){const id=parsed.args[0];process.stdout.write(`${JSON.stringify({id,edges:graph.edges.filter(e=>e.fromNodeId===id||e.toNodeId===id)},null,2)}\n`);return 0}if(parsed.action==="export"){const out=parsed.args[0]??"atlas-snapshot.json";writeFileSync(out,JSON.stringify(snapshot,null,2));process.stdout.write(`Atlas exported ${out}\n`);return 0}process.stdout.write(`${JSON.stringify(snapshot,null,2)}\n`);return 0}
 
       if (command === "literature" || command === "source" || command === "citation" || command === "external") {

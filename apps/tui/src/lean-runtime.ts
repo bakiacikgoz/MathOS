@@ -77,3 +77,9 @@ export async function leanSelfTest(): Promise<{ ok: boolean; ms: number; leanVer
   const ok = result.result === "KERNEL_ACCEPTED"
   return { ok, ms: Date.now() - started, leanVersion: result.leanVersion, detail: ok ? null : result.diagnostics.map((item) => item.message).join("\n").slice(0, 600) }
 }
+
+/** The shared Lean runtime for re-checking a proof outside any workspace (capsule replay), or null before Lean is installed. */
+export function leanReplayRuntime(): { adapter: NativeLeanAdapter; workspaceRoot: string; tmpDir: string } | null {
+  const status = leanInstallStatus()
+  return status.ready ? { adapter: new NativeLeanAdapter(), workspaceRoot: status.runtimeRoot, tmpDir: join(tmpdir(), "mathos-capsule-replay") } : null
+}

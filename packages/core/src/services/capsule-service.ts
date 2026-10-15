@@ -10,6 +10,9 @@ const canonical = (value: unknown): string => Array.isArray(value) ? `[${value.m
 const digest = (value: string) => createHash("sha256").update(value).digest("hex")
 const SECRET = /(OPENAI_API_KEY|ANTHROPIC_API_KEY|AWS_SECRET_ACCESS_KEY)\s*=|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|\bsk-[A-Za-z0-9_-]{20,}\b|\b[A-Za-z0-9+/]{48,}={0,2}\b/
 
+/** True when text looks like it carries a credential; capsules refuse such text. */
+export const capsuleTextHasSecret = (text: string) => SECRET.test(text)
+
 export class CapsuleService {
   constructor(private readonly options: { root: string; now?: () => string }) {}
   async inventory(paths: string[], allowlist: Array<{ path: string; reason: string }> = []) {

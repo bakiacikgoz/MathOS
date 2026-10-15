@@ -117,8 +117,8 @@ Reports and assistant answers export to **PDF, Word, Markdown, LaTeX, Excel or C
 | **Literature** | Search, import and cite sources with provenance. A citation is recorded as `EXTERNAL_SOURCE`, never as proof. |
 | **Experiments** | Run computations in a sandbox (Docker on Windows and macOS). Results are `COMPUTATIONAL_EVIDENCE`. |
 | **Branches** | Explore alternative approaches without losing the main line, then review and merge them semantically. |
-| **Notebooks and capsules** | Reproducible research notebooks, and capsules that let anyone replay a verification. |
-| **Publication** | Deterministic export of verified results with their full dependency closure. |
+| **Notebooks and capsules** | Reproducible research notebooks, and capsules that let anyone replay a verification (`mathos capsule export`, `verify`, `replay`). |
+| **Publication** | Deterministic Markdown, LaTeX and HTML of a verified result that cite its capsule (`mathos publication build`). |
 | **Atlas** | A read-only web view of the workspace, served on loopback. |
 | **VS Code** | A companion extension with the objective, claims, provider status and Atlas in the sidebar. |
 | **Plugins** | Out-of-process plugins with capability-scoped access and no verification authority. |
@@ -166,7 +166,7 @@ On first launch, pick a folder or create a workspace (or open the sample project
 
 ### Command line
 
-Release archives cover Windows (x64), Apple Silicon Macs and Linux (x64). The installer downloads the right one, checks it against `SHA256SUMS` and installs it for your user, without sudo. On Windows, use `install.ps1` as shown in [installation](docs/INSTALLATION.md).
+Release archives cover Windows (x64) and Linux (x64); the Apple Silicon download follows in 1.0.1, and until then Macs build from source (see [Development](#development)). The installer downloads the right one, checks it against `SHA256SUMS` and installs it for your user, without sudo. On Windows, use `install.ps1` as shown in [installation](docs/INSTALLATION.md).
 
 ```sh
 curl -fsSL https://github.com/bakiacikgoz/MathOS/releases/download/v1.0.0/install.sh | MATHOS_VERSION=1.0.0 sh
@@ -249,6 +249,13 @@ bun run typecheck
 bun test
 bun run build
 bun run desktop:dev      # desktop app with hot reload
+```
+
+To build and install the `mathos` command for the machine you are on (for example on a Mac, until its download arrives in 1.0.1):
+
+```sh
+bun run release:build
+MATHOS_VERSION=1.0.0 MATHOS_RELEASE_BASE_URL="file://$PWD/artifacts/releases/1.0.0" sh scripts/install/install.sh
 ```
 
 ## License

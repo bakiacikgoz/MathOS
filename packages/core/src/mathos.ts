@@ -72,6 +72,7 @@ import { ClaimService, type AddBlockerInput, type AddEvidenceInput, type CreateC
 import { ProofService, type ProveOptions } from "./services/proof-service.ts"
 import { RetrievalService } from "./services/retrieval-service.ts"
 import { VerificationService } from "./services/verification-service.ts"
+import { buildClaimPublication, exportClaimCapsule, type VerifiedClaimSource } from "./capsule-workflow.ts"
 import { ExperimentService } from "./services/experiment-service.ts"
 import { LiteratureService } from "./services/literature-service.ts"
 import { ResearchEngine } from "./services/research-engine.ts"
@@ -883,6 +884,31 @@ export class MathOS {
   async prove(claimId: string, signal?: AbortSignal, options?: ProveOptions): Promise<ProofSession> { return this.proofService.prove(claimId, signal, options) }
 
   async verify(claimId: string): Promise<VerificationReport> { return this.verificationService.verify(claimId) }
+
+  /** Writes the reproducibility capsule of a KERNEL_VERIFIED claim (see capsule-workflow.ts). */
+  async exportCapsule(claimId: string, output?: string) {
+    const exported = await exportClaimCapsule(this.verifiedClaimSource(claimId), output)
+    this.mutationRecorder().record("capsule_exported", { target: exported.claimId, metadata: { capsule_id: exported.capsuleId, sha256: exported.sha256 } })
+    return exported
+  }
+
+  /** Renders a KERNEL_VERIFIED claim for publication, citing its freshly exported capsule. */
+  async buildPublication(claimId: string, outputDir?: string) {
+    const capsule = await this.exportCapsule(claimId)
+    const source = this.verifiedClaimSource(claimId)
+    const publication = buildClaimPublication({ root: this.root, claim: source.claim, formal: source.formal, run: source.run!, capsuleSha256: capsule.sha256, outputDir })
+    this.mutationRecorder().record("publication_built", { target: source.claim.id, metadata: { hash: publication.hash, capsule_id: capsule.capsuleId } })
+    return { ...publication, capsule }
+  }
+
+  private verifiedClaimSource(claimId: string): VerifiedClaimSource {
+    const workspace = this.requireWorkspace()
+    const claim = this.getClaim(claimId.trim().toUpperCase())
+    if (claim.status !== "KERNEL_VERIFIED") throw new Error(`CAPSULE_CLAIM_NOT_VERIFIED: ${claim.id} is ${claim.status}`)
+    const formal = this.formalStatements.currentForClaim(claim.id)
+    if (!formal) throw new Error(`FORMAL_STATEMENT_NOT_FOUND: ${claim.id}`)
+    return { root: this.root, workspace: { id: workspace.id, name: workspace.name }, claim, formal, proof: this.proofs.latestAccepted(claim.id), run: this.verificationRuns.latestForFormal(formal.id) }
+  }
 
   private storeAttempt(
     workspaceId: string,
