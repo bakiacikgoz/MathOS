@@ -961,6 +961,9 @@ h1, h2, h3, p { margin: 0; }
 .msg-meta { margin-left: 6px; font-size: 12px; color: var(--text-3); font-variant-numeric: tabular-nums; }
 .msg-body { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .msg-note { font-size: 12.5px; color: var(--text-3); }
+.busy-note { display: flex; align-items: center; gap: 6px; margin-top: 4px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.busy-note svg { flex: none; animation: spin 1.6s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .busy-note svg { animation: none; } }
 
 .md { font-size: 15px; line-height: 1.7; color: var(--text); overflow-wrap: anywhere; }
 .md > :first-child { margin-top: 0; } .md > :last-child { margin-bottom: 0; }
@@ -1100,8 +1103,19 @@ button.turn-head:hover { color: var(--text-2); }
 .picker-btn:hover { background: var(--fill); }
 .picker-btn.subtle { border-color: transparent; background: none; color: var(--text-2); }
 .picker-btn.subtle:hover, .picker-btn.on { background: var(--fill); color: var(--text); }
+.picker-btn.model-btn { max-width: 230px; }
+/* In the composer the pickers give way before the send button does: their labels shorten, their icons stay. */
+.composer-bar > * { flex: none; }
+.composer-bar .picker { flex: 0 1 auto; min-width: 0; }
+.composer-bar .picker-btn, .composer-bar .picker-btn.model-btn { max-width: 100%; min-width: 0; }
+.composer-bar .model-picker { max-width: 230px; }
+.composer-bar .picker-btn > svg { flex: none; }
 .picker-menu { position: absolute; left: auto; right: 0; top: calc(100% + 6px); z-index: 40; width: 320px; max-height: 420px; overflow-y: auto; }
 .picker-menu.up { top: auto; bottom: calc(100% + 6px); left: 0; right: auto; }
+/* Pickers draw their menu in a portal (PickerMenu), placed by script and capped to the room on its side. */
+.picker-menu.floating { position: fixed; right: auto; z-index: 45; max-height: min(420px, var(--room, 420px)); }
+.picker-menu.floating.up { top: auto; animation-name: menu-in-up; }
+@keyframes menu-in-up { from { opacity: 0; transform: translateY(4px) scale(0.98); } }
 .picker-title { padding: 6px 10px 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-3); }
 .picker-item { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; }
 .picker-item:disabled { opacity: 0.45; }
@@ -1112,6 +1126,7 @@ button.turn-head:hover { color: var(--text-2); }
 .picker-empty { padding: 8px 10px; font-size: 13px; color: var(--text-3); }
 /* Model palette: every model of each connected provider, searchable. */
 .model-menu { display: flex; flex-direction: column; width: 340px; max-height: min(480px, 70vh); padding: 0; overflow: hidden; }
+.model-menu.floating { max-height: min(480px, var(--room, 480px)); }
 .model-search { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--line); color: var(--text-3); }
 .model-search input { flex: 1; min-width: 0; border: 0; outline: none; background: none; color: var(--text); font: 13.5px var(--font); }
 .model-groups { flex: 1; min-height: 0; overflow-y: auto; padding: 4px; overscroll-behavior: contain; }
@@ -1283,3 +1298,23 @@ details.memory-row > summary { cursor: pointer; list-style: none; }
 .memory-form-row .input { flex: 1; min-width: 160px; }
 .memory-section { margin-top: 36px; }
 .memory-section > .section-title:first-child { margin-top: 0; }
+
+/* Update notice (sidebar foot) and its sheet. */
+.update-chip { position: relative; display: flex; align-items: center; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--card); animation: lean-chip-in var(--mid) var(--ease); transition: background var(--fast), border-color var(--fast); }
+.update-chip:hover { background: var(--fill); border-color: var(--line-2); }
+.update-chip.failed { border-color: color-mix(in srgb, var(--danger, #e5484d) 45%, var(--line)); }
+.update-chip-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 0; background: none; color: var(--text); text-align: left; cursor: pointer; border-radius: inherit; }
+.update-chip-main:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.update-badge { display: grid; place-items: center; flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--ink); color: var(--ink-text); }
+.update-badge .spinner { width: 11px; height: 11px; border-width: 1.6px; opacity: 1; }
+.update-chip.failed .update-badge { background: var(--danger, #e5484d); }
+.update-chip-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.update-chip-label { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.update-chip-detail { font-size: 11.5px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.update-chip-close { display: grid; place-items: center; flex: none; width: 22px; height: 22px; margin-right: 6px; border: 0; border-radius: 6px; background: none; color: var(--text-3); cursor: pointer; }
+.update-chip-close:hover { background: var(--fill-2); color: var(--text); }
+.sidebar.collapsed .update-chip-main { justify-content: center; padding: 7px 0; }
+.sidebar.collapsed .update-chip-text { display: none; }
+.update-lead { font-size: 14px; line-height: 1.6; color: var(--text-2); }
+.update-notes { font-size: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+.update-notes h3 { font-size: 15px; }

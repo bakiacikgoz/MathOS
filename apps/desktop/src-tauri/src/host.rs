@@ -142,6 +142,14 @@ impl Host {
         }
     }
 
+    /// Stops the host and waits until it has exited, so the files it holds can be replaced.
+    pub async fn stop(&self) {
+        if let Some(mut running) = self.running.lock().await.take() {
+            let _ = running.child.start_kill();
+            let _ = tokio::time::timeout(Duration::from_secs(5), running.child.wait()).await;
+        }
+    }
+
     fn spawn(&self) -> Result<Running, String> {
         let (mut command, _) = host_command()?;
         command

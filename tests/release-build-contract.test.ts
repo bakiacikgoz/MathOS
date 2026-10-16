@@ -23,7 +23,7 @@ test("development CLI build applies the same OpenTUI Solid transform", () => {
 test("development CLI build cleanup preserves sibling distribution artifacts", () => {
   const outdir = mkdtempSync(join(tmpdir(), "mathos-build-output-"))
   try {
-    const cli = join(outdir, "cli.js"), vsix = join(outdir, "mathos-1.0.0.vsix")
+    const cli = join(outdir, "cli.js"), vsix = join(outdir, "mathos-1.0.1.vsix")
     writeFileSync(cli, "stale cli")
     writeFileSync(vsix, "packaged extension")
     prepareDevelopmentBuildOutput(outdir)

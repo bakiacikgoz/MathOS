@@ -113,6 +113,7 @@ const ERRORS: Record<string, Pair> = {
   CODEX_CLIENT_MISSING: ["Codex istemcisi bulunamadı. Codex'i kurup bu sayfadan yeniden giriş yapın.", "The Codex client was not found. Install Codex and sign in again from this page."],
   CODEX_LOGIN_REQUIRED: ["ChatGPT oturumu yok ya da süresi doldu. Bu profil için yeniden giriş yapın.", "ChatGPT sign-in is missing or expired. Sign in again for this profile."],
   CODEX_USAGE_LIMIT_EXCEEDED: ["ChatGPT aboneliğinin Codex kullanım limiti doldu.", "The ChatGPT plan's Codex usage limit is reached."],
+  MODEL_BUSY: ["Model sağlayıcısı şu an yoğun ve birkaç denemeye rağmen yanıt vermedi. Biraz sonra yeniden deneyin ya da yazma alanındaki model seçiciden başka bir model seçin.", "The model provider is busy and did not answer after several attempts. Try again shortly, or pick another model with the model picker in the message box."],
   CODEX_RATE_LIMITED: ["Codex şu an çok fazla istek alıyor; biraz sonra tekrar deneyin.", "Codex is rate limiting requests; try again shortly."],
   CODEX_CONTEXT_WINDOW_EXCEEDED: ["Konuşma modelin bağlam penceresini aştı; yeni bir sohbet başlatın.", "The conversation exceeds the model's context window; start a new chat."],
   CODEX_TURN_FAILED: ["Codex yanıtı tamamlayamadı.", "Codex could not finish the answer."],

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { OpenAICompatibleProvider, retryModelCall } from "@mathos/models"
+import { isTransientModelError, OpenAICompatibleProvider, retryModelCall } from "@mathos/models"
 
 describe("bounded model retry", () => {
   test("retries 429 with bounded Retry-After and transient 5xx only", async () => {
@@ -22,4 +22,14 @@ describe("bounded model retry", () => {
     await expect(provider.generate({ messages: [{ role: "user", content: "q" }] })).rejects.toThrow("MODEL_RESPONSE_TOO_LARGE")
     expect(calls).toBe(2)
   })
+})
+
+test("busy providers are transient, wherever the gateway puts the reason; refusals and timeouts are not", () => {
+  expect(isTransientModelError(new Error("Streaming response failed: [rate_limit_error] upstream model is overloaded, please try again later"))).toBe(true)
+  expect(isTransientModelError(Object.assign(new Error("Model endpoint returned 529."), { status: 529 }))).toBe(true)
+  expect(isTransientModelError(Object.assign(new Error("PROVIDER_RATE_LIMITED"), { name: "ProviderRateLimited" }))).toBe(true)
+  expect(isTransientModelError(Object.assign(new Error("Model endpoint returned 400."), { status: 400 }))).toBe(false)
+  expect(isTransientModelError(Object.assign(new Error("Model request timed out."), { name: "ModelTimeout" }))).toBe(false)
+  expect(isTransientModelError(new Error("PROVIDER_QUOTA_EXHAUSTED"))).toBe(false)
+  expect(isTransientModelError(new Error("MODEL_ROUTE_BLOCKED: remote models are disabled"))).toBe(false)
 })

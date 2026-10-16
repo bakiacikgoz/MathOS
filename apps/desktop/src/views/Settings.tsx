@@ -12,6 +12,9 @@ import { Providers } from "./Providers.tsx"
 import { Health } from "./Health.tsx"
 import { Console } from "./Console.tsx"
 import { Memory } from "./Memory.tsx"
+import { UpdateSheet } from "../components/UpdateNotice.tsx"
+import { errorText } from "../lib/cli-text.ts"
+import { autoCheckEnabled, checkForUpdates, setAutoCheck, useUpdates } from "../lib/updates.ts"
 
 /** Settings holds everything about how MathOS is set up, one tab each; the sidebar keeps only the research. */
 export function Settings({ route }: { route: Route }) {
@@ -104,6 +107,8 @@ function GeneralSettings() {
         </div>
       </div>
 
+      <UpdateSettings version={info?.version ?? null} />
+
       <div className="settings-group">
         <div className="section-title">{t("settings.engine")}</div>
         <div className="card">
@@ -120,6 +125,39 @@ function GeneralSettings() {
         <div className="section-title">{t("settings.shortcuts")}</div>
         <div className="card shortcut-list">{shortcuts.map(([label, key]) => <Fragment key={key}><span>{label}</span><span className="kbd" style={{ justifySelf: "end" }}>{key}</span></Fragment>)}</div>
       </div>
+    </div>
+  )
+}
+
+/** The installed version, whether a newer one is out, and whether MathOS looks for one by itself. */
+function UpdateSettings({ version }: { version: string | null }) {
+  const { t, lang } = useT()
+  const updates = useUpdates()
+  const [auto, setAuto] = useState(autoCheckEnabled)
+  const [sheet, setSheet] = useState(false)
+  const status = updates.status
+  const current = status?.currentVersion ?? version
+  const state = updates.phase === "checking" ? t("settings.updates.checking")
+    : updates.phase === "failed" ? errorText(updates.error, lang)
+    : status?.available ? t("settings.updates.available").replace("{version}", status.latestVersion)
+    : status ? `${t("settings.updates.current")} · ${t("settings.updates.checkedAt").replace("{time}", new Date(status.checkedAt).toLocaleString(lang === "tr" ? "tr-TR" : "en-US", { dateStyle: "medium", timeStyle: "short" }))}`
+    : t("settings.updates.never")
+  return (
+    <div className="settings-group">
+      <div className="section-title">{t("settings.updates")}</div>
+      <div className="card">
+        <div className="settings-row">
+          <div><div className="k">MathOS{current ? ` ${current}` : ""}</div><div className="d" role="status">{state}</div></div>
+          {status?.available
+            ? <button className="btn btn-primary" onClick={() => setSheet(true)}><Icon name="download" size={15} />{t("settings.updates.show")}</button>
+            : <button className="btn btn-secondary" disabled={updates.phase === "checking"} onClick={() => void checkForUpdates({ manual: true })}>
+                {updates.phase === "checking" ? <span className="spinner" /> : <Icon name="refresh" size={16} />}{t("settings.updates.check")}
+              </button>}
+        </div>
+        <div className="settings-row"><div><div className="k">{t("settings.updates.auto")}</div><div className="d">{t("settings.updates.autoHint")}</div></div>
+          <Segmented value={auto ? "on" : "off"} onChange={(value) => { setAuto(value === "on"); setAutoCheck(value === "on") }} options={[{ value: "on", label: t("tour.on") }, { value: "off", label: t("tour.offShort") }]} /></div>
+      </div>
+      <UpdateSheet open={sheet} onClose={() => setSheet(false)} />
     </div>
   )
 }

@@ -165,7 +165,7 @@ test("restore rejects manifest traversal and unlisted payload without touching t
   const outside = join(parent, "sentinel.txt")
   writeFileSync(outside, "owned")
   const forged = {
-    mathosVersion: "1.0.0", schemaEpoch: SCHEMA_EPOCH, workspaceId: null,
+    mathosVersion: "1.0.1", schemaEpoch: SCHEMA_EPOCH, workspaceId: null,
     createdAt: new Date().toISOString(),
     files: [{ path: "../sentinel.txt", sha256: createHash("sha256").update("owned").digest("hex"), bytes: 5 }],
   }

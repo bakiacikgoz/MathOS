@@ -4,7 +4,7 @@ The product version is defined by `MATHOS_PRODUCT_VERSION` in the shared runtime
 
 | Contract | Current | Compatibility rule |
 | --- | ---: | --- |
-| Product version | `1.0.0` | First stable release; tagged `v1.0.0` |
+| Product version | `1.0.1` | Stable; tagged `v1.0.1` (first stable release: `v1.0.0`) |
 | Workspace schema | 31 | Schemas 16–31 accepted; newer or older unsupported schemas fail before mutation |
 | Bridge protocol | 1 | Exact match |
 | Plugin API | 1 | Exact match; incompatible plugins disabled |

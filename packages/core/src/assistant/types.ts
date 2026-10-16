@@ -67,6 +67,8 @@ export type AssistantEvent =
   | { type: "delta"; text?: string; reasoning?: string }
   | { type: "replace"; text: string }
   | { type: "step"; index: number }
+  /** The provider was busy; the step is asked again after `waitMs`. What it wrote so far is discarded. */
+  | { type: "retry"; attempt: number; attempts: number; waitMs: number; message: string }
   | { type: "part"; part: AssistantPart }
   | { type: "model"; model: NonNullable<AssistantMessage["model"]> }
   | { type: "done"; message: AssistantMessage }

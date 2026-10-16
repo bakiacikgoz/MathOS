@@ -32,8 +32,8 @@ function phaseTimer(label: string): (phase: string) => void {
 
 describe("release hardening", () => {
   test("version comes from root package.json", () => {
-    expect(mathosVersion()).toBe("1.0.0")
-    expect(MathOS.versionText()).toContain("1.0.0")
+    expect(mathosVersion()).toBe("1.0.1")
+    expect(MathOS.versionText()).toContain("1.0.1")
   })
 
   test("fresh migrate is idempotent and records schema epoch", async () => {

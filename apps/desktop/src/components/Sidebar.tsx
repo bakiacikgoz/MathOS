@@ -9,6 +9,7 @@ import { Wordmark } from "./Brand.tsx"
 import { errorText } from "../lib/cli-text.ts"
 import { useAutoTour } from "./Tour.tsx"
 import { LeanIndicator } from "./LeanSetup.tsx"
+import { UpdateIndicator } from "./UpdateNotice.tsx"
 
 type Signal = { kind: "count"; value: number } | { kind: "dot"; tone: "strong" | "soft"; title: MessageKey } | null
 
@@ -52,6 +53,7 @@ export function Sidebar({ onPalette }: { onPalette: () => void }) {
       </nav>
 
       <div className="sidebar-foot" data-tour="sidebar-foot">
+        <UpdateIndicator collapsed={collapsed} />
         <LeanIndicator collapsed={collapsed} />
         {/* Providers, memory, system health, the console, theme and language are settings: they live behind this one item. */}
         <NavItem route="settings" active={isSettingsRoute(app.route)} icon="settings" label={t("nav.settings")} shortcut={`${mod},`} signal={signals.settings ?? null} collapsed={collapsed} />

@@ -32,6 +32,7 @@ import { leanReplayRuntime, leanRuntimeState, leanSelfTest, startLeanInstall } f
 import { autoPullSandboxImage, sandboxState } from "./sandbox-runtime.ts"
 import { cancelJob, jobsCanRunInBackground, listJobs, pollJob, startJob } from "./jobs.ts"
 import { assistantCommand } from "./assistant-cli.ts"
+import { runOnlineUpdate } from "./update-cli.ts"
 
 function joinCwdBackups(): string {
   return join(process.cwd(), "backups")
@@ -281,7 +282,9 @@ export async function runHeadless(argv: string[]): Promise<number> {
     }
 
     if(command==="update"){
-      const action=rest[0]??"check",manifestPath=flag(rest,"--manifest")
+      const action=rest[0]&&!rest[0].startsWith("--")?rest[0]:"check",manifestPath=flag(rest,"--manifest")
+      // Without a manifest, check, install and download talk to the published releases.
+      if((action==="check"&&!manifestPath)||action==="install"||action==="download")return await runOnlineUpdate(action,rest)
       if(action==="check"){if(!manifestPath)throw new Error("UPDATE_MANIFEST_REQUIRED");const manifest=JSON.parse(readFileSync(resolve(manifestPath),"utf8"))as UpdateManifest,result=checkUpdate({currentVersion:MATHOS_PRODUCT_VERSION,channel:rest.includes("--stable")?"stable":"rc",manifest,schemaVersion:SCHEMA_EPOCH});process.stdout.write(`${JSON.stringify(result,null,2)}\n`);return result.compatible?0:5}
       if(action==="apply"){const candidate=flag(rest,"--candidate"),sha=flag(rest,"--sha256"),current=flag(rest,"--current")??process.execPath;if(!candidate||!sha)throw new Error("UPDATE_CANDIDATE_AND_CHECKSUM_REQUIRED");verifyUpdateArtifact(readFileSync(resolve(candidate)),sha);const smoke=(path:string)=>Bun.spawnSync([path,"--version","--json"],{stdout:"pipe",stderr:"pipe"}).exitCode===0;process.stdout.write(`${JSON.stringify(applyAtomicUpdate({current,candidate,preSmoke:smoke,postSmoke:smoke}),null,2)}\n`);return 0}
       if(action==="rollback"){const current=flag(rest,"--current")??process.execPath;process.stdout.write(`${JSON.stringify(rollbackUpdate(current),null,2)}\n`);return 0}throw new Error(`UPDATE_ACTION_UNKNOWN:${action}`)

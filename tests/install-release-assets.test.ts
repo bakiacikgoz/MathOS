@@ -10,13 +10,13 @@ const toPosix = (path: string) => process.platform === "win32" ? path.replace(/^
 
 function fixture(os: "linux" | "darwin", corrupt = false, unsafeLink = false) {
   const root = mkdtempSync(join(tmpdir(), "mathos-installer-"))
-  const version = "1.0.0", target = `${os}-x64`, archive = `mathos-${version}-${target}.tar.gz`
+  const version = "1.0.1", target = `${os}-x64`, archive = `mathos-${version}-${target}.tar.gz`
   const bundle = join(root, "bundle"), release = join(root, "release"), installed = join(root, "kurulu MathOS")
   mkdirSync(join(bundle, "root", "bin"), { recursive: true })
   mkdirSync(join(bundle, "root", "share", "mathos", "atlas"), { recursive: true })
   mkdirSync(release, { recursive: true })
   const executable = join(bundle, "root", "bin", "mathos")
-  writeFileSync(executable, '#!/bin/sh\n[ -f "$(dirname "$0")/../share/mathos/atlas/index.html" ] || exit 9\nprintf \'{"version":"1.0.0"}\\n\'\n')
+  writeFileSync(executable, '#!/bin/sh\n[ -f "$(dirname "$0")/../share/mathos/atlas/index.html" ] || exit 9\nprintf \'{"version":"1.0.1"}\\n\'\n')
   chmodSync(executable, 0o755)
   writeFileSync(join(bundle, "root", "share", "mathos", "atlas", "index.html"), "Atlas installed asset")
   if (unsafeLink) linkSync(join(bundle, "root", "share", "mathos", "atlas", "index.html"), join(bundle, "root", "share", "mathos", "atlas", "linked.html"))
@@ -53,7 +53,7 @@ for (const os of ["linux", "darwin"] as const) {
       const script = resolve(import.meta.dir, "../scripts/install/install.sh")
       const command = 'PATH="$1:$PATH" exec sh "$2"'
       const result = Bun.spawnSync([shell, "-c", command, "--", toPosix(f.toolDir), toPosix(script)], {
-        env: { ...process.env, MATHOS_RELEASE_BASE_URL: pathToFileURL(f.release).href, MATHOS_VERSION: "1.0.0", MATHOS_INSTALL_DIR: `${toPosix(f.installed)}/bin`, HOME: `${toPosix(f.root)}/home` },
+        env: { ...process.env, MATHOS_RELEASE_BASE_URL: pathToFileURL(f.release).href, MATHOS_VERSION: "1.0.1", MATHOS_INSTALL_DIR: `${toPosix(f.installed)}/bin`, HOME: `${toPosix(f.root)}/home` },
         stdout: "pipe", stderr: "pipe",
       })
       if (result.exitCode !== 0) throw new Error(result.stderr.toString() || result.stdout.toString())
@@ -73,7 +73,7 @@ test("installer refuses corrupted archive before writing installed files", () =>
   try {
     const script = resolve(import.meta.dir, "../scripts/install/install.sh")
     const result = Bun.spawnSync([shell, "-c", 'PATH="$1:$PATH" exec sh "$2"', "--", toPosix(f.toolDir), toPosix(script)], {
-      env: { ...process.env, MATHOS_RELEASE_BASE_URL: pathToFileURL(f.release).href, MATHOS_VERSION: "1.0.0", MATHOS_INSTALL_DIR: `${toPosix(f.installed)}/bin`, HOME: `${toPosix(f.root)}/home` },
+      env: { ...process.env, MATHOS_RELEASE_BASE_URL: pathToFileURL(f.release).href, MATHOS_VERSION: "1.0.1", MATHOS_INSTALL_DIR: `${toPosix(f.installed)}/bin`, HOME: `${toPosix(f.root)}/home` },
       stdout: "pipe", stderr: "pipe",
     })
     expect(result.exitCode).not.toBe(0)
@@ -86,7 +86,7 @@ test("installer rejects a checksum-valid archive containing a hardlink", () => {
   try {
     const script = resolve(import.meta.dir, "../scripts/install/install.sh")
     const result = Bun.spawnSync([shell, "-c", 'PATH="$1:$PATH" exec sh "$2"', "--", toPosix(f.toolDir), toPosix(script)], {
-      env: { ...process.env, MATHOS_RELEASE_BASE_URL: pathToFileURL(f.release).href, MATHOS_VERSION: "1.0.0", MATHOS_INSTALL_DIR: `${toPosix(f.installed)}/bin`, HOME: `${toPosix(f.root)}/home` },
+      env: { ...process.env, MATHOS_RELEASE_BASE_URL: pathToFileURL(f.release).href, MATHOS_VERSION: "1.0.1", MATHOS_INSTALL_DIR: `${toPosix(f.installed)}/bin`, HOME: `${toPosix(f.root)}/home` },
       stdout: "pipe", stderr: "pipe",
     })
     expect(result.exitCode).not.toBe(0)
@@ -100,10 +100,10 @@ test.skipIf(process.platform !== "win32")("installer rejects traversal paths ins
     const make = Bun.spawnSync([shell, "-c", 'tar -czf "$1" --transform="s|^root/share/mathos/atlas/index.html$|root/../outside.txt|" -C "$2" root', "--", toPosix(f.archivePath), toPosix(f.bundle)], { stdout: "pipe", stderr: "pipe" })
     expect(make.exitCode).toBe(0)
     const hash = createHash("sha256").update(readFileSync(f.archivePath)).digest("hex")
-    writeFileSync(join(f.release, "SHA256SUMS"), `${hash}  mathos-1.0.0-linux-x64.tar.gz\n`)
+    writeFileSync(join(f.release, "SHA256SUMS"), `${hash}  mathos-1.0.1-linux-x64.tar.gz\n`)
     const script = resolve(import.meta.dir, "../scripts/install/install.sh")
     const result = Bun.spawnSync([shell, "-c", 'PATH="$1:$PATH" exec sh "$2"', "--", toPosix(f.toolDir), toPosix(script)], {
-      env: { ...process.env, MATHOS_RELEASE_BASE_URL: pathToFileURL(f.release).href, MATHOS_VERSION: "1.0.0", MATHOS_INSTALL_DIR: `${toPosix(f.installed)}/bin`, HOME: `${toPosix(f.root)}/home` },
+      env: { ...process.env, MATHOS_RELEASE_BASE_URL: pathToFileURL(f.release).href, MATHOS_VERSION: "1.0.1", MATHOS_INSTALL_DIR: `${toPosix(f.installed)}/bin`, HOME: `${toPosix(f.root)}/home` },
       stdout: "pipe", stderr: "pipe",
     })
     expect(result.exitCode).not.toBe(0)
@@ -135,7 +135,7 @@ for (const failure of ["backup", "activate"] as const) {
       chmodSync(mv, 0o755)
       const script = resolve(import.meta.dir, "../scripts/install/install.sh")
       const result = Bun.spawnSync([shell, "-c", 'PATH="$1:$PATH" exec sh "$2"', "--", toPosix(f.toolDir), toPosix(script)], {
-        env: { ...process.env, MATHOS_RELEASE_BASE_URL: pathToFileURL(f.release).href, MATHOS_VERSION: "1.0.0", MATHOS_INSTALL_DIR: installDir, MATHOS_TEST_CANONICAL_DEST: canonicalDest, MATHOS_TEST_FAIL_MARKER: toPosix(failureMarker), MATHOS_TEST_FAIL_STEP: failure, HOME: `${toPosix(f.root)}/home` },
+        env: { ...process.env, MATHOS_RELEASE_BASE_URL: pathToFileURL(f.release).href, MATHOS_VERSION: "1.0.1", MATHOS_INSTALL_DIR: installDir, MATHOS_TEST_CANONICAL_DEST: canonicalDest, MATHOS_TEST_FAIL_MARKER: toPosix(failureMarker), MATHOS_TEST_FAIL_STEP: failure, HOME: `${toPosix(f.root)}/home` },
         stdout: "pipe", stderr: "pipe",
       })
       expect(result.exitCode).toBe(73)

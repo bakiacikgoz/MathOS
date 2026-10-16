@@ -193,6 +193,35 @@ describe("assistant turns", () => {
     expect(store.get(conversation.id).messages.map((row) => row.role)).toEqual(["user", "assistant"])
   })
 
+  test("a busy provider is asked again after a pause, and what it wrote before failing is discarded", async () => {
+    const overloaded = () => new Error("Streaming response failed: [rate_limit_error] upstream model is overloaded, please try again later")
+    const { turn, events, seen } = setup([overloaded(), overloaded(), "Here to help."])
+    const waits: number[] = []
+    const message = await turn({ input: { text: "Merhaba" }, sleep: async (ms) => { waits.push(ms) } })
+    expect(message).toMatchObject({ state: "done", content: "Here to help." })
+    expect(seen).toHaveLength(3)
+    expect(waits).toEqual([2_000, 5_000])
+    expect(events.filter((event) => event.type === "retry")).toMatchObject([{ attempt: 1, attempts: 3, waitMs: 2_000 }, { attempt: 2, attempts: 3, waitMs: 5_000 }])
+  })
+
+  test("a provider still busy after every retry ends as MODEL_BUSY; other errors are not retried", async () => {
+    const busy = setup([0, 1, 2, 3].map(() => Object.assign(new Error("Model endpoint returned 503."), { status: 503 })))
+    const failed = await busy.turn({ input: { text: "hi" }, sleep: async () => {} })
+    expect(failed).toMatchObject({ state: "error", error: { code: "MODEL_BUSY" } })
+    expect(busy.seen).toHaveLength(4)
+    const blocked = setup([Object.assign(new Error("MODEL_ROUTE_BLOCKED: remote models are disabled"), { name: "Error" })])
+    await blocked.turn({ input: { text: "hi" }, sleep: async () => { throw new Error("must not wait") } })
+    expect(blocked.seen).toHaveLength(1)
+  })
+
+  test("stopping while waiting for a busy provider stops the turn", async () => {
+    const controller = new AbortController()
+    const { turn, seen } = setup([new Error("upstream model is overloaded")])
+    const message = await turn({ input: { text: "hi" }, signal: controller.signal, sleep: async () => { controller.abort() } })
+    expect(message.state).toBe("stopped")
+    expect(seen).toHaveLength(1)
+  })
+
   test("stopping keeps what was written so far", async () => {
     const controller = new AbortController()
     const { turn } = setup([])

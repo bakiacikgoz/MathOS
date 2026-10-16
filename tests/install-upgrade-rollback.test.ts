@@ -25,7 +25,7 @@ for (const locked of ["asset", "binary"] as const) {
       const oldBinary = join(install, "bin", "mathos.exe"), oldAsset = join(install, "share", "mathos", "atlas", "index.html")
       writeFileSync(oldBinary, "old binary bytes")
       writeFileSync(oldAsset, "old asset bytes")
-      const archive = "mathos-1.0.0-windows-x64.tar.gz", archivePath = join(release, archive)
+      const archive = "mathos-1.0.1-windows-x64.tar.gz", archivePath = join(release, archive)
       const tar = Bun.spawnSync(["tar", "-czf", archivePath, "-C", bundle, "root"], { stdout: "pipe", stderr: "pipe" })
       expect(tar.exitCode).toBe(0)
       const hash = createHash("sha256").update(readFileSync(archivePath)).digest("hex")
@@ -34,7 +34,7 @@ for (const locked of ["asset", "binary"] as const) {
       const quote = (path: string) => path.replaceAll("'", "''")
       const command = `$lock = [IO.File]::Open('${quote(lockedPath)}', [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::None); try { & '${quote(script)}' } finally { $lock.Dispose() }`
       const result = Bun.spawnSync(["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", command], {
-        env: { ...process.env, MATHOS_RELEASE_BASE_URL: pathToFileURL(release).href, MATHOS_VERSION: "1.0.0", MATHOS_INSTALL_ROOT: install },
+        env: { ...process.env, MATHOS_RELEASE_BASE_URL: pathToFileURL(release).href, MATHOS_VERSION: "1.0.1", MATHOS_INSTALL_ROOT: install },
         stdout: "pipe", stderr: "pipe",
       })
       expect(result.exitCode).not.toBe(0)

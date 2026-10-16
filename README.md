@@ -11,7 +11,7 @@ Claims, dependencies, Lean formalizations, proof attempts, literature and experi
 An AI assistant can work inside it with you. Only the Lean kernel can mark a claim verified.
 
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-black?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-black?style=flat-square)](package.json)
+[![Version](https://img.shields.io/badge/version-1.0.1-black?style=flat-square)](package.json)
 [![Lean 4](https://img.shields.io/badge/Lean_4-v4.33.1_+_Mathlib-black?style=flat-square)](docs/INSTALLATION.md)
 [![Desktop](https://img.shields.io/badge/desktop-Tauri_2_·_Windows_installer-black?style=flat-square)](apps/desktop/README.md)
 [![Models](https://img.shields.io/badge/model_providers-60%2B_·_local_first-black?style=flat-square)](docs/PROVIDERS.md)
@@ -169,7 +169,7 @@ On first launch, pick a folder or create a workspace (or open the sample project
 Release archives cover Windows (x64), Apple Silicon Macs and Linux (x64). The installer downloads the right one, checks it against `SHA256SUMS` and installs it for your user, without sudo. On Windows, use `install.ps1` as shown in [installation](docs/INSTALLATION.md).
 
 ```sh
-curl -fsSL https://github.com/bakiacikgoz/MathOS/releases/download/v1.0.0/install.sh | MATHOS_VERSION=1.0.0 sh
+curl -fsSL https://github.com/bakiacikgoz/MathOS/releases/download/v1.0.1/install.sh | MATHOS_VERSION=1.0.1 sh
 mathos --version --json
 mathos help
 mkdir prime-gap-research && cd prime-gap-research
@@ -255,7 +255,7 @@ To build and install the `mathos` command for the machine you are on (for exampl
 
 ```sh
 bun run release:build
-MATHOS_VERSION=1.0.0 MATHOS_RELEASE_BASE_URL="file://$PWD/artifacts/releases/1.0.0" sh scripts/install/install.sh
+MATHOS_VERSION=1.0.1 MATHOS_RELEASE_BASE_URL="file://$PWD/artifacts/releases/1.0.1" sh scripts/install/install.sh
 ```
 
 ## License

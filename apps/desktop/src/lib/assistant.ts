@@ -47,12 +47,15 @@ export function messagesBeforeEdit(messages: Message[], pending: Message | null)
 }
 
 /** The message being written right now: parts so far plus the text and reasoning of the current step. */
-export interface LiveTurn { messageId: string | null; parts: Part[]; text: string; reasoning: string; startedAt: number; firstTextAt: number | null; step: number; model: Message["model"] }
+export interface LiveTurn { messageId: string | null; parts: Part[]; text: string; reasoning: string; startedAt: number; firstTextAt: number | null; step: number; model: Message["model"]; retry?: BusyRetry | null }
+/** The provider was busy and the step is being asked again; `at` is when the next attempt starts. */
+export interface BusyRetry { attempt: number; attempts: number; at: number }
 
 function applyEvent(live: LiveTurn, event: JobEvent): LiveTurn {
   switch (event.type) {
     case "message": { const message = event.message as Message; return message.role === "assistant" ? { ...live, messageId: message.id, parts: message.parts ?? [], model: message.model ?? live.model } : live }
-    case "delta": return { ...live, text: live.text + String(event.text ?? ""), reasoning: live.reasoning + String(event.reasoning ?? ""), firstTextAt: live.firstTextAt ?? (event.text ? Date.now() : null) }
+    case "delta": return { ...live, text: live.text + String(event.text ?? ""), reasoning: live.reasoning + String(event.reasoning ?? ""), firstTextAt: live.firstTextAt ?? (event.text ? Date.now() : null), retry: null }
+    case "retry": return { ...live, text: "", reasoning: "", retry: { attempt: Number(event.attempt ?? 1), attempts: Number(event.attempts ?? 1), at: Date.now() + Number(event.waitMs ?? 0) } }
     case "replace": return { ...live, text: String(event.text ?? "") }
     case "step": return { ...live, step: Number(event.index ?? 0), text: "", reasoning: "" }
     case "model": return { ...live, model: event.model as Message["model"] }

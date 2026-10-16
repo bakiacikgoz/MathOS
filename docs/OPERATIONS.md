@@ -6,6 +6,8 @@ Use `mathos doctor --json` and `mathos workspace inspect --json` before release-
 mathos backup --out ./backups
 mathos diagnostics export --out ./support
 mathos plugin doctor
+mathos update                # is a newer release out?
+mathos update install        # install it over this installation
 mathos update check --manifest ./release-update.json --json
 ```
 

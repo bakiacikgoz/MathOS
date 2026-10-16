@@ -3,6 +3,7 @@ import { AppContext, NAV, isSettingsRoute, type AppApi, type RecentWorkspace, ty
 import { detectLang, LangContext, translate, type Lang } from "./lib/i18n.ts"
 import { useTheme } from "./lib/theme.ts"
 import { readPref, writePref } from "./lib/storage.ts"
+import { startAutoCheck } from "./lib/updates.ts"
 import { clearCache } from "./lib/query.ts"
 import { Sidebar } from "./components/Sidebar.tsx"
 import { Palette } from "./components/Palette.tsx"
@@ -48,6 +49,7 @@ export function App() {
   const { toasts, push } = useToasts()
 
   useEffect(() => { document.documentElement.lang = lang }, [lang])
+  useEffect(() => startAutoCheck(), [])
   useEffect(() => { if (workspace) { const id = window.requestIdleCallback?.(preload) ?? window.setTimeout(preload, 300); return () => { window.cancelIdleCallback?.(id as number) } } }, [workspace])
 
   const setLang = useCallback((next: Lang) => { setLangState(next); writePref("lang", next) }, [])

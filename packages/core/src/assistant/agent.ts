@@ -1,4 +1,4 @@
-import type { ModelMessage, ModelProvider } from "@mathos/models"
+import { isTransientModelError, type ModelMessage, type ModelProvider } from "@mathos/models"
 import { AssistantStore, newId } from "./store.ts"
 import { ASSISTANT_TOOLS, assistantTool, leanSummary } from "./tools.ts"
 import type { AssistantCommandRunner, AssistantConversation, AssistantEvent, AssistantMessage, AssistantPart, MeaningReview } from "./types.ts"
@@ -33,7 +33,18 @@ export interface AssistantTurnOptions {
   signal?: AbortSignal
   maxSteps?: number
   now?: () => number
+  /** Waits between attempts when the provider is busy (tests pass a fake). */
+  sleep?: (ms: number, signal?: AbortSignal) => Promise<void>
 }
+
+/** How long to wait before asking a busy provider again: three more attempts over about 17 seconds. */
+export const BUSY_RETRY_DELAYS_MS = [2_000, 5_000, 10_000]
+const abortableSleep = (ms: number, signal?: AbortSignal) => new Promise<void>((resolve) => {
+  if (signal?.aborted) return resolve()
+  const timer = setTimeout(done, ms)
+  function done() { clearTimeout(timer); signal?.removeEventListener("abort", done); resolve() }
+  signal?.addEventListener("abort", done, { once: true })
+})
 
 /** The part of an answer before a tool block: what the user should read while the tool runs. */
 export function splitToolCall(text: string): { visible: string; call: { tool: string; args: Record<string, unknown> } | null; invalid: string | null } {
@@ -259,25 +270,39 @@ export async function runAssistantTurn(options: AssistantTurnOptions): Promise<A
     const nativeTools = provider.capabilities.toolCalling
     const messages: ModelMessage[] = [{ role: "system", content: assistantSystemPrompt(options.workspaceName, context, nativeTools) }, ...transcript(conversation, assistant)]
     let streamed = "", thought = "", firstText: number | null = null
-    const stepStarted = now()
+    let stepStarted = now()
     let response
-    try {
-      response = await provider.generate({
-        messages, role: "researcher", signal, temperature: 0.3,
-        ...(nativeTools ? { tools: [NATIVE_TOOL] } : {}),
-        ...(conversation.effort !== "auto" ? { reasoningEffort: conversation.effort } : {}),
-        onDelta: (delta) => {
-          if (delta.reasoning) { thought += delta.reasoning; emit({ type: "delta", reasoning: delta.reasoning }) }
-          if (delta.text) { firstText ??= now(); streamed += delta.text; emit({ type: "delta", text: delta.text }) }
-        },
-      })
-    } catch (error) {
-      if (thought) parts.push({ type: "reasoning", text: thought, ms: (firstText ?? now()) - stepStarted })
-      const visible = splitToolCall(streamed).visible
-      if (visible) parts.push({ type: "text", text: visible })
-      if (signal?.aborted) return finish("stopped")
-      const message = error instanceof Error ? error.message : String(error)
-      return finish("error", { code: /^([A-Z][A-Z0-9_]{3,})[:\s]/.exec(message)?.[1] ?? (error instanceof Error && error.name !== "Error" ? error.name : "MODEL_ERROR"), message })
+    for (let attempt = 0; ; attempt++) {
+      try {
+        response = await provider.generate({
+          messages, role: "researcher", signal, temperature: 0.3,
+          ...(nativeTools ? { tools: [NATIVE_TOOL] } : {}),
+          ...(conversation.effort !== "auto" ? { reasoningEffort: conversation.effort } : {}),
+          onDelta: (delta) => {
+            if (delta.reasoning) { thought += delta.reasoning; emit({ type: "delta", reasoning: delta.reasoning }) }
+            if (delta.text) { firstText ??= now(); streamed += delta.text; emit({ type: "delta", text: delta.text }) }
+          },
+        })
+        break
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        const busy = !signal?.aborted && isTransientModelError(error)
+        // A busy provider (an overloaded upstream, a rate limit) usually answers a few seconds later: ask the same step again.
+        if (busy && attempt < BUSY_RETRY_DELAYS_MS.length) {
+          const waitMs = BUSY_RETRY_DELAYS_MS[attempt]!
+          emit({ type: "retry", attempt: attempt + 1, attempts: BUSY_RETRY_DELAYS_MS.length, waitMs, message })
+          await (options.sleep ?? abortableSleep)(waitMs, signal)
+          if (signal?.aborted) return finish("stopped")
+          streamed = ""; thought = ""; firstText = null; stepStarted = now()
+          continue
+        }
+        if (thought) parts.push({ type: "reasoning", text: thought, ms: (firstText ?? now()) - stepStarted })
+        const visible = splitToolCall(streamed).visible
+        if (visible) parts.push({ type: "text", text: visible })
+        if (signal?.aborted) return finish("stopped")
+        if (busy) return finish("error", { code: "MODEL_BUSY", message })
+        return finish("error", { code: /^([A-Z][A-Z0-9_]{3,})[:\s]/.exec(message)?.[1] ?? (error instanceof Error && error.name !== "Error" ? error.name : "MODEL_ERROR"), message })
+      }
     }
     if (step === 0 && !assistant.model) { assistant.model = { profile: options.profile, provider: response.provider, model: response.model }; emit({ type: "model", model: assistant.model }) }
     if (assistant.thinkingMs === undefined) assistant.thinkingMs = (firstText ?? now()) - started

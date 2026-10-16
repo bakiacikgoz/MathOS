@@ -1,6 +1,6 @@
 [package]
 name = "mathos-desktop"
-version = "1.0.0"
+version = "1.0.1"
 description = "MathOS desktop app"
 license = "AGPL-3.0-only"
 edition = "2021"

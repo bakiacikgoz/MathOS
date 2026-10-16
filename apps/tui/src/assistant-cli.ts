@@ -71,6 +71,7 @@ export async function assistantCommand(rest: string[]): Promise<number> {
   let printed = false, step = "", shown = 0
   const message = await turn((event) => {
     if (event.type === "step") { step = ""; shown = 0 }
+    else if (event.type === "retry") { if (printed) process.stdout.write("\n"); step = ""; shown = 0; process.stderr.write(`[busy] the model provider is busy; trying again in ${Math.round(event.waitMs / 1000)} s (${event.attempt}/${event.attempts})\n`) }
     else if (event.type === "delta" && event.text) { step += event.text; const visible = step.split(/```(?:mathos-tool|tool)\b/)[0]!.replace(/`{1,2}$/, ""); if (visible.length > shown) { process.stdout.write(visible.slice(shown)); shown = visible.length; printed = true } }
     else if (event.type === "part" && event.part.type === "tool") process.stderr.write(`\n[${event.part.status}] ${event.part.title}\n`)
     else if (event.type === "part" && event.part.type === "document") process.stderr.write(`\n[document] ${event.part.title} (open it in the desktop app to download)\n`)

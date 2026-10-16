@@ -17,6 +17,7 @@ import { Icon } from "../components/Icon.tsx"
 import { MarkGlyph } from "../components/Brand.tsx"
 import { MathEditor } from "../components/MathEditor.tsx"
 import { MathText } from "../components/MathText.tsx"
+import { PickerMenu } from "../components/PickerMenu.tsx"
 import { ProviderLogo } from "./Providers.tsx"
 
 type Lang = "tr" | "en"
@@ -167,7 +168,6 @@ export function Assistant() {
           <div className="chat-head-actions">
             <button className="btn btn-ghost chat-copy-all" onClick={() => void copyAll()} disabled={!current || (!messages.length && !showPending)} aria-label={t("chat.copyAll")} title={t("chat.copyAll")}><Icon name={copiedAll ? "check" : "copy"} size={15} /><span>{copiedAll ? t("chat.copied") : t("chat.copyAll")}</span></button>
             <ContextPicker claimId={settings.claimId} onChange={(claimId) => void updateSettings({ claimId })} />
-            <ModelPicker profile={settings.profile} model={settings.model} onChange={(profile, model) => void updateSettings({ profile, model })} />
           </div>
         </header>
         <Thread
@@ -195,6 +195,7 @@ export function Assistant() {
             <div className="composer-bar">
               <label className="btn btn-ghost btn-icon composer-tool" title={t("chat.attach")}><Icon name="paperclip" size={16} /><input type="file" multiple accept={ATTACH_TYPES} hidden onChange={(event) => { void attach(event.target.files); event.target.value = "" }} /></label>
               <button className={`btn btn-ghost btn-icon composer-tool ${showMath ? "on" : ""}`} onClick={() => setShowMath((value) => !value)} title={t("chat.mathTools")} aria-pressed={showMath}><span className="sigma">∑</span></button>
+              <ModelPicker profile={settings.profile} model={settings.model} onChange={(profile, model) => void updateSettings({ profile, model })} />
               <EffortPicker effort={settings.effort} onChange={(effort) => void updateSettings({ effort })} />
               <span className="composer-spacer" />
               {turn.running
@@ -402,9 +403,19 @@ function LiveMessage({ live, running, onDecide, root }: { live: LiveTurn; runnin
         <TurnProcess view={process} onDecide={onDecide} waiting={false} />
         <ContentParts parts={contentParts(live.parts)} root={root} />
         {text && <Markdown text={text} streaming />}
+        {running && live.retry && <BusyNote retry={live.retry} />}
       </div>
     </div>
   )
+}
+
+/** The provider answered "busy"; the turn waits and asks again by itself. */
+function BusyNote({ retry }: { retry: NonNullable<LiveTurn["retry"]> }) {
+  const { t } = useT()
+  useElapsed(retry.at, true) // re-renders every second for the countdown
+  const seconds = Math.max(0, Math.ceil((retry.at - Date.now()) / 1000))
+  const text = (seconds > 0 ? t("chat.busy.wait") : t("chat.busy.now")).replace("{seconds}", String(seconds)).replace("{attempt}", String(retry.attempt)).replace("{attempts}", String(retry.attempts))
+  return <p className="msg-note busy-note" role="status"><Icon name="refresh" size={13} />{text}</p>
 }
 
 function ContentParts({ parts, root }: { parts: ContentPart[]; root: string }) {
@@ -603,8 +614,8 @@ function ModelPicker({ profile, model, onChange }: { profile: string | null; mod
   const catalog = useCatalog(app.workspace.root)
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
-  const box = useRef<HTMLDivElement>(null)
-  useDismiss(box, open, () => setOpen(false))
+  const box = useRef<HTMLDivElement>(null), menu = useRef<HTMLDivElement>(null)
+  useDismiss(box, open, () => setOpen(false), menu)
   useEffect(() => { if (!open) setQuery("") }, [open])
   const rows = status.data?.profiles ?? []
   const remoteAllowed = status.data?.remoteModelsAllowed !== false
@@ -633,13 +644,13 @@ function ModelPicker({ profile, model, onChange }: { profile: string | null; mod
   }
   const first = groups.find((group) => group.ok)
   return (
-    <div className="picker" ref={box}>
-      <button className="picker-btn" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-haspopup="menu">
-        {active && <ProviderLogo descriptor={{ id: active.descriptor, displayName: describe(active.descriptor)?.displayName ?? active.descriptor }} size={18} />}
-        <span>{label}</span><Icon name="down" size={13} />
+    <div className="picker model-picker" ref={box}>
+      <button className="picker-btn subtle model-btn" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-haspopup="menu" title={t("chat.model.title")}>
+        {active && <ProviderLogo descriptor={{ id: active.descriptor, displayName: describe(active.descriptor)?.displayName ?? active.descriptor }} size={16} />}
+        <span>{label}</span><Icon name="down" size={12} />
       </button>
       {open && (
-        <div className="menu picker-menu model-menu" role="menu">
+        <PickerMenu anchor={box} menuRef={menu} placement="up" className="model-menu" label={t("chat.model.title")}>
           {rows.length > 0 && <div className="model-search">
             <Icon name="search" size={14} />
             <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t("chat.model.search")} aria-label={t("chat.model.search")}
@@ -670,7 +681,7 @@ function ModelPicker({ profile, model, onChange }: { profile: string | null; mod
             {rows.length > 0 && !groups.length && <p className="picker-empty">{t("chat.model.noMatch")}</p>}
           </div>
           <button className="menu-item picker-link" onClick={() => { setOpen(false); app.navigate("providers") }}><Icon name="plug" size={14} />{t("chat.model.manage")}</button>
-        </div>
+        </PickerMenu>
       )}
     </div>
   )
@@ -679,15 +690,15 @@ function ModelPicker({ profile, model, onChange }: { profile: string | null; mod
 function EffortPicker({ effort, onChange }: { effort: Effort; onChange: (effort: Effort) => void }) {
   const { t } = useT()
   const [open, setOpen] = useState(false)
-  const box = useRef<HTMLDivElement>(null)
-  useDismiss(box, open, () => setOpen(false))
+  const box = useRef<HTMLDivElement>(null), menu = useRef<HTMLDivElement>(null)
+  useDismiss(box, open, () => setOpen(false), menu)
   return (
     <div className="picker" ref={box}>
       <button className="picker-btn subtle" onClick={() => setOpen((value) => !value)} aria-expanded={open} title={t("chat.effort.title")}>
         <Icon name="brain" size={14} /><span>{t(`chat.effort.${effort}` as MessageKey)}</span><Icon name="down" size={12} />
       </button>
       {open && (
-        <div className="menu picker-menu up" role="menu">
+        <PickerMenu anchor={box} menuRef={menu} placement="up" label={t("chat.effort.title")}>
           <div className="picker-title">{t("chat.effort.title")}</div>
           {EFFORTS.map((value) => (
             <button key={value} role="menuitemradio" aria-checked={value === effort} className={`menu-item picker-item ${value === effort ? "on" : ""}`} onClick={() => { onChange(value); setOpen(false) }}>
@@ -696,7 +707,7 @@ function EffortPicker({ effort, onChange }: { effort: Effort; onChange: (effort:
               {value === effort && <Icon name="check" size={14} stroke={2.4} />}
             </button>
           ))}
-        </div>
+        </PickerMenu>
       )}
     </div>
   )
@@ -707,8 +718,8 @@ function ContextPicker({ claimId, onChange }: { claimId: string | null; onChange
   const { t } = useT()
   const claims = useClaims(app.workspace.root)
   const [open, setOpen] = useState(false)
-  const box = useRef<HTMLDivElement>(null)
-  useDismiss(box, open, () => setOpen(false))
+  const box = useRef<HTMLDivElement>(null), menu = useRef<HTMLDivElement>(null)
+  useDismiss(box, open, () => setOpen(false), menu)
   const current = claims.data?.find((claim) => claim.id === claimId)
   return (
     <div className="picker" ref={box}>
@@ -716,7 +727,7 @@ function ContextPicker({ claimId, onChange }: { claimId: string | null; onChange
         <Icon name="claims" size={14} /><span>{claimId ? `${claimId}${current ? ` · ${current.title}` : ""}` : t("chat.context.none")}</span><Icon name="down" size={12} />
       </button>
       {open && (
-        <div className="menu picker-menu" role="menu">
+        <PickerMenu anchor={box} menuRef={menu} align="end" label={t("chat.context.title")}>
           <div className="picker-title">{t("chat.context.title")}</div>
           <button className={`menu-item picker-item ${!claimId ? "on" : ""}`} onClick={() => { onChange(null); setOpen(false) }}><span className="picker-item-text"><strong>{t("chat.context.all")}</strong><span>{t("chat.context.allHint")}</span></span>{!claimId && <Icon name="check" size={14} stroke={2.4} />}</button>
           {(claims.data ?? []).map((claim) => (
@@ -725,18 +736,19 @@ function ContextPicker({ claimId, onChange }: { claimId: string | null; onChange
               {claim.id === claimId && <Icon name="check" size={14} stroke={2.4} />}
             </button>
           ))}
-        </div>
+        </PickerMenu>
       )}
     </div>
   )
 }
 
-function useDismiss(ref: React.RefObject<HTMLElement | null>, open: boolean, close: () => void) {
+/** Closes a picker on a click outside its button and its menu (the menu lives in a portal), or on Escape. */
+function useDismiss(ref: React.RefObject<HTMLElement | null>, open: boolean, close: () => void, menu?: React.RefObject<HTMLElement | null>) {
   useEffect(() => {
     if (!open) return
-    const onDown = (event: MouseEvent) => { if (!ref.current?.contains(event.target as Node)) close() }
+    const onDown = (event: MouseEvent) => { const target = event.target as Node; if (!ref.current?.contains(target) && !menu?.current?.contains(target)) close() }
     const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") { event.stopPropagation(); close() } }
     window.addEventListener("mousedown", onDown); window.addEventListener("keydown", onKey, true)
     return () => { window.removeEventListener("mousedown", onDown); window.removeEventListener("keydown", onKey, true) }
-  }, [ref, open, close])
+  }, [ref, menu, open, close])
 }

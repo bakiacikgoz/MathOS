@@ -20,7 +20,7 @@
     },
     "apps/atlas": {
       "name": "@mathos/atlas",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "dependencies": {
         "@mathos/graph": "workspace:*",
         "solid-js": "^1.9.12",
@@ -28,7 +28,7 @@
     },
     "apps/tui": {
       "name": "@mathos/tui",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "bin": {
         "mathos": "./src/cli.ts",
       },
@@ -50,7 +50,7 @@
     },
     "apps/vscode-extension": {
       "name": "mathos",
-      "version": "1.0.0",
+      "version": "1.0.1",
     },
     "packages/computation": {
       "name": "@mathos/computation",
@@ -178,7 +178,7 @@
     },
     "packages/update": {
       "name": "@mathos/update",
-      "version": "1.0.0",
+      "version": "1.0.1",
     },
     "packages/vcs": {
       "name": "@mathos/vcs",

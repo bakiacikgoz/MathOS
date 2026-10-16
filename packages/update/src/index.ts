@@ -41,6 +41,12 @@ function compareVersions(left: Version, right: Version): number {
   return Math.sign(left.prerelease.length - right.prerelease.length)
 }
 
+/** Compares two SemVer strings: negative, zero or positive; null when either is not a version. */
+export function compareVersionStrings(left: string, right: string): number | null {
+  const a = parseVersion(left), b = parseVersion(right)
+  return a && b ? compareVersions(a, b) : null
+}
+
 export function checkUpdate(input: { currentVersion: string; channel: "stable" | "rc"; manifest: UpdateManifest; schemaVersion: number }) {
   const { manifest } = input
   const currentVersion = parseVersion(input.currentVersion)
@@ -157,3 +163,5 @@ export function uninstallMathOS(input: { binary: string; productData: string; us
   }
   return { removed: true, preservedWorkspaces: input.workspaces.map(path => resolve(path)), preservedUserData: !input.purge }
 }
+
+export * from "./release.ts"

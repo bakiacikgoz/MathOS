@@ -146,20 +146,23 @@ function unitTestFiles(): string[] {
   return new TextDecoder().decode(listed.stdout).trim().split("\n").filter((file) => file && !excluded.test(file))
 }
 
+// The same per-test limit as CI: tests that start real processes (doctor runs the Lean toolchain) can pass 5 s on Windows.
+const TEST_TIMEOUT = "--timeout=30000"
+
 function commands(): Record<ReleaseCheckName, string[]> {
   return {
     version: [bun, "apps/tui/src/cli.ts", "--version"],
     typecheck: [bun, "run", "typecheck"],
-    "unit-integration-tests": [bun, "test", ...unitTestFiles()],
-    "verification-trust-tests": [bun, "test", "tests/verification-trust.test.ts"],
-    "sandbox-security-tests": [bun, "test", "tests/sandbox.test.ts", "tests/sandbox-security.test.ts"],
-    migrations: [bun, "test", "tests/release.test.ts", "-t", "fresh migrate is idempotent"],
-    "schema-too-new": [bun, "test", "tests/release.test.ts", "-t", "newer schema guard"],
-    "fresh-init": [bun, "test", "tests/core.test.ts", "-t", "creates layout, database, and event log"],
-    "backup-restore": [bun, "test", "tests/release.test.ts", "-t", "backup restore semantic equivalence"],
-    "secret-redaction": [bun, "test", "tests/release.test.ts", "-t", "secret canary does not leak"],
-    "event-rebuild": [bun, "test", "tests/event-projection.test.ts", "-t", "rebuild"],
-    "package-smoke": [bun, "test", "tests/package-smoke.test.ts"],
+    "unit-integration-tests": [bun, "test", TEST_TIMEOUT, ...unitTestFiles()],
+    "verification-trust-tests": [bun, "test", TEST_TIMEOUT, "tests/verification-trust.test.ts"],
+    "sandbox-security-tests": [bun, "test", TEST_TIMEOUT, "tests/sandbox.test.ts", "tests/sandbox-security.test.ts"],
+    migrations: [bun, "test", TEST_TIMEOUT, "tests/release.test.ts", "-t", "fresh migrate is idempotent"],
+    "schema-too-new": [bun, "test", TEST_TIMEOUT, "tests/release.test.ts", "-t", "newer schema guard"],
+    "fresh-init": [bun, "test", TEST_TIMEOUT, "tests/core.test.ts", "-t", "creates layout, database, and event log"],
+    "backup-restore": [bun, "test", TEST_TIMEOUT, "tests/release.test.ts", "-t", "backup restore semantic equivalence"],
+    "secret-redaction": [bun, "test", TEST_TIMEOUT, "tests/release.test.ts", "-t", "secret canary does not leak"],
+    "event-rebuild": [bun, "test", TEST_TIMEOUT, "tests/event-projection.test.ts", "-t", "rebuild"],
+    "package-smoke": [bun, "test", TEST_TIMEOUT, "tests/package-smoke.test.ts"],
     "lean-smoke": [bun, "scripts/lean-smoke.ts"],
     "research-regression": [bun, "scripts/research-regression.ts"],
     "ux-regression": [bun, "scripts/ux-regression.ts"],

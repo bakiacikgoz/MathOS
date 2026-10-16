@@ -1,6 +1,6 @@
 # MathOS platform support
 
-| Platform | 1.0.0 download | Sandboxed computation | Status |
+| Platform | 1.0.1 download | Sandboxed computation | Status |
 |---|---|---|---|
 | Windows 11 x64 | Desktop installer and the `mathos` command | Docker container, runtime probe required | Qualified on real hardware |
 | macOS arm64 | The `mathos` command | Docker container, runtime probe required | Qualified on real hardware |
@@ -17,7 +17,7 @@ workflows. A detected binary is not enough: release qualification must prove the
 relevant smoke test. Firejail and macOS `sandbox-exec` are not accepted as production
 backends in 1.0.
 
-MathOS 1.0.0 is qualified on Windows 11 x64 and macOS arm64.
+MathOS 1.0.1 is qualified on Windows 11 x64 and macOS arm64.
 Other compilation targets are not a promise of qualified public support. CI builds and downloaded
 Actions artifacts do not replace installer, provider, Lean, Docker, Extension Host
 and human meaning acceptance on the final source revision.
