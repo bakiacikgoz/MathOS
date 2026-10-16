@@ -331,6 +331,9 @@ kbd { font-family: var(--f-code); font-size: 0.8em; background: var(--card); bor
 .cmd { display: flex; align-items: center; gap: 8px; min-width: 0; border-radius: 14px; background: rgb(255 255 255 / .07); padding: 6px 6px 6px 16px; margin-bottom: 10px; }
 .cmd pre { margin: 0; flex: 1; min-width: 0; overflow-x: auto; white-space: pre; font-size: 0.8rem; line-height: 1.5; padding-block: 8px; scrollbar-width: thin; color: #f1f1f3; }
 .cmd pre::before { content: "$ "; color: #8b8b92; }
+.cmd.ps pre::before { content: "PS> "; }
+.cmd-label { display: block; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em; color: #a8a8ae; margin: 0 0 6px 2px; }
+.install .warn a, .install .small-note a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 .copy { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 10px; border: 0; background: transparent; color: #a8a8ae; cursor: pointer; }
 .copy:hover { background: rgb(255 255 255 / .1); color: #fff; }
 .copy svg { width: 17px; height: 17px; }
@@ -637,11 +640,11 @@ kbd { font-family: var(--f-code); font-size: 0.8em; background: var(--card); bor
         <div class="actions">
           <a class="btn" href="https://github.com/bakiacikgoz/MathOS" target="_blank" rel="noopener" data-dl="repo">
             <svg class="ico" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-            <span data-i18n="inst_repo">GitHub'da takip et</span>
+            <span class="when-soon" data-i18n="inst_repo">GitHub'da takip et</span><span class="when-out" data-i18n="inst_release">Sürüm notları ve tüm dosyalar</span>
           </a>
           <a class="btn ghost" href="https://github.com/bakiacikgoz/MathOS/blob/main/docs/QUICKSTART.md" target="_blank" rel="noopener" data-i18n="inst_quick">Hızlı başlangıç</a>
         </div>
-        <p class="warn" data-i18n="inst_warn">Kurulum dosyaları henüz kod imzalı değil. Windows SmartScreen uyarırsa <b>Ek bilgi → Yine de çalıştır</b>'ı seç; macOS komutu engellerse Sistem Ayarları'ndan izin ver. İstersen dosyayı önce <span class="mono">SHA256SUMS</span> ile doğrula.</p>
+        <p class="warn" data-i18n="inst_warn">Kurulum dosyaları henüz kod imzalı değil. Windows SmartScreen uyarırsa <b>Ek bilgi → Yine de çalıştır</b>'ı seç; macOS komutu engellerse Sistem Ayarları'ndan izin ver. İstersen dosyayı önce <a class="mono" href="https://github.com/bakiacikgoz/MathOS/releases/download/v1.0.0/SHA256SUMS" target="_blank" rel="noopener">SHA256SUMS</a> ile doğrula.</p>
       </div>
       <div>
         <ul class="platforms">
@@ -662,7 +665,8 @@ kbd { font-family: var(--f-code); font-size: 0.8em; background: var(--card); bor
             <a class="btn small pl-btn" href="https://github.com/bakiacikgoz/MathOS" target="_blank" rel="noopener" data-dl="vsix"><span class="when-out" data-i18n="dl_short">İndir</span><span class="when-soon" data-i18n="soon">Yakında</span><span class="pl-file mono">.vsix</span></a>
           </li>
         </ul>
-        <h3 data-i18n="cli_title">macOS ve Linux'ta tek komutla kur</h3>
+        <h3 data-i18n="cli_title">Komut satırından tek komutla kur</h3>
+        <span class="cmd-label" data-i18n="cli_unix">macOS · Linux</span>
         <div class="cmd">
           <pre id="cmd-unix">curl -fsSL https://github.com/bakiacikgoz/MathOS/releases/download/v1.0.0/install.sh | MATHOS_VERSION=1.0.0 sh</pre>
           <button class="copy" type="button" data-copy="cmd-unix" data-i18n-aria="copy" aria-label="Komutu kopyala">
@@ -670,7 +674,15 @@ kbd { font-family: var(--f-code); font-size: 0.8em; background: var(--card); bor
             <svg class="ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
           </button>
         </div>
-        <p class="small-note"><span class="when-soon" data-i18n="cli_soon">Komut 1.0 yayınlanınca çalışır.</span> <span data-i18n="cli_note">Kurucu doğru arşivi indirir, <span class="mono">SHA256SUMS</span> ile karşılaştırır ve sudo olmadan kurar. macOS masaüstü uygulaması şimdilik kaynaktan derlenir.</span></p>
+        <span class="cmd-label" data-i18n="cli_win">Windows · PowerShell</span>
+        <div class="cmd ps">
+          <pre id="cmd-win">$env:MATHOS_VERSION='1.0.0'; irm https://github.com/bakiacikgoz/MathOS/releases/download/v1.0.0/install.ps1 | iex</pre>
+          <button class="copy" type="button" data-copy="cmd-win" data-i18n-aria="copy" aria-label="Komutu kopyala">
+            <svg class="cp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>
+            <svg class="ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+          </button>
+        </div>
+        <p class="small-note"><span class="when-soon" data-i18n="cli_soon">Komut 1.0 yayınlanınca çalışır.</span> <span data-i18n="cli_note">Kurucu doğru arşivi indirir, <span class="mono">SHA256SUMS</span> ile karşılaştırır ve yönetici izni istemeden yalnız senin kullanıcına kurar. macOS ve Linux masaüstü uygulaması şimdilik kaynaktan derlenir.</span></p>
       </div>
     </div>
   </section>
@@ -692,7 +704,7 @@ kbd { font-family: var(--f-code); font-size: 0.8em; background: var(--card); bor
 <script>
 (() => {
   // ---------- Sürüm durumu: 1.0 yayınlanınca YAYINDA = true yapmak yeterli ----------
-  const YAYINDA = false;
+  const YAYINDA = true;
   const SURUM = '1.0.0';
   const REPO = 'https://github.com/bakiacikgoz/MathOS';
   const DOSYA = {
@@ -787,12 +799,12 @@ kbd { font-family: var(--f-code); font-size: 0.8em; background: var(--card); bor
     inst_title_soon: 'MathOS 1.0 is coming.', inst_title: 'Install MathOS 1.0.',
     inst_lede_soon: 'The first release is in final acceptance testing. Download links open here when it ships; until then you can follow along on GitHub.',
     inst_lede: 'On first launch, pick a folder or open the sample project. Connect a model in Settings. Lean and Mathlib install in the background.',
-    inst_repo: 'Follow on GitHub', inst_quick: 'Quickstart',
-    inst_warn: 'The installers are not code-signed yet. If Windows SmartScreen warns, choose <b>More info → Run anyway</b>; if macOS blocks the command, allow it in System Settings. You can verify a download with <span class="mono">SHA256SUMS</span> first.',
+    inst_repo: 'Follow on GitHub', inst_release: 'Release notes and all files', inst_quick: 'Quickstart',
+    inst_warn: 'The installers are not code-signed yet. If Windows SmartScreen warns, choose <b>More info → Run anyway</b>; if macOS blocks the command, allow it in System Settings. You can verify a download with <a class="mono" href="https://github.com/bakiacikgoz/MathOS/releases/download/v1.0.0/SHA256SUMS" target="_blank" rel="noopener">SHA256SUMS</a> first.',
     pl_win: 'Desktop app · Windows 10 and 11 (x64)', pl_mac: 'Command line · Apple Silicon (M1 and later)', pl_linux: 'Command line · x64', pl_vsix: 'Companion extension · objective, claims and Atlas in the sidebar',
-    dl_short: 'Download', cli_title: 'Install with one command on macOS and Linux', copy: 'Copy command',
+    dl_short: 'Download', cli_title: 'Install from the command line', cli_unix: 'macOS · Linux', cli_win: 'Windows · PowerShell', copy: 'Copy command',
     cli_soon: 'The command works once 1.0 is released.',
-    cli_note: 'The installer downloads the right archive, checks it against <span class="mono">SHA256SUMS</span> and installs it without sudo. The macOS desktop app is built from source for now.',
+    cli_note: 'The installer downloads the right archive, checks it against <span class="mono">SHA256SUMS</span> and installs it for your user only, without administrator rights. The desktop app for macOS and Linux is built from source for now.',
     foot_lic: '© 2026 Baki Açıkgöz · AGPL-3.0-only · Commercial licenses on request', foot_nav: 'Links', foot_docs: 'Docs', foot_license: 'License',
     t_dark: 'Switch to dark theme', t_light: 'Switch to light theme', copied: 'Copied', checking: 'Checking',
     meta: 'MathOS: a local research environment for mathematicians where AI proposes and the Lean kernel decides.'
